@@ -174,7 +174,7 @@ $tweaks = @(
     
     ### GPD Win Specific Tweaks ###
     # "DisableConnectedStandby",
-    "DisableHibernation",
+    # "DisableHibernation",
     # "DisableUpdateDriver", #Added here as well as it's so important for the WIN
     # "EnableBigDesktopIcons",
     # "DisableGPDWinServices",
@@ -274,7 +274,7 @@ $niniteapps = @(
     # "winamp",
     # "windirstat",
     # "winmerge",
-    "winrar",
+    # "winrar",
     # "winscp",
     # "xnview"
 )
