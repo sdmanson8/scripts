@@ -1,9 +1,7 @@
 # Windows Optimization Script
 
-Write-Host Running 1st Optimizer Script
 Start-Process C:\Optimizer.bat
 
-Write-Host Running 2nd Optimizer Script
 ##########
 # Win10 Optimization Script With Extra GPD Win Tweaks
 # Adapted version of https://github.com/Disassembler0/Win10-Initial-Setup-Script by Disassembler <disassembler@dasm.cz>
@@ -17,9 +15,11 @@ Write-Host Running 2nd Optimizer Script
 
 <#
 Release Notes:
+
 v2.0
 - Complete overhaul, fully based on https://github.com/Disassembler0/Win10-Initial-Setup-Script now
 - Migrated my tweaks to the new system
+
 v2.1
 - More GPD Win service tweaks
 - Even more services to disable
@@ -27,22 +27,30 @@ v2.1
 - Disable the compatibility appraiser
 - Minor cleanup
 - Enabled more default tweaks
+
 v2.2
 - Improved the way applications get installed by Ninite, you can now easily decide what apps (not) to install
+
 v2.2.1
 - Fixed Ninite install bug causing the script to endlessly loop (yikes!)
 - Tried to keep some reg edits more silent
+
 Copyright:
+
 MIT License
+
 Copyright (c) 2017 BlackDragonBE
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
+
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -50,9 +58,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-#>
 
-################### START TWEAKING BELOW THIS LINE #################
+#>
 
 # Tweaks
 # A # in front means it won't run.
@@ -195,11 +202,11 @@ $tweaks = @(
 # A # in front means it won't install
 $niniteapps = @(
     ".net4.7",
-    # "7zip",
+    "7zip",
     # "adaware",
     # "aimp",
     # "air",
-    # "audacity",
+    "audacity",
     # "avast",
     # "avg",
     # "avira",
@@ -207,28 +214,28 @@ $niniteapps = @(
     # "cdburnerxp",
     "chrome",
     # "classicstart",
-    # "cutepdf",
+    "cutepdf",
     # "dropbox",
     # "eclipse",
     # "emule",
     # "essentials",
-    # "evernote",
-    # "everything",
+    "evernote",
+    "everything",
     # "faststone",
     # "filezilla",
     # "firefox",
     # "foobar",
-    # "foxit",
+    "foxit",
     # "gimp",
     # "glary",
     # "gom",
-    "googledrive",
+    # "googledrive",
     # "googleearth",
     # "greenshot",
     # "handbrake",
     # "imgburn",
     # "infrarecorder",
-    # "inkscape",
+    "inkscape",
     # "irfanview",
     # "itunes",
     # "java8",
@@ -251,35 +258,35 @@ $niniteapps = @(
     # "pdfcreator",
     # "peazip",
     # "pidgin",
-    "putty",
+    # "putty",
     # "python",
-    # "qbittorrent",
+    "qbittorrent",
     # "realvnc",
     # "revo",
     # "shockwave",
-    "silverlight",
-    # "skype",
-    "spotify",
+    # "silverlight",
+    "skype",
+    # "spotify",
     # "spybot2",
-    # "steam",
+    "steam",
     # "sugarsync",
     # "sumatrapdf",
     # "super",
-    # "teamviewer12",
-    "teracopy",
+    "teamviewer12",
+    # "teracopy",
     # "thunderbird",
     # "trillian",
-    "vlc",
+    # "vlc",
     # "vscode",
     # "winamp",
-    # "windirstat",
+    "windirstat",
     # "winmerge",
     # "winrar",
     # "winscp",
-    # "xnview"
+    "xnview"
 )
 
-################### DO NOT EDIT BELOW THIS LINE #################
+
 
 ##########
 # Privacy Settings
