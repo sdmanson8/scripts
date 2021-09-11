@@ -19,12 +19,13 @@ Remove-Item $TempDir\$fileName
 #PAUSE
 #& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1"
 
-#Write-Host Running Sophia Script
+#Write-Host Running Sophia Script (Powershell)
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 #& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1'
 
 #Open Wrapper (GUI)
-Invoke-Expression "& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe'"
+Write-Host Openning Wrapper (GUI)
+Start-Process -FilePath 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe'
 
 PAUSE
 Write-Host Removing Sophia Script Folder
