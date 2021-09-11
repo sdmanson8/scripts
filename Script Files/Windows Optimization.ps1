@@ -278,7 +278,6 @@ $niniteapps = @(
     "teracopy",
     # "thunderbird",
     # "trillian",
-    "vlc",
     # "vscode",
     # "winamp",
     # "windirstat",
