@@ -1,3 +1,0 @@
-1. Open CMD Admin
-2. cd %PROGRAMFILES(X86)%\Microsoft\Edge\Application\8*\Installer
-3. setup --uninstall --force-uninstall --system-level
