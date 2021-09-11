@@ -15,13 +15,16 @@ Write-Host Extracting release files
 Expand-Archive -path "$TempDir\$fileName" -DestinationPath "C:\Sophia Script Master"
 Remove-Item $TempDir\$fileName
 
-#Open Sophia Script File
-PAUSE
-& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
+#Open Sophia Script File (Powershell)
+#PAUSE
+#& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
 
 #Write-Host Running Sophia Script
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1'
+#Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+#& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1'
+
+#Open Wrapper (GUI)
+& "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe"
 
 PAUSE
 Write-Host Removing Sophia Script Folder
