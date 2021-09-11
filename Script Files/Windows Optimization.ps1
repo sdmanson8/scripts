@@ -151,13 +151,13 @@ $tweaks = @(
 	"EnableNumlock",                # "DisableNumlock",
 
 	### Application Tweaks ###
-	"DisableOneDrive",              # "EnableOneDrive",
-	"UninstallOneDrive",            # "InstallOneDrive",
+	# "DisableOneDrive",            # "EnableOneDrive",
+	# "UninstallOneDrive",          # "InstallOneDrive",
 	"UninstallMsftBloat",           # "InstallMsftBloat",
 	"UninstallThirdPartyBloat",     # "InstallThirdPartyBloat",
 	# "UninstallWindowsStore",      # "InstallWindowsStore",
 	"DisableXboxFeatures",          # "EnableXboxFeatures",
-	"DisableAdobeFlash",            # "EnableAdobeFlash",
+	# "DisableAdobeFlash",          # "EnableAdobeFlash",
 	"UninstallMediaPlayer",         # "InstallMediaPlayer",
 	"UninstallWorkFolders",         # "InstallWorkFolders",
 	# "InstallLinuxSubsystem",      # "UninstallLinuxSubsystem",
