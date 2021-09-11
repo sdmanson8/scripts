@@ -23,7 +23,7 @@ Remove-Item $TempDir\$fileName
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 #& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1'
 
-#Open Wrapper (GUI)
+#Open Wrapper
 Write-Host Openning Wrapper
 Start-Process -FilePath 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe'
 
