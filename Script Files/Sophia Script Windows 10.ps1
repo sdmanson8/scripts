@@ -15,7 +15,7 @@ Write-Host Extracting release files
 Expand-Archive -path "$TempDir\$fileName" -DestinationPath "C:\Sophia Script Master"
 Remove-Item $TempDir\$fileName
 
-#Open Sophia Script File (Powershell)
+#Open Sophia Script File
 #PAUSE
 #& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1"
 
