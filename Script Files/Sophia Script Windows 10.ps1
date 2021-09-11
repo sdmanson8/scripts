@@ -24,7 +24,7 @@ Remove-Item $TempDir\$fileName
 #& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1'
 
 #Open Wrapper (GUI)
-& "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe"
+Invoke-Expression "& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe'"
 
 PAUSE
 Write-Host Removing Sophia Script Folder
