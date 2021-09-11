@@ -1,7 +1,9 @@
 # Windows Optimization Script
 
+Write-Host Running 1st Optimizer Script
 Start-Process C:\Optimizer.bat
 
+Write-Host Running 2st Optimizer Script
 ##########
 # Win10 Optimization Script With Extra GPD Win Tweaks
 # Adapted version of https://github.com/Disassembler0/Win10-Initial-Setup-Script by Disassembler <disassembler@dasm.cz>
