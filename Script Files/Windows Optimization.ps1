@@ -178,7 +178,7 @@ $tweaks = @(
     "CleanWinSXS", # Takes a whie but frees up a lot of space
     "DownloadShutup10",
     "RemoveUnneededComponents",
-    "DisableWindowsSearch",         # "EnableWindowsSearch",
+    # "DisableWindowsSearch",         "EnableWindowsSearch",
     "DisableCompatibilityAppraiser",
     
     ### GPD Win Specific Tweaks ###
