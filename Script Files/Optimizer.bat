@@ -837,12 +837,12 @@ ClassicStartMenu.exe -xml "C:\Windows\Custom\startmenu.xml" 1>NUL 2>NUL
 del /f /q "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\startup.bat" 1>NUL 2>NUL
 
 :: Countdown
-cls
-for %%r in (5 4 3 2 1) do (
-echo Restarting in %%r...
-timeout 1 1>NUL 2>NUL
-cls
-)
+:: cls
+:: for %%r in (5 4 3 2 1) do (
+:: echo Restarting in %%r...
+:: timeout 1 1>NUL 2>NUL
+:: cls
+:: )
 
 :: Force restart
-shutdown /r /f /t 0
+:: shutdown /r /f /t 0
