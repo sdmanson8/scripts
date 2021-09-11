@@ -8,6 +8,7 @@ Add-WUServiceManager -MicrosoftUpdate
 Write-Host List Available Windows Updates
 Get-WindowsUpdate
 
+PAUSE
 #Install all available Updates & Reboot if Required
 Write-Host Install Windows Updates
 Install-WindowsUpdate -AcceptAll -AutoReboot
