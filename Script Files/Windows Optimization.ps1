@@ -1,8 +1,5 @@
 # Windows Optimization Script
 
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Optimizer.bat
-    Invoke-Expression $($ScriptFromGithHub.Content)
-
 # Tweaks
 # A # in front means it won't run.
 $tweaks = @(
