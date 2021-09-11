@@ -1,5 +1,10 @@
 # Windows Optimization Script
 
+Write-Host Running 1st Optimizer Script
+& C:\Optimizer.bat
+
+Write-Host Running 2nd Optimizer Script
+
 # Tweaks
 # A # in front means it won't run.
 $tweaks = @(
