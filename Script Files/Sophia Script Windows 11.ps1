@@ -25,7 +25,8 @@ Remove-Item $TempDir\$fileName
 
 PAUSE
 #Open Wrapper (GUI)
-& "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe"
+cd "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper"
+& .\SophiaScriptWrapper.exe
 
 PAUSE
 Write-Host Removing Sophia Script Folder
