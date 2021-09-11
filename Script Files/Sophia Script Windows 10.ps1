@@ -25,7 +25,7 @@ Remove-Item $TempDir\$fileName
 
 PAUSE
 #Open Wrapper
-Write-Host Openning Wrapper
+Write-Host Running Wrapper
 Start-Process -FilePath 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper\SophiaScriptWrapper.exe'
 
 PAUSE
