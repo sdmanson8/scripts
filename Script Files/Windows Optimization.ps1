@@ -88,7 +88,7 @@ $tweaks = @(
 
 	### Service Tweaks ###
 	"SetUACLow",                    # "SetUACHigh",
-	# "EnableSharingMappedDrives",  # "DisableSharingMappedDrives",
+	"EnableSharingMappedDrives",    # "DisableSharingMappedDrives",
 	"DisableAdminShares",           # "EnableAdminShares",
 	# "DisableSMB1",                # "EnableSMB1",
 	"SetCurrentNetworkPrivate",     # "SetCurrentNetworkPublic",
@@ -103,14 +103,14 @@ $tweaks = @(
 	"DisableHomeGroups",            # "EnableHomeGroups",
 	"DisableSharedExperiences",     # "EnableSharedExperiences",
 	"DisableRemoteAssistance",      # "EnableRemoteAssistance",
-	"DisableRemoteDesktop",         # "EnableRemoteDesktop",
+	#"DisableRemoteDesktop",        # "EnableRemoteDesktop",
 	"DisableAutoplay",              # "EnableAutoplay",
 	"DisableAutorun",               # "EnableAutorun",
 	"EnableStorageSense",           # "DisableStorageSense",
 	# "DisableDefragmentation",     # "EnableDefragmentation",
 	"DisableSuperfetch",            # "EnableSuperfetch",
 	"DisableIndexing",              # "EnableIndexing",
-	# "SetBIOSTimeUTC",             # "SetBIOSTimeLocal",
+	# "SetBIOSTimeUTC",             "SetBIOSTimeLocal",
 	"DisableHibernation",           # "EnableHibernation",
 	"DisableFastStartup",           # "EnableFastStartup",
 
