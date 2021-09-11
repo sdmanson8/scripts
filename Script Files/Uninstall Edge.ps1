@@ -18,5 +18,4 @@ Remove-Item "C:\uninstall_edge"
 
 PAUSE
 Write-Host Uninstalling Edge Latest
-cd %PROGRAMFILES(X86)%\Microsoft\Edge\Application\8*\Installer
-setup --uninstall --force-uninstall --system-level
+PowerShell -Command "Get-AppxPackage *edge* | Remove-AppxPackage"
