@@ -23,10 +23,9 @@ Remove-Item $TempDir\$fileName
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 #& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1'
 
-PAUSE
-#Open Wrapper (GUI)
-cd "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper"
-& .\SophiaScriptWrapper.exe
+#Open Wrapper from Windows Explorer
+cd 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper'
+ii .
 
 PAUSE
 Write-Host Removing Sophia Script Folder
