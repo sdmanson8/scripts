@@ -233,10 +233,10 @@ reg add "HKCU\Control Panel\Desktop" /v "JPEGImportQuality" /t REG_DWORD /d "100
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "MultipleInvokePromptMinimum" /t REG_DWORD /d "999" /f 1>NUL 2>NUL
 
 :: Replace "Personalize" with "Appearance" in desktop context menu
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Personalize" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Personalize" -ot reg -actn ace -ace "n:Administrators;p:full"
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Personalize\command" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Personalize\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Personalize"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Personalize"  reg  ace -ace "n:Administrators"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Personalize\command"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Personalize\command"  reg  ace -ace "n:Administrators"
 reg delete "HKCR\DesktopBackground\Shell\Personalize" /f 1>NUL 2>NUL
 reg add "HKCR\DesktopBackground\Shell\01Appearance" /v "Icon" /t REG_SZ /d "display.dll,-1" /f 1>NUL 2>NUL
 reg add "HKCR\DesktopBackground\Shell\01Appearance" /v "MUIVerb" /t REG_SZ /d "Appearance" /f 1>NUL 2>NUL
@@ -272,10 +272,10 @@ reg add "HKCR\DesktopBackground\Shell\01Appearance\Shell\08Taskbar" /v "Settings
 reg add "HKCR\DesktopBackground\Shell\01Appearance\Shell\08Taskbar\command" /v "DelegateExecute" /t REG_SZ /d "{556FF0D6-A1EE-49E5-9FA4-90AE116AD744}" /f 1>NUL 2>NUL
 
 :: Replace "Display Settings" with "Settings" in desktop context menu
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Display" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Display" -ot reg -actn ace -ace "n:Administrators;p:full"
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Display\command" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\DesktopBackground\Shell\Display\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Display"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Display"  reg  ace -ace "n:Administrators"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Display\command"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\DesktopBackground\Shell\Display\command"  reg  ace -ace "n:Administrators"
 reg delete "HKCR\DesktopBackground\Shell\Display" /f 1>NUL 2>NUL
 reg add "HKCR\DesktopBackground\Shell\02Settings" /v "Icon" /t REG_SZ /d "SystemSettingsBroker.exe" /f 1>NUL 2>NUL
 reg add "HKCR\DesktopBackground\Shell\02Settings" /v "MUIVerb" /t REG_SZ /d "Settings" /f 1>NUL 2>NUL
@@ -335,10 +335,10 @@ reg add "HKCR\DesktopBackground\Shell\02Settings\shell\13Update" /v "SettingsURI
 reg add "HKCR\DesktopBackground\Shell\02Settings\shell\13Update\command" /v "DelegateExecute" /t REG_SZ /d "{556FF0D6-A1EE-49E5-9FA4-90AE116AD744}" /f 1>NUL 2>NUL
 
 :: Add "Open Command Prompt here" to context menus
-powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\cmd" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\cmd" -ot reg -actn ace -ace "n:Administrators;p:full"
-powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\cmd\command" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\cmd\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+::powershell.exe Set-ACL "HKCR\Directory\shell\cmd"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\Directory\shell\cmd"  reg  ace -ace "n:Administrators"
+::powershell.exe Set-ACL "HKCR\Directory\shell\cmd\command"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\Directory\shell\cmd\command"  reg  ace -ace "n:Administrators"
 reg delete "HKCR\Directory\shell\cmd" /f 1>NUL 2>NUL
 reg add "HKCR\Directory\shell\runas" /v "" /t REG_SZ /d "Open Command Prompt here" /f 1>NUL 2>NUL
 reg add "HKCR\Directory\shell\runas" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>NUL 2>NUL
@@ -346,10 +346,10 @@ reg add "HKCR\Directory\shell\runas" /v "NeverDefault" /t REG_SZ /d "" /f 1>NUL 
 reg add "HKCR\Directory\shell\runas" /v "NoWorkingDirectory" /t REG_SZ /d "" /f 1>NUL 2>NUL
 reg add "HKCR\Directory\shell\runas" /v "Position" /t REG_SZ /d "Top" /f 1>NUL 2>NUL
 reg add "HKCR\Directory\shell\runas\command" /v "" /t REG_SZ /d "cmd.exe /s /k pushd \"%%V\"" /f 1>NUL 2>NUL
-powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\cmd" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\cmd" -ot reg -actn ace -ace "n:Administrators;p:full"
-powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\cmd\command" -ot reg -actn setowner -ownr "n:Administrators"
-powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\cmd\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+::powershell.exe Set-ACL "HKCR\Directory\Background\shell\cmd"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\Directory\Background\shell\cmd"  reg  ace -ace "n:Administrators"
+::powershell.exe Set-ACL "HKCR\Directory\Background\shell\cmd\command"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\Directory\Background\shell\cmd\command"  reg  ace -ace "n:Administrators"
 reg delete "HKCR\Directory\Background\shell\cmd" /f 1>NUL 2>NUL
 reg add "HKCR\Directory\Background\shell\runas" /v "" /t REG_SZ /d "Open Command Prompt here" /f 1>NUL 2>NUL
 reg add "HKCR\Directory\Background\shell\runas" /v "Icon" /t REG_SZ /d "cmd.exe" /f 1>NUL 2>NUL
@@ -371,15 +371,15 @@ reg add "HKCR\LibraryFolder\background\shell\runas" /v "Position" /t REG_SZ /d "
 reg add "HKCR\LibraryFolder\background\shell\runas\command" /v "" /t REG_SZ /d "cmd.exe /s /k pushd \"%%V\"" /f 1>NUL 2>NUL
 
 :: Remove "Open PowerShell window here" from Shift+Right-click context menus
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\Powershell" -ot reg -actn setowner -ownr "n:Administrators"
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\Powershell" -ot reg -actn ace -ace "n:Administrators;p:full"
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\Powershell\command" -ot reg -actn setowner -ownr "n:Administrators"
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\shell\Powershell\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+:: powershell.exe Set-ACL "HKCR\Directory\shell\Powershell"  reg  setowner -ownr "n:Administrators"
+:: powershell.exe Set-ACL "HKCR\Directory\shell\Powershell"  reg  ace -ace "n:Administrators"
+:: powershell.exe Set-ACL "HKCR\Directory\shell\Powershell\command"  reg  setowner -ownr "n:Administrators"
+:: powershell.exe Set-ACL "HKCR\Directory\shell\Powershell\command"  reg  ace -ace "n:Administrators"
 :: reg delete "HKCR\Directory\shell\Powershell" /f 1>NUL 2>NUL
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\Powershell" -ot reg -actn setowner -ownr "n:Administrators"
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\Powershell" -ot reg -actn ace -ace "n:Administrators;p:full"
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\Powershell\command" -ot reg -actn setowner -ownr "n:Administrators"
-:: powershell.exe Set-ACL -silent -on "HKCR\Directory\Background\shell\Powershell\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+:: powershell.exe Set-ACL "HKCR\Directory\Background\shell\Powershell"  reg  setowner -ownr "n:Administrators"
+:: powershell.exe Set-ACL "HKCR\Directory\Background\shell\Powershell"  reg  ace -ace "n:Administrators"
+:: powershell.exe Set-ACL "HKCR\Directory\Background\shell\Powershell\command"  reg  setowner -ownr "n:Administrators"
+:: powershell.exe Set-ACL "HKCR\Directory\Background\shell\Powershell\command"  reg  ace -ace "n:Administrators"
 :: reg delete "HKCR\Directory\Background\shell\Powershell" /f 1>NUL 2>NUL
 
 :: Enable Windows Installer in Safe Mode
@@ -451,8 +451,8 @@ reg delete "HKLM\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Explorer\
 ::reg add "HKCR\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Remove Network from Navigation Pane
-::powershell.exe Set-ACL -silent -on "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}" -ot reg -actn setowner -ownr "n:Administrators"
-::powershell.exe Set-ACL -silent -on "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}" -ot reg -actn ace -ace "n:Administrators;p:full"
+::powershell.exe Set-ACL "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}"  reg  setowner -ownr "n:Administrators"
+::powershell.exe Set-ACL "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}"  reg  ace -ace "n:Administrators"
 ::reg add "HKCR\CLSID\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Remove external drives from Navigation Pane
