@@ -166,7 +166,7 @@ reg add "HKCU\Control Panel\Mouse" /v "MouseThreshold1" /t REG_DWORD /d "0" /f 1
 reg add "HKCU\Control Panel\Mouse" /v "MouseThreshold2" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Disable Network Location Wizard prompts
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff" /f 1>NUL 2>NUL
+::reg add "HKLM\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff" /f 1>NUL 2>NUL
 
 :: Disable Gamebar
 reg add "HKCU\System\GameConfigStore" /v "GameDVR_Enabled" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
@@ -836,13 +836,13 @@ ClassicStartMenu.exe -xml "C:\Windows\Custom\startmenu.xml" 1>NUL 2>NUL
 :: Delete startup shortcut
 del /f /q "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\startup.bat" 1>NUL 2>NUL
 
-:: Countdown
-:: cls
-:: for %%r in (5 4 3 2 1) do (
-:: echo Restarting in %%r...
-:: timeout 1 1>NUL 2>NUL
-:: cls
-:: )
+Countdown
+cls
+for %%r in (5 4 3 2 1) do (
+echo Restarting in %%r...
+timeout 1 1>NUL 2>NUL
+cls
+)
 
-:: Force restart
-:: shutdown /r /f /t 0
+Force restart
+shutdown /r /f /t 0
