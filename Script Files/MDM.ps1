@@ -21,6 +21,7 @@ Write-Host Adding Domain User to Local Admin group
 Add-LocalGroupMember -Group "Administrators" -Member "reflex\sheldonm"
 
 PAUSE
+$msg     = 'Do you want to do MDM Enrolment? [Type Y/N]'
 do {
             $response = Read-Host -Prompt $msg
             if ($response -eq 'y') {
