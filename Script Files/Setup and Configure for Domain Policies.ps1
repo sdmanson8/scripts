@@ -13,6 +13,7 @@
  echo "    1. Configure/Connect to Domain VPN"
  echo "    2. Join Domain Network"
  echo "    3. Domain GPUpdate"
+ echo "    4. MDM Enrolment"
  echo "    . exit" 
  echo "" 
  echo ""
@@ -32,11 +33,18 @@
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
- if ($answer -eq 2){
+ if ($answer -eq 3){
     clear
     # Domain GPUpdate
     Write-Output "Domain GPUpdate"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/gpupdate.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+  if ($answer -eq 4){
+    clear
+    # MDM Enrolment
+    Write-Output "MDM Enrolment"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 3){areyousure} 
