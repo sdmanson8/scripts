@@ -2,7 +2,7 @@
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
            if ($areyousure -eq "n"){mainmenu}  
-           if {write-host -foregroundcolor red "Invalid Selection"  
+           else {write-host -foregroundcolor red "Invalid Selection"  
                  areyousure  
                 }  
                      } 
