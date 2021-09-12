@@ -36,12 +36,12 @@ taskkill /F /IM "explorer.exe" 1>NUL 2>NUL
 bcdedit /set {default} bootmenupolicy legacy 1>NUL 2>NUL
 
 :: Uninstall OneDrive
-taskkill /F /IM "OneDrive.exe" 1>NUL 2>NUL
-%SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall 1>NUL 2>NUL
-rd "%UserProfile%\OneDrive" /Q /S 1>NUL 2>NUL
-rd "%LocalAppData%\Microsoft\OneDrive" /Q /S 1>NUL 2>NUL
-rd "%ProgramData%\Microsoft OneDrive" /Q /S 1>NUL 2>NUL
-rd "C:\OneDriveTemp" /Q /S 1>NUL 2>NUL
+:: taskkill /F /IM "OneDrive.exe" 1>NUL 2>NUL
+:: %SystemRoot%\SysWOW64\OneDriveSetup.exe /uninstall 1>NUL 2>NUL
+:: rd "%UserProfile%\OneDrive" /Q /S 1>NUL 2>NUL
+:: rd "%LocalAppData%\Microsoft\OneDrive" /Q /S 1>NUL 2>NUL
+:: rd "%ProgramData%\Microsoft OneDrive" /Q /S 1>NUL 2>NUL
+:: rd "C:\OneDriveTemp" /Q /S 1>NUL 2>NUL
 
 :: Add environmental variables
 setx ProgramFiles "C:\Program Files" /m 1>NUL 2>NUL
@@ -69,12 +69,12 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\dmwappushservice" /v "Start" /t 
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PeerDistSvc" /v "Start" /t REG_DWORD /d "4" /f 1>NUL 2>NUL
 
 :: Enable Developer mode
-::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /v "AllowDevelopmentWithoutDevLicense" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
-::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /v "AllowAllTrustedApps" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /v "AllowDevelopmentWithoutDevLicense" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /v "AllowAllTrustedApps" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
 
 :: Change Folder options
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowStatusBar" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
+:: reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ShowStatusBar" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
+:: reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Disable Slideshow during Lock Screen
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Lock Screen" /v "SlideshowEnabled" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
@@ -181,7 +181,7 @@ reg add "HKCU\Software\Microsoft\GameBar" /v "AutoGameModeEnabled" /t REG_DWORD 
 reg add "HKCU\Software\Microsoft\GameBar" /v "AllowAutoGameMode" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Disable automatic updates
-reg add "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "NoAutoUpdate" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
+:: reg add "HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" /v "NoAutoUpdate" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
 
 :: Change Performance Options to Adjust for best appearence
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v "VisualFXSetting" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
@@ -371,16 +371,16 @@ reg add "HKCR\LibraryFolder\background\shell\runas" /v "Position" /t REG_SZ /d "
 reg add "HKCR\LibraryFolder\background\shell\runas\command" /v "" /t REG_SZ /d "cmd.exe /s /k pushd \"%%V\"" /f 1>NUL 2>NUL
 
 :: Remove "Open PowerShell window here" from Shift+Right-click context menus
-SetACL.exe -silent -on "HKCR\Directory\shell\Powershell" -ot reg -actn setowner -ownr "n:Administrators"
-SetACL.exe -silent -on "HKCR\Directory\shell\Powershell" -ot reg -actn ace -ace "n:Administrators;p:full"
-SetACL.exe -silent -on "HKCR\Directory\shell\Powershell\command" -ot reg -actn setowner -ownr "n:Administrators"
-SetACL.exe -silent -on "HKCR\Directory\shell\Powershell\command" -ot reg -actn ace -ace "n:Administrators;p:full"
-reg delete "HKCR\Directory\shell\Powershell" /f 1>NUL 2>NUL
-SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell" -ot reg -actn setowner -ownr "n:Administrators"
-SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell" -ot reg -actn ace -ace "n:Administrators;p:full"
-SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell\command" -ot reg -actn setowner -ownr "n:Administrators"
-SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell\command" -ot reg -actn ace -ace "n:Administrators;p:full"
-reg delete "HKCR\Directory\Background\shell\Powershell" /f 1>NUL 2>NUL
+:: SetACL.exe -silent -on "HKCR\Directory\shell\Powershell" -ot reg -actn setowner -ownr "n:Administrators"
+:: SetACL.exe -silent -on "HKCR\Directory\shell\Powershell" -ot reg -actn ace -ace "n:Administrators;p:full"
+:: SetACL.exe -silent -on "HKCR\Directory\shell\Powershell\command" -ot reg -actn setowner -ownr "n:Administrators"
+:: SetACL.exe -silent -on "HKCR\Directory\shell\Powershell\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+:: reg delete "HKCR\Directory\shell\Powershell" /f 1>NUL 2>NUL
+:: SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell" -ot reg -actn setowner -ownr "n:Administrators"
+:: SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell" -ot reg -actn ace -ace "n:Administrators;p:full"
+:: SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell\command" -ot reg -actn setowner -ownr "n:Administrators"
+:: SetACL.exe -silent -on "HKCR\Directory\Background\shell\Powershell\command" -ot reg -actn ace -ace "n:Administrators;p:full"
+:: reg delete "HKCR\Directory\Background\shell\Powershell" /f 1>NUL 2>NUL
 
 :: Enable Windows Installer in Safe Mode
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\SafeBoot\Network\MSIServer" /v "" /t REG_SZ /d "Service" /f 1>NUL 2>NUL
@@ -563,10 +563,10 @@ reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowFrequent" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Hide recent files in "Quick access"
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowRecent" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
+:: reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v "ShowRecent" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Disable Timeline
-reg add "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableActivityFeed" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
+:: reg add "HKLM\Software\Policies\Microsoft\Windows\System" /v "EnableActivityFeed" /t REG_DWORD /d "0" /f 1>NUL 2>NUL
 
 :: Enable clipboard history
 reg add "HKCU\Software\Microsoft\Clipboard" /v "EnableClipboardHistory" /t REG_DWORD /d "1" /f 1>NUL 2>NUL
@@ -631,7 +631,7 @@ powershell.exe "Get-AppxPackage *Microsoft.BingSports* | Remove-AppxPackage"
 powershell.exe "Get-AppxPackage *Microsoft.BingTranslator* | Remove-AppxPackage"
 powershell.exe "Get-AppxPackage *Microsoft.BingWeather* | Remove-AppxPackage"
 powershell.exe "Get-AppxPackage *Microsoft.FreshPaint* | Remove-AppxPackage"
-powershell.exe "Get-AppxPackage *Microsoft.DesktopAppInstaller* | Remove-AppxPackage"
+::powershell.exe "Get-AppxPackage *Microsoft.DesktopAppInstaller* | Remove-AppxPackage"
 powershell.exe "Get-AppxPackage *Microsoft.Getstarted* | Remove-AppxPackage"
 powershell.exe "Get-AppxPackage *Microsoft.GetHelp* | Remove-AppxPackage"
 powershell.exe "Get-AppxPackage *Microsoft.Messaging* | Remove-AppxPackage"
@@ -726,7 +726,7 @@ powershell.exe "Get-AppxPackage *Microsoft.WebMediaExtensions* | Remove-AppxPack
 powershell.exe "Get-AppxPackage *Microsoft.MixedReality.Portal* | Remove-AppxPackage"
 
 :: Remove potential bloat for new users
-powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.DesktopAppInstaller* | Remove-AppxProvisionedPackage -Online"
+::powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.DesktopAppInstaller* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.3DBuilder* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.Appconnector* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.BingFinance* | Remove-AppxProvisionedPackage -Online"
@@ -735,7 +735,7 @@ powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Micr
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.BingTranslator* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.BingWeather* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.FreshPaint* | Remove-AppxProvisionedPackage -Online"
-powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.DesktopAppInstaller* | Remove-AppxProvisionedPackage -Online"
+::powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.DesktopAppInstaller* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.Getstarted* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.GetHelp* | Remove-AppxProvisionedPackage -Online"
 powershell.exe "Get-AppxProvisionedPackage -Online | where Displayname -EQ *Microsoft.Messaging* | Remove-AppxProvisionedPackage -Online"
