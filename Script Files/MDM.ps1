@@ -32,13 +32,13 @@ do {
 
 PAUSE
 Write-Host Enabling Bitlocker
-Get-BitLockerVolume | Enable-BitLocker -EncryptionMethod Aes128 -RecoveryKeyPath "E:\Recovery\" -RecoveryKeyProtector
+Get-BitLockerVolume | Enable-BitLocker -EncryptionMethod Aes128 -RecoveryKeyPath "E:\" -RecoveryKeyProtector
 
 PAUSE
 Write-Host Encryption Progress
 do 
 {
-    $Volume = Get-BitLockerVolume -MountPoint F:
+    $Volume = Get-BitLockerVolume -MountPoint C:
     Write-Progress -Activity "Encrypting volume $($Volume.MountPoint)" -Status "Encryption Progress:" -PercentComplete $Volume.EncryptionPercentage
     Start-Sleep -Seconds 1
 }
