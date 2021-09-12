@@ -44,12 +44,12 @@ Start-Process -FilePath $installerPath -Args "/S" -Verb RunAs -Wait
 Remove-Item $installerPath
 Write-Host Notepad++ Installed
 } 
-
 PAUSE
-#Opening Sophia Script File
+#Open Sophia Script File
+Write-Host Opening Sophia Script File
 & "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
 
-
+PAUSE
 Write-Host Running Sophia Script
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 & 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1'
