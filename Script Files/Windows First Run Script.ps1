@@ -95,15 +95,8 @@
     Write-Host Removing Leftover Files
     Remove-Item "C:\Optimizer.bat"
     Write-Host Restarting PC 
-    #Countdown
-    clear
-    for %%r in (5 4 3 2 1) do (
-    echo Restarting in %%r...
-    timeout 1 1>NUL 2>NUL
-    clear
-    )
-    #Force restart
-    shutdown /r /f /t 0 
+    #Force restart in 5 seconds
+    shutdown /r /f /t 5 
  }  
  if ($answer -eq 9){
     clear
