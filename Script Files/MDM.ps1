@@ -34,6 +34,7 @@ PAUSE
 Write-Host Enabling Bitlocker
 manage-bde -on C:
 
+PAUSE
 Write-Host Encryption Progress
 do 
 {
