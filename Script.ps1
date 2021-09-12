@@ -32,7 +32,7 @@
     clear
     # Setup and configure for Domain Policies
     Write-Output "Setup and configure for Domain Policies"
-    $ScriptFromGithHub = Invoke-WebRequest https://
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){areyousure} 
