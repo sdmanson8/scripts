@@ -26,7 +26,7 @@
     clear
     # prompt to run Windows Update
     Write-Output "Running Windows Update"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
+   # $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
