@@ -10,6 +10,9 @@ Invoke-WebRequest -Uri $url -OutFile $env:TEMP/$fileName
 # temp dir
 $TempDir = [System.IO.Path]::GetTempPath()
 
+#Remove Previous Leftover Folders
+Remove-Item 'C:\Sophia Script Master'
+
 PAUSE
 Write-Host Extracting release files
 Expand-Archive -path "$TempDir\$fileName" -DestinationPath "C:\Sophia Script Master"
