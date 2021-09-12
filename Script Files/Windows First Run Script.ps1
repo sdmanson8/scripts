@@ -123,10 +123,8 @@
     Write-Output "Restarting PC"
     shutdown -r -t 00
  }  
- if ($answer -eq 3){areyousure} 
- else {write-host -ForegroundColor red "Invalid Selection"  
-       sleep 5  
-       mainmenu  
-      }  
-                }  
- mainmenu  
+ if ($answer -eq 13){
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ } 
+until ($selection -eq '13')
