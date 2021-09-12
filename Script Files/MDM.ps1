@@ -32,7 +32,7 @@ do {
 
 PAUSE
 Write-Host Enabling Bitlocker
-Enable-BitLocker -MountPoint "C:" -EncryptionMethod Aes256 Add-BitLockerKeyProtector -RecoveryKeyPath "E:" -RecoveryKeyProtector
+Get-BitLockerVolume | Enable-BitLocker -EncryptionMethod Aes128 -RecoveryKeyPath "E:\Recovery\" -RecoveryKeyProtector
 
 PAUSE
 Write-Host Encryption Progress
