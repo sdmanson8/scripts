@@ -123,11 +123,10 @@
     Write-Output "Restarting PC"
     shutdown -r -t 00
  }  
- if ($answer -eq 13){
+ else ($answer -eq 13){
     clear
     # exit
     Write-Output "exit"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
    } 
- }
