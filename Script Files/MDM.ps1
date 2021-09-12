@@ -32,7 +32,7 @@ do {
 
 PAUSE
 Write-Host Enabling Bitlocker
-Enable-BitLocker -MountPoint C:
+manage-bde -on C:
 
 PAUSE
 Write-Host Encryption Progress
