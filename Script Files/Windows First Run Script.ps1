@@ -17,7 +17,7 @@
  echo "    5. Uninstall Microsoft Edge"
  echo "    6. (Moderate-Advanced) Sophia Script to Tweak Windows 10"
  echo "    7. (Moderate-Advanced) Sophia Script to Tweak Windows 11"
- echo "    8. (Moderate-Advanced) Windows Optimization Script for Windows"
+ echo "    8. (Moderate) Windows Optimization Script for Windows"
  echo "    9. (Moderate) Remove-Windows10-Bloat by matthewjberger"
  echo "    10. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
  echo "    11. Cleanup Windows.Old folder"
