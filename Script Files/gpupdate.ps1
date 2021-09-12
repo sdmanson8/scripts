@@ -1,5 +1,3 @@
-﻿while ($true)
-        {
             $vpnname = "Reflex VPN"
             $address = "vpn.reflex.co.za"
             $vpnusername = "sheldonm"
@@ -11,15 +9,14 @@ do {
             if ($response -eq 'y') {
             Write-Host Connect to VPN configuration
             $vpn = Get-VpnConnection | where {$_.Name -eq "Reflex VPN"}
+            }
             if ($vpn.ConnectionStatus -eq "Disconnected")
             {
                 $cmd = $env:WINDIR + "\System32\rasdial.exe"
                 $expression = "$cmd ""$vpnname"" sheldonm ccrse3a6ti"
                 Invoke-Expression -Command $expression 
             }
+} until ($response -eq 'n')
             PAUSE
             Write-Host Updating Domain Group Policy
             gpupdate /force /boot
-      }
-} until ($response -eq 'n')
-}
