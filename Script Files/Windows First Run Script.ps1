@@ -80,25 +80,19 @@
     clear
     # prompt to run Windows Optimization for Windows
     Write-Output "Running Windows Optimization for Windows"
-    Write-Host Downloading 1st Optimizer Script File
+    Write-Host Downloading Optimizer Script File
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Optimizer.bat -OutFile C:\Optimizer.bat
     Write-Host Setting Execution Policy to Unrestricted
     Set-ExecutionPolicy Unrestricted
-    #1st Optimizer Script File
+    # Optimizer Script File
     PAUSE
-    Write-Host Edit 1st Optimizer Script File
+    Write-Host Edit Optimizer Script File
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\Optimizer.bat"
-	PAUSE
-    Write-Host Downloading 2st Optimizer Script File
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Optimization.ps1 -OutFile "C:\Windows Optimizer.ps1"
-    #2nd Optimizer Script File
     PAUSE
-    Write-Host Edit 2nd Optimizer Script File
-    & "C:\Program Files\Notepad++\notepad++.exe" "C:\Windows Optimizer.ps1"
-    PAUSE 
-    Write-Host Running Optimizer Scripts
-    & "C:\Windows Optimizer.ps1"
-	Remove-Item "C:\Windows Optimizer.ps1"
+    Write-Host Running Optimizer Script
+    Start-Process C:\Optimizer.bat
+    PAUSE
+    Write-Host Removing Leftover Files
     Remove-Item "C:\Optimizer.bat"
     explorer.exe 
  }  
