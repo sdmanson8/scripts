@@ -46,16 +46,16 @@ Write-Host Notepad++ Installed
 } 
 
 #Open Sophia Script File
-#PAUSE
-#& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1"
+PAUSE
+& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1"
 
-#Write-Host Running Sophia Script
-#Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-#& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1'
+Write-Host Running Sophia Script
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1'
 
 #Open Wrapper from Windows Explorer
-cd 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper'
-ii .
+#cd 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper'
+#ii .
 
 PAUSE
 Write-Host Removing Sophia Script Folder
