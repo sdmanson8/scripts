@@ -1,0 +1,36 @@
+﻿$msg     = 'Do you want to check if Domain VPN is connected? [Type Y/N]'
+do {
+            $response = Read-Host -Prompt $msg
+            if ($response -eq 'y') {
+            Write-Host Connect to VPN configuration
+            $vpn = Get-VpnConnection | where {$_.Name -eq "Reflex VPN"}
+            }
+            if ($vpn.ConnectionStatus -eq "Disconnected")
+            {
+                $cmd = $env:WINDIR + "\System32\rasdial.exe"
+                $expression = "$cmd ""$vpnname"" sheldonm ccrse3a6ti"
+                Invoke-Expression -Command $expression 
+            }
+}until ($response -eq 'n')
+Write-Host Adding Domain User to Local Admin group
+Add-LocalGroupMember -Group "Administrators" -Member "reflex\sheldonm"
+PAUSE
+#MDM Enrolment
+Write-Host Starting Device Enrolment
+Start-Process ms-device-enrollment:?mode=mdm"&"username=sheldonm@reflex.co.za
+PAUSE
+Write-Host Backing up Recovery Key to Azure AD
+Add-BitLockerKeyProtector -MountPoint "C:" -RecoveryPasswordProtector
+$BLV = Get-BitLockerVolume -MountPoint "C:"
+BackupToAAD-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $BLV.KeyProtector[0].KeyProtectorId
+Write-Host Enabling Bitlocker
+$Pass = 'Password' | ConvertTo-SecureString -AsPlainText -Force
+Enable-BitLocker -MountPoint "C:" -EncryptionMethod Aes256 Add-BitLockerKeyProtector -Password $Pass -RecoveryKeyPath "E:" -RecoveryKeyProtector
+do 
+{
+    $Volume = Get-BitLockerVolume -MountPoint F:
+    Write-Progress -Activity "Encrypting volume $($Volume.MountPoint)" -Status "Encryption Progress:" -PercentComplete $Volume.EncryptionPercentage
+    Start-Sleep -Seconds 1
+}
+until ($Volume.VolumeStatus -eq 'FullyEncrypted')
+Write-Progress -Activity "Encrypting volume $($Volume.MountPoint)" -Status "Encryption Progress:" -Completed
