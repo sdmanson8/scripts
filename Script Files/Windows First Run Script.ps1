@@ -1,11 +1,11 @@
  #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
-           if ($areyousure -eq "y"){exit}  
+           if ($areyousure -eq "y"){
+               $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+               Invoke-Expression $($ScriptFromGithHub.Content)
+	       }  
            if ($areyousure -eq "n"){mainmenu}  
-           else {write-host -foregroundcolor red "Invalid Selection"   
-                 areyousure  
-                }  
-                   }                   
+                    }                   
 #Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
  function mainmenu{  
  clear  
@@ -132,7 +132,6 @@
     shutdown -r -t 00
 } 
  if ($answer -eq 13){areyousure}  
- else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
       }  
