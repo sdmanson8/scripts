@@ -111,7 +111,6 @@ PowerShell -Command "Get-AppxPackage *xboxapp* | Remove-AppxPackage"
 PowerShell -Command "Get-AppxPackage *Drawboard PDF* | Remove-AppxPackage"
 PowerShell -Command "Get-AppxPackage *solitairecollection* | Remove-AppxPackage"
 
-
 ::@rem NOW JUST SOME TWEAKS
 ::REM *** Show hidden files in Explorer ***
 ::REM reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d 1 /f
@@ -121,8 +120,6 @@ PowerShell -Command "Get-AppxPackage *solitairecollection* | Remove-AppxPackage"
 
 ::REM *** Show file extensions in Explorer ***
 ::reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t  REG_DWORD /d 0 /f
-
-
 
 ::REM *** Uninstall OneDrive ***
 ::start /wait "" "%SYSTEMROOT%\SYSWOW64\ONEDRIVESETUP.EXE" /UNINSTALL
