@@ -13,7 +13,7 @@ Write-Host Running 2st Optimizer Script
 ##########
 
 # As a workaround for disabled script execution, run this command (without #) in an elevated PowerShell windows first and choose "all" if you're asked where to apply this:
-# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 <#
 Release Notes:
