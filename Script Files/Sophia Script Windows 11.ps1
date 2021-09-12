@@ -42,7 +42,7 @@ Remove-Item $installerPath
 Write-Host Notepad++ Installed
 } 
 
-Open Sophia Script File
+Write-Host Opening Sophia Script File
 PAUSE
 & "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
 
