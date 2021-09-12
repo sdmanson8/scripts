@@ -2,7 +2,7 @@
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
            if ($areyousure -eq "n"){mainmenu} 
-                    }                   
+                     }                   
 #Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
  function mainmenu{  
  clear  
@@ -131,6 +131,5 @@
  if ($answer -eq 13){areyousure}  
        sleep 5  
        mainmenu  
-      }  
-                }  
+                   }  
  mainmenu 
