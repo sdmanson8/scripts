@@ -17,7 +17,6 @@ do {
                 Invoke-Expression -Command $expression 
             }
 } until ($response -eq 'n')
-
 Write-Host Adding Domain User to Local Admin group
 Add-LocalGroupMember -Group "Administrators" -Member "reflex\sheldonm"
 PAUSE
