@@ -32,7 +32,7 @@ do {
 
 PAUSE
 Write-Host Enabling Bitlocker
-Enable-BitLocker -MountPoint C: -RecoveryKeyPath E: -RecoveryKeyProtector
+Enable-BitLocker -MountPoint C:
 
 PAUSE
 Write-Host Encryption Progress
