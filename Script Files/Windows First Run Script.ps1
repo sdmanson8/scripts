@@ -1,4 +1,12 @@
- #Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
+ #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
+ function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
+           if ($areyousure -eq "y"){exit}  
+           if ($areyousure -eq "n"){mainmenu}  
+           else {write-host -foregroundcolor red "Invalid Selection"   
+                 areyousure  
+                }  
+                   }                   
+#Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
  function mainmenu{  
  clear  
  echo "---------------------------------------------------------"  
@@ -26,7 +34,7 @@
     clear
     # prompt to run Windows Update
     Write-Output "Running Windows Update"
-   # $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
@@ -122,11 +130,11 @@
     # prompt to reboot machine
     Write-Output "Restarting PC"
     shutdown -r -t 00
- }  
- if ($answer -eq 13){
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
-    Invoke-Expression $($ScriptFromGithHub.Content)
- } 
-until ($selection -eq '13')
-     }  
- mainmenu
+} 
+ if ($answer -eq 13){areyousure}  
+ else {write-host -ForegroundColor red "Invalid Selection"  
+       sleep 5  
+       mainmenu  
+      }  
+                }  
+ mainmenu 
