@@ -1,4 +1,4 @@
-# scripts
+# script
 
 #Run the script in an elavated Powershell Window
 
