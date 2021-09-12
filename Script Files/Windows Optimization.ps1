@@ -73,7 +73,7 @@ $tweaks = @(
 	"DisableTelemetry",             # "EnableTelemetry",
 	"DisableWiFiSense",             # "EnableWiFiSense",
 	"DisableSmartScreen",           # "EnableSmartScreen",
-	"DisableWebSearch",             # "EnableWebSearch",
+	#"DisableWebSearch",              "EnableWebSearch",
 	"DisableAppSuggestions",        # "EnableAppSuggestions",
 	"DisableBackgroundApps",        # "EnableBackgroundApps",
 	"DisableLockScreenSpotlight",   # "EnableLockScreenSpotlight",
@@ -92,17 +92,17 @@ $tweaks = @(
 	"SetUACLow",                    # "SetUACHigh",
 	"EnableSharingMappedDrives",    # "DisableSharingMappedDrives",
 	"DisableAdminShares",           # "EnableAdminShares",
-	# "DisableSMB1",                # "EnableSMB1",
+    "DisableSMB1",                # "EnableSMB1",
 	"SetCurrentNetworkPrivate",     # "SetCurrentNetworkPublic",
 	# "SetUnknownNetworksPrivate",  # "SetUnknownNetworksPublic",
 	"EnableCtrldFolderAccess",      # "DisableCtrldFolderAccess",
 	# "DisableFirewall",            # "EnableFirewall",
-	# "DisableDefender",            # "EnableDefender",
-	# "DisableDefenderCloud",       # "EnableDefenderCloud",
+	"DisableDefender",            # "EnableDefender",
+	"DisableDefenderCloud",       # "EnableDefenderCloud",
 	# "DisableUpdateMSRT",          # "EnableUpdateMSRT",
 	# "DisableUpdateDriver",        # "EnableUpdateDriver",
 	"DisableUpdateRestart",         # "EnableUpdateRestart",
-	"DisableHomeGroups",            # "EnableHomeGroups",
+	#"DisableHomeGroups",           #"EnableHomeGroups",
 	"DisableSharedExperiences",     # "EnableSharedExperiences",
 	"DisableRemoteAssistance",      # "EnableRemoteAssistance",
 	#"DisableRemoteDesktop",        # "EnableRemoteDesktop",
@@ -131,7 +131,7 @@ $tweaks = @(
 	"ShowSmallTaskbarIcons",        # "ShowLargeTaskbarIcons",
 	"ShowTaskbarTitles",            # "HideTaskbarTitles",
 	"HideTaskbarPeopleIcon",        # "ShowTaskbarPeopleIcon",
-	"ShowTrayIcons",                # "HideTrayIcons",
+	#"ShowTrayIcons",                # "HideTrayIcons",
 	# "ShowKnownExtensions",        # "HideKnownExtensions",
 	# "ShowHiddenFiles",            # "HideHiddenFiles",
 	"HideSyncNotifications"         # "ShowSyncNotifications",
@@ -176,14 +176,14 @@ $tweaks = @(
     "DoNiniteInstall", # Note: check the list below and choose what you want installed
     "DeleteTempFiles",
     "CleanWinSXS", # Takes a whie but frees up a lot of space
-    "DownloadShutup10",
+    #"DownloadShutup10",
     "RemoveUnneededComponents",
     # "DisableWindowsSearch",         "EnableWindowsSearch",
     "DisableCompatibilityAppraiser",
     
     ### GPD Win Specific Tweaks ###
     # "DisableConnectedStandby",
-    # "DisableHibernation",
+    "DisableHibernation",
     # "DisableUpdateDriver", #Added here as well as it's so important for the WIN
     # "EnableBigDesktopIcons",
     # "DisableGPDWinServices",
@@ -196,8 +196,8 @@ $tweaks = @(
 	# "DisableIEEnhancedSecurity",  # "EnableIEEnhancedSecurity",
 
 	### Auxiliary Functions ###
-	"WaitForKey",
-	"Restart"
+	#"WaitForKey",
+	#"Restart"
 )
 
 # Ninite Apps
