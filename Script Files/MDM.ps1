@@ -19,18 +19,22 @@ do {
 } until ($response -eq 'n')
 Write-Host Adding Domain User to Local Admin group
 Add-LocalGroupMember -Group "Administrators" -Member "reflex\sheldonm"
+
 PAUSE
-#MDM Enrolment
-Write-Host Starting Device Enrolment
-Start-Process ms-device-enrollment:?mode=mdm"&"username=sheldonm@reflex.co.za
+do {
+            $response = Read-Host -Prompt $msg
+            if ($response -eq 'y') {
+            #MDM Enrolment
+            Write-Host Starting Device Enrolment
+            Start-Process ms-device-enrollment:?mode=mdm"&"username=sheldonm@reflex.co.za}
+} until ($response -eq 'n')
+
 PAUSE
-Write-Host Backing up Recovery Key to Azure AD
-Add-BitLockerKeyProtector -MountPoint "C:" -RecoveryPasswordProtector
-$BLV = Get-BitLockerVolume -MountPoint "C:"
-BackupToAAD-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $BLV.KeyProtector[0].KeyProtectorId
 Write-Host Enabling Bitlocker
-$Pass = 'Password' | ConvertTo-SecureString -AsPlainText -Force
-Enable-BitLocker -MountPoint "C:" -EncryptionMethod Aes256 Add-BitLockerKeyProtector -Password $Pass -RecoveryKeyPath "E:" -RecoveryKeyProtector
+Enable-BitLocker -MountPoint "C:" -EncryptionMethod Aes256 Add-BitLockerKeyProtector -RecoveryKeyPath "E:" -RecoveryKeyProtector
+
+PAUSE
+Write-Host Encryption Progress
 do 
 {
     $Volume = Get-BitLockerVolume -MountPoint F:
@@ -39,3 +43,9 @@ do
 }
 until ($Volume.VolumeStatus -eq 'FullyEncrypted')
 Write-Progress -Activity "Encrypting volume $($Volume.MountPoint)" -Status "Encryption Progress:" -Completed
+
+PAUSE
+Write-Host Backing up Recovery Key to AD DS
+Add-BitLockerKeyProtector -MountPoint "C:" -RecoveryPasswordProtector
+$BLV = Get-BitLockerVolume -MountPoint "C:"
+BackupToAAD-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $BLV.KeyProtector[0].KeyProtectorId
