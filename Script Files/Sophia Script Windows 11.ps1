@@ -11,7 +11,7 @@ Invoke-WebRequest -Uri $url -OutFile $env:TEMP/$fileName
 $TempDir = [System.IO.Path]::GetTempPath()
 
 #Remove Previous Leftover Folders
-Remove-Item 'C:\Sophia Script Master' –recurse
+Remove-Item 'C:\Sophia Script Master' -Recurse -Force -Confirm:$false
 
 PAUSE
 Write-Host Extracting release files
@@ -46,10 +46,10 @@ Write-Host Notepad++ Installed
 } 
 
 PAUSE
-Write-Host Opening Sophia Script File
+#Opening Sophia Script File
 & "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
 
-PAUSE
+
 Write-Host Running Sophia Script
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 & 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1'
@@ -61,4 +61,4 @@ PAUSE
 
 PAUSE
 Write-Host Removing Sophia Script Folder
-Remove-Item 'C:\Sophia Script Master' –recurse
+Remove-Item 'C:\Sophia Script Master' -Recurse -Force -Confirm:$false
