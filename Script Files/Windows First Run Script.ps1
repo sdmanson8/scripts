@@ -1,6 +1,6 @@
  #Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
  function mainmenu{  
- cls  
+ clear  
  echo "---------------------------------------------------------"  
  echo "    WINDOWS FIRST RUN (CLEAN INSTALL) SCRIPT"
  echo ""
