@@ -136,7 +136,7 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     Clear-Host
     # Complete All of the Above
     Write-Output "Installating Blocker Software AIO"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Installations%20(Blockers).ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Installations%20(Blockers).ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 9){areyousure} 
