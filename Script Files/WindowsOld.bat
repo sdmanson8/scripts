@@ -1,3 +1,3 @@
-TAKEOWN /F C:\Windows.old  /R /D  Y
-icacls C:\Windows.old /grant administrators:F /T
-RD /S \\?\C:\Windows.old
+takeown /F c:\Windows.old\* /R /A /D Y
+cacls c:\Windows.old\*.* /T /grant administrators:F
+rmdir /S /Q c:\Windows.old
