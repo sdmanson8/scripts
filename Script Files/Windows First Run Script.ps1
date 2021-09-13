@@ -92,7 +92,8 @@
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\Optimizer.bat"
     PAUSE
     #Create a restore point
-    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Optimizer Script' -RestorePointType 'MODIFY_SETTINGS'"   
+    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Optimizer Script' -RestorePointType 'MODIFY_SETTINGS'"
+    PAUSE
     Write-Host Running Optimizer Script
     Start-Process C:\Optimizer.bat
     PAUSE
