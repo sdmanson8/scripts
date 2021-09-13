@@ -5,7 +5,7 @@
                                 } 
   #Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
  function mainmenu{  
- clear  
+ Clear-Host  
  echo "---------------------------------------------------------"  
  echo "        Setup and Configure for Domain Policies"
  echo ""
@@ -42,35 +42,35 @@ do {
 } until ($response -eq 'n')
 
  if ($answer -eq 1){
-    clear
+    Clear-Host
     # Configure/Connect to Domain VPN
     Write-Output "Configure/Connect to Domain VPN"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
-    clear
+    Clear-Host
     # Join Domain Network
     Write-Output "Join Domain Network"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
-    clear
+    Clear-Host
     # Domain GPUpdate
     Write-Output "Domain GPUpdate"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/gpupdate.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
   if ($answer -eq 4){
-    clear
+    Clear-Host
     # MDM Enrolment
     Write-Output "MDM Enrolment"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
    if ($answer -eq 5){
-    clear
+    Clear-Host
     # Install Required Domain Apps
     Write-Output "Install Required Domain Apps"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps1
