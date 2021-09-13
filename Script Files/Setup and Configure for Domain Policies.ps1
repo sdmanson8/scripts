@@ -19,10 +19,10 @@
  echo ""
  echo "---------------------------------------------------------"  
 $answer = read-host "Please Make a Selection"  
-            $vpnname = "Reflex VPN"
-            $address = "vpn.reflex.co.za"
-            $vpnusername = "sheldonm"
-            $vpnpassword = "ccrse3a6ti"
+            $vpnname = "VPN"
+            $address = "vpn.example.com"
+            $vpnusername = "username"
+            $vpnpassword = "password"
 
 $msg     = 'Do you want to check if Domain VPN is connected? [Type Y/N]'
 do {
