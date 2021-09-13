@@ -80,7 +80,7 @@
  }
  if ($answer -eq 8){
     #Create a restore point
-    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Optimizer Script' -RestorePointType 'MODIFY_SETTINGS'"
+    PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description "Optimizer Script" -RestorePointType "MODIFY_SETTINGS"; " ' " -Verb RunAs}"
     clear
     # prompt to run Windows Optimization for Windows
     Write-Output "Running Windows Optimization for Windows"
