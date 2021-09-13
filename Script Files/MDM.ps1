@@ -31,22 +31,5 @@ do {
 } until ($response -eq 'n')
 
 PAUSE
-Write-Host Enabling Bitlocker
-manage-bde -on C:
-
-PAUSE
-Write-Host Encryption Progress
-do 
-{
-    $Volume = Get-BitLockerVolume -MountPoint C:
-    Write-Progress -Activity "Encrypting volume $($Volume.MountPoint)" -Status "Encryption Progress:" -PercentComplete $Volume.EncryptionPercentage
-    Start-Sleep -Seconds 1
-}
-until ($Volume.VolumeStatus -eq 'FullyEncrypted')
-Write-Progress -Activity "Encrypting volume $($Volume.MountPoint)" -Status "Encryption Progress:" -Completed
-
-PAUSE
-Write-Host Backing up Recovery Key to AD DS
-Add-BitLockerKeyProtector -MountPoint "C:" -RecoveryPasswordProtector
-$BLV = Get-BitLockerVolume -MountPoint "C:"
-BackupToAAD-BitLockerKeyProtector -MountPoint "C:" -KeyProtectorId $BLV.KeyProtector[0].KeyProtectorId
+Write-Host "Opening Manage Bitlocker in Control Panel"
+control /name Microsoft.BitLockerDriveEncryption
