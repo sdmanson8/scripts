@@ -59,8 +59,10 @@
     clear
     # prompt to run Microsoft Edge Uninstaller
     Write-Output "Running Microsoft Edge Uninstaller"
+    #Create a restore point
+    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Uninstall Microsoft Edge' -RestorePointType 'MODIFY_SETTINGS'"    
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Uninstall%20Edge.ps1
-	Invoke-Expression $($ScriptFromGithHub.Content)
+    Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 6){
     clear
@@ -89,6 +91,8 @@
     Write-Host Edit Optimizer Script File
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\Optimizer.bat"
     PAUSE
+    #Create a restore point
+    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Optimizer Script' -RestorePointType 'MODIFY_SETTINGS'"   
     Write-Host Running Optimizer Script
     Start-Process C:\Optimizer.bat
     PAUSE
@@ -102,6 +106,8 @@
     clear
     # prompt to run Remove-Windows10-Bloat by matthewjberger
     Write-Output "Running Remove-Windows10-Bloat by matthewjberger"
+    #Create a restore point
+    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Remove Bloatware' -RestorePointType 'MODIFY_SETTINGS'"    
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Remove-Windows10-Bloat.bat
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
