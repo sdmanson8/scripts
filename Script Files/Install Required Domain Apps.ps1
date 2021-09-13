@@ -57,7 +57,7 @@
     clear
     # Install Ninja
     Write-Output "Installing Ninja"
-    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\#NINJA_INSTALLS\REFLEX\reflexsolutionsworkstationmainoffice-4.4.6012-windows-installer.msi' -ArgumentList '/S' -PassThru
+    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\#NINJA_INSTALLS\REFLEX\reflexsolutionsworkstationmainoffice-4.4.6012-windows-installer.msi'
  }
   if ($answer -eq 5){
     clear
@@ -75,7 +75,7 @@
     clear
     # Install Reflex Remote Support
     Write-Output "Installing Reflex Remote Support"
-    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi' -ArgumentList '/S' -PassThru
+    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi'
  }
  if ($answer -eq 8){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
