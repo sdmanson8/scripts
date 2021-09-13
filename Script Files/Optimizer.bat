@@ -1,5 +1,5 @@
 #Create a restore point
-PowerShell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description "Optimizer Script" -RestorePointType "MODIFY_SETTINGS"; " ' " -Verb RunAs}"
+Wmic.exe /Namespace:\\root\default Path SystemRestore Call CreateRestorePoint "Optimizer Script", 100, 12
 @echo off
 :: BatchGotAdmin
 ::-------------------------------------
