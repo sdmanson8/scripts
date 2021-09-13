@@ -16,7 +16,9 @@
  echo ""  
  echo "    1. Windows First Run (Clean Install) Script"
  echo "    2. Setup and configure for Domain Policies"
- echo "    3. exit" 
+ echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
+ echo ""
+ echo "    4. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -35,7 +37,14 @@
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
- if ($answer -eq 3){areyousure} 
+  if ($answer -eq 3){
+    clear
+    # Content Blockers (Adult, Social, Gambling,etc)
+    Write-Output "Content Blockers (Adult, Social, Gambling,etc)"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }  
+ if ($answer -eq 4){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
