@@ -14,12 +14,12 @@
  echo "    2. Join Domain Network"
  echo "    3. Domain GPUpdate"
  echo "    4. MDM Enrolment"
- echo "    . exit" 
+ echo "    5. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
- $answer = read-host "Please Make a Selection"  
-             $vpnname = "Reflex VPN"
+$answer = read-host "Please Make a Selection"  
+            $vpnname = "Reflex VPN"
             $address = "vpn.reflex.co.za"
             $vpnusername = "sheldonm"
             $vpnpassword = "ccrse3a6ti"
@@ -38,6 +38,7 @@ do {
                 Invoke-Expression -Command $expression 
             }
 } until ($response -eq 'n')
+
  if ($answer -eq 1){
     clear
     # Configure/Connect to Domain VPN
