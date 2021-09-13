@@ -69,7 +69,7 @@
     clear
     # Install FortiClient VPN
     Write-Output "Installing FortiClient VPN"
-    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\Fortinet\FortiClientVPNOnlineInstaller_6.2.exe' -ArgumentList '/S' -PassThru
+    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\Fortinet\FortiClientSetup_6.0.9.0277_x64.exe' -ArgumentList '/S' -PassThru
  }
   if ($answer -eq 7){
     clear
