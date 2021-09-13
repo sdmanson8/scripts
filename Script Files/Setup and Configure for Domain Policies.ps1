@@ -15,6 +15,7 @@
  echo "    3. Domain GPUpdate"
  echo "    4. MDM Enrolment"
  echo "    5. Install Required Domain Apps"
+ echo ""
  echo "    6. exit" 
  echo "" 
  echo ""
