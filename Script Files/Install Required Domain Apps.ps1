@@ -31,7 +31,7 @@
     PAUSE
     Start-Process C:\Users\sheldonm\Downloads\setup.exe
     PAUSE
-    Remove-Item %USERPROFILE%\Downloads\setup.exe
+    Remove-Item C:\Users\sheldonm\Downloads\setup.exe
     Write-Host Opening Webpage to Download Avaya Agent Desktop
     Start-Process http://avaya-accs/agentdesktop/CCADClickOnce.application
  }  
