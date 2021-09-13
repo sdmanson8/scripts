@@ -5,7 +5,7 @@
                      }                   
 #Mainmenu function. Contains the screen output for the menu and waits for and handles user input.  
  function mainmenu{  
- clear  
+ Clear-Host  
  echo "---------------------------------------------------------"  
  echo "    WINDOWS FIRST RUN (CLEAN INSTALL) SCRIPT"
  echo ""
@@ -29,56 +29,56 @@
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
  if ($answer -eq 1){
-    clear
+    Clear-Host
     # prompt to run Windows Update
     Write-Output "Running Windows Update"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
-    clear
+    Clear-Host
     # prompt to Disable Windows Update
     Write-Output "Running Sledgehammer 2.7.2 (Disable Windows Update)"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Disable%20Windows%20Update.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
-    clear
+    Clear-Host
     # prompt to update Powershell
     Write-Output "Updating Powershell"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Powershell.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 4){
-    clear
+    Clear-Host
     # prompt to download PatchMyPC
     Write-Output "Downloading PatchMyPC"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PatchMyPC.bat
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 5){
-    clear
+    Clear-Host
     # prompt to run Microsoft Edge Uninstaller
     Write-Output "Running Microsoft Edge Uninstaller"  
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Uninstall%20Edge.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 6){
-    clear
+    Clear-Host
     # prompt to run Sophia Script for Windows 10
     Write-Output "Running Sophia Script for Windows 10"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Sophia%20Script%20Windows%2010.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
  if ($answer -eq 7){
-    clear
+    Clear-Host
     # prompt to run Sophia Script for Windows 11
     Write-Output "Running Sophia Script for Windows 11"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Sophia%20Script%20Windows%2011.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 8){
-    clear
+    Clear-Host
     # prompt to run Windows Optimization for Windows
     Write-Output "Running Windows Optimization for Windows"
     Write-Host Downloading Optimizer Script File
@@ -100,28 +100,28 @@
     shutdown /r /f /t 5 
  }  
  if ($answer -eq 9){
-    clear
+    Clear-Host
     # prompt to run Remove-Windows10-Bloat by matthewjberger
     Write-Output "Running Remove-Windows10-Bloat by matthewjberger"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Remove-Windows10-Bloat.bat
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 10){
-    clear
+    Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
  if ($answer -eq 11){
-    clear
+    Clear-Host
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat
     Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
  if ($answer -eq 12){
-    clear
+    Clear-Host
     # prompt to reboot machine
     Write-Output "Restarting PC"
     shutdown -r -t 00
