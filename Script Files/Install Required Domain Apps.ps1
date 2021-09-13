@@ -29,7 +29,7 @@
     Write-Host Opening Webpage to Download Prerequisites
     Start-Process http://avaya-accs/agentdesktop/setup.exe
     PAUSE
-    Start-Process %USERPROFILE%\Downloads\setup.exe
+    Start-Process C:\Users\sheldonm\Downloads\setup.exe
     PAUSE
     Remove-Item %USERPROFILE%\Downloads\setup.exe
     Write-Host Opening Webpage to Download Avaya Agent Desktop
