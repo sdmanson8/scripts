@@ -109,7 +109,8 @@
     clear
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
-    Start-Process iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JJ8R4'))
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
  if ($answer -eq 11){
     clear
