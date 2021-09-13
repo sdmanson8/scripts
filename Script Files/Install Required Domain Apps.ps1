@@ -26,8 +26,9 @@
  if ($answer -eq 1){
     clear
     # Avaya Agent Desktop
-	Write-Host Opening Webpage to Download Prerequisites
-	Start-Process http://avaya-accs/agentdesktop/setup.exe
+    Write-Host Opening Webpage to Download Prerequisites
+    Start-Process http://avaya-accs/agentdesktop/setup.exe
+    Remove-Item %USERPROFILE%\Downloads\setup.exe
     PAUSE
     Write-Host Opening Webpage to Download Avaya Agent Desktop
     Start-Process http://avaya-accs/agentdesktop/CCADClickOnce.application
