@@ -1,5 +1,4 @@
-Write-Host 'Silently Installing Google Chrome'
-
+Write-Host 'Preparing to Install Google Chrome'
 
 # Install Google Chrome x64 on 64-Bit systems? $True or $False
 $Installx64 = $True
@@ -25,7 +24,7 @@ if (-not $User.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator 
 
 
 Function Download-Chrome {
-
+    Write-Host 'Downloading Chrome... ' -NoNewline
     # Test internet connection
     if (Test-Connection google.com -Count 3 -Quiet) {
 		if ($OSArchitecture -eq "64-Bit" -and $Installx64 -eq $True){
@@ -57,7 +56,7 @@ Function Download-Chrome {
 }
 
 Function Install-Chrome {
-    
+    Write-Host 'Installing Chrome... ' -NoNewline    
     # Install Chrome
     $ChromeMSI = """$TempDirectory\Chrome.msi"""
 	$ExitCode = (Start-Process -filepath msiexec -argumentlist "/i $ChromeMSI /qn /norestart" -Wait -PassThru).ExitCode
