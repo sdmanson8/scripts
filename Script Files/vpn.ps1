@@ -9,13 +9,13 @@ do {
 PAUSE
         $vpnname = "Reflex VPN"
         $address = "vpn.reflex.co.za"
-        $vpnusername = "sheldonm"
-        $vpnpassword = "ccrse3a6ti"
+        $vpnusername = "password"
+        $vpnpassword = "password"
             Write-Host Connecting to VPN configuration
-            $vpn = Get-VpnConnection | where {$_.Name -eq "Reflex VPN"}
+            $vpn = Get-VpnConnection | where {$_.Name -eq "$vpnname"}
             if ($vpn.ConnectionStatus -eq "Disconnected")
             {
                 $cmd = $env:WINDIR + "\System32\rasdial.exe"
-                $expression = "$cmd ""$vpnname"" sheldonm ccrse3a6ti"
+                $expression = "$cmd ""$vpnname""  $vpnusername $vpnpassword"
                 Invoke-Expression -Command $expression 
             }
