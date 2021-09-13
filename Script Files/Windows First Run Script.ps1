@@ -116,7 +116,8 @@
     clear
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
-    schtasks.exe /Run /TN  \Microsoft\Windows\Servicing\StartComponentCleanup
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat
+    Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
  if ($answer -eq 12){
     clear
