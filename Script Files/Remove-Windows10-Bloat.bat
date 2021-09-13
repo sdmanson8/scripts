@@ -1,3 +1,6 @@
+::Create Restore Point
+Wmic.exe /Namespace:\\root\default Path SystemRestore Call CreateRestorePoint "Windows Bloatware Removal", 100, 12
+
 @rem *** Disable Some Service ***
 sc stop DiagTrack
 sc stop diagnosticshub.standardcollector.service
