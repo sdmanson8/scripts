@@ -29,12 +29,12 @@ do {
             $response = Read-Host -Prompt $msg
             if ($response -eq 'y') {
             Write-Host Connect to VPN configuration
-            $vpn = Get-VpnConnection | where {$_.Name -eq "Reflex VPN"}
+            $vpn = Get-VpnConnection | where {$_.Name -eq "$vpnname"}
             }
             if ($vpn.ConnectionStatus -eq "Disconnected")
             {
                 $cmd = $env:WINDIR + "\System32\rasdial.exe"
-                $expression = "$cmd ""$vpnname"" sheldonm ccrse3a6ti"
+                $expression = "$cmd ""$vpnname"" $vpnusername $vpnpassword"
                 Invoke-Expression -Command $expression 
             }
 } until ($response -eq 'n')
