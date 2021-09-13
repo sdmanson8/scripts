@@ -17,4 +17,4 @@ control /name Microsoft.BitLockerDriveEncryption
 
 #Sign Out of Local Admin Account
 Write-Host Signing out of Admin Account in 5 seconds
-shutdown /l /f /t 05
+shutdown /l /f /t 5
