@@ -60,7 +60,7 @@
     # prompt to run Microsoft Edge Uninstaller
     Write-Output "Running Microsoft Edge Uninstaller"
     #Create a restore point
-    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Uninstall Microsoft Edge' -RestorePointType 'MODIFY_SETTINGS'"    
+    #powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Uninstall Microsoft Edge' -RestorePointType 'MODIFY_SETTINGS'"    
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Uninstall%20Edge.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
@@ -79,6 +79,8 @@
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 8){
+    #Create a restore point
+    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Optimizer Script' -RestorePointType 'MODIFY_SETTINGS'"
     clear
     # prompt to run Windows Optimization for Windows
     Write-Output "Running Windows Optimization for Windows"
@@ -90,9 +92,6 @@
     PAUSE
     Write-Host Edit Optimizer Script File
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\Optimizer.bat"
-    PAUSE
-    #Create a restore point
-    powershell.exe -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description 'Optimizer Script' -RestorePointType 'MODIFY_SETTINGS'"
     PAUSE
     Write-Host Running Optimizer Script
     Start-Process C:\Optimizer.bat
