@@ -1,3 +1,3 @@
 #Create Restore Point
-PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Bypass -NoExit -Command "Checkpoint-Computer -Description "Windows Tweak/Optimizer Tool" -RestorePointType "MODIFY_SETTINGS"; " ' " -Verb RunAs}"
+Wmic.exe /Namespace:\\root\default Path SystemRestore Call CreateRestorePoint "Tweak/Bloatware for Windows", 100, 12
 iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JJ8R4'))
