@@ -14,7 +14,8 @@
  echo "    2. Join Domain Network"
  echo "    3. Domain GPUpdate"
  echo "    4. MDM Enrolment"
- echo "    5. exit" 
+ echo "    5. Install Required Domain Apps"
+ echo "    6. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -67,7 +68,14 @@ do {
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 3){areyousure} 
+   if ($answer -eq 5){
+    clear
+    # Install Required Domain Apps
+    Write-Output "Install Required Domain Apps"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+ if ($answer -eq 6){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
