@@ -7,8 +7,8 @@ do {
         }
 } until ($response -eq 'n')
 PAUSE
-        $vpnname = "Reflex VPN"
-        $address = "vpn.reflex.co.za"
+        $vpnname = "VPN"
+        $address = "vpn.example.com"
         $vpnusername = "password"
         $vpnpassword = "password"
             Write-Host Connecting to VPN configuration
