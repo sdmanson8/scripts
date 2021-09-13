@@ -29,6 +29,7 @@
     Write-Host Opening Webpage to Download Prerequisites
     Start-Process http://avaya-accs/agentdesktop/setup.exe
     PAUSE
+    Write-Host "Installing Avaya Agent Prerequisites"
     Start-Process C:\Users\sheldonm\Downloads\setup.exe
     PAUSE
     Remove-Item C:\Users\sheldonm\Downloads\setup.exe
@@ -38,38 +39,43 @@
  if ($answer -eq 2){
     clear
     # Office 365 (Unlicensed)
-    Write-Output "Opening Webpage to Download Office 365 (Unlicensed)"
-    Start-Process https://c2rsetup.officeapps.live.com/c2r/download.aspx?productReleaseID=O365ProPlusRetail&platform=X64&language=en-us&TaxRegion=db&correlationId=738b3e5c-6a37-4a2b-8f20-3cdd08477dd8&token=0d16b52a-7f7c-4147-8e28-50e755b1eb69&version=O16GA&source=O15OLSO365&Br=2
+    Write-Host "Opening Webpage to Download Office 365 (Unlicensed)"
+    Start-Process "https://c2rsetup.officeapps.live.com/c2r/download.aspx?productReleaseID=O365ProPlusRetail&platform=X64&language=en-us&TaxRegion=db&correlationId=738b3e5c-6a37-4a2b-8f20-3cdd08477dd8&token=0d16b52a-7f7c-4147-8e28-50e755b1eb69&version=O16GA&source=O15OLSO365&Br=2"
+    PAUSE
+    Write-Host "Installing Office 365"
+    Start-Process C:\Users\sheldonm\Downloads\OfficeSetup.exe
+    PAUSE
+    Remove-Item C:\Users\sheldonm\Downloads\OfficeSetup.exe
  }  
  if ($answer -eq 3){
     clear
     # Install Avaya Workplace
-    Write-Output "Install Avaya Workplace"
-    Start-Process -Wait -FilePath 'Z:\Avaya IX Workplace Setup 3.8.0.136.14.exe' -ArgumentList '/S' -PassThru
+    Write-Output "Installing Avaya Workplace"
+    msiexec.exe /i '\\zarbkfs01\Company Folder\Avaya IX Workplace Setup 3.8.0.136.14.msi' 
  }
   if ($answer -eq 4){
     clear
     # Install Ninja
-    Write-Output "Install Ninja"
-    Start-Process -Wait -FilePath 'Z:\BU - EUC\BU - Managed Services\#Software\#NINJA_INSTALLS\REFLEX\reflexsolutionsworkstationmainoffice-4.4.6012-windows-installer.msi' -ArgumentList '/S' -PassThru
+    Write-Output "Installing Ninja"
+    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\#NINJA_INSTALLS\REFLEX\reflexsolutionsworkstationmainoffice-4.4.6012-windows-installer.msi' -ArgumentList '/S' -PassThru
  }
   if ($answer -eq 5){
     clear
     # Install ESET
-    Write-Output "Install ESET"
-    Start-Process -Wait -FilePath 'Z:\BU - EUC\BU - Managed Services\#Software\ESET\AIO_FOR_ALL_CLIENTS\_WORK_STATION_AIO_ALL_CLIENTS_x64_en_US.exe' -ArgumentList '/S' -PassThru
+    Write-Output "Installing ESET"
+    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\ESET\AIO_FOR_ALL_CLIENTS\_WORK_STATION_AIO_ALL_CLIENTS_x64_en_US.exe' -ArgumentList '/S' -PassThru
  }
   if ($answer -eq 6){
     clear
     # Install FortiClient VPN
-    Write-Output "Install FortiClient VPN"
-    Start-Process -Wait -FilePath 'Z:\BU - EUC\BU - Managed Services\#Software\Fortinet\FortiClientVPNOnlineInstaller_6.2.exe' -ArgumentList '/S' -PassThru
+    Write-Output "Installing FortiClient VPN"
+    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\Fortinet\FortiClientVPNOnlineInstaller_6.2.exe' -ArgumentList '/S' -PassThru
  }
   if ($answer -eq 7){
     clear
     # Install Reflex Remote Support
-    Write-Output "Install Reflex Remote Support"
-    Start-Process -Wait -FilePath 'Z:\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi' -ArgumentList '/S' -PassThru
+    Write-Output "Installing Reflex Remote Support"
+    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi' -ArgumentList '/S' -PassThru
  }
  if ($answer -eq 8){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
