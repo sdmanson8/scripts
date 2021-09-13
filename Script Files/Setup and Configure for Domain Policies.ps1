@@ -14,7 +14,7 @@
  echo "    2. Join Domain Network"
  echo "    3. Domain GPUpdate"
  echo "    4. MDM Enrolment"
- echo "    5. exit" 
+ echo "    . exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
