@@ -22,6 +22,7 @@
  echo "    10. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
  echo "    11. Cleanup Windows.Old folder"
  echo "    12. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
+ echo ""
  echo "    13. exit" 
  echo "" 
  echo ""
