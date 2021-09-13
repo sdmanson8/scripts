@@ -1,5 +1,3 @@
-$Drive = (Get-Partition | Where-Object {((Test-Path ($_.DriveLetter + ':\Windows.old')) -eq $True)}).DriveLetter
-If ((Test-Path ($Drive + ':\Windows.old')) -eq $true) {
-    $Directory = $Drive + ':\Windows.old'
-    cmd.exe /c rmdir /S /Q $Directory
-}
+TAKEOWN /F C:\Windows.old  /R /D  Y
+icacls C:\Windows.old /grant administrators:F /T
+RD /S \\?\C:\Windows.old
