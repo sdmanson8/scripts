@@ -50,6 +50,7 @@ PAUSE
 Write-Host Opening Sophia Script File
 & "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1"
 
+PAUSE
 #Is Powershell 7 Installed
 Write-Host "Is Powershell 7 Installed?"
 Write-Host Is Powershell 7 Installed?
@@ -68,7 +69,8 @@ Else{
 
 Write-Host Running Sophia Script
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-pwsh.exe "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
+#pwsh.exe "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
+& "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
 
 #Open Wrapper from Windows Explorer
 #cd 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper'
