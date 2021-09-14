@@ -44,7 +44,7 @@ do {
  if ($answer -eq 1){
     Clear-Host
     # Configure/Connect to Domain VPN
-    Write-Output "Configure/Connect to Domain VPN"
+    Write-Output "Downloading VPN Script File"
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1 -OutFile C:\vpn.ps1
     # VPN Script File
     PAUSE
@@ -60,7 +60,7 @@ do {
  if ($answer -eq 2){
     Clear-Host
     # Join Domain Network
-    Write-Output "Join Domain Network"
+    Write-Output "Downloading JoinDomain Script File"
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1 -OutFile C:\joindomain.ps1
     # JoinDomain Script File
     PAUSE
