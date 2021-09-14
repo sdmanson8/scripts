@@ -34,7 +34,7 @@
     clear
     # Setup and configure for Domain Policies
     Write-Output "Downloading ConfigureDomainPolicies Script File"
-    Invoke-WebRequest -Uri https://github.com/sdmanson8/scripts/blob/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1 -OutFile C:\ConfigureDomainPolicies.ps1
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1 -OutFile C:\ConfigureDomainPolicies.ps1
     # ConfigureDomainPolicies Script File
     PAUSE
     Write-Host Edit ConfigureDomainPolicies Script File
