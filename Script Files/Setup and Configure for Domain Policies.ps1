@@ -46,6 +46,7 @@ do {
  if ($answer -eq 1){
     Clear-Host
     # Configure/Connect to Domain VPN
+    Remove-Item "C:\vpn.ps1"
     Write-Output "Downloading VPN Script File"
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1 -OutFile C:\vpn.ps1
     # VPN Script File
@@ -54,7 +55,7 @@ do {
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\vpn.ps1"
     PAUSE
     Write-Host Running VPN Script
-    Start-Process C:\vpn.ps1
+    & C:\vpn.ps1
     PAUSE
     Write-Host Removing Leftover Files
     Remove-Item "C:\vpn.ps1"
@@ -62,6 +63,7 @@ do {
  if ($answer -eq 2){
     Clear-Host
     # Join Domain Network
+    Remove-Item "C:\joindomain.ps1"
     Write-Output "Downloading JoinDomain Script File"
     Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1 -OutFile C:\joindomain.ps1
     # JoinDomain Script File
@@ -70,7 +72,7 @@ do {
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\joindomain.ps1"
     PAUSE
     Write-Host Running JoinDomain Script
-    Start-Process C:\joindomain.ps1
+    & C:\joindomain.ps1
     PAUSE
     Write-Host Removing Leftover Files
     Remove-Item "C:\joindomain.ps1"
