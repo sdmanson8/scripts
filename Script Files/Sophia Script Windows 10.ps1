@@ -50,10 +50,25 @@ PAUSE
 Write-Host Opening Sophia Script File
 & "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1"
 
-PAUSE
+#Is Powershell 7 Installed
+Write-Host "Is Powershell 7 Installed?"
+Write-Host Is Powershell 7 Installed?
+$w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
+$w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
+if ($w64 -or $w32)
+{
+    Write-output "Powershell 7 is already installed on your machine."
+}
+Else{
+    Write-Output "Powershell 7 is not installed on your machine."
+    Write-Host "Preparing to Install Powershell 7 ... Please wait..."
+    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
+    Write-Host Powershell 7 Installed
+}
+
 Write-Host Running Sophia Script
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\PowerShell 7\Sophia.ps1'
+pwsh.exe "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
 
 #Open Wrapper from Windows Explorer
 #cd 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper'
