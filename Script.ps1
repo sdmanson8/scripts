@@ -33,9 +33,18 @@
  if ($answer -eq 2){
     clear
     # Setup and configure for Domain Policies
-    Write-Output "Setup and configure for Domain Policies"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1"
-    Invoke-Expression $($ScriptFromGithHub.Content)
+    Write-Output "Downloading ConfigureDomainPolicies Script File"
+    Invoke-WebRequest -Uri https://github.com/sdmanson8/scripts/blob/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1 -OutFile C:\ConfigureDomainPolicies.ps1
+    # ConfigureDomainPolicies Script File
+    PAUSE
+    Write-Host Edit ConfigureDomainPolicies Script File
+    & "C:\Program Files\Notepad++\notepad++.exe" "C:\ConfigureDomainPolicies.ps1"
+    PAUSE
+    Write-Host Running ConfigureDomainPolicies Script
+    Start-Process C:\ConfigureDomainPolicies.ps1
+    PAUSE
+    Write-Host Removing Leftover Files
+    Remove-Item "C:\ConfigureDomainPolicies.ps1"
  }  
   if ($answer -eq 3){
     clear
