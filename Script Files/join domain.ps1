@@ -1,3 +1,4 @@
+    Clear-Host
     Write-Host Join PC to Domain
 
     # Edit domain name and credentials
