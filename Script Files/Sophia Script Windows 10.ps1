@@ -69,7 +69,7 @@ Else{
 Write-Host Running Sophia Script
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 #pwsh.exe "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
-& "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
+Powershell.exe "& ""C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1""
 
 #Open Wrapper from Windows Explorer
 #cd 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Wrapper'
