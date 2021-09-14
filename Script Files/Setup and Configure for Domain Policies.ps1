@@ -21,6 +21,8 @@
  echo ""
  echo "---------------------------------------------------------"  
 $answer = read-host "Please Make a Selection"  
+
+# Edit VPN Name, Address, Username, Password
             $vpnname = "VPN"
             $address = "vpn.example.com"
             $vpnusername = "username"
