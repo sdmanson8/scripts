@@ -41,7 +41,7 @@
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\ConfigureDomainPolicies.ps1"
     PAUSE
     Write-Host Running ConfigureDomainPolicies Script
-    Start-Process C:\ConfigureDomainPolicies.ps1
+    & C:\ConfigureDomainPolicies.ps1
     PAUSE
     Write-Host Removing Leftover Files
     Remove-Item "C:\ConfigureDomainPolicies.ps1"
