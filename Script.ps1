@@ -24,14 +24,14 @@
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
  if ($answer -eq 1){
-    clear
+    Clear-Host
     # Windows First Run (Clean Install) Script
     Write-Output "Windows First Run (Clean Install) Script"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20First%20Run%20Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
-    clear
+    Clear-Host
     Remove-Item "C:\ConfigureDomainPolicies.ps1"
     # Setup and configure for Domain Policies
     Write-Output "Downloading ConfigureDomainPolicies Script File"
@@ -42,13 +42,14 @@
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\ConfigureDomainPolicies.ps1"
     PAUSE
     Write-Host Running ConfigureDomainPolicies Script
+    Clear-Host
     & C:\ConfigureDomainPolicies.ps1
     PAUSE
     Write-Host Removing Leftover Files
     Remove-Item "C:\ConfigureDomainPolicies.ps1"
  }  
   if ($answer -eq 3){
-    clear
+    Clear-Host
     # "Content Blockers (Adult, Social, Gambling,etc)"
     Write-Output "Content Blockers (Adult, Social, Gambling,etc)"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1"
