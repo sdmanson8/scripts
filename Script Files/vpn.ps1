@@ -1,3 +1,4 @@
+Clear-Host
 $msg     = 'Do you create a VPN Profile? [Type Y/N]'
 do {
             $response = Read-Host -Prompt $msg
