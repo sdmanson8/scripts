@@ -7,6 +7,9 @@ do {
         }
 } until ($response -eq 'n')
 PAUSE
+
+# Edit VPN Name, Address, Username, Password
+
         $vpnname = "VPN"
         $address = "vpn.example.com"
         $vpnusername = "password"
