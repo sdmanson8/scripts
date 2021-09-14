@@ -55,6 +55,7 @@ do {
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\vpn.ps1"
     PAUSE
     Write-Host Running VPN Script
+    Clear-Host
     & C:\vpn.ps1
     PAUSE
     Write-Host Removing Leftover Files
@@ -72,6 +73,7 @@ do {
     & "C:\Program Files\Notepad++\notepad++.exe" "C:\joindomain.ps1"
     PAUSE
     Write-Host Running JoinDomain Script
+    Clear-Host
     & C:\joindomain.ps1
     PAUSE
     Write-Host Removing Leftover Files
