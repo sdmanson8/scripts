@@ -32,6 +32,7 @@
     Write-Host "Installing HP Drivers"
     Start-Process -Wait -FilePath $env:USERPROFILE\Downloads\sp*.exe
     Remove-Item $env:USERPROFILE\Downloads\sp*.exe
+    Remove-Item C:\SWSetup
 }  
  if ($answer -eq 2){
     Clear-Host
