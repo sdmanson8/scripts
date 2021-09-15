@@ -46,6 +46,6 @@
     Write-Host "Installing Grammarly for Microsoft Office"
     Start-Process -Wait -FilePath "C:\GrammarlyAddInSetup.exe"
     PAUSE
-    Remove-Item C:\GrammarlySetup.exe
+    Remove-Item C:\GrammarlyAddInSetup.exe
     Write-Host "Opening Webpage to Setup Grammarly Addon for Microsoft Edge"
     Start-Process "https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd"
