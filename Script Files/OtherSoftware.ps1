@@ -5,6 +5,7 @@
     Write-Host "Installing HP Drivers"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
     Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
+    Remove-Item C:\SWSetup
 
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
@@ -20,6 +21,7 @@
     Write-Host "Installing HP Support Assistant"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
     Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
+    Remove-Item C:\SWSetup
 
     # Dashlane Desktop
     Write-Host "Opening Webpage to Download Dashlane Desktop"
