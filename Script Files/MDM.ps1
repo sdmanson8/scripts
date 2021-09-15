@@ -16,6 +16,7 @@ Write-Host "Opening Manage Bitlocker in Control Panel"
 control /name Microsoft.BitLockerDriveEncryption
 
 PAUSE
-Write-Host Sign out of Admin Account
+Write-Host "Sign out of Current User Account in 5 seconds"
+Start-Sleep -Seconds 5
 #Sign Out of Local Admin Account
 shutdown -l 
