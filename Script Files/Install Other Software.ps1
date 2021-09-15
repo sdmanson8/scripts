@@ -72,12 +72,12 @@
     Write-Output "Downloading Grammarly for Windows"
     Invoke-WebRequest -Uri https://download-editor.grammarly.com/windows/GrammarlySetup.exe -OutFile "C:\GrammarlySetup.exe"
     Write-Host "Installing Grammarly"
-    Start-Process -Wait -FilePath C:\GrammarlySetup.exe
+    Start-Process -FilePath "C:\GrammarlySetup.exe"
     PAUSE
-    Remove-Item C:\GrammarlySetup.exe
+    Remove-Item "C:\GrammarlySetup.exe"
     Write-Output "Downloading Grammarly for Microsoft Office"
-    Invoke-WebRequest -Uri https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe -OutFile "C:\GrammarlyAddInSetup.exe"
-    Write-Host "Installing Grammarly"
+    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "C:\GrammarlyAddInSetup.exe"
+    Write-Host "Installing Grammarly for Microsoft Office"
     Start-Process -Wait -FilePath C:\GrammarlyAddInSetup.exe
     PAUSE
     Remove-Item C:\GrammarlySetup.exe
