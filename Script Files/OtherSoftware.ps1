@@ -43,7 +43,7 @@
     Remove-Item "C:\GrammarlySetup.exe"
     Write-Output "Downloading Grammarly for Microsoft Office"
     Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "C:\GrammarlyAddInSetup.exe"
-    Write-Host "Installing Grammarly"
+    Write-Host "Installing Grammarly for Microsoft Office"
     Start-Process -Wait -FilePath "C:\GrammarlyAddInSetup.exe"
     PAUSE
     Remove-Item C:\GrammarlySetup.exe
