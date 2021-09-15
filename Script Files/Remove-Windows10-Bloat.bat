@@ -135,4 +135,4 @@ REM reg add "HKEY_CLASSES_ROOT\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2
 REM echo OneDrive has been removed. Windows Explorer needs to be restarted.
 pause
 start /wait TASKKILL /F /IM explorer.exe
-shutdown /r now
+explorer.exe
