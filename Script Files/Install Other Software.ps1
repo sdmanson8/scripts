@@ -61,6 +61,7 @@
     PAUSE
     Write-Host "Installing Dashlane Desktop"
     Start-Process -Wait -FilePath $env:USERPROFILE\Downloads\DashlaneInst.exe
+    PAUSE
     Remove-Item $env:USERPROFILE\Downloads\DashlaneInst.exe
     Write-Host "Opening Webpage to Setup Dashlane Addon for Microsoft Edge"
     Start-Process https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph
