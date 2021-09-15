@@ -18,7 +18,9 @@
  echo "    6. Install FortiClient VPN"
  echo "    7. Install Reflex Remote Support"
  echo ""
- echo "    8. exit" 
+ echo "    8. Install All of the Above"
+ echo ""
+ echo "    9. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -78,7 +80,13 @@
     Write-Output "Installing Reflex Remote Support"
     msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi'
  }
- if ($answer -eq 8){areyousure} 
+   if ($answer -eq 8){
+    Clear-Host
+    Write-Output "Installating All Required Software... Please Wait..."
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/DomainApps.ps1"
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+ if ($answer -eq 9){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
