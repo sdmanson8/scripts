@@ -1,4 +1,4 @@
-﻿ #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
+ #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
            if ($areyousure -eq "n"){mainmenu}  
@@ -56,6 +56,7 @@
     Write-Output "Content Blockers (Adult, Social, Gambling,etc)"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
+}
    if ($answer -eq 4){
     Clear-Host
     # "Install Other Software"
