@@ -17,7 +17,6 @@
  echo "    1. Windows First Run (Clean Install) Script"
  echo "    2. Setup and configure for Domain Policies"
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
- echo ""
  echo "    4. Install Other Software"
  echo ""
  echo "    5. exit" 
