@@ -45,9 +45,8 @@
  if ($answer -eq 3){
     Clear-Host
     # prompt to update Powershell
-    Write-Output "Updating Powershell"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Powershell.ps1
-    Invoke-Expression $($ScriptFromGithHub.Content)
+    Write-Host "Preparing to Update Powershell ... Please wait..."
+    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
  }  
  if ($answer -eq 4){
     Clear-Host
