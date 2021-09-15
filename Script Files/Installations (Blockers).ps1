@@ -51,8 +51,8 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     # Modify Chrome Settings
 	
     Write-Host Is chrome Installed?
-    $w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like 'google chrome*'
-    $w32=Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*  | where-Object DisplayName -like 'google chrome*'
+    $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "google chrome" } catch { $false } }
+    $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "google chrome" } catch { $false } }
     if ($w64 -or $w32)
     {
     Write-output "Google Chrome is already installed on your machine."
