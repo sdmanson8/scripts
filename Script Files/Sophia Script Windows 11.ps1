@@ -19,8 +19,8 @@ Expand-Archive -path "$TempDir\$fileName" -DestinationPath "C:\Sophia Script Mas
 Remove-Item $TempDir\$fileName
 
 Write-Host Is Notepad++ Installed?
-$w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like 'NotePad++*'
-$w32=Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*  | where-Object DisplayName -like 'NotePad++*'
+$w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "NotePad++" } catch { $false } }
+$w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "NotePad++" } catch { $false } }
 if ($w64 -or $w32)
 {
     Write-output "Notepad++ is already installed on your machine."
