@@ -45,7 +45,20 @@ function mainmenu{
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
         }
   if ($answer -eq 2){
-    Clear-Host
+    # Modify Microsoft Edge Settings
+    Write-Host Is Microsoft Edge Installed?
+    $DIR = "C:\Program Files (x86)\Microsoft\Edge\Application"
+    if (Test-Path -Path $DIR)
+    {
+    Write-output "Microsoft Edge is already installed on your machine."
+    }
+    Else{
+    Write-Output "Microsoft Edge is not installed on your machine."
+    Write-Output "Downloading Microsoft Edge"
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "C:\MicrosoftEdgeSetup.exe"
+    Write-Host "Installing Microsoft Edge"
+    Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
+    Remove-Item "C:\MicrosoftEdgeSetup.exe"
     # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
     Write-Host "Is Microsoft Edge Running?"
     if((get-process "msedge" -ea SilentlyContinue) -eq $Null){ 
