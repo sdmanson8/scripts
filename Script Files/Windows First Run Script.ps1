@@ -23,7 +23,9 @@
  echo "    11. Cleanup Windows.Old folder"
  echo "    12. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
  echo ""
- echo "    13. exit" 
+ echo "    13. Previous Menu"
+ echo ""
+ echo "    14. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -125,7 +127,12 @@
     Write-Output "Restarting PC"
     shutdown -r -t 00
 } 
- if ($answer -eq 13){areyousure}  
+ if ($answer -eq 13){
+    # Previous Menu
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+ if ($answer -eq 14){areyousure}  
        sleep 5  
        mainmenu  
                    }  
