@@ -13,6 +13,7 @@ function mainmenu{
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
 
+  if ($answer -eq 1){
     Clear-Host
     # Modify Chrome Settings
     Write-Host Is chrome Installed?
@@ -44,6 +45,7 @@ function mainmenu{
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
         }
+  }
   if ($answer -eq 2){
     # Modify Microsoft Edge Settings
     Write-Host Is Microsoft Edge Installed?
