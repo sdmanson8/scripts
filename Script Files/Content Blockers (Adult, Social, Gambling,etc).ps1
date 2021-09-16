@@ -95,7 +95,7 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/BrowserSettings.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
- if ($answer -eq 7){
+ if ($answer -eq 8){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
