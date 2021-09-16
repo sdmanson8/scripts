@@ -5,12 +5,10 @@ Checkpoint-Computer -Description "Removal of Microsoft Edge" -RestorePointType M
 Write-Host Downloading Edge Legacy Uninstaller
 Invoke-WebRequest -Uri https://gorazy.com/it-support/downloads/uninstall_edge.zip -OutFile C:\uninstall_edge.zip
 
-PAUSE
 Write-Host Extracting files
 Expand-Archive "C:\uninstall_edge.zip" -DestinationPath "C:\uninstall_edge"
 Remove-Item C:\uninstall_edge.zip
 
-PAUSE
 Write-Host Run Edge Legacy Uninstaller
 & "C:\uninstall_edge\Uninstall Edge.cmd"
 
