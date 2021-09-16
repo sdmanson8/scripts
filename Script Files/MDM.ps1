@@ -1,3 +1,5 @@
+# Edit Member, Group, and username for MDM
+
 Write-Host Adding Domain User to Local Admin group
 Add-LocalGroupMember -Group "Administrators" -Member "example\user"
 
