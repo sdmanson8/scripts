@@ -75,7 +75,8 @@ function mainmenu{
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v BrowserAddProfileEnabled /t REG_DWORD /d 0
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v InPrivateModeAvailability /t REG_DWORD /d 1
- } 
+    } 
+}
    if ($answer -eq 3){
     Clear-Host
     # Previous Menu
