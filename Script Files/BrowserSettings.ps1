@@ -59,6 +59,7 @@ function mainmenu{
     Write-Host "Installing Microsoft Edge"
     Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
     Remove-Item "C:\MicrosoftEdgeSetup.exe"
+   }
     # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
     Write-Host "Is Microsoft Edge Running?"
     if((get-process "msedge" -ea SilentlyContinue) -eq $Null){ 
@@ -76,7 +77,6 @@ function mainmenu{
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v InPrivateModeAvailability /t REG_DWORD /d 1
     } 
-}
    if ($answer -eq 3){
     Clear-Host
     # Previous Menu
