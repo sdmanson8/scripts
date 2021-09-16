@@ -48,6 +48,7 @@ foreach ($sysapp in $sysapps) {
     }
 }
 
+Write-Host Uninstalling Microsoft Chromium Edge
 $DIR = "C:\Program Files (x86)\Microsoft\Edge\Application"
 cd $DIR\[0-9]*\Installer
 .\setup.exe --uninstall --system-level --verbose-logging --force-uninstall
