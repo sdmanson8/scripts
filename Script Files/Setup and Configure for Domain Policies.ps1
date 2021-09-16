@@ -90,10 +90,22 @@ do {
  }
   if ($answer -eq 4){
     Clear-Host
-    # MDM Enrolment
-    Write-Output "MDM Enrolment"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1
-    Invoke-Expression $($ScriptFromGithHub.Content)
+    Remove-Item "C:\MDMEnrolment.ps1"
+    Clear-Host
+    # Setup and configure MDM
+    Write-Output "Downloading MDMEnrolment Script File"
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1" -OutFile C:\MDMEnrolment.ps1
+    # MDMEnrolment Script File
+    PAUSE
+    Write-Host Edit MDMEnrolment Script File
+    & "C:\Program Files\Notepad++\notepad++.exe" "C:\MDMEnrolment.ps1"
+    PAUSE
+    Write-Host Running MDMEnrolment Script
+    Clear-Host
+    & C:\MDMEnrolment.ps1
+    PAUSE
+    Write-Host Removing Leftover Files
+    Remove-Item "C:\MDMEnrolment.ps1"
  }
    if ($answer -eq 5){
     Clear-Host
