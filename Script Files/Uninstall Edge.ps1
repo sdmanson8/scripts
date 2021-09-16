@@ -47,6 +47,11 @@ foreach ($sysapp in $sysapps) {
     }
 }
 
+$DIR = "C:\Program Files (x86)\Microsoft\Edge\Application"
+cd $DIR\[0-9]*
+#setup.exe --uninstall --system-level --verbose-logging --force-uninstall
+
+<#
 Clear-Host
     Write-Host Downloading Geek Uninstaller
     Invoke-WebRequest -Uri https://geekuninstaller.com/geek.zip -OutFile C:\geek.zip
@@ -63,5 +68,5 @@ Clear-Host
     PAUSE
     Write-Host Removing Edge Legacy Uninstaller folders
     Remove-Item "C:\Geek Uninstaller"
-
+#>
 
