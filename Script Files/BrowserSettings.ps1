@@ -1,5 +1,4 @@
-  if ($answer -eq 6){
-    Clear-Host
+Clear-Host
  function mainmenu{  
  Clear-Host  
  echo "---------------------------------------------------------"  
