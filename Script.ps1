@@ -27,7 +27,7 @@
  if ($answer -eq 1){
     Clear-Host
     # Windows First Run (Post Clean Install) Script
-    Write-Output "Windows First Run (Clean Install) Script"
+    Write-Output "Windows First Run (Post Clean Install) Script"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20First%20Run%20Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
