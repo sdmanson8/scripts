@@ -12,4 +12,5 @@
 
 Preview of Script Menu
 
-![image](https://user-images.githubusercontent.com/90516190/133615353-e812e076-652a-4419-ada7-d3be10285c6d.png)
+![image](https://user-images.githubusercontent.com/90516190/133616494-4aebb632-bf58-4e71-b72c-2c1c7d38208d.png)
+
