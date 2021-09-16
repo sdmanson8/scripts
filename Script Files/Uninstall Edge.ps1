@@ -13,10 +13,10 @@ Write-Host Run Edge Legacy Uninstaller
 & "C:\uninstall_edge\Uninstall Edge.cmd"
 
 PAUSE
+Clear-Host
 Write-Host Removing Edge Legacy Uninstaller folders
 Remove-Item "C:\uninstall_edge"
 
-Clear-Host
 $sysapppath = "$env:systemroot\SystemApps"
 $sysapps = @(
     "Microsoft.MicrosoftEdge_8wekyb3d8bbwe"
