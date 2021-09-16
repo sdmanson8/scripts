@@ -83,6 +83,22 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
  }
   if ($answer -eq 6){
     Clear-Host
+ function mainmenu{  
+ Clear-Host  
+ echo "---------------------------------------------------------"  
+ echo "     Modify Browser Settings (Filtering)"
+ echo ""
+ echo ""   
+ echo "    1. Modify Chrome Settings"
+ echo "    2. Modify Microsoft Edge Settings" 
+ echo ""
+ echo "" 
+ echo ""
+ echo "---------------------------------------------------------"  
+ $answer = read-host "Please Make a Selection"  
+
+  if ($answer -eq 1){
+    Clear-Host
     # Modify Chrome Settings
     Write-Host Is chrome Installed?
     $w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like 'google chrome*'
@@ -113,7 +129,7 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
 }
-  if ($answer -eq 7){
+  if ($answer -eq 2){
     Clear-Host
     # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
     Write-Host "Is Microsoft Edge Running?"
@@ -131,7 +147,10 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v BrowserAddProfileEnabled /t REG_DWORD /d 0
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v InPrivateModeAvailability /t REG_DWORD /d 1
- }
+ } 
+        }
+              }  
+ mainmenu  
    if ($answer -eq 8){
     Clear-Host
     # Complete All of the Above
