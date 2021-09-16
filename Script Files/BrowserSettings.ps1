@@ -1,5 +1,4 @@
-Clear-Host
- function mainmenu{  
+function mainmenu{  
  Clear-Host  
  echo "---------------------------------------------------------"  
  echo "     Modify Browser Settings (Filtering)"
