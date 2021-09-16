@@ -14,7 +14,7 @@
  echo "                     SCRIPT MENU"
  echo ""
  echo ""  
- echo "    1. Windows First Run (Clean Install) Script"
+ echo "    1. Windows First Run (Post Clean Install) Script"
  echo "    2. Setup and configure for Domain Policies"
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
  echo "    4. Install Other Software for HP"
@@ -26,7 +26,7 @@
  $answer = read-host "Please Make a Selection"  
  if ($answer -eq 1){
     Clear-Host
-    # Windows First Run (Clean Install) Script
+    # Windows First Run (Post Clean Install) Script
     Write-Output "Windows First Run (Clean Install) Script"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20First%20Run%20Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
