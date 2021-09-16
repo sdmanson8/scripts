@@ -1,5 +1,5 @@
 Write-Host Adding Domain User to Local Admin group
-Add-LocalGroupMember -Group "Administrators" -Member "reflex\sheldonm"
+Add-LocalGroupMember -Group "Administrators" -Member "example\user"
 
 PAUSE
 $msg     = 'Do you want to do MDM Enrolment? [Type Y/N]'
@@ -8,7 +8,7 @@ do {
             if ($response -eq 'y') {
             #MDM Enrolment
             Write-Host Starting Device Enrolment
-            Start-Process ms-device-enrollment:?mode=mdm"&"username=sheldonm@reflex.co.za}
+            Start-Process ms-device-enrollment:?mode=mdm"&"username=user@example.com}
 } until ($response -eq 'n')
 
 PAUSE
