@@ -16,6 +16,7 @@ PAUSE
 Write-Host Removing Edge Legacy Uninstaller folders
 Remove-Item "C:\uninstall_edge"
 
+Clear-Host
 $msg     = 'Do you want to rather uninstall Microsoft Chromium Edge using Geek Uninstaller? [Type Y/N]'
 do {
     $response = Read-Host -Prompt $msg
@@ -41,6 +42,7 @@ do {
     }
 } until ($response -eq 'n')
 
+Clear-Host
 $sysapppath = "$env:systemroot\SystemApps"
 $sysapps = @(
     "Microsoft.MicrosoftEdge_8wekyb3d8bbwe"
