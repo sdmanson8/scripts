@@ -7,6 +7,7 @@ Invoke-WebRequest -Uri https://gorazy.com/it-support/downloads/uninstall_edge.zi
 
 Write-Host Extracting files
 Expand-Archive "C:\uninstall_edge.zip" -DestinationPath "C:\uninstall_edge"
+Clear-Host
 Remove-Item C:\uninstall_edge.zip
 
 Write-Host Run Edge Legacy Uninstaller
