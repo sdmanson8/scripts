@@ -18,7 +18,9 @@
  echo ""
  echo "    6. Install All of the Above"
  echo ""
- echo "    7. exit" 
+ echo "    7. Previous Menu"
+ echo ""
+ echo "    8. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -92,7 +94,12 @@
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 7){areyousure} 
+  if ($answer -eq 7){
+    # Previous Menu
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+ if ($answer -eq 8){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
