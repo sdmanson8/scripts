@@ -17,7 +17,7 @@
  echo "    1. Windows First Run (Post Clean Install) Script"
  echo "    2. Setup and configure for Domain Policies"
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
- echo "    4. Install Other Software for HP"
+ echo "    4. Install HP Software + Other Software"
  echo ""
  echo "    5. exit" 
  echo "" 
@@ -58,8 +58,8 @@
 }
    if ($answer -eq 4){
     Clear-Host
-    # "Install Other Software"
-    Write-Output "Install Other Software"
+    # "Install HP Software + Other Software"
+    Write-Output "Install HP Software + Other Software"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Other%20Software.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
