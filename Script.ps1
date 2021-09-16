@@ -1,3 +1,6 @@
+#requires -version 5.0
+#Requires -RunAsAdministrator
+
  #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
