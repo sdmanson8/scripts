@@ -1,5 +1,5 @@
 #Create Restore Point
-Checkpoint-Computer -Description "Removal of Microsoft Edge" -RestorePointType MODIFY_SETTINGS
+#Checkpoint-Computer -Description "Removal of Microsoft Edge" -RestorePointType MODIFY_SETTINGS
 # Uninstall Edge
 
 Write-Host Downloading Edge Legacy Uninstaller
