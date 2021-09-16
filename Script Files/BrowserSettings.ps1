@@ -13,11 +13,6 @@ function mainmenu{
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
 
-$msg     = 'Do you want to Modify Chrome? [Type Y/N]'
-do {
-            $response = Read-Host -Prompt $msg
-            if ($response -eq 'y') {
-  if ($answer -eq 1){
     Clear-Host
     # Modify Chrome Settings
     Write-Host Is chrome Installed?
@@ -49,7 +44,6 @@ do {
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
         }
-} until ($response -eq 'n')
   if ($answer -eq 2){
     Clear-Host
     # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
@@ -75,6 +69,5 @@ do {
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
-        }
-              }  
+                
  mainmenu  
