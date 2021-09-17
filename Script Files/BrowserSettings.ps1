@@ -5,9 +5,13 @@ function mainmenu{
  echo ""
  echo ""   
  echo "    1. Modify Chrome Settings"
- echo "    2. Modify Microsoft Edge Settings" 
+ echo "    2. Modify Firefox Settings"
+ echo "    3. Modify Microsoft Edge Settings" 
  echo ""
- echo "    3. Previous Menu"
+ echo "    4. Install and Modify All of the Above"
+ echo "    (Choose which to install Chrome / Firefox)"
+ echo ""
+ echo "    5. Previous Menu"
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -16,7 +20,7 @@ function mainmenu{
   if ($answer -eq 1){
     Clear-Host
     # Modify Chrome Settings
-    Write-Host Is chrome Installed?
+    Write-Host Is Chrome Installed?
     $w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like 'google chrome*'
     $w32=Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*  | where-Object DisplayName -like 'google chrome*'
     if ($w64 -or $w32)
@@ -46,7 +50,38 @@ function mainmenu{
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
         }
   }
-  if ($answer -eq 2){
+   if ($answer -eq 2){
+    Clear-Host
+    # Modify Firefox Settings
+    Write-Host Is Firefox Installed?
+    $w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like '*Firefox*'
+    $w32=Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*  | where-Object DisplayName -like '*Firefox*'
+    if ($w64 -or $w32)
+    {
+    Write-output "Firefox is already installed on your machine."
+    }
+    Else{
+    Write-Output "Firefox is not installed on your machine." 
+    Write-Output "Downloading Firefox"
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "C:\firefox-latest.exe"
+    Write-Host "Installing Firefox"
+    Start-Process -Wait -FilePath "C:\firefox-latest.exe"
+    Remove-Item "C:\firefox-latest.exe"
+}
+   # Check if Firefox is Running, Stop Firefox if Running
+    Write-Host "Is Firefox Running?"
+    if((get-process "firefox" -ea SilentlyContinue) -eq $Null){ 
+        echo "Not Running" 
+    }
+    else{ 
+    echo "Running, Stopping Process"
+    Stop-Process -processname "firefox"
+        }
+    # Tweak Firefox
+    Write-Host "Disabling Incognito"
+    REG ADD HKLM\SOFTWARE\Policies\Mozilla\Firefox /v DisablePrivateBrowsing /t REG_DWORD /d 1
+}
+  if ($answer -eq 3){
     # Modify Microsoft Edge Settings
     Write-Host Is Microsoft Edge Installed?
     $DIR = "C:\Program Files (x86)\Microsoft\Edge\Application"
@@ -78,8 +113,15 @@ function mainmenu{
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v BrowserAddProfileEnabled /t REG_DWORD /d 0
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v InPrivateModeAvailability /t REG_DWORD /d 1
-    } 
-   if ($answer -eq 3){
+    }
+   if ($answer -eq 4){
+    Clear-Host
+    # Install All of the Above
+    Write-Output "Install All of the Above"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/BrowserConfig.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+}
+   if ($answer -eq 5){
     Clear-Host
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1
