@@ -80,7 +80,7 @@ do {
 
     # Google Drive
     Write-Host "Downloading Google Drive"
-    Invoke-Webrequest "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" - OutFile "C:\GoogleDriveSetup.exe"
+    Invoke-WebRequest -Uri "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" - OutFile "C:\GoogleDriveSetup.exe"
     PAUSE
     Write-Host "Installing Google Drive"
     Start-Process -Wait -FilePath "C:\GoogleDriveSetup.exe"
