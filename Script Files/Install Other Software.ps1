@@ -15,12 +15,15 @@
  echo "    3. HP Support Assistant"
  echo "    4. Dashlane"
  echo "    5. Grammarly"
+ echo "    6. Google Chrome"
+ echo "    7. Firefox"
+ echo "    8. Microsoft Edge"
  echo ""
- echo "    6. Install All of the Above"
+ echo "    9. Install All of the Above"
  echo ""
- echo "    7. Previous Menu"
+ echo "    10. Previous Menu"
  echo ""
- echo "    8. exit" 
+ echo "    11. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -87,19 +90,44 @@
     Start-Process https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd
 
  }
-  if ($answer -eq 6){
+   if ($answer -eq 6){
+    Clear-Host
+    # Install Google Chrome
+    Write-Output "Installing Google Chrome"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+   if ($answer -eq 7){
+    Clear-Host
+    # Install Firefox
+    Write-Output "Downloading Firefox"
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "C:\firefox-latest.exe"
+    Write-Host "Installing Firefox"
+    Start-Process -Wait -FilePath "C:\firefox-latest.exe"
+    Remove-Item "C:\firefox-latest.exe"
+ }
+   if ($answer -eq 8){
+    Clear-Host
+    # Install Microsoft Edge
+    Write-Output "Downloading Microsoft Edge"
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "C:\MicrosoftEdgeSetup.exe"
+    Write-Host "Installing Microsoft Edge"
+    Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
+    Remove-Item "C:\MicrosoftEdgeSetup.exe"
+ }
+  if ($answer -eq 9){
     Clear-Host
     # Install All of the Above
     Write-Output "Install All of the Above"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
-  if ($answer -eq 7){
+  if ($answer -eq 10){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 8){areyousure} 
+ if ($answer -eq 11){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
