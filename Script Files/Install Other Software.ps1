@@ -18,13 +18,14 @@
  echo "    6. Google Chrome"
  echo "    7. Firefox"
  echo "    8. Microsoft Edge"
+ echo "    9. Google Drive"
  echo ""
- echo "    9. Install All of the Above"
+ echo "    10. Install All of the Above"
  echo " (Choose which to install Google Chrome / Firefox)"
  echo ""
- echo "    10. Previous Menu"
+ echo "    11. Previous Menu"
  echo ""
- echo "    11. exit" 
+ echo "    12. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -116,19 +117,29 @@
     Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
     Remove-Item "C:\MicrosoftEdgeSetup.exe"
  }
-  if ($answer -eq 9){
+   if ($answer -eq 9){
+     Clear-Host
+    # Google Drive
+    Write-Host "Downloading Google Drive"
+    Invoke-Webrequest "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" - OutFile "C:\GoogleDriveSetup.exe"
+    PAUSE
+    Write-Host "Installing Google Drive"
+    Start-Process -Wait -FilePath "C:\GoogleDriveSetup.exe"
+    Remove-Item "C:\GoogleDriveSetup.exe"
+ }
+  if ($answer -eq 10){
     Clear-Host
     # Install All of the Above
     Write-Output "Install All of the Above"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
-  if ($answer -eq 10){
+  if ($answer -eq 11){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 11){areyousure} 
+ if ($answer -eq 12){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
