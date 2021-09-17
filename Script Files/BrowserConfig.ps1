@@ -1,4 +1,4 @@
-﻿$msg     = 'Do you want to Modify Chrome? [Type Y/N]'
+$msg     = 'Do you want to Modify Chrome? [Type Y/N]'
 do {
             $response = Read-Host -Prompt $msg
             if ($response -eq 'y') {
@@ -33,7 +33,6 @@ do {
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
          }
 } until ($response -eq 'n')
-
 Clear-Host
 $msg     = 'Do you want to Modify Firefox? [Type Y/N]'
 do {
