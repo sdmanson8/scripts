@@ -49,3 +49,31 @@
     Remove-Item C:\GrammarlyAddInSetup.exe
     Write-Host "Opening Webpage to Setup Grammarly Addon for Microsoft Edge"
     Start-Process "https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd"
+$msg     = 'Do you want to Install Google Chrome? [Type Y/N]'
+do {
+            $response = Read-Host -Prompt $msg
+            if ($response -eq 'y') {
+    # Install Google Chrome
+    Write-Output "Installing Google Chrome"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
+        }
+} until ($response -eq 'n')
+$msg     = 'Do you want to Install Firefox? [Type Y/N]'
+do {
+            $response = Read-Host -Prompt $msg
+            if ($response -eq 'y') {
+    # Install Firefox
+    Write-Output "Downloading Firefox"
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "C:\firefox-latest.exe"
+    Write-Host "Installing Firefox"
+    Start-Process -Wait -FilePath "C:\firefox-latest.exe"
+    Remove-Item "C:\firefox-latest.exe"
+        }
+} until ($response -eq 'n')
+    # Install Microsoft Edge
+    Write-Output "Downloading Microsoft Edge"
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "C:\MicrosoftEdgeSetup.exe"
+    Write-Host "Installing Microsoft Edge"
+    Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
+    Remove-Item "C:\MicrosoftEdgeSetup.exe"
