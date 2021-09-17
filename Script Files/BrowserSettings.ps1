@@ -9,7 +9,7 @@ function mainmenu{
  echo "    3. Modify Microsoft Edge Settings" 
  echo ""
  echo "    4. Install and Modify All of the Above"
- echo "    (Choose which to install Chrome / Firefox)"
+ echo "(Choose which to install Chrome / Firefox [Including Microsoft Edge (Required)])"
  echo ""
  echo "    5. Previous Menu"
  echo "" 
