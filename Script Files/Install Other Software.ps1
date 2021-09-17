@@ -20,6 +20,7 @@
  echo "    8. Microsoft Edge"
  echo ""
  echo "    9. Install All of the Above"
+ echo " (Choose which to install Google Chrome / Firefox)"
  echo ""
  echo "    10. Previous Menu"
  echo ""
