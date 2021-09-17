@@ -49,7 +49,6 @@ function mainmenu{
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
         }
-  }
    if ($answer -eq 2){
     Clear-Host
     # Modify Firefox Settings
@@ -126,6 +125,6 @@ function mainmenu{
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
- } 
-                
+      }  
+                }  
  mainmenu  
