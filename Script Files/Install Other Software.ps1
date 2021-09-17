@@ -34,50 +34,50 @@
     Clear-Host
     # HP Driver Pack
     Write-Host "Opening Webpage to Download Drivers [Search for correct Laptop]"
-    Start-Process http://ftp.ext.hp.com//pub/caps-softpaq/cmit/HP_Driverpack_Matrix_x64.html
+    Start-Process "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/HP_Driverpack_Matrix_x64.html"
     PAUSE
     Write-Host "Installing HP Drivers"
-    Start-Process -Wait -FilePath $env:USERPROFILE\Downloads\sp*.exe
-    Remove-Item $env:USERPROFILE\Downloads\sp*.exe
+    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
+    Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
     Remove-Item C:\SWSetup
 }  
  if ($answer -eq 2){
     Clear-Host
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
-    Invoke-WebRequest -Uri http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe -OutFile C:\CASLSetup.exe
+    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "C:\CASLSetup.exe"
     Write-Host "Installing HP Software Framework"
     Start-Process -Wait -FilePath C:\CASLSetup.exe
-    Remove-Item $env:USERPROFILE\Downloads\CASLSetup.exe
+    Remove-Item "$env:USERPROFILE\Downloads\CASLSetup.exe"
  }  
  if ($answer -eq 3){
     Clear-Host
     # HP Support Assistant
     Write-Host "Opening Webpage to Download HP Support Assistant"
-    Start-Process https://support.hp.com/us-en/help/hp-support-assistant
+    Start-Process "https://support.hp.com/us-en/help/hp-support-assistant"
     PAUSE
     Write-Host "Installing HP Support Assistant"
-    Start-Process -Wait -FilePath $env:USERPROFILE\Downloads\sp*.exe
-    Remove-Item $env:USERPROFILE\Downloads\sp*.exe
+    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
+    Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
  }
   if ($answer -eq 4){
     Clear-Host
     # Dashlane Desktop
     Write-Host "Opening Webpage to Download Dashlane Desktop"
-    Start-Process https://www.dashlane.com/download/desktop#downloaded
+    Start-Process "https://www.dashlane.com/download/desktop#downloaded"
     PAUSE
     Write-Host "Installing Dashlane Desktop"
-    Start-Process -FilePath $env:USERPROFILE\Downloads\DashlaneInst.exe
+    Start-Process -FilePath "$env:USERPROFILE\Downloads\DashlaneInst.exe"
     PAUSE
-    Remove-Item $env:USERPROFILE\Downloads\DashlaneInst.exe
+    Remove-Item "$env:USERPROFILE\Downloads\DashlaneInst.exe"
     Write-Host "Opening Webpage to Setup Dashlane Addon for Microsoft Edge"
-    Start-Process https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph
+    Start-Process "https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph"
  }
   if ($answer -eq 5){
     Clear-Host
     # Grammarly
     Write-Output "Downloading Grammarly for Windows"
-    Invoke-WebRequest -Uri https://download-editor.grammarly.com/windows/GrammarlySetup.exe -OutFile "C:\GrammarlySetup.exe"
+    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "C:\GrammarlySetup.exe"
     Write-Host "Installing Grammarly"
     Start-Process -FilePath "C:\GrammarlySetup.exe"
     PAUSE
@@ -85,18 +85,18 @@
     Write-Output "Downloading Grammarly for Microsoft Office"
     Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "C:\GrammarlyAddInSetup.exe"
     Write-Host "Installing Grammarly for Microsoft Office"
-    Start-Process -Wait -FilePath C:\GrammarlyAddInSetup.exe
+    Start-Process -Wait -FilePath "C:\GrammarlyAddInSetup.exe"
     PAUSE
-    Remove-Item C:\GrammarlyAddInSetup.exe
+    Remove-Item "C:\GrammarlyAddInSetup.exe"
     Write-Host "Opening Webpage to Setup Grammarly Addon for Microsoft Edge"
-    Start-Process https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd
+    Start-Process "https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd"
 
  }
    if ($answer -eq 6){
     Clear-Host
     # Install Google Chrome
     Write-Output "Installing Google Chrome"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
    if ($answer -eq 7){
@@ -131,12 +131,12 @@
     Clear-Host
     # Install All of the Above
     Write-Output "Install All of the Above"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
   if ($answer -eq 11){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 12){areyousure} 
