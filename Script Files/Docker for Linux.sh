@@ -7,13 +7,13 @@ sudo gpasswd --add $USER root
 
 <<COMMAND
 # Update FileSystem
-printf '\nUpdating FileSystem.. Please Wait\n\n'
-start-sleep -seconds 3
+printf '\nPreparing to Update FileSystem.. Please Wait\n\n'
+sleep 2s
 sudo apt-get update -y && sudo apt-get dist-upgrade -y
 
 # Docker
-printf '\nInstalling Docker.. Please Wait\n\n'
-start-sleep -seconds 3
+printf '\nPreparing to Install Docker.. Please Wait\n\n'
+sleep 3s
 sudo apt remove --yes docker docker-engine docker.io containerd runc || true
 sudo apt update
 sudo apt --yes --no-install-recommends install apt-transport-https ca-certificates
@@ -25,11 +25,11 @@ sudo systemctl enable docker
 printf '\nDocker installed successfully\n\n'
 
 printf 'Waiting for Docker to start...\n\n'
-start-sleep -seconds 2
+sleep 2s
 
 # Docker Compose
-printf '\nInstalling Docker-Compose.. Please Wait\n\n'
-start-sleep -seconds 2
+printf '\nPreparing to Install Docker-Compose.. Please Wait\n\n'
+sleep 2s
 sudo wget --output-document=/usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/$(wget --quiet --output-document=- https://api.github.com/repos/docker/compose/releases/latest | grep --perl-regexp --only-matching '"tag_name": "\K.*?(?=")')/run.sh"
 sudo chmod +x /usr/local/bin/docker-compose
 sudo wget --output-document=/etc/bash_completion.d/docker-compose "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose"
@@ -46,11 +46,11 @@ sudo rm -R /tmp/76b450a0c986e576e98b -f
 
 cd ~/
 #Refresh Ubuntu Package List
-printf '\nRefresh Ubuntu Package List.. Please Wait\n\n'
-start-sleep -seconds 2
+printf '\nPreparing to Refresh Ubuntu Package List.. Please Wait\n\n'
+sleep 2s
 sudo apt-get update
 
 # Add User to Docker Group
 gpasswd --add $USER docker
-start-sleep -seconds 2
+sleep 2s
 COMMAND
