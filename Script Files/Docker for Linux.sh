@@ -48,7 +48,7 @@ printf '\nRefresh Ubuntu Package List.. Please Wait\n\n'
 start-sleep -seconds 2
 sudo apt-get update
 
-cd /
+cd ~/
 # Add User to Docker Group
 printf '\nAdding Current User to Docker Group.. Please Wait\n\n'
 sudo usermod -aG docker ${USER}
