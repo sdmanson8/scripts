@@ -1,4 +1,4 @@
-# script
+# Windows Tweaks
 
 Run "Set-ExecutionPolicy Unrestricted" if you get an error
 
