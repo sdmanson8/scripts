@@ -1,8 +1,12 @@
 #!/bin/bash
 
+# Edit Sudoers File
+echo "Add user to Sudoers File"
+sudo visudo
+
 # Update FileSystem
-#echo "Updating FileSystem"
-#sudo apt-get update -y && sudo apt-get dist-upgrade -y
+echo "Updating FileSystem"
+sudo apt-get update -y && sudo apt-get dist-upgrade -y
 
 # Install Docker
 echo "Installing Docker"
