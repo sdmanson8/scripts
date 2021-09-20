@@ -2,7 +2,7 @@
 
 # Edit Sudoers File
 printf 'Adding Current User to Sudoers and Root.. Please Wait\n\n'
-usermod -a -G sudo,root $USER
+gpasswd -a $USER sudo && gpasswd -a $USER root
 
 <#
 # Update FileSystem
