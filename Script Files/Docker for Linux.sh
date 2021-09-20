@@ -1,5 +1,6 @@
 #!/bin/bash
 
+clear
 # Edit Sudoers File
 sudo gpasswd --add $USER sudo
 sudo gpasswd --add $USER root
