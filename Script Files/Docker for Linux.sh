@@ -54,5 +54,6 @@ sudo apt-get update
 sudo gpasswd --add $USER docker
 sleep 2s
 
-printf '\nRestarting your Computer.. Please Wait\n\n'
+printf '\nRestarting your Computer in 10 Seconds\n\n'
+sleep 10s
 sudo shutdown -r now
