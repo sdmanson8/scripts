@@ -14,7 +14,7 @@ nano Script.ps1
 
 Enter the Below in the .ps1 file
 
-$ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+$ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1
 Invoke-Expression $($ScriptFromGithHub.Content)
 
 Save and exit
@@ -26,3 +26,5 @@ Run the Powershell Script
 chmod +x Script.ps1 && pwsh ./Script.ps1
 
 ---------------------------------------------------------
+Preview of Menu
+
