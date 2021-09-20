@@ -55,4 +55,4 @@ sudo gpasswd --add $USER docker
 sleep 2s
 
 printf '\nRestarting your Computer.. Please Wait\n\n'
-sudo shutdown -r
+sudo shutdown -r now
