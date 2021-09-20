@@ -6,7 +6,7 @@ Depending on the options selected you might require editing the script which wil
 
 Requires Powershell 5.0 and later in an elavated Powershell Window
         
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
 
 
