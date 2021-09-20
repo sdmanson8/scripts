@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Edit Sudoers File
-gpasswd --add $USER sudo
-gpasswd --add $USER root
+sudo gpasswd --add $USER sudo
+sudo gpasswd --add $USER root
 
-<#
+<<COMMAND
 # Update FileSystem
 printf '\nUpdating FileSystem.. Please Wait\n\n'
 start-sleep -seconds 3
@@ -48,7 +48,8 @@ cd ~/
 printf '\nRefresh Ubuntu Package List.. Please Wait\n\n'
 start-sleep -seconds 2
 sudo apt-get update
-#>
+
 # Add User to Docker Group
 gpasswd --add $USER docker
 start-sleep -seconds 2
+COMMAND
