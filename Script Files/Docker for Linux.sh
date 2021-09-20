@@ -1,5 +1,6 @@
 #!/bin/bash
 
+<#
 # Edit Sudoers File
 printf 'Edit Sudoers File to Add Current User.. Please Wait\n\n'
 start-sleep -seconds 2
@@ -33,7 +34,7 @@ sudo wget --output-document=/usr/local/bin/docker-compose "https://github.com/do
 sudo chmod +x /usr/local/bin/docker-compose
 sudo wget --output-document=/etc/bash_completion.d/docker-compose "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose"
 printf '\nDocker Compose installed successfully\n\n'
-
+#>
 # Install docker-cleanup command
 mkdir /usr/local/bin/docker-cleanup
 cd /tmp
@@ -43,12 +44,12 @@ sudo mv docker-cleanup /usr/local/bin/docker-cleanup
 sudo chmod +x /usr/local/bin/docker-cleanup
 sudo rm -R /tmp/76b450a0c986e576e98b -f
 
+cd ~/
 #Refresh Ubuntu Package List
 printf '\nRefresh Ubuntu Package List.. Please Wait\n\n'
 start-sleep -seconds 2
 sudo apt-get update
 
-cd ~/
 # Add User to Docker Group
 printf '\nAdding Current User to Docker Group.. Please Wait\n\n'
 sudo usermod -aG docker ${USER}
