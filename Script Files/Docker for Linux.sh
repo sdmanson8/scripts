@@ -1,4 +1,4 @@
-#!/bin/bash
+#/bin/bash
 
 <<COMMENT
 # Update FileSystem
@@ -14,7 +14,6 @@ sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/u
 sudo apt-get update -y
 sudo apt-get install docker-ce -y
 
-<<COMMENT
 # Install Docker-Compose
 echo "Installing Docker-Compose"
 COMPOSE_VERSION=$(git ls-remote https://github.com/docker/compose | tail -n8 | awk '{print $2}' | grep -Po 'refs/tags/\K([\d.]{5})(?!-\w+)' | tail -n1)
@@ -28,7 +27,6 @@ git clone https://gist.github.com/76b450a0c986e576e98b.git
 cd 76b450a0c986e576e98b
 sudo mv docker-cleanup /usr/local/bin/docker-cleanup
 sudo chmod +x /usr/local/bin/docker-cleanup
-COMMENT
 
 # Add User to Docker Group
 sudo usermod -aG docker ${USER}
