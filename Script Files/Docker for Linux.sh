@@ -1,11 +1,11 @@
 #!/bin/bash
 
 clear
+<<COMMAND
 # Edit Sudoers File
 sudo gpasswd --add $USER sudo
 sudo gpasswd --add $USER root
 
-<<COMMAND
 # Update FileSystem
 printf '\nPreparing to Update FileSystem.. Please Wait\n\n'
 sleep 2s
@@ -34,7 +34,7 @@ sudo wget --output-document=/usr/local/bin/docker-compose "https://github.com/do
 sudo chmod +x /usr/local/bin/docker-compose
 sudo wget --output-document=/etc/bash_completion.d/docker-compose "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose"
 printf '\nDocker Compose installed successfully\n\n'
-
+COMMAND
 # Install docker-cleanup command
 mkdir /usr/local/bin/docker-cleanup
 cd /tmp
@@ -53,4 +53,4 @@ sudo apt-get update
 # Add User to Docker Group
 gpasswd --add $USER docker
 sleep 2s
-COMMAND
+
