@@ -26,5 +26,7 @@ Run the Powershell Script
 chmod +x Script.ps1 && pwsh ./Script.ps1
 
 ---------------------------------------------------------
-Preview of Menu
+
+Config Instructions
+
 
