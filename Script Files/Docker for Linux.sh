@@ -36,7 +36,7 @@ sudo wget --output-document=/etc/bash_completion.d/docker-compose "https://raw.g
 printf '\nDocker Compose installed successfully\n\n'
 COMMAND
 # Install docker-cleanup command
-mkdir /usr/local/bin/docker-cleanup
+sudo mkdir /usr/local/bin/docker-cleanup
 cd /tmp
 git clone https://gist.github.com/76b450a0c986e576e98b.git
 cd 76b450a0c986e576e98b
@@ -51,6 +51,6 @@ sleep 2s
 sudo apt-get update
 
 # Add User to Docker Group
-gpasswd --add $USER docker
+sudo gpasswd --add $USER docker
 sleep 2s
 
