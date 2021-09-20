@@ -14,7 +14,7 @@ nano Script.ps1
 
 Enter the Below in the .ps1 file
 
-$ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.sh
+$ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1
 Invoke-Expression $($ScriptFromGithHub.Content)
 
 Save and exit
