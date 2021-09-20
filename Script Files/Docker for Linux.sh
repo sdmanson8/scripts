@@ -1,11 +1,10 @@
 #!/bin/bash
 
-<#
 # Edit Sudoers File
-printf 'Edit Sudoers File to Add Current User.. Please Wait\n\n'
-start-sleep -seconds 2
-sudo visudo
+printf 'Adding Current User to Sudoers and Root.. Please Wait\n\n'
+usermod -a -G sudo,root $USER
 
+<#
 # Update FileSystem
 printf '\nUpdating FileSystem.. Please Wait\n\n'
 start-sleep -seconds 3
@@ -51,5 +50,5 @@ start-sleep -seconds 2
 sudo apt-get update
 #>
 # Add User to Docker Group
-printf '\nAdding Current User to Docker Group.. Please Wait\n\n'
-sudo usermod -aG docker ${USER}
+gpasswd -a $USER docker
+start-sleep -seconds 2
