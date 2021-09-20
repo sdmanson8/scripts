@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Edit Sudoers File
-gpasswd -a $USER sudo && gpasswd -a $USER root
+sudo gpasswd --add $USER sudo
+sudo gpasswd --add $USER root
 
 <#
 # Update FileSystem
@@ -49,5 +50,5 @@ start-sleep -seconds 2
 sudo apt-get update
 #>
 # Add User to Docker Group
-gpasswd -a $USER docker
+sudo gpasswd --add $USER docker
 start-sleep -seconds 2
