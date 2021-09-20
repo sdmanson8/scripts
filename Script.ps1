@@ -34,8 +34,8 @@
  }  
  if ($answer -eq 2){
     Clear-Host
-    # Windows Tweaks
-    Write-Output "Windows Tweaks"
+    # Docker for Linux
+    Write-Output "Docker for Linux"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Docker%20for%20Linux.sh"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
