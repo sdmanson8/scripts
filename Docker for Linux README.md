@@ -17,6 +17,7 @@ Invoke-Expression $($ScriptFromGithHub.Content)
 Save and exit
 CTRL + X, Save (Y), Press Enter to use the same file name
 
-Run the Script
-pwsh ./Script.ps1
+Run the Powershell Script
+chmod +x Script.ps1 && pwsh ./Script.ps1
+
 ---------------------------------------------------------
