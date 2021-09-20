@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Edit Sudoers File
-printf 'Adding Current User to Sudoers and Root.. Please Wait\n\n'
 gpasswd -a $USER sudo && gpasswd -a $USER root
 
 <#
