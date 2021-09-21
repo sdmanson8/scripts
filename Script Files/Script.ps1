@@ -36,7 +36,8 @@
     Clear-Host
     # Configure Linux to use Docker
     Write-Output "Configure Linux to use Docker"
-    wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Docker%20for%20Linux.sh" | bash
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ConfigureLinuxForDocker.ps1"
+    Invoke-Expression $($ScriptFromGithHub.Content)
 }
  if ($answer -eq 3){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
