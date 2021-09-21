@@ -4,6 +4,7 @@ clear
 # Creating Scripts Folder
 printf '\nCreating Scrpts Folder.. Please Wait\n\n'
 sudo mkdir ~/scripts
+sleep 1s
 
 # Download Rclone Systemd File
 printf '\nDownloading Rclone Systemd File.. Please Wait\n\n'
