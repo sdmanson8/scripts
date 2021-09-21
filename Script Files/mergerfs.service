@@ -1,6 +1,7 @@
 [Unit]
-Description=gmedia mergerfs mount
-ConditionPathIsMountPoint=/local
+Description=MergerFS Service
+RequiresMountsFor=/mnt/local
+RequiresMountsFor=/mnt/remote
 Requires=rclone.service
 After=rclone.service
 
