@@ -29,7 +29,7 @@
     Clear-Host
     # Update System and Install Required Apps
     Write-Output "Update System and Install Required Apps"
-    wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Docker%20for%20Linux.sh" | bash
+    wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PrepLinuxForDocker.sh" | bash
  }  
  if ($answer -eq 2){
     Clear-Host
