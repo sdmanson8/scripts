@@ -48,3 +48,5 @@ If you are running Rclone Config on SSH or Ubuntu Server press **N (No)**
 After signing in to your Workspace Account click **Allow**
 
 ![image](https://user-images.githubusercontent.com/90516190/134176384-22ccddac-692a-4318-b79c-9bd170d7d6c9.png)
+
+Copy the given Verification Code and Paste it in the SSH Terminal
