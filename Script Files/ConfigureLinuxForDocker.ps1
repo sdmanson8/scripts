@@ -18,10 +18,11 @@
  echo ""
  echo ""  
  echo "    1. Update System and Install Required Apps"
+ echo "    2. Setup Rclone and MergerFS (Systemd)"
  echo ""
- echo "    2. Previous Menu"
+ echo "    3. Previous Menu"
  echo ""
- echo "    3. exit" 
+ echo "    4. exit" 
  echo ""
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
@@ -31,14 +32,20 @@
     Write-Output "Update System and Install Required Apps"
     wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PrepLinuxForDocker.sh" | bash
  }  
- if ($answer -eq 2){
+  if ($answer -eq 2){
+    Clear-Host
+    # Setup Rclone and MergerFS (Systemd)
+    Write-Output "Setup Rclone and MergerFS (Systemd)"
+    wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ConfgureRclone_MergerFS.sh" | bash
+ }  
+ if ($answer -eq 3){
     Clear-Host
     # Previous Menu
     Write-Output "Previous Menu"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
- if ($answer -eq 3){areyousure} 
+ if ($answer -eq 4){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
