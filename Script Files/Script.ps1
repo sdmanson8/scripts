@@ -18,7 +18,7 @@
  echo ""
  echo ""  
  echo "    1. Windows Tweaks"
- echo "    2. Docker for Linux"
+ echo "    2. Configure Linux to use Docker"
  echo ""
  echo "    3. exit" 
  echo "" 
@@ -34,10 +34,8 @@
  }  
  if ($answer -eq 2){
     Clear-Host
-    # Docker for Linux
-    Write-Output "Docker for Linux"
-    #$ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Docker%20for%20Linux.sh"
-    #Invoke-Expression $($ScriptFromGithHub.Content)
+    # Configure Linux to use Docker
+    Write-Output "Configure Linux to use Docker"
     wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Docker%20for%20Linux.sh" | bash
 }
  if ($answer -eq 3){areyousure} 
