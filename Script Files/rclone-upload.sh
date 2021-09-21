@@ -4,8 +4,11 @@
 # Type crontab -e and add line below (without #) and with correct path to the script
 # * * * * * /pathtoscript/scripts/rclone-upload.sh >/dev/null 2>&1
 
-HOME=/home/sheldon
-USER=sheldon
+################ EDIT THIS SECTION ##################
+HOME=/home/<user>
+USER=<user>
+
+#####################################################
 
 set -e
 
