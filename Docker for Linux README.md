@@ -31,4 +31,4 @@ chmod +x Script.ps1 && pwsh ./Script.ps1
 Config Instructions
 
 
-After running the Update + Install Requires Apps [Script] (https://github.com/sdmanson8/scripts/blob/main/Script%20Files/ConfigureLinuxForDocker.ps1)
+After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/ConfigureLinuxForDocker.ps1)
