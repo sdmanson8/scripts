@@ -2,7 +2,7 @@
 
 clear
 <<COMMAND
-# Edit Sudoers File
+# Add Current User to Sudoers and Root
 sudo gpasswd --add $USER sudo
 sudo gpasswd --add $USER root
 
@@ -34,7 +34,7 @@ sudo wget --output-document=/usr/local/bin/docker-compose "https://github.com/do
 sudo chmod +x /usr/local/bin/docker-compose
 sudo wget --output-document=/etc/bash_completion.d/docker-compose "https://raw.githubusercontent.com/docker/compose/$(docker-compose version --short)/contrib/completion/bash/docker-compose"
 printf '\nDocker Compose installed successfully\n\n'
-COMMAND
+
 # Install docker-cleanup command
 sudo mkdir /usr/local/bin/docker-cleanup
 cd /tmp
@@ -53,7 +53,25 @@ sudo apt-get update
 # Add User to Docker Group
 sudo gpasswd --add $USER docker
 sleep 2s
+COMMAND
 
+# Install Samba
+printf '\nPreparing to Install Samba.. Please Wait\n\n'
+sleep 2s
+sudo apt update -y && sudo apt install samba -y
+
+# Edit Samba File
+printf '\nEdit Samba Config File\n\n'
+sleep 1s
+sudo nano /etc/samba/smb.conf
+
+# Install Rclone
+printf '\nPreparing to Install Rclone.. Please Wait\n\n'
+sleep 2s
+curl https://rclone.org/install.sh | sudo bash
+
+<<COMMAND
 printf '\nRestarting your Computer in 10 Seconds\n\n'
 sleep 10s
 sudo shutdown -r now
+COMMAND
