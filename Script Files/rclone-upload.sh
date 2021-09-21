@@ -5,14 +5,14 @@
 # * * * * * /pathtoscript/scripts/rclone-upload.sh >/dev/null 2>&1
 
 ################ EDIT THIS SECTION ##################
-HOME=/home/<user>
 USER=<user>
 REMOTE="gdrive"
 #####################################################
+LOCAL=/mnt/local
+HOME=/home/$USER
+
 
 set -e
-
-LOCAL=/mnt/local
 
 # RClone Config file
 RCLONE_CONFIG=$HOME/.config/rclone/rclone.conf; export RCLONE_CONFIG
