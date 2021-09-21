@@ -36,5 +36,6 @@ sleep 1s
 # Download Rclone Upload Script
 printf '\nDownloading Rclone Upload Script.. Please Wait\n\n'
 sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/rclone-upload.sh -O ~/scripts/rclone-upload.sh
+sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/excludes -O ~/scripts/excludes
 sudo nano ~/scripts/rclone-upload.sh
 sleep 1s
