@@ -18,9 +18,7 @@ Enter the Below in the .ps1 file
 $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1
 Invoke-Expression $($ScriptFromGithHub.Content)
 ```
-Save and exit
-
-CTRL + X, Save (Y), Press Enter to use the same file name
+Save and exit **CTRL + X, Save (Y), Press Enter to use the same file name**
 
 Run the Powershell Script
 ```
