@@ -36,3 +36,6 @@ After running the Update + Install Requires Apps [Script](https://github.com/sdm
 Rclone config
 ```
 ![image](https://user-images.githubusercontent.com/90516190/134173943-32ea4514-e922-43a9-89da-3fee16a4426f.png)
+
+Assuming you have a Google Drive Enterprise Account proceed and create a new Google Drive [remote](https://rclone.org/drive/)
+If you don't use Google Drive use the config for your [remote](https://rclone.org/overview/)
