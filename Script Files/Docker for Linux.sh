@@ -2,11 +2,6 @@
 
 clear
 
-# Change Root Password
-printf '\nChange Root Password (DO NOT USE A EASY PASSWORD)\n\n'
-sleep 2s
-sudo passwd root
-
 # Install Samba
 printf '\nPreparing to Install Samba.. Please Wait\n\n'
 sleep 2s
