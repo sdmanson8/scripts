@@ -4,11 +4,15 @@ clear
 # Assign Rclone the correct Permissions
 sleep 1s
 sudo chown $USER:$USER ~/.config/rclone/rclone.conf
+sudo chown $USER:$USER -R /mnt
 sudo chmod 755 ~/.config/rclone/rclone.conf
+sudo chmod 777 -R /mnt
 
 # Creating Scripts Folder
 printf '\nCreating Scrpts Folder.. Please Wait\n\n'
 sudo mkdir ~/scripts
+sudo chown $USER:$USER -R ~/scripts
+sudo chmod 777 -R ~/scripts
 sleep 1s
 
 # Download Rclone Systemd File
