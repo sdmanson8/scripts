@@ -81,10 +81,9 @@ curl https://rclone.org/install.sh | sudo bash
 # Create Directories for Rclone
 printf '\nCreating Directories for Rclone.. Please Wait\n\n'
 sleep 1s
-cd /mnt/
-sudo mkdir -p local/{Media,downloads}
-sudo mkdir -p remote/Media
-sudo mkdir -p mergerfs/Media/{Movies,TV}
+sudo mkdir /mnt/local
+sudo mkdir /mnt/remote
+sudo mkdir /mnt/mergerfs
 
 # Install Fuse
 printf '\nPreparing to Install Fuse.. Please Wait\n\n'
