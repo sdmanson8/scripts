@@ -46,3 +46,5 @@ If you are running Rclone Config on SSH or Ubuntu Server press **N (No)**
 ![image](https://user-images.githubusercontent.com/90516190/134175801-dce9d5b4-8fef-4073-8e58-df417419dd39.png)
 
 After signing in to your Workspace Account click **Allow**
+
+![image](https://user-images.githubusercontent.com/90516190/134176384-22ccddac-692a-4318-b79c-9bd170d7d6c9.png)
