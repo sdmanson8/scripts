@@ -8,23 +8,17 @@ KillMode=none
 RestartSec=5
 Environment=GOMAXPROCS=2
 
-ExecStart=/usr/bin/rclone mount gdrive: /home/sheldon/remote \
+ExecStart=/usr/bin/rclone mount gdrive: /mnt/remote \
 --allow-other \
+--use-mmap \
 --dir-cache-time 720h \
 --poll-interval=15s \
 --rc \
 --rc-web-gui \
---rc-user=sheldon \
---rc-pass=ramona123 \
---log-level INFO \
---cache-dir=/home/sheldon/cache/gdrive \
---vfs-cache-mode writes \
---vfs-cache-mode full \
---vfs-cache-max-size 400G \
---vfs-cache-max-age 336h
+--log-level INFO
 
-StandardOutput=file:/home/sheldon/scripts/rclone_vfs_mount.log
-ExecStop=/bin/fusermount -uz /home/sheldon/remote
+StandardOutput=file:~/scripts/rclone_vfs_mount.log
+ExecStop=/bin/fusermount -uz /mnt/remote
 Restart=always
 RestartSec=10
 
