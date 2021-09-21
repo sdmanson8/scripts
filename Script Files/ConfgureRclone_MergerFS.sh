@@ -8,12 +8,12 @@ sleep 1s
 
 # Download Rclone Systemd File
 printf '\nDownloading Rclone Systemd File.. Please Wait\n\n'
-sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/blob/main/Script%20Files/rclone.service -O /etc/systemd/system/rclone.service
+sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/rclone.service -O /etc/systemd/system/rclone.service
 sleep 1s
 
 # Download MergerFS Systemd File
 printf '\nDownloading MergerFS Systemd File.. Please Wait\n\n'
-sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/blob/main/Script%20Files/mergerfs.service -O /etc/systemd/system/mergerfs.service
+sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/mergerfs.service -O /etc/systemd/system/mergerfs.service
 sleep 1s
 
 # Enable Systemd Services for Rclone and Mergerfs
@@ -24,5 +24,5 @@ sleep 1s
 
 # Download Rclone Upload Script
 printf '\nDownloading Rclone Upload Script.. Please Wait\n\n'
-sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/blob/main/Script%20Files/rclone-upload.sh -O ~/scripts/rclone-upload.sh
+sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/rclone-upload.sh -O ~/scripts/rclone-upload.sh
 sleep 1s
