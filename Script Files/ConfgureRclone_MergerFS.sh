@@ -10,4 +10,5 @@ clear
 #Run Rclone Config
 printf '\nPreparing to Run Rclone Config.. Please Wait\n\n'
 sleep 1s
-sudo rclone config &
+sudo rclone config 
+read -n 1 -s
