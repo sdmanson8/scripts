@@ -5,7 +5,14 @@ clear
 # Add Current User to Sudoers and Root
 sudo gpasswd --add $USER sudo
 sudo gpasswd --add $USER root
+COMMAND
 
+# Change Root Password
+printf '\nChange Root Password (DO NOT USE A EASY PASSWORD)\n\n'
+sleep 2s
+sudo passwd root
+
+<<COMMAND
 # Update FileSystem
 printf '\nPreparing to Update FileSystem.. Please Wait\n\n'
 sleep 2s
@@ -69,6 +76,11 @@ sudo nano /etc/samba/smb.conf
 printf '\nPreparing to Install Rclone.. Please Wait\n\n'
 sleep 2s
 curl https://rclone.org/install.sh | sudo bash
+
+# Create Directories for Rclone
+printf '\nCreating Directories for Rclone.. Please Wait\n\n'
+sleep 1s
+
 
 <<COMMAND
 printf '\nRestarting your Computer in 10 Seconds\n\n'
