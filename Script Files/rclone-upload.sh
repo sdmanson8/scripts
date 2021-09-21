@@ -42,7 +42,7 @@ if /bin/findmnt $LOCAL -o FSTYPE -n | grep fuse; then
 echo "FUSE file system found, exiting..."; exit 1; fi
 
 # Move older local files to the cloud...
- usr/bin/rclone move $LOCAL $REMOTE: \
+ /usr/bin/rclone move $LOCAL $REMOTE: \
  --log-file $HOME/scripts/rclone-upload.log \
  -v \
  --exclude-from $HOME/scripts/excludes \
