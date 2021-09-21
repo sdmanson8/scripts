@@ -2,11 +2,6 @@
 
 clear
 
-# Edit Samba File
-printf '\nEdit Samba Config File\n\n'
-sleep 1s
-sudo nano /etc/samba/smb.conf
-
 # Install Rclone
 printf '\nPreparing to Install Rclone.. Please Wait\n\n'
 sleep 2s
@@ -104,6 +99,11 @@ rm -f ~/mergerfs.deb
 printf '\nPreparing to Install Samba.. Please Wait\n\n'
 sleep 2s
 sudo apt update -y && sudo apt install samba -y
+
+# Edit Samba File
+printf '\nEdit Samba Config File\n\n'
+sleep 1s
+sudo nano /etc/samba/smb.conf
 
 printf '\nRestarting your Computer in 10 Seconds\n\n'
 sleep 10s
