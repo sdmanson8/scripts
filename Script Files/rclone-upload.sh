@@ -7,10 +7,12 @@
 ################ EDIT THIS SECTION ##################
 HOME=/home/<user>
 USER=<user>
-
+REMOTE="gdrive"
 #####################################################
 
 set -e
+
+LOCAL=/mnt/local
 
 # RClone Config file
 RCLONE_CONFIG=$HOME/.config/rclone/rclone.conf; export RCLONE_CONFIG
@@ -20,8 +22,6 @@ RCLONE_USER_AGENT=$USER; export RCLONE_USER_AGENT
 # WARNING: If you make this your rclone Google Drive mount, it will create a move loop
 # and DELETE YOUR FILES!
 # Make sure to set this to the local path you are moving from!!
-LOCAL=/mnt/local
-REMOTE="gdrive"
 
 # Bandwidth limits: specify the desired bandwidth in kBytes/s, or use a suffix b|k|M|G. Or 'off' or '0' for unlimited.  The script uses --drive-stop-on-upload-limit which stops the script if the 750GB/day limit is achieved, so you no longer have to slow 'trickle' your files all day if you don't want to e.g. could just do an unlimited job overnight.
 BWLimit1Time="00:00"
