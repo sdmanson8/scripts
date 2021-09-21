@@ -2,11 +2,6 @@
 
 clear
 
-# Install Samba
-printf '\nPreparing to Install Samba.. Please Wait\n\n'
-sleep 2s
-sudo apt update -y && sudo apt install samba -y
-
 # Edit Samba File
 printf '\nEdit Samba Config File\n\n'
 sleep 1s
@@ -104,6 +99,11 @@ DOWNLOAD_URL=$(curl -s https://api.github.com/repos/trapexit/mergerfs/releases/l
 curl -s -L -o ~/mergerfs.deb "$DOWNLOAD_URL"
 sudo apt install -y ~/mergerfs.deb
 rm -f ~/mergerfs.deb
+
+# Install Samba
+printf '\nPreparing to Install Samba.. Please Wait\n\n'
+sleep 2s
+sudo apt update -y && sudo apt install samba -y
 
 printf '\nRestarting your Computer in 10 Seconds\n\n'
 sleep 10s
