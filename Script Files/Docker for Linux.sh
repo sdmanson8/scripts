@@ -1,18 +1,57 @@
 #!/bin/bash
 
 clear
-<<COMMAND
-# Add Current User to Sudoers and Root
-sudo gpasswd --add $USER sudo
-sudo gpasswd --add $USER root
-COMMAND
 
 # Change Root Password
 printf '\nChange Root Password (DO NOT USE A EASY PASSWORD)\n\n'
 sleep 2s
 sudo passwd root
 
+# Install Samba
+printf '\nPreparing to Install Samba.. Please Wait\n\n'
+sleep 2s
+sudo apt update -y && sudo apt install samba -y
+
+# Edit Samba File
+printf '\nEdit Samba Config File\n\n'
+sleep 1s
+sudo nano /etc/samba/smb.conf
+
+# Install Rclone
+printf '\nPreparing to Install Rclone.. Please Wait\n\n'
+sleep 2s
+curl https://rclone.org/install.sh | sudo bash
+
+# Assign Rclone the correct Permissions
+printf '\nAssigning Rclone the correct Permissions.. Please Wait\n\n'
+sleep 1s
+sudo chown $USER:$USER ~/.config/rclone/rclone.conf
+sudo chmod 755 ~/.config/rclone/rclone.conf
+
+# Create Directories for Rclone
+printf '\nCreating Directories for Rclone.. Please Wait\n\n'
+sleep 1s
+cd /mnt/
+sudo mkdir -p local/{Media,downloads}
+sudo mkdir -p remote/Media
+sudo mkdir -p mergerfs/Media/{Movies,TV}
+
+# Install Fuse
+printf '\nPreparing to Install Fuse.. Please Wait\n\n'
+sleep 2s
+sudo apt-get install -y fuse
+
+# Edit Fuse File
+printf '\nEditing Fuse Config File\n\n'
+sleep 1s
+printf '/etc/fuse.conf "#user_allow_other" > /etc/fuse.conf "user_allow_other"'
+sudo sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
+
 <<COMMAND
+# Add Current User to Sudoers and Root
+sudo gpasswd --add $USER sudo
+sudo gpasswd --add $USER root
+
 # Update FileSystem
 printf '\nPreparing to Update FileSystem.. Please Wait\n\n'
 sleep 2s
@@ -59,49 +98,7 @@ sudo apt-get update
 # Add User to Docker Group
 sudo gpasswd --add $USER docker
 sleep 2s
-COMMAND
 
-# Install Samba
-printf '\nPreparing to Install Samba.. Please Wait\n\n'
-sleep 2s
-sudo apt update -y && sudo apt install samba -y
-
-# Edit Samba File
-printf '\nEdit Samba Config File\n\n'
-sleep 1s
-sudo nano /etc/samba/smb.conf
-
-# Install Rclone
-printf '\nPreparing to Install Rclone.. Please Wait\n\n'
-sleep 2s
-curl https://rclone.org/install.sh | sudo bash
-
-# Assign Rclone the correct Permissions
-printf '\nAssigning Rclone the correct Permissions.. Please Wait\n\n'
-sleep 1s
-sudo chown $USER:$USER ~/.config/rclone/rclone.conf
-sudo chmod 755 ~/.config/rclone/rclone.conf
-
-# Create Directories for Rclone
-printf '\nCreating Directories for Rclone.. Please Wait\n\n'
-sleep 1s
-cd /mnt/
-sudo mkdir -p local/{Media,downloads}
-sudo mkdir -p remote/Media
-sudo mkdir -p mergerfs/Media/{Movies,TV}
-
-# Install Fuse
-printf '\nPreparing to Install Fuse.. Please Wait\n\n'
-sleep 2s
-sudo apt-get install -y fuse
-
-# Edit Fuse File
-printf '\nEditing Fuse Config File\n\n'
-sleep 1s
-printf '/etc/fuse.conf "#user_allow_other" > /etc/fuse.conf "user_allow_other"'
-sudo sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
-
-<<COMMAND
 # Install Mergerfs for Ubuntu Focal Release
 printf '\nPreparing to Install Mergerfs for Ubuntu Focal Release.. Please Wait\n\n'
 sleep 2s
@@ -112,9 +109,7 @@ DOWNLOAD_URL=$(curl -s https://api.github.com/repos/trapexit/mergerfs/releases/l
 curl -s -L -o ~/mergerfs.deb "$DOWNLOAD_URL"
 sudo apt install -y ~/mergerfs.deb
 rm -f ~/mergerfs.deb
-COMMAND
 
-<<COMMAND
 printf '\nRestarting your Computer in 10 Seconds\n\n'
 sleep 10s
 sudo shutdown -r now
