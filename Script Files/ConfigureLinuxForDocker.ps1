@@ -18,7 +18,7 @@
  echo ""
  echo ""  
  echo "    1. Update System and Install Required Apps"
- echo "    2. Setup Rclone and MergerFS (Systemd)"
+ echo "    2. Install Rclone and MergerFS (Systemd)"
  echo ""
  echo "    3. Previous Menu"
  echo ""
@@ -34,7 +34,7 @@
  }  
   if ($answer -eq 2){
     Clear-Host
-    # Setup Rclone and MergerFS (Systemd)
+    # Install Rclone and MergerFS (Systemd)
     Write-Output "Setup Rclone and MergerFS (Systemd)"
     wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ConfgureRclone_MergerFS.sh" | bash
  }  
