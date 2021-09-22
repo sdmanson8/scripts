@@ -17,7 +17,7 @@ sleep 1s
 
 # Download Rclone Systemd File
 printf '\nDownloading Rclone Systemd File.. Please Wait\n\n'
-sudo wget https://raw.githubusercontent.com/animosity22/homescripts/master/systemd/rclone.service -O /etc/systemd/system/rclone.service
+sudo wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/rclone.service -O /etc/systemd/system/rclone.service
 sleep 1s
 
 # Download MergerFS Systemd File
