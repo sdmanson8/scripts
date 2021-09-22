@@ -4,6 +4,13 @@ Install SSH
 ```
 sudo apt install -y ssh
 ```
+
+Change Root Password **(DO NOT USE AN EASY PASSWORD)**
+```
+sudo passwd root
+```
+![image](https://user-images.githubusercontent.com/90516190/134331678-37104c42-ce77-4c48-8c77-483b5532fb4d.png)
+
 Open your SSH terminal
 Install powershell
 ```
