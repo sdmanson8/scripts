@@ -9,6 +9,7 @@ sudo gpasswd --add $USER root
 printf '\nPreparing to Update FileSystem.. Please Wait\n\n'
 sleep 2s
 sudo apt-get update -y && sudo apt-get dist-upgrade -y
+sudo apt update -y && sudo apt upgrade -y
 
 # Docker
 printf '\nPreparing to Install Docker.. Please Wait\n\n'
