@@ -48,10 +48,10 @@ ExecStart=/usr/bin/rclone mount gdrive: /mnt/remote \
 --vfs-cache-max-age 24h \
 # The polling interval for increased based on there is enough buffer space
 --vfs-cache-poll-interval 5m \
-# Add read ahead buffer to network latency issues
---vfs-read-ahead 2G \
 # This sets a per file bandwidth control
-#--bwlimit-file 32M
+#--bwlimit-file 32M \
+# Add read ahead buffer to network latency issues
+--vfs-read-ahead 2G
 # LogFile Location
 StandardOutput=file:/home/<user>/scripts/rclone_mount.log
 ExecStop=/bin/fusermount -uz /mnt/remote
