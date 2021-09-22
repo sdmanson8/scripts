@@ -1,5 +1,7 @@
 # Copied from https://github.com/animosity22/homescripts/master/systemd/rclone.service
 
+### Edit <user> and gdrive to match rclone config remote
+
 [Unit]
 Description=RClone Service
 Wants=network-online.target
@@ -7,7 +9,7 @@ After=network-online.target
 
 [Service]
 Type=notify
-Environment=RCLONE_CONFIG=/home/sheldon/.config/rclone/rclone.conf
+Environment=RCLONE_CONFIG=/home/<user>/.config/rclone/rclone.conf
 KillMode=none
 RestartSec=5
 ExecStart=/usr/bin/rclone mount gdrive: /mnt/remote \
@@ -51,12 +53,12 @@ ExecStart=/usr/bin/rclone mount gdrive: /mnt/remote \
 # This sets a per file bandwidth control
 #--bwlimit-file 32M
 # LogFile Location
-StandardOutput=file:/home/sheldon/scripts/rclone_mount.log
+StandardOutput=file:/home/<user>/scripts/rclone_mount.log
 ExecStop=/bin/fusermount -uz /mnt/remote
 ExecStartPost=/usr/bin/rclone rc vfs/refresh recursive=true --rc-addr 127.0.0.1:5572 _async=true
 Restart=on-failure
-User=sheldon
-Group=sheldon
+User=<user>
+Group=<user>
 
 [Install]
 WantedBy=multi-user.target
