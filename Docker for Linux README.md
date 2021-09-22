@@ -50,6 +50,10 @@ After signing in to your Workspace Account click **Allow**
 
 Copy the given Verification Code and Paste it in the SSH Terminal
 
+Press *q* to exit rclone config
+
+-------------------------------------------------------------------------
+
 **Proceed with Script.ps1. Choose the second option to Download the Script Files. When the second script has finished running run the below commands:**
 
 Edit the Rclone Systemd File to meet your requirements
