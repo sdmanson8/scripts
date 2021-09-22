@@ -22,7 +22,9 @@
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
  echo "    4. Install HP Software + Other Software"
  echo ""
- echo "    5. exit" 
+ echo "    5. Previous Menu"
+ echo ""
+ echo "    6. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -67,7 +69,14 @@
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Other%20Software.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
- if ($answer -eq 5){areyousure} 
+  if ($answer -eq 5){
+    Clear-Host
+    # Previous Menu
+    Write-Output "Previous Menu"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
+    Invoke-Expression $($ScriptFromGithHub.Content)
+}
+ if ($answer -eq 6){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
