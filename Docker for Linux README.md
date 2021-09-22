@@ -49,12 +49,15 @@ sudo systemctl daemon-reload
 ```
 sudo systemctl enable rclone
 ```
+If you didn't recieve any errors then continue
 ```
 sudo systemctl enable mergerfs
 ```
+If you didn't recieve any errors then continue
 ```
 sudo systemctl restart rclone
 ```
+If you didn't recieve any errors then continue
 ```
 sudo systemctl restart mergerfs
 ```
