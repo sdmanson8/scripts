@@ -85,9 +85,9 @@ If you didn't recieve any errors then continue
 sudo systemctl restart mergerfs
 ```
 
-**If you recieved errors edit the required file to fix the issue then run**
 ![image](https://user-images.githubusercontent.com/90516190/134328805-800c98aa-13be-4a15-bb53-6720dc6d9e29.png)
 
+**If you recieved errors edit the required file to fix the issue then run**
 ```
 sudo systemctl daemon-reload
 sudo systemctl restart <service>
