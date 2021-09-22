@@ -29,7 +29,37 @@ chmod +x Script.ps1 && pwsh ./Script.ps1
 Config Instructions
 
 
-After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/ConfigureLinuxForDocker.ps1) and rebooted your System run:
+After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/PrepLinuxForDocker.sh) and rebooted your System run the second script using Scipt.ps1
+
+When the second script has finished running run the below commands to edit the required files
+
+Edit the Rclone Systemd File to meet your requirements
+```
+sudo nano /etc/systemd/system/rclone.service
+```
+Edit the Rclone Upload Script to meet your requirements
+```
+sudo nano ~/scripts/rclone-upload.sh
+```
+
+Start the Rclone and MergerFS service
+```
+sudo systemctl daemon-reload 
+```
+```
+sudo systemctl enable rclone
+```
+```
+sudo systemctl enable mergerfs
+```
+```
+sudo systemctl restart rclone
+```
+```
+sudo systemctl restart mergerfs
+```
+
+Run the below command to Create a Rclone Remote
 ```
 Rclone config
 ```
