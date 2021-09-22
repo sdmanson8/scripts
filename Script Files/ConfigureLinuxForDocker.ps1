@@ -35,7 +35,7 @@
   if ($answer -eq 2){
     Clear-Host
     # Install Rclone and MergerFS (Systemd)
-    Write-Output "Setup Rclone and MergerFS (Systemd)"
+    Write-Output "Install Rclone and MergerFS (Systemd)"
     wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ConfgureRclone_MergerFS.sh" | bash
  }  
  if ($answer -eq 3){
