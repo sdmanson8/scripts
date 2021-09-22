@@ -32,7 +32,7 @@ Config Instructions
 **After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/PrepLinuxForDocker.sh) and rebooted your System run the below commands to Create your Rclone Remote.**
 
 ```
-Rclone config
+rclone config
 ```
 ![image](https://user-images.githubusercontent.com/90516190/134173943-32ea4514-e922-43a9-89da-3fee16a4426f.png)
 
