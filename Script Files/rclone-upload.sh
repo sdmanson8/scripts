@@ -6,7 +6,7 @@
 
 ################ EDIT THIS SECTION ##################
 USER=<user>
-REMOTE="gdrive"
+REMOTE="gdrive" #Change gdrive to match rclone config remote
 #####################################################
 LOCAL=/mnt/local
 HOME=/home/$USER
