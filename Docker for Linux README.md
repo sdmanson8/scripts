@@ -15,7 +15,7 @@ wget https://bit.ly/3zqVHCJ -O ~/Script.ps1
 ```
 Run the Powershell Script
 ```
-chmod +x Script.ps1 && pwsh ./Script.ps1
+chmod +x Script.ps1 && cd ~/ && pwsh ./Script.ps1
 ```
 ---------------------------------------------------------
 
