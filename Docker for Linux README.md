@@ -29,11 +29,8 @@ chmod +x Script.ps1 && pwsh ./Script.ps1
 Config Instructions
 
 
-After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/PrepLinuxForDocker.sh) and rebooted your System run the second script using Scipt.ps1
+**After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/PrepLinuxForDocker.sh) and rebooted your System run the below commands to Create your Rclone Remote.**
 
-When the second script has finished running run the below commands:.
-
-**Create a Rclone Remote**
 ```
 Rclone config
 ```
@@ -53,7 +50,8 @@ After signing in to your Workspace Account click **Allow**
 
 Copy the given Verification Code and Paste it in the SSH Terminal
 
-**Edit the Systemd Files**
+**Proceed with Script.ps1. Choose the second option to Download the Script Files. When the second script has finished running run the below commands:**
+
 Edit the Rclone Systemd File to meet your requirements
 ```
 sudo nano /etc/systemd/system/rclone.service
@@ -89,4 +87,3 @@ sudo systemctl daemon-reload
 sudo systemctl restart <service>
 ```
 
-Continue with Script.ps1 **option 2**
