@@ -38,7 +38,7 @@ rclone config
 
 Assuming you have a Google Drive Business or Enterprise Account proceed and create a new Google Drive [remote](https://rclone.org/drive/)
 
-If you don't use Google Drive use the config for your existing [remote](https://rclone.org/overview/)
+If you don't use Google Drive create the config for your existing [remote](https://rclone.org/overview/)
 
 If you are running Rclone Config on SSH or Ubuntu Server press **N (No)**
 
