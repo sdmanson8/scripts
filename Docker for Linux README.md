@@ -26,7 +26,7 @@ chmod +x Script.ps1 && pwsh ./Script.ps1
 ```
 ---------------------------------------------------------
 
-Config Instructions
+Rclone Config Instructions
 
 
 **After running the Update + Install Requires Apps [Script](https://github.com/sdmanson8/scripts/blob/main/Script%20Files/PrepLinuxForDocker.sh) and rebooted your System run the below commands to Create your Rclone Remote.**
@@ -53,8 +53,9 @@ Copy the given Verification Code and Paste it in the SSH Terminal
 Press *q* to exit rclone config
 
 -------------------------------------------------------------------------
+**Edit Rclone Systemd File and Rclone Upload Script**
 
-**Proceed with Script.ps1. Choose the second option to Download the Script Files. When the second script has finished running run the below commands:**
+**Proceed with Script.ps1. Choose the second option to Download the Script Files. When the second script has finished exit and running run the below commands:**
 
 Edit the Rclone Systemd File to meet your requirements
 ```
@@ -76,7 +77,6 @@ If you didn't recieve any errors then continue
 ```
 sudo systemctl enable mergerfs
 ```
-If you didn't recieve any errors then continue
 ```
 sudo systemctl restart rclone
 ```
@@ -86,8 +86,9 @@ sudo systemctl restart mergerfs
 ```
 
 **If you recieved errors edit the required file to fix the issue then run**
+![image](https://user-images.githubusercontent.com/90516190/134328805-800c98aa-13be-4a15-bb53-6720dc6d9e29.png)
+
 ```
 sudo systemctl daemon-reload
 sudo systemctl restart <service>
 ```
-
