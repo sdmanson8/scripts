@@ -86,6 +86,7 @@ sudo systemctl restart mergerfs
 **If you recieved errors edit the required file to fix the issue then run**
 ```
 sudo systemctl daemon-reload
+sudo systemctl restart <service>
 ```
 
 Continue with Script.ps1 **option 2**
