@@ -11,7 +11,7 @@ wget -O - https://bit.ly/39oUK3f | bash -s
 ```
 Download the Main Script File
 ```
-sudo wget https://bit.ly/3zqVHCJ -O ~/Script.ps1
+wget https://bit.ly/3zqVHCJ -O ~/Script.ps1
 ```
 Run the Powershell Script
 ```
