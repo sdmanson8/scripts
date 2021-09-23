@@ -12,7 +12,9 @@ mkdir -p ~/docker/traefik/acme
 touch ~/docker/traefik/acme/acme.json
 chmod 600 ~/docker/traefik/acme/acme.json
 touch ~/docker/traefik/traefik.log
+mkdir ~/docker/traefik/rules
 cd ~/docker
+
 
 #Downloading .env file
 printf '\nDownloading .env file.. Please Wait\n\n'
@@ -37,6 +39,6 @@ wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Cre
 #Downloading middlewares.yml file
 printf '\nDownloading middlewares.yml file.. Please Wait\n\n'
 sleep 1s
-wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/middlewares.yml -O ~/docker/middlewares.yml
+wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/middlewares.yml -O ~/docker/traefik/rules/middlewares.yml
 
 clear
