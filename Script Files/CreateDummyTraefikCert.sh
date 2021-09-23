@@ -12,6 +12,7 @@ mkdir -p ~/docker/traefik/acme
 touch ~/docker/traefik/acme/acme.json
 chmod 600 ~/docker/traefik/acme/acme.json
 touch ~/docker/traefik/traefik.log
+cd ~/docker
 
 #Downloading .env file
 printf '\nDownloading .env file.. Please Wait\n\n'
