@@ -166,7 +166,7 @@ And in the acme file
 ```
 nano traefik/acme/acme.json
 ```
-![image](https://user-images.githubusercontent.com/90516190/134505299-ae7b56f9-d9dd-4038-b560-3cf801f85400.png)
+![image](https://user-images.githubusercontent.com/90516190/134507520-f776cbfc-d309-4a17-9a48-af97f573b723.png)
 
 **Continue with Script.ps1 Choose Option 4**
 ```
@@ -175,7 +175,7 @@ cd ~/ && pwsh ./Script.ps1
 After running the script run the below command to create the Container for Traefik
 ```
 cd ~/docker && docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
-
+```
 You will now see Traefik is using a real certificate
 ![image](https://user-images.githubusercontent.com/90516190/134505046-8eaf56d2-6ef0-4d92-92de-8114d6ba508d.png)
 
