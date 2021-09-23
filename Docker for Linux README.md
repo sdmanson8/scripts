@@ -171,3 +171,6 @@ nano traefik/acme/acme.json
 ```
 pwsh ./Script.ps1
 ```
+After running the script run the below command to create the Container for Traefik
+```
+docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
