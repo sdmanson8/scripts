@@ -1,14 +1,15 @@
 # Windows Tweaks
 
-Run "Set-ExecutionPolicy Unrestricted" if you get an error
-
+Run the below command if you get an error
+```
+Set-ExecutionPolicy Unrestricted
+```
 Depending on the options selected you might require editing the script which will automatically download and open on your system
 
 Requires Powershell 5.0 and later in an elavated Powershell Window
-        
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1
-    Invoke-Expression $($ScriptFromGithHub.Content)
-
+```        
+Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1 -OutFile C:\Script.ps1
+```
 
 Preview of Script Menu
 
