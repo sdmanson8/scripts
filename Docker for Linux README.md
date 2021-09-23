@@ -149,5 +149,5 @@ nano ~/docker/.env
 ```
 Run the below command to create the Container for Traefik
 ```
-docker-compose -f docker-compose-t2.yml up -d && docker logs -tf --tail="50" traefik
+docker-compose -f CreateDummyTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
