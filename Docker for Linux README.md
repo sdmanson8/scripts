@@ -131,3 +131,6 @@ TZ=
 USERDIR=
 MYSQL_ROOT_PASSWORD=
 ```
+**Save and Exit File**
+
+**Continue with Script.ps1 choosing option 3**
