@@ -19,11 +19,12 @@
  echo ""  
  echo "    1. Update System and Install Required Apps"
  echo "    2. Download Rclone and MergerFS Files"
- echo "    3. Configure Traefik Dummy Cert"
+ echo "    3. Configure Traefik Staging Cert"
+ echo "    4. Configure Traefik Real Cert"
  echo ""
- echo "    4. Previous Menu"
+ echo "    5. Previous Menu"
  echo ""
- echo "    5. exit" 
+ echo "    6. exit" 
  echo ""
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
@@ -41,18 +42,24 @@
  }  
   if ($answer -eq 3){
     Clear-Host
-    # Configure Traefik Dummy Cert
-    Write-Output "Configure Traefik Dummy Cert"
+    # Configure Traefik Staging Cert
+    Write-Output "Configure Traefik Staging Cert"
     wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/CreateDummyTraefikCert.sh" | bash
 }
- if ($answer -eq 4){
+  if ($answer -eq 4){
+    Clear-Host
+    # Configure Traefik Real Cert
+    Write-Output "Configure Traefik Real Cert"
+    wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/RealTraefikCert.sh" | bash
+}
+ if ($answer -eq 5){
     Clear-Host
     # Previous Menu
     Write-Output "Previous Menu"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
- if ($answer -eq 5){areyousure} 
+ if ($answer -eq 6){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
