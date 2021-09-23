@@ -22,8 +22,8 @@ printf '\nDownloading .env file.. Please Wait\n\n'
 sleep 1s
 wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.env -O ~/docker/.env
 
-#Downloading .passwd file
-printf '\nDownloading .passwd file.. Please Wait\n\n'
+#Downloading .htpasswd file
+printf '\nDownloading .htpasswd file.. Please Wait\n\n'
 sleep 1s
 wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.htpasswd -O ~/docker/shared/.htpasswd
 
