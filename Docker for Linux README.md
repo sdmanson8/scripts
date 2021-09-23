@@ -116,3 +116,18 @@ timedatectl
   ```
   sudo timedatectl set-timezone <your time zone>
   ```
+Setup Environment Variables for docker
+```
+sudo nano /etc/environment
+```
+Add the below to the file
+  
+![image](https://user-images.githubusercontent.com/90516190/134481740-7efb4cab-5850-4115-867f-3d9b8a60ca83.png)
+
+```
+PUID=
+PGID=
+TZ=
+USERDIR=
+MYSQL_ROOT_PASSWORD=
+```
