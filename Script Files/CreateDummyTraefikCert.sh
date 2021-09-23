@@ -38,3 +38,5 @@ wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Cre
 printf '\nDownloading middlewares.yml file.. Please Wait\n\n'
 sleep 1s
 wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/middlewares.yml -O ~/docker/middlewares.yml
+
+clear
