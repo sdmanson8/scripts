@@ -179,3 +179,7 @@ cd ~/docker && docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --
 You will now see Traefik is using a real certificate
 ![image](https://user-images.githubusercontent.com/90516190/134505046-8eaf56d2-6ef0-4d92-92de-8114d6ba508d.png)
 
+Force Wildcard Certificates
+```
+sudo sed -i 's/- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/#- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/g' ~/docker/RealTraefikCert.yml
+```
