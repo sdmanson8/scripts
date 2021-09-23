@@ -92,3 +92,27 @@ sudo systemctl restart mergerfs
 sudo systemctl daemon-reload
 sudo systemctl restart <service>
 ```
+-------------------------------------------------
+**Prep For Docker**
+
+Do the following and save the output information:
+Change <password> to a password you will use for MariaDB
+```
+python3 -c 'import crypt; print(crypt.crypt("<password>", crypt.mksalt(crypt.METHOD_SHA512)))' 
+```
+Take down PUID and PGID
+```
+id
+```
+Check if Timezone is correct
+```
+timedatectl
+```
+•	Change Time Zone if needed – check timezone list 
+  ```
+  timedatectl list-timezones
+  ```
+•	Set Time Zone 
+  ```
+  sudo timedatectl set-timezone <your time zone>
+  ```
