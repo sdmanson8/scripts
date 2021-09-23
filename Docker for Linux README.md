@@ -134,3 +134,17 @@ MYSQL_ROOT_PASSWORD=
 **Save and Exit File**
 
 **Continue with Script.ps1 choosing option 3**
+
+After running the [script](https://github.com/sdmanson8/scripts/edit/main/Script%20Files/CreateDummyTraefikCert.sh) run the below commands to edit required files:
+Go to [HTPasswd Generator](https://www.web2generators.com/apache-tools/htpasswd-generator) and paste the result in the below file
+```
+nano ~/docker/.passwd
+```
+Edit .env to meet your requirements . **The Below uses DuckDNS.org to create a certificate**
+```
+nano ~/docker/.env
+```
+Run the below command to create the Container for Traefik
+```
+docker-compose -f ~/docker/CreateDummyTraefikCert.yml && docker logs -tf --tail="50" traefik
+```
