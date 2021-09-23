@@ -141,6 +141,9 @@ Go to [HTPasswd Generator](https://www.web2generators.com/apache-tools/htpasswd-
 nano ~/docker/.passwd
 ```
 Edit .env to meet your requirements . **The Below uses DuckDNS.org to create a certificate**
+  
+![image](https://user-images.githubusercontent.com/90516190/134488892-e1d016ca-bd88-4ca3-8384-561101985a4c.png)
+
 ```
 nano ~/docker/.env
 ```
