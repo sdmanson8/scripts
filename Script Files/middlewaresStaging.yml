@@ -4,3 +4,7 @@ http:
       basicAuth:
         realm: Traefik2 Basic Auth
         usersFile: /shared/.htpasswd
+    middlewares-redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
