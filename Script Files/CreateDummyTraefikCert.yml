@@ -6,14 +6,6 @@ networks:
   web-proxy:
     external:
      name: $WEB_PROXY
-  lan:
-    name: lan
-    driver: macvlan
-    driver_opts:
-      parent: br0 #your ethernet interface
-    ipam:
-      config:
-        - subnet: 192.168.1.0/24
 #-----------------------------------------------------------#
 ########################### SERVICES ########################
 services:
@@ -93,11 +85,6 @@ services:
       - DUCKDNS_TOKEN=$DUCKDNS_TOKEN
     labels:
       - "traefik.enable=true"
-	  # HTTP-to-HTTPS Redirect
-      - "traefik.http.routers.http-catchall.entrypoints=http"
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       ## HTTP Routers
       - "traefik.http.routers.traefik-rtr.entrypoints=https"
       - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)"
