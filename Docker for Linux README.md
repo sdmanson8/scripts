@@ -158,8 +158,7 @@ Run the below command to create the Container for Traefik
 cd ~/docker && docker-compose -f CreateDummyTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
 You should see the below in the log output
-  
-![image](https://user-images.githubusercontent.com/90516190/134500528-74d58858-13d2-4351-a37e-76e5f2a033b6.png)
+![image](https://user-images.githubusercontent.com/90516190/134504360-a66035bb-f9de-4922-8860-3c98b943a764.png)
 
 And in the acme file
 ```
