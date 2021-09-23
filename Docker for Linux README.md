@@ -164,7 +164,7 @@ And in the acme file
 ```
 nano traefik/acme/acme.json
 ```
-![image](https://user-images.githubusercontent.com/90516190/134500939-373040e3-8696-45a7-a583-721c611a7e16.png)
+![image](https://user-images.githubusercontent.com/90516190/134505299-ae7b56f9-d9dd-4038-b560-3cf801f85400.png)
 
 **Continue with Script.ps1 Choose Option 4**
 ```
