@@ -25,7 +25,7 @@ wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.en
 #Downloading .passwd file
 printf '\nDownloading .passwd file.. Please Wait\n\n'
 sleep 1s
-wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.htpasswd -O ~/docker/shared/.passwd
+wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.htpasswd -O ~/docker/shared/.htpasswd
 
 # Create Traefik Proxy Network
 printf '\nCreating Traefik Proxy Network.. Please Wait\n\n'
