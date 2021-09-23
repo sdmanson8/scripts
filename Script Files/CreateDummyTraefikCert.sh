@@ -13,6 +13,7 @@ touch ~/docker/traefik/acme/acme.json
 chmod 600 ~/docker/traefik/acme/acme.json
 touch ~/docker/traefik/traefik.log
 mkdir ~/docker/traefik/rules
+mkdir ~/docker/shared
 cd ~/docker
 
 
@@ -24,7 +25,7 @@ wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.en
 #Downloading .passwd file
 printf '\nDownloading .passwd file.. Please Wait\n\n'
 sleep 1s
-wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.htpasswd -O ~/docker/.passwd
+wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/.htpasswd -O ~/docker/shared/.passwd
 
 # Create Traefik Proxy Network
 printf '\nCreating Traefik Proxy Network.. Please Wait\n\n'
