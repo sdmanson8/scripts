@@ -173,3 +173,7 @@ cd ~/ && pwsh ./Script.ps1
 After running the script run the below command to create the Container for Traefik
 ```
 cd ~/docker && docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
+
+You will now see Traefik is using a real certificate
+![image](https://user-images.githubusercontent.com/90516190/134505046-8eaf56d2-6ef0-4d92-92de-8114d6ba508d.png)
+
