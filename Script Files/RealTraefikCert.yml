@@ -1,2 +1,94 @@
 # Docker File
 
+version: "3.8"
+########################### NETWORKS ########################
+networks:
+  web-proxy:
+    external:
+     name: $WEB_PROXY
+#-----------------------------------------------------------#
+########################### SERVICES ########################
+services:
+# All services / apps go below this line
+########################### FRONTENDS ######################
+ #### Traefik v2 - Reverse Proxy ####
+ # https://hub.docker.com/_/traefik
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    restart: always
+    hostname: traefik
+    command: # CLI arguments
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=true
+      - --entryPoints.http.address=:$HTTP_PORT
+#      - --entrypoints.http.http.redirections.entryPoint.to=https # entrypoints.<your_entrypoint_name>.http.redirections...
+      - --entryPoints.https.address=:$HTTPS_PORT
+      # Allow these IPs to set the X-Forwarded-* headers - Cloudflare IPs: https://www.cloudflare.com/ips/
+      #- --entrypoints.https.forwardedHeaders.trustedIPs=173.245.48.0/20,103.21.244.0/22,103.22.200.0/22,103.31.4.0/22,141.101.64.0/18,108.162.192.0/18,190.93.240.0/20,188.114.96.0/20,197.234.240.0/22,198.41.128.0/17,162.158.0.0/15,104.>
+      - --entryPoints.traefik.address=:$TRAEFIK_PORT
+      - --entrypoints.https.http.tls.certresolver=CERT_RESOLVER
+      - --entrypoints.https.http.tls.domains[0].main=$DOMAINNAME
+      - --entrypoints.https.http.tls.domains[0].sans=*.$DOMAINNAME
+#      - --entrypoints.https.http.tls.domains[1].main=$DOMAINNAME2 # Pulls main cert for second domain
+#      - --entrypoints.https.http.tls.domains[1].sans=*.$DOMAINNAME2 # Pulls wildcard cert for second domain
+      - --api=true
+      - --api.insecure=true
+#      - --serversTransport.insecureSkipVerify=true
+      - --log=true
+      - --log.level=DEBUG # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/traefik.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=400-499
+      - --providers.docker=true
+#      - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME`)
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=$WEB_PROXY
+      - --providers.docker.swarmMode=false
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory.
+#      - --providers.file.filename=/dynamic_conf.yml # Load dynamic configuration from a file.
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+#      - --certificatesResolvers.CERT_RESOLVER.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory # letsencrypt Staging Server - uncomment when testing
+      - --certificatesResolvers.CERT_RESOLVER.acme.email=$MY_EMAIL
+      - --certificatesResolvers.CERT_RESOLVER.acme.storage=/acme.json
+      - --certificatesResolvers.CERT_RESOLVER.acme.dnsChallenge.provider=$DNS_PROVIDER
+      - --certificatesResolvers.CERT_RESOLVER.acme.dnsChallenge.delayBeforeCheck=0
+      - --certificatesresolvers.CERT_RESOLVER.acme.dnschallenge.resolvers=$RESOLVERS
+    networks:
+      - $WEB_PROXY
+    ports:
+      - target: $HTTP_PORT
+        published: $HTTP_PORT
+        protocol: tcp
+        mode: host
+      - target: $HTTPS_PORT
+        published: $HTTPS_PORT
+        protocol: tcp
+        mode: host
+      - target: $TRAEFIK_PORT
+        published: $TRAEFIK_PORT
+        protocol: tcp
+        mode: host
+    security_opt:
+      - no-new-privileges:true # https://docs.docker.com/engine/reference/run/#security-configuration
+    volumes:
+      - $DOCKERDIR/traefik/rules:/rules # file provider directory
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Connect to docker-socket-proxy tcp://docker-socket-proxy:2375
+      - $DOCKERDIR/traefik/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - $DOCKERDIR/traefik/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $DOCKERDIR/shared:/shared
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - DUCKDNS_TOKEN=$DUCKDNS_TOKEN
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.traefik-rtr.entrypoints=https"
+      - "traefik.http.routers.traefik-rtr.rule=Host(`traefik.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.traefik-rtr.middlewares=middlewares-basic-auth@file"
+      ## Services - API
+      - "traefik.http.routers.traefik-rtr.service=api@internal"
