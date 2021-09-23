@@ -56,6 +56,9 @@ Press *q* to exit rclone config
 **Edit Rclone Systemd File and Rclone Upload Script**
 
 **Proceed with Script.ps1. Choose the second option to Download the Script Files. When the second script has finished exit and running run the below commands:**
+```
+pwsh ./Script.ps1
+```
 
 Edit the Rclone Systemd File to meet your requirements
 ```
@@ -134,7 +137,10 @@ MYSQL_ROOT_PASSWORD=
 **Save and Exit File**
 
 **Continue with Script.ps1 choosing option 3**
-
+```
+pwsh ./Script.ps1
+```
+  
 After running the [script](https://github.com/sdmanson8/scripts/edit/main/Script%20Files/CreateDummyTraefikCert.sh) run the below commands to edit required files:
 Go to [HTPasswd Generator](https://www.web2generators.com/apache-tools/htpasswd-generator) and paste the result in the below file
 ```
@@ -150,4 +156,18 @@ nano ~/docker/.env
 Run the below command to create the Container for Traefik
 ```
 docker-compose -f CreateDummyTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
+```
+You should see the below in the log output
+  
+![image](https://user-images.githubusercontent.com/90516190/134500528-74d58858-13d2-4351-a37e-76e5f2a033b6.png)
+
+And in the acme file
+```
+nano traefik/acme/acme.json
+```
+![image](https://user-images.githubusercontent.com/90516190/134500939-373040e3-8696-45a7-a583-721c611a7e16.png)
+
+**Continue with Script.ps1 Choose Option 4**
+```
+pwsh ./Script.ps1
 ```
