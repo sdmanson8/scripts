@@ -183,4 +183,5 @@ Force Wildcard Certificates
   
 ```
 sudo sed -i 's/- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/#- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/g' ~/docker/RealTraefikCert.yml
+cd ~/docker && docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
