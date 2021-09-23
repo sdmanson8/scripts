@@ -8,8 +8,13 @@ Depending on the options selected you might require editing the script which wil
 
 Requires Powershell 5.0 and later in an elavated Powershell Window
 ```        
-Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1 -OutFile C:\Script.ps1
+Invoke-WebRequest https://bit.ly/3EJePQg -OutFile C:\Script.ps1
 ```
+Open Script.ps1
+```
+cd C:\ 
+.\Script.ps1
+ ```
 
 Preview of Script Menu
 
