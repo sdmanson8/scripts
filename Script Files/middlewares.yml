@@ -1,0 +1,6 @@
+http:
+  middlewares:
+    middlewares-basic-auth:
+      basicAuth:
+        realm: Traefik2 Basic Auth
+        usersFile: /shared/.htpasswd
