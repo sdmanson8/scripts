@@ -1,5 +1,7 @@
 # Docker for Linux 
 
+**Set A STATIC IP Address**
+
 Install SSH 
 ```
 sudo apt install -y ssh
