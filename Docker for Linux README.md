@@ -57,7 +57,7 @@ Press *q* to exit rclone config
 
 **Proceed with Script.ps1. Choose the second option to Download the Script Files. When the second script has finished exit and running run the below commands:**
 ```
-pwsh ./Script.ps1
+cd ~/ && pwsh ./Script.ps1
 ```
 
 Edit the Rclone Systemd File to meet your requirements
@@ -138,7 +138,7 @@ MYSQL_ROOT_PASSWORD=
 
 **Continue with Script.ps1 choosing option 3**
 ```
-pwsh ./Script.ps1
+cd ~/ && pwsh ./Script.ps1
 ```
   
 After running the [script](https://github.com/sdmanson8/scripts/edit/main/Script%20Files/CreateDummyTraefikCert.sh) run the below commands to edit required files:
@@ -169,7 +169,7 @@ nano traefik/acme/acme.json
 
 **Continue with Script.ps1 Choose Option 4**
 ```
-pwsh ./Script.ps1
+cd ~/ && pwsh ./Script.ps1
 ```
 After running the script run the below command to create the Container for Traefik
 ```
