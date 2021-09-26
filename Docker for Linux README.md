@@ -158,7 +158,7 @@ nano ~/docker/.env
 ```
 Run the below command to create the Container for Traefik
 ```
-cd ~/docker && docker-compose -f CreateDummyTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
+docker-compose -f ~/docker/CreateDummyTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
 You should see the below in the log output
 ![image](https://user-images.githubusercontent.com/90516190/134504360-a66035bb-f9de-4922-8860-3c98b943a764.png)
@@ -175,7 +175,7 @@ pwsh ~/Script.ps1
 ```
 After running the script run the below command to create the Container for Traefik
 ```
-cd ~/docker && docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
+docker-compose -f ~/docker/RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
 You will now see Traefik is using a real certificate
 ![image](https://user-images.githubusercontent.com/90516190/134505046-8eaf56d2-6ef0-4d92-92de-8114d6ba508d.png)
@@ -184,5 +184,5 @@ Force Wildcard Certificates
   
 ```
 sudo sed -i 's/- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/#- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/g' ~/docker/RealTraefikCert.yml
-cd ~/docker && docker-compose -f RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
+docker-compose -f ~/docker/RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
