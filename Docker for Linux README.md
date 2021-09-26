@@ -149,9 +149,10 @@ Go to [HTPasswd Generator](https://www.web2generators.com/apache-tools/htpasswd-
 ```
 nano ~/docker/.passwd
 ```
-Edit .env to meet your requirements . **The Below uses DuckDNS.org to create a certificate**
-  
+ 
 ![image](https://user-images.githubusercontent.com/90516190/134488892-e1d016ca-bd88-4ca3-8384-561101985a4c.png)
+  
+Edit .env to meet your requirements . **The Below uses DuckDNS.org to create a certificate**
 
 ```
 nano ~/docker/.env
@@ -163,7 +164,7 @@ docker-compose -f ~/docker/CreateDummyTraefikCert.yml up -d && docker logs -tf -
 You should see the below in the log output
 ![image](https://user-images.githubusercontent.com/90516190/134504360-a66035bb-f9de-4922-8860-3c98b943a764.png)
 
-And in the acme file
+Also in the acme file
 ```
 nano traefik/acme/acme.json
 ```
