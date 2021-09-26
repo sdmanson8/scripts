@@ -144,6 +144,7 @@ pwsh ~/Script.ps1
 ```
   
 After running the [script](https://github.com/sdmanson8/scripts/edit/main/Script%20Files/CreateDummyTraefikCert.sh) run the below commands to edit required files:
+  
 Go to [HTPasswd Generator](https://www.web2generators.com/apache-tools/htpasswd-generator) and paste the result in the below file
 ```
 nano ~/docker/.passwd
