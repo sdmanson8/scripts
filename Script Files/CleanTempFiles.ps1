@@ -104,6 +104,15 @@ Write-Host $env:USERDNSDOMAIN\$UserName -Foreground white -Background Black
 DeleteTempFiles "Temp Files" $UserTempFiles "Cyan"
 
 # Clean-Up User Temporary Internet Files
+    # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
+    Write-Host "Is Microsoft Edge Running?"
+    if((get-process "msedge" -ea SilentlyContinue) -eq $Null){ 
+        echo "Not Running" 
+    }
+    else{ 
+    echo "Running, Stopping Process"
+    Stop-Process -processname "msedge"
+        }
 DeleteTempFiles "Temporary Internet Files" $UserTempIntFiles "Cyan"
 
 # Clean-Up User History
@@ -125,6 +134,15 @@ Else
 
 
 # Mozilla Firefox Profile where the Temp Files are stored.
+# Check if Firefox is Running, Stop Firefox if Running
+    Write-Host "Is Firefox Running?"
+    if((get-process "firefox" -ea SilentlyContinue) -eq $Null){ 
+        echo "Not Running" 
+    }
+    else{ 
+    echo "Running, Stopping Process"
+    Stop-Process -processname "firefox"
+        }
 $FireFoxProfilesFolder = "\\{0}\C$\Users\{1}\AppData\Local\Mozilla\Firefox\Profiles\" -f $ComputerName, $UserName
 $FireFoxProfiles = Get-ChildItem $FireFoxProfilesFolder -Directory
 
@@ -137,6 +155,15 @@ Foreach($FFProfile in $FireFoxProfiles)
 }
 
 # Google Chrome Temp Files to be deleted.
+    # Check if Chrome is Running, Stop Chrome if Running
+    Write-Host "Is Chrome Running?"
+    if((get-process "chrome" -ea SilentlyContinue) -eq $Null){ 
+        echo "Not Running" 
+    }
+    else{ 
+    echo "Running, Stopping Process"
+    Stop-Process -processname "chrome"
+        }
 $ChromeTempFiles = "\\{0}\C$\Users\{1}\Appdata\Local\Google\Chrome\User Data\Default\Cache\" -f $Computername, $UserName
 
 # Clean-Up User Google Chrome Cache.
