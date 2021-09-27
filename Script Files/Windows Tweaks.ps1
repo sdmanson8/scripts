@@ -17,7 +17,7 @@
  echo "                     SCRIPT MENU"
  echo ""
  echo ""  
- echo "    1. Windows First Run (Post Clean Install) Script"
+ echo "    1. Windows First Run (Post Clean Install) Tweaks"
  echo "    2. Setup and configure for Domain Policies"
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
  echo "    4. Install HP Software + Other Software"
@@ -31,8 +31,8 @@
  $answer = read-host "Please Make a Selection"  
  if ($answer -eq 1){
     Clear-Host
-    # Windows First Run (Post Clean Install) Script
-    Write-Output "Windows First Run (Post Clean Install) Script"
+    # Windows First Run (Post Clean Install) Tweaks
+    Write-Output "Windows First Run (Post Clean Install) Tweaks"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20First%20Run%20Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
@@ -64,9 +64,9 @@
 }
    if ($answer -eq 4){
     Clear-Host
-    # "Install HP Software + Other Software"
-    Write-Output "Install HP Software + Other Software"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Other%20Software.ps1"
+    # "Install HP Software and Drivers"
+    Write-Output "Install HP Software and Drivers"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/InstallHPDriversandSoftware.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
   if ($answer -eq 5){
