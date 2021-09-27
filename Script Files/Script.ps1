@@ -17,7 +17,7 @@
  echo "                     SCRIPT MENU"
  echo ""
  echo ""  
- echo "    1. Windows Tweaks"
+ echo "    1. Windows 10/11"
  echo "    2. Configure Linux to use Docker"
  echo ""
  echo "    3. exit" 
@@ -27,9 +27,9 @@
  $answer = read-host "Please Make a Selection"  
  if ($answer -eq 1){
     Clear-Host
-    # Windows Tweaks
-    Write-Output "Windows Tweaks"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Tweaks.ps1"
+    # Windows 10/11
+    Write-Output "Windows 10/11"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
