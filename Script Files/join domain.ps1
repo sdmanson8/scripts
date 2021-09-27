@@ -1,5 +1,11 @@
     Clear-Host
-    Write-Host Join PC to Domain
+    Write-Host Joining PC to Domain
 
     # Edit domain name and credentials
-    add-computer –domainname "example.com" -Credential example\username -restart –force
+    
+$hostname = 'hostname'  ## put New Hostname here
+$Domain = 'domain.com' ## put domain name here
+$Credential = Get-Credential
+
+Rename-Computer $hostname
+Add-Computer -Domain $Domain -NewName $hostname -Credential $Credential -Restart -Force
