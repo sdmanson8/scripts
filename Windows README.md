@@ -12,10 +12,10 @@ Invoke-WebRequest https://bit.ly/39BlH3E -OutFile C:\Script.ps1
 ```
 Open Script.ps1
 ```
-& C:\Script.ps1
+& "C:\Script.ps1"
  ```
 
 Preview of Script Menu
 
-![image](https://user-images.githubusercontent.com/90516190/133616494-4aebb632-bf58-4e71-b72c-2c1c7d38208d.png)
+![image](https://user-images.githubusercontent.com/90516190/134969945-5aff1fed-662b-477e-ab31-db6eb78add88.png)
 
