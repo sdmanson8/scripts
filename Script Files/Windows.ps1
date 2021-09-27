@@ -20,11 +20,12 @@
  echo "    1. Windows First Run (Post Clean Install) Tweaks"
  echo "    2. Setup and configure for Domain Policies"
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
- echo "    4. Install HP Software + Other Software"
+ echo "    4. Install HP Software + Drivers"
+ echo "    5. Software"
  echo ""
- echo "    5. Previous Menu"
+ echo "    6. Previous Menu"
  echo ""
- echo "    6. exit" 
+ echo "    7. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -69,14 +70,21 @@
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/InstallHPDriversandSoftware.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
-  if ($answer -eq 5){
+   if ($answer -eq 5){
+    Clear-Host
+    # Software
+    Write-Output "Software"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Software.ps1"
+    Invoke-Expression $($ScriptFromGithHub.Content)
+}
+  if ($answer -eq 6){
     Clear-Host
     # Previous Menu
     Write-Output "Previous Menu"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
- if ($answer -eq 6){areyousure} 
+ if ($answer -eq 7){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
