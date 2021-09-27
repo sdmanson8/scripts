@@ -1,4 +1,4 @@
-# Windows Tweaks
+# Windows
 
 Run the below command if you get an error
 ```
