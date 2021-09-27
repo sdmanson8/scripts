@@ -232,3 +232,10 @@ $HPSetup ="C:\swsetup" -f $ComputerName, $UserName
 
         Start-Sleep -Seconds 2
         Write-Host -ForegroundColor Green "After: $After"
+	
+# Log off User
+	Start-Sleep -Seconds 1
+    quser | Select-Object -Skip 1 | ForEach-Object {
+    $id = ($_ -split ' +')[-5]
+    logoff $id
+}
