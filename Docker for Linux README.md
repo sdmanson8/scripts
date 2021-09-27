@@ -22,6 +22,10 @@ Download the Main Script File
 ```
 wget https://bit.ly/39BlH3E -O ~/Script.ps1
 ```
+
+![image](https://user-images.githubusercontent.com/90516190/134970126-06e2a847-6f82-4e42-8da8-db9609d95811.png)
+
+
 Run the Powershell Script
 ```
 chmod +x ~/Script.ps1 && pwsh ~/Script.ps1
