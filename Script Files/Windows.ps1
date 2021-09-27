@@ -22,10 +22,11 @@
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
  echo "    4. Install HP Software + Drivers"
  echo "    5. Software"
+ echo "    6. Windows 10/11 Admin Tools"
  echo ""
- echo "    6. Previous Menu"
+ echo "    7. Previous Menu"
  echo ""
- echo "    7. exit" 
+ echo "    8. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -77,14 +78,21 @@
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Software.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
-  if ($answer -eq 6){
+   if ($answer -eq 6){
+    Clear-Host
+    # Windows 10/11 Admin Tools
+    Write-Output "Windows 10/11 Admin Tools"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WinAdminTools.ps1"
+    Invoke-Expression $($ScriptFromGithHub.Content)
+}
+  if ($answer -eq 7){
     Clear-Host
     # Previous Menu
     Write-Output "Previous Menu"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
- if ($answer -eq 7){areyousure} 
+ if ($answer -eq 8){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
