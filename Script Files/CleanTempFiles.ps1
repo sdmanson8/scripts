@@ -1,5 +1,4 @@
 <#
-
 Purpose:  Deletes Temporary Internet Files for the Current Logged On User.
 			  Deletes Temp Files from Windows Directory.
 			  Deletes Various Internet cache files in Windows 7, 8 and 10.
@@ -8,6 +7,7 @@ Purpose:  Deletes Temporary Internet Files for the Current Logged On User.
 			  Deletes Google Chrome Temporary Internet Files.
 			  Deletes Mozilla Firefox Temporary Internet Files.
 #>
+
 [cmdletbinding()]
 param
 (
@@ -49,7 +49,7 @@ Function DeleteTempFiles($Description, $FilePath, $Color)
 		$FileName = Select-Object -InputObject $TempFiles[($i - 1)]
 		Write-Progress -Activity "$Description Clean-up" -Status "Attempting to Delete File [$i / $InitialCount]: $FileName" `
 			-PercentComplete (($i / $InitialCount) * 100) -Id 1
-		Remove-Item -Path $TempFiles[($i - 1)].FullName -Force -Recurse -ErrorAction SilentlyContinue
+		Remove-Item -Path $TempFiles[($i - 1)].FullName -Force -Recurse
 	}
 	Write-Progress -Activity "$Description Clean-up" -Status "Complete" -Completed -Id 1
 	
@@ -71,11 +71,23 @@ $OSVersion = (Get-WMIObject -ComputerName $ComputerName -Class Win32_OperatingSy
 # Get just the User Name for the Current Profile.
 $UserName = ([regex]::matches($Profile, '[^\\]+$') | %{$_.value})
 
-Write-Host "*****Starting User Junk File Clean-up*****" -Foreground Green -Background Black
 
-#######################################################################
-# INTERNET EXPLORER CLEAN-UP
-#######################################################################
+#Create Restore Point
+Checkpoint-Computer -Description "Delete Temporary Files for $env:UserName" -RestorePointType MODIFY_SETTINGS
+
+Clear-Host
+Start-Sleep -Seconds 1
+
+ # Get Disk Size
+ $Before = Get-WmiObject Win32_LogicalDisk | Where-Object { $_.DriveType -eq "3" } | Select-Object SystemName,
+    @{ Name = "Drive" ; Expression = { ( $_.DeviceID ) } },
+    @{ Name = "Size (GB)" ; Expression = { "{0:N1}" -f ( $_.Size / 1gb) } },
+    @{ Name = "FreeSpace (GB)" ; Expression = { "{0:N1}" -f ( $_.Freespace / 1gb ) } },
+    @{ Name = "PercentFree" ; Expression = { "{0:P1}" -f ( $_.FreeSpace / $_.Size ) } } |
+        Format-Table -AutoSize | Out-String
+Write-Host -ForegroundColor Green "Before: $Before"       
+
+Write-Host "*****Starting User Junk File Clean-up*****" -Foreground Green -Background Black
 
 # Internet Explorer Temp Files, Cookies, History, etc. to be located and deleted.
 $UserTempFiles = "\\{0}\C$\Users\{1}\AppData\Local\Temp" -f $ComputerName, $UserName
@@ -86,7 +98,8 @@ $7UserCookies = "\\{0}\C$\Users\{1}\AppData\Roaming\Microsoft\Windows\Cookies\" 
 $8UserCookies = "\\{0}\C$\Users\{1}\AppData\Local\Microsoft\Windows\INetCookies\" -f $ComputerName, $UserName
 $8INetCache = "\\{0}\C$\Users\{1}\AppData\Local\Microsoft\Windows\INetCache\" -f $ComputerName, $UserName
 
-Write-Host $UserName -Foreground white -Background Black
+Write-Host $env:USERDNSDOMAIN\$UserName -Foreground white -Background Black
+
 # Clean-Up User Temp Files
 DeleteTempFiles "Temp Files" $UserTempFiles "Cyan"
 
@@ -110,9 +123,6 @@ Else
 	DeleteTempFiles "Internet Browser Cache" $8INetCache "Cyan"
 }
 
-#######################################################################
-# MOZILLA FIREFOX CLEAN-UP
-#######################################################################
 
 # Mozilla Firefox Profile where the Temp Files are stored.
 $FireFoxProfilesFolder = "\\{0}\C$\Users\{1}\AppData\Local\Mozilla\Firefox\Profiles\" -f $ComputerName, $UserName
@@ -126,19 +136,12 @@ Foreach($FFProfile in $FireFoxProfiles)
 	DeleteTempFiles "Mozilla FireFox Cache" $FireFoxTempFiles "Cyan"
 }
 
-#######################################################################
-# GOOGLE CHROME CLEAN-UP
-#######################################################################
-
 # Google Chrome Temp Files to be deleted.
 $ChromeTempFiles = "\\{0}\C$\Users\{1}\Appdata\Local\Google\Chrome\User Data\Default\Cache\" -f $Computername, $UserName
 
 # Clean-Up User Google Chrome Cache.
 DeleteTempFiles "Google Chrome Cache" $ChromeTempFiles "Cyan"
 
-###############################################################################
-# WINDOWS FILES CLEAN-UP
-###############################################################################
 
 $WindowsTempFiles = "\\{0}\C$\Windows\Temp" -f $ComputerName
 $WindowsFiles = "\\{0}\C$\Windows" -f $ComputerName
@@ -146,4 +149,86 @@ $WindowsFiles = "\\{0}\C$\Windows" -f $ComputerName
 # Clean-Up Windows Temp Files
 DeleteTempFiles "Windows Temp Files" $WindowsTempFiles "Red"
 
-Write-Host "*****User Junk File Clean-up Complete*****" -Foreground Magenta -Background Black
+$WinTempFiles = "C:\Windows\Temp\*" -f $ComputerName, $UserName
+$PrefetchTempFiles = "C:\Windows\Prefetch\*" -f $ComputerName, $UserName
+$OtherTempFiles = "C:\Documents and Settings\*\Local Settings\temp\*" -f $ComputerName, $UserName
+
+# Clean-Up Windows Temp Files
+DeleteTempFiles "Windows Temp Files" $WinTempFiles "Cyan"
+
+# Clean-Up Prefetch Temp Files
+DeleteTempFiles "Prefetch Temp Files" $PrefetchTempFiles "Cyan"
+
+# Clean-Up Other Temp Files
+DeleteTempFiles "Other Temp Files" $OtherTempFiles "Cyan"
+
+# Clear HP Support Assistant Installation Folder
+$HPSetup ="C:\swsetup" -f $ComputerName, $UserName
+    if (Test-Path $HPSetup) {
+        DeleteTempFiles "Clearing HP Support Assistant Installation Folder" $HPSetup "Cyan"
+    }
+
+# Ask for confirmation to delete users Downloaded files - Anything older than 90 days
+    $DeleteOldDownloads = Read-Host "Would you like to delete files older than 90 days in the Downloads folder for All Users? (Y/N)"
+# Delete files older than 90 days from Downloads folder
+    if ($DeleteOldDownloads -eq 'Y') { 
+        Write-Host -ForegroundColor Yellow "Deleting files older than 90 days from User Downloads folder`n"
+        Foreach ($user in $Users) {
+            $UserDownloads = "C:\Users\$user\Downloads" -f $ComputerName, $UserName
+            $OldFiles = Get-ChildItem -Path "$UserDownloads\" -Recurse -File $ErrorActionPreference | Where-Object LastWriteTime -LT $DelDownloadsDate
+            foreach ($file in $OldFiles) {
+                DeleteTempFiles "Deleting files older than 90 days from Downloads folder" "$UserDownloads\$file" "Cyan"
+            }
+        }
+    }
+
+  # Empty Recycle Bin
+        Write-Host -ForegroundColor Green "Cleaning Recycle Bin`n"
+        $ErrorActionPreference = 'SilentlyContinue'
+        $RecycleBin = "C:\`$Recycle.Bin"  -f $ComputerName, $UserName
+        $BinFolders = Get-ChildItem $RecycleBin -Directory -Force
+
+        Foreach ($Folder in $BinFolders) {
+            # Translate the SID to a User Account
+            $objSID = New-Object System.Security.Principal.SecurityIdentifier ($folder)
+            try {
+                $objUser = $objSID.Translate( [System.Security.Principal.NTAccount])
+                Write-Host -Foreground Yellow -Background Black "Cleaning $objUser Recycle Bin"
+            }
+            # If SID cannot be Translated, Throw out the SID instead of error
+            catch {
+                $objUser = $objSID.Value
+                Write-Host -Foreground Yellow -Background Black "$objUser"
+            }
+            $Files = @()
+
+            if ($PSVersionTable.PSVersion -Like "*2*") {
+                $Files = Get-ChildItem $Folder.FullName -Recurse -Force
+            }
+            else {
+                $Files = Get-ChildItem $Folder.FullName -File -Recurse -Force
+                $Files += Get-ChildItem $Folder.FullName -Directory -Recurse -Force
+            }
+
+            $FileTotal = $Files.Count
+
+            for ($i = 1; $i -le $Files.Count; $i++) {
+                $FileName = Select-Object -InputObject $Files[($i - 1)]
+                Write-Progress -Activity "Recycle Bin Clean-up" -Status "Attempting to Delete File [$i / $FileTotal]: $FileName" -PercentComplete (($i / $Files.count) * 100) -Id 1
+                Remove-Item -Path $Files[($i - 1)].FullName -Recurse -Force
+            }
+            Write-Progress -Activity "Recycle Bin Clean-up" -Status "Complete" -Completed -Id 1
+        }
+        Write-Host -ForegroundColor Green "Done`n `n"
+
+        Write-Host "*****User Junk File Clean-up Complete*****" -Foreground Magenta -Background Black
+# Get Drive size after clean
+    $After = Get-WmiObject Win32_LogicalDisk | Where-Object { $_.DriveType -eq "3" } | Select-Object SystemName,
+    @{ Name = "Drive" ; Expression = { ( $_.DeviceID ) } },
+    @{ Name = "Size (GB)" ; Expression = { "{0:N1}" -f ( $_.Size / 1gb) } },
+    @{ Name = "FreeSpace (GB)" ; Expression = { "{0:N1}" -f ( $_.Freespace / 1gb ) } },
+    @{ Name = "PercentFree" ; Expression = { "{0:P1}" -f ( $_.FreeSpace / $_.Size ) } } |
+        Format-Table -AutoSize | Out-String
+
+        Start-Sleep -Seconds 2
+        Write-Host -ForegroundColor Green "After: $After"
