@@ -1,5 +1,4 @@
-#requires -version 5.0
-#Requires -RunAsAdministrator
+#requires -version 7.0
 
  #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
@@ -14,7 +13,7 @@
  function mainmenu{  
  clear  
  echo "---------------------------------------------------------"  
- echo "                     SCRIPT MENU"
+ echo "             DOCKER FOR LINUX SCRIPT MENU"
  echo ""
  echo ""  
  echo "    1. Update System and Install Required Apps"
