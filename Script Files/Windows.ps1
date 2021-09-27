@@ -14,7 +14,7 @@
  function mainmenu{  
  clear  
  echo "---------------------------------------------------------"  
- echo "                     SCRIPT MENU"
+ echo "                     WINDOWS SCRIPT MENU"
  echo ""
  echo ""  
  echo "    1. Windows First Run (Post Clean Install) Tweaks"
