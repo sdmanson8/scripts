@@ -7,25 +7,18 @@
  function mainmenu{  
  Clear-Host  
  echo "---------------------------------------------------------"  
- echo "        Install Other Software (HP)"
+ echo "        Install HP Software and Drivers"
  echo ""
  echo ""  
  echo "    1. HP Driver Pack"
  echo "    2. HP Software Framework"
  echo "    3. HP Support Assistant"
- echo "    4. Dashlane"
- echo "    5. Grammarly"
- echo "    6. Google Chrome"
- echo "    7. Firefox"
- echo "    8. Microsoft Edge"
- echo "    9. Google Drive"
  echo ""
- echo "    10. Install All of the Above"
- echo " (Choose which to install Google Chrome / Firefox)"
+ echo "    4. Install All of the Above"
  echo ""
- echo "    11. Previous Menu"
+ echo "    5. Previous Menu"
  echo ""
- echo "    12. exit" 
+ echo "    6. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -62,83 +55,17 @@
  }
   if ($answer -eq 4){
     Clear-Host
-    # Dashlane Desktop
-    Write-Host "Opening Webpage to Download Dashlane Desktop"
-    Start-Process "https://www.dashlane.com/download/desktop#downloaded"
-    PAUSE
-    Write-Host "Installing Dashlane Desktop"
-    Start-Process -FilePath "$env:USERPROFILE\Downloads\DashlaneInst.exe"
-    PAUSE
-    Remove-Item "$env:USERPROFILE\Downloads\DashlaneInst.exe"
-    Write-Host "Opening Webpage to Setup Dashlane Addon for Microsoft Edge"
-    Start-Process "https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph"
- }
-  if ($answer -eq 5){
-    Clear-Host
-    # Grammarly
-    Write-Output "Downloading Grammarly for Windows"
-    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "C:\GrammarlySetup.exe"
-    Write-Host "Installing Grammarly"
-    Start-Process -FilePath "C:\GrammarlySetup.exe"
-    PAUSE
-    Remove-Item "C:\GrammarlySetup.exe"
-    Write-Output "Downloading Grammarly for Microsoft Office"
-    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "C:\GrammarlyAddInSetup.exe"
-    Write-Host "Installing Grammarly for Microsoft Office"
-    Start-Process -Wait -FilePath "C:\GrammarlyAddInSetup.exe"
-    PAUSE
-    Remove-Item "C:\GrammarlyAddInSetup.exe"
-    Write-Host "Opening Webpage to Setup Grammarly Addon for Microsoft Edge"
-    Start-Process "https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd"
-
- }
-   if ($answer -eq 6){
-    Clear-Host
-    # Install Google Chrome
-    Write-Output "Installing Google Chrome"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1"
-    Invoke-Expression $($ScriptFromGithHub.Content)
- }
-   if ($answer -eq 7){
-    Clear-Host
-    # Install Firefox
-    Write-Output "Downloading Firefox"
-    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "C:\firefox-latest.exe"
-    Write-Host "Installing Firefox"
-    Start-Process -Wait -FilePath "C:\firefox-latest.exe"
-    Remove-Item "C:\firefox-latest.exe"
- }
-   if ($answer -eq 8){
-    Clear-Host
-    # Install Microsoft Edge
-    Write-Output "Downloading Microsoft Edge"
-    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "C:\MicrosoftEdgeSetup.exe"
-    Write-Host "Installing Microsoft Edge"
-    Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
-    Remove-Item "C:\MicrosoftEdgeSetup.exe"
- }
-   if ($answer -eq 9){
-     Clear-Host
-    # Google Drive
-    Write-Host "Downloading Google Drive"
-    Invoke-WebRequest -Uri "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" -OutFile "C:\GoogleDriveSetup.exe"
-    Write-Host "Installing Google Drive"
-    Start-Process -Wait -FilePath "C:\GoogleDriveSetup.exe"
-    Remove-Item "C:\GoogleDriveSetup.exe"
- }
-  if ($answer -eq 10){
-    Clear-Host
     # Install All of the Above
     Write-Output "Install All of the Above"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/HPSoftwareDrivers.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
-  if ($answer -eq 11){
+  if ($answer -eq 5){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 12){areyousure} 
+ if ($answer -eq 6){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
