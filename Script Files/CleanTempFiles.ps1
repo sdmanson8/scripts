@@ -1,9 +1,3 @@
-#Create Restore Point
-Checkpoint-Computer -Description "Delete Temporary Files for $env:UserName" -RestorePointType MODIFY_SETTINGS
-
-Clear-Host
-Start-Sleep -Seconds 2
-Write-Host "Deleting Temporary Files for $env:UserName `r"
 <#
 
 Purpose:  Deletes Temporary Internet Files for the Current Logged On User.
