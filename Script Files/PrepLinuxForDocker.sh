@@ -2,7 +2,6 @@
 #requires -version 7.0
 #Requires -RunAsAdministrator
 
-clear
 # Add Current User to Sudoers and Root
 sudo gpasswd --add $USER sudo
 sudo gpasswd --add $USER root
