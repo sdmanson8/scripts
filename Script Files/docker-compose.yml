@@ -6,13 +6,13 @@ networks:
     external:
      name: $WEB_PROXY
   br0:
-    name: br0
+    name: $MACVLAN
     driver: macvlan
     driver_opts:
-      parent: br0 #your ethernet interface
+      parent: $NETPARENT #your ethernet interface
     ipam:
       config:
-        - subnet: 192.168.1.0/24
+        - subnet: $LOCAL_NETWORK # Example 192.168.1.0/24
 #-----------------------------------------------------------#
 ########################### SERVICES ########################
 services:
