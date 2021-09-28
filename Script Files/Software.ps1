@@ -128,7 +128,9 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     # Office Uninstaller
     Write-Output "Office Uninstaller"
     Invoke-WebRequest "https://aka.ms/SaRA-officeUninstallFromPC" -OutFile "C:\SetupProd_OffScrub.exe"
-    Start-Process -Wait -FilePath "C:\SetupProd_OffScrub.exe"
+    Write-Host "Opening Office Uninstaller"
+    Start-Process -FilePath "C:\SetupProd_OffScrub.exe"
+    PAUSE
     Remove-Item "C:\SetupProd_OffScrub.exe"    
  }
    if ($answer -eq 10){
