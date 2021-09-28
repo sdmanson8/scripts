@@ -156,7 +156,7 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
  } 
  if ($answer -eq 8){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
  if ($answer -eq 9){areyousure} 
