@@ -109,18 +109,13 @@ Else{
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ResetWinUpdates.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)  
  } 
+
  if ($answer -eq 5){
-    Clear-Host
-    # prompt to reboot machine
-    Write-Output "Restarting PC"
-    shutdown -r -t 00
-} 
- if ($answer -eq 6){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 14){areyousure}  
+ if ($answer -eq 6){areyousure}  
        sleep 5  
        mainmenu  
                    }  
