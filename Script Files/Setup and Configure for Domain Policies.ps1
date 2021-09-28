@@ -89,11 +89,9 @@ $answer = read-host "Please Make a Selection"
             $vpnusername = "username"
             $vpnpassword = "password"
 
-$msg     = 'Do you want to check if Domain VPN is connected? [Type Y/N]'
-do {
-            $response = Read-Host -Prompt $msg
-            if ($response -eq 'y') {
-            Write-Host Connect to VPN configuration
+# Ask for confirmation to Connect to a VPN Profile
+    $CreateVPNProfile = Read-Host "Would you like to Connect to a VPN Profile? (Y/N)"
+    if ($CreateVPNProfile -eq 'Y') { 
             $vpn = Get-VpnConnection | where {$_.Name -eq "$vpnname"}
             }
             if ($vpn.ConnectionStatus -eq "Disconnected")
@@ -102,7 +100,6 @@ do {
                 $expression = "$cmd ""$vpnname"" $vpnusername $vpnpassword"
                 Invoke-Expression -Command $expression 
             }
-} until ($response -eq 'n')
 
  if ($answer -eq 1){
     Clear-Host
