@@ -10,7 +10,7 @@ Requires Powershell 5.0 and later in an elavated Powershell Window
 ```        
 Invoke-WebRequest https://bit.ly/39BlH3E -OutFile C:\Script.ps1
 ```
-Open Script.ps1
+Open Powershell as Admin and run Script.ps1
 ```
 & "C:\Script.ps1"
  ```
