@@ -126,7 +126,677 @@ services:
       - "traefik.http.routers.traefik-rtr.middlewares=chain-basic-auth@file"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
- #-----------------------------------------------------------#
+  #### Prometheus - Metrics for Gathering Data ####
+  # https://hub.docker.com/r/wshihadeh/prometheus
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    hostname: prometheus
+#    ports:
+#      - 9791:$PROMETHEUS_PORT
+#    environment: &env
+#      TRAEFIK_USERNAME: sheldon
+#      TRAEFIK_PASSWORD: ramona123
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+    volumes:
+      - $USERDIR/prometheus:/prometheus
+      - $USERDIR/prometheus/configs:/etc/prometheus
+    networks:
+      -  $WEB_PROXY
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.prometheus-backend.entrypoints=https
+      - traefik.http.routers.prometheus-backend.rule=Host(`prometheus.$DOMAINNAME`)
+      - traefik.http.routers.prometheus-backend.tls=true
+      ## Services
+      - traefik.http.routers.prometheus-backend.service=prometheus-backend
+      - traefik.http.services.prometheus-backend.loadbalancer.server.port=$PROMETHEUS_PORT
+      ## Middlewares
+      - traefik.http.routers.prometheus-backend.middlewares=chain-basic-auth@file
+  #### Zipkin - Tracing for Traefik ####
+  # https://hub.docker.com/r/openzipkin/zipkin
+  zipkin:
+    container_name: zipkin
+    image: openzipkin/zipkin:latest
+    hostname: zipkin
+    restart: always
+    ports:
+      - $ZIPKIN_PORT:$ZIPKIN_PORT
+    networks:
+      - $WEB_PROXY
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.zipkin.rule=Host(`zipkin.$DOMAINNAME`)
+      - traefik.http.routers.zipkin.service=zipkin
+      - traefik.http.routers.zipkin.entrypoints=https
+      ## Services
+      - traefik.http.services.zipkin.loadbalancer.server.port=$ZIPKIN_PORT
+      ## Middlewares
+      - traefik.http.routers.zipkin.middlewares=chain-basic-auth@file
+  #### Node Exporter - Docker Container Node Exporter for Prometheus ####
+  # https://hub.docker.com/r/prom/node-exporter
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    hostname: node-exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    #  - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    ports:
+      - $NODEEXP_PORT:$NODEEXP_PORT
+    networks:
+      - $WEB_PROXY
+  #### CAdvisor - Analyze Docker Container resource usage ####
+  # https://hub.docker.com/r/google/cadvisor
+  cadvisor:
+    image: google/cadvisor:latest
+    hostname: cadvisor
+    container_name: cadvisor
+    restart: always
+    volumes:
+    #  - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8088:$CADVISOR_PORT
+    networks:
+      - $WEB_PROXY
+#### Authelia - Two Factor Authentication ####
+  https://hub.docker.com/r/authelia/authelia
+  Authelia:
+     image: authelia/authelia:latest
+    container_name: Authelia
+    hostname: Authelia
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - $USERDIR/Authelia:/config
+    networks:
+      - $WEB_PROXY
+    #ports:
+    #  - $AUTHELIA_PORT:$AUTHELIA_PORT
+    restart: always
+    environment:
+      - TZ=$TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.authelia-rtr.entrypoints=https
+      - traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file
+      ## HTTP Services
+      - traefik.http.routers.authelia-rtr.service=authelia-svc
+      - traefik.http.services.authelia-svc.loadbalancer.server.port=$AUTHELIA_PORT
+  #### Google OAuth - Single Sign On using OAuth 2.0 ####
+  # https://hub.docker.com/r/thomseddon/traefik-forward-auth
+  oauth:
+    container_name: oauth
+    image: thomseddon/traefik-forward-auth:latest
+    hostname: oauth
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - CLIENT_ID=$GOOGLE_CLIENT_ID
+      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+      - SECRET=$OAUTH_SECRET
+      - COOKIE_DOMAIN=$DOMAINNAME
+      - INSECURE_COOKIE=false
+      - AUTH_HOST=oauth.$DOMAINNAME
+      - URL_PATH=/_oauth
+      - WHITELIST=$MY_EMAIL
+      - LOG_LEVEL=info
+      - LOG_FORMAT=text
+      - LIFETIME=2592000 # 30 days
+      - DEFAULT_ACTION=auth
+      - DEFAULT_PROVIDER=google
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.oauth-rtr.entrypoints=https
+      - traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)
+      ## HTTP Services
+      - traefik.http.routers.oauth-rtr.service=oauth-svc
+      - traefik.http.services.oauth-svc.loadbalancer.server.port=$OAUTH_PORT
+      ## Middlewares
+      - traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file
+  #### Portainer - WebUI for Containers ####
+  # https://hub.docker.com/r/portainer/portainer-ce
+  Portainer-CE:
+    container_name: Portainer-CE
+    image: portainer/portainer-ce
+    hostname: Portainer-CE
+    restart: always
+    command: -H unix:///var/run/docker.sock
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $PORTAINER_PORT:$PORTAINER_PORT
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $USERDIR/Portainer-CE/data:/data
+    environment:
+      - TZ=$TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.portainer-rtr.entrypoints=https
+      - traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.portainer-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.portainer-rtr.service=portainer-svc
+      - traefik.http.services.portainer-svc.loadbalancer.server.port=$PORTAINER_PORT
+  #### Organizr - Unified Frontend ####
+  # https://hub.docker.com/r/organizrtools/organizr-v2
+  organizrv2:
+    container_name: organizrv2
+    image: organizr/organizr
+    hostname: organizrv2
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $ORGANIZER_PORT:$HTTP_PORT
+    volumes:
+      - $USERDIR/organizrv2:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.organizr-rtr.entrypoints=https
+      - traefik.http.routers.organizr-rtr.rule=Host(`$DOMAINNAME`,`www.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.organizr-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.organizr-rtr.service=organizr-svc
+      - traefik.http.services.organizr-svc.loadbalancer.server.port=$HTTP_PORT
+  # Heimdall - Unified Frontend Alternative
+  # https://hub.docker.com/r/linuxserver/heimdall
+  heimdall:
+    container_name: heimdall
+    image: linuxserver/heimdall
+    hostname: heimdall
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $HEIMDALL_PORT:$HTTP_PORT
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - $USERDIR/heimdall/:/config
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.heimdall-rtr.entrypoints=https
+      - traefik.http.routers.heimdall-rtr.rule=Host(`heimdall.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.heimdall-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.heimdall-rtr.service=heimdall-svc
+      - traefik.http.services.heimdall-svc.loadbalancer.server.port=$HTTP_PORT
+#-----------------------------------------------------------#
+########################### DATABASE ########################
+  #### MariaDB - MySQL Database ####
+  # https://hub.docker.com/r/linuxserver/mariadb
+  mariadb:
+    container_name: mariadb
+    image: linuxserver/mariadb:latest
+    hostname: mariadb
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $DB_PORT:$DB_PORT
+    volumes:
+      - $USERDIR/mariadb/data:/config
+      - /var/lib/mysql/mysql.sock:/mysql.sock
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - MYSQL_ROOT_PASSWORD=ramona123
+  #### phpMyAdmin - Database management ####
+  # https://hub.docker.com/r/phpmyadmin/phpmyadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    hostname: phpmyadmin
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - mariadb
+    ports:
+      - $PHPMYADMIN_PORT:$HTTP_PORT
+    volumes:
+      - $USERDIR/phpmyadmin:/var/lib/phpmyadmin/
+    environment:
+      - PMA_HOST=$DB_HOST
+      - PMA_ARBITRARY=1
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.phpmyadmin-rtr.entrypoints=https
+      - traefik.http.routers.phpmyadmin-rtr.rule=Host(`pma.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.phpmyadmin-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.phpmyadmin-rtr.service=phpmyadmin-svc
+      - traefik.http.services.phpmyadmin-svc.loadbalancer.server.port=$HTTP_PORT
+ ### Redis - Key-value Store ####
+ # https://hub.docker.com/_/redis
+  Redis:
+    image: redis:latest
+    container_name: Redis
+    hostname: Redis
+    volumes:
+      - $USERDIR/Redis/data:/data
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - $WEB_PROXY
+    ports:
+      - $REDIS_PORT:$REDIS_PORT
+    restart: always
+    environment:
+      - TZ=$TZ
+  #### Redis Commander - Redis Management Tool####
+  # https://hub.docker.com/r/rediscommander/redis-commander
+  rediscommander:
+    container_name: rediscommander
+    image: rediscommander/redis-commander:latest
+    hostname: rediscom
+    restart: always
+    networks:
+      - $WEB_PROXY
+    ports:
+      - 8673:$REDISCOMMANDER_PORT
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - REDIS_HOST=redis
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.rediscommander-rtr.entrypoints=https
+      - traefik.http.routers.rediscommander-rtr.rule=Host(`rediscom.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.rediscommander-rtr.middlewares=chain-basic-auth@file
+      ## HTTP Services
+      - traefik.http.routers.rediscommander-rtr.service=rediscommander-svc
+      - traefik.http.services.rediscommander-svc.loadbalancer.server.port=$REDISCOMMANDER_PORT
+  #### InfluxDB - Database for sensor data ####
+  # https://hub.docker.com/_/influxdb
+  Influxdb:
+    image: influxdb:latest
+    container_name: Influxdb
+    hostname: Influxdb
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $INFLUXDB_PORT:$INFLUXDB_PORT
+    volumes:
+#      - $USERDIR/Influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - $USERDIR/Influxdb/db:/var/lib/influxdb
+#    command: -config /etc/influxdb/influxdb.conf
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.influxdb-rtr.entrypoints=https
+      - traefik.http.routers.influxdb-rtr.rule=Host(`influxdb.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.influxdb-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.influxdb-rtr.service=influxdb-svc
+      - traefik.http.services.influxdb-svc.loadbalancer.server.port=$INFLUXDB_PORT
+  #### telegraf - InfluxDB plugin ####
+  # https://hub.docker.com/_/telegraf
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    hostname: telegraf
+    restart: always
+    networks:
+      - $WEB_PROXY
+    links:
+      - Influxdb
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      - Influxdb
+    volumes:
+      - $USERDIR/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - /proc:/host/proc:ro
+  #### Grafana - Graphical data visualization for InfluxDB data ####
+  # https://hub.docker.com/r/grafana/grafana
+  Grafana:
+    image: grafana/grafana:latest
+    container_name: Grafana
+    hostname: Grafana
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $GRAFANA_PORT:$GRAFANA_PORT
+    user: "0"
+    volumes:
+      - $USERDIR/Grafana:/var/lib/grafana
+    environment:
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.grafana-rtr.entrypoints=https
+      - traefik.http.routers.grafana-rtr.rule=Host(`grafana.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.grafana-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.grafana-rtr.service=grafana-svc
+      - traefik.http.services.grafana-svc.loadbalancer.server.port=$GRAFANA_PORT
+#-----------------------------------------------------------#
+######################### DOWNLOADERS ######################
+  #### qbittorrent - Download management ####
+  # https://hub.docker.com/r/linuxserver/qbittorrent
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $QBITTORRENT_PORT:$QBITTORRENT_PORT
+      - 6881:6881
+      - 6881:6881/udp
+    volumes:
+      - $MERGERFS/gdrive/downloads:/downloads:rw,slave
+      - $USERDIR/qbittorrent:/config
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - UMASK=022
+      - WEBUI_PORT=$QBITTORRENT_PORT
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.qbittorrent-rtr.entrypoints=https
+      - traefik.http.routers.qbittorrent-rtr.rule=Host(`qbittorrent.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.qbittorrent-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc
+      - traefik.http.services.qbittorrent-svc.loadbalancer.server.port=$QBITTORRENT_PORT
+#-----------------------------------------------------------#
+################################ INDEXERS ###################
+  #### Jackett - Torrent proxy ####
+  # https://hub.docker.com/r/linuxserver/jackett
+  jackett:
+    image: linuxserver/jackett:latest
+    container_name: jackett
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $JACKETT_PORT:$JACKETT_PORT
+    volumes:
+      - $USERDIR/jackett:/config
+      - /mnt/disks/Movies/downloads:/downloads
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.jackett-rtr.entrypoints=https
+      - traefik.http.routers.jackett-rtr.rule=Host(`jackett.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.jackett-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.jackett-rtr.service=jackett-svc
+      - traefik.http.services.jackett-svc.loadbalancer.server.port=$JACKETT_PORT
+#-----------------------------------------------------------#
+########################### PVR's ###########################
+  #### Radarr4k - Movie management ####
+  # https://hub.docker.com/r/hotio/radarr
+  radarr4k:
+    image: hotio/radarr:latest
+    container_name: radarr4k
+#    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $RADARR4k_PORT:$RADARR4k_PORT
+    volumes:
+      - $USERDIR/radarr4k:/config
+      - /mnt/disks/Movies/downloads/completed:/downloads:rw
+      - /mnt/disks/Movies/4k:/Movies
+      - $MERGERFS/gdrive:/user:rw,slave
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers Auth Bypass
+      - traefik.http.routers.radarr4k-rtr-bypass.entrypoints=https
+      - traefik.http.routers.radarr4k-rtr-bypass.rule=Headers(`X-Api-Key`, `$RADARR4k_API_KEY`) || Query(`apikey`, `$RADARR4k_API_KEY`)
+      - traefik.http.routers.radarr4k-rtr-bypass.priority=100
+      ## HTTP Routers Auth
+      - traefik.http.routers.radarr4k-rtr.entrypoints=https
+      - traefik.http.routers.radarr4k-rtr.rule=Host(`radarr4k.$DOMAINNAME`)
+      - traefik.http.routers.radarr4k-rtr.priority=99
+      ## Middlewares
+      - traefik.http.routers.radarr4k-rtr-bypass.middlewares=chain-no-auth@file
+      - traefik.http.routers.radarr4k-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.radarr4k-rtr.service=radarr4k-svc
+      - traefik.http.routers.radarr4k-rtr-bypass.service=radarr4k-svc
+      - traefik.http.services.radarr4k-svc.loadbalancer.server.port=$RADARR4k_PORT
+  #### Radarr - Movie management ####
+  # https://hub.docker.com/r/linuxserver/radarr
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+#    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $RADARR_PORT:$RADARR_PORT
+    volumes:
+      - $USERDIR/radarr:/config
+      - /mnt/disks/Movies/downloads/completed:/downloads
+      - /mnt/disks/Movies/HD:/Movies
+      - $MERGERFS/gdrive:/user:rw,slave
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers Auth Bypass
+      - traefik.http.routers.radarr-rtr-bypass.entrypoints=https
+      - traefik.http.routers.radarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$RADARR_API_KEY`) || Query(`apikey`, `$RADARR_API_KEY`)
+      - traefik.http.routers.radarr-rtr-bypass.priority=100
+      ## HTTP Routers Auth
+      - traefik.http.routers.radarr-rtr.entrypoints=https
+      - traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME`)
+      - traefik.http.routers.radarr-rtr.priority=99
+      ## Middlewares
+      - traefik.http.routers.radarr-rtr-bypass.middlewares=chain-no-auth@file
+      - traefik.http.routers.radarr-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.radarr-rtr.service=radarr-svc
+      - traefik.http.routers.radarr-rtr-bypass.service=radarr-svc
+      - traefik.http.services.radarr-svc.loadbalancer.server.port=$RADARR_PORT
+  #### Sonarr4k - TV Shows management ####
+  # https://hub.docker.com/r/linuxserver/sonarr
+  sonarr4k:
+    image: hotio/sonarr:latest
+    container_name: sonarr4k
+#    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $SONARR4k_PORT:$SONARR4k_PORT
+    volumes:
+      - $USERDIR/sonarr4k:/config
+      - /mnt/disks/Movies/downloads/completed:/downloads
+      - /mnt/user/Series 1/4k:/Series
+      - /mnt/disks/Series/4k:/Series2
+      - $MERGERFS/gdrive:/user:rw,slave     
+      - /etc/localtime:/etc/localtime:ro 
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers Auth Bypass
+      - traefik.http.routers.sonarr4k-rtr-bypass.entrypoints=https
+      - traefik.http.routers.sonarr4k-rtr-bypass.rule=Headers(`X-Api-Key`, `$SONARR4k_API_KEY`) || Query(`apikey`, `$SONARR4k_API_KEY`)
+      - traefik.http.routers.sonarr4k-rtr-bypass.priority=100
+      ## HTTP Routers Auth
+      - traefik.http.routers.sonarr4k-rtr.entrypoints=https
+      - traefik.http.routers.sonarr4k-rtr.rule=Host(`sonarr4k.$DOMAINNAME`)
+      - traefik.http.routers.sonarr4k-rtr.priority=99
+      ## Middlewares
+      - traefik.http.routers.sonarr4k-rtr-bypass.middlewares=chain-no-auth@file
+      - traefik.http.routers.sonarr4k-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.sonarr4k-rtr.service=sonarr4k-svc
+      - traefik.http.routers.sonarr4k-rtr-bypass.service=sonarr4k-svc
+      - traefik.http.services.sonarr4k-svc.loadbalancer.server.port=$SONARR4k_PORT
+  #### Sonarr - TV Shows management ####
+  # https://hub.docker.com/r/linuxserver/sonarr
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+#    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $SONARR_PORT:$SONARR_PORT
+    volumes:
+      - $USERDIR/docker/sonarr:/config
+      - /mnt/disks/Movies/downloads/completed:/downloads
+      - /mnt/user/Series 1/HD:/Series
+      - /mnt/disks/Series/HD:/Series2
+      - $MERGERFS/gdrive:/user:rw,slave
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers Auth Bypass
+      - traefik.http.routers.sonarr-rtr-bypass.entrypoints=https
+      - traefik.http.routers.sonarr-rtr-bypass.rule=Headers(`X-Api-Key`, `$SONARR_API_KEY`) || Query(`apikey`, `$SONARR_API_KEY`)
+      - traefik.http.routers.sonarr-rtr-bypass.priority=100
+      ## HTTP Routers Auth
+      - traefik.http.routers.sonarr-rtr.entrypoints=https
+      - traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME`)
+      - traefik.http.routers.sonarr-rtr.priority=99
+      ## Middlewares
+      - traefik.http.routers.sonarr-rtr-bypass.middlewares=chain-no-auth@file
+      - traefik.http.routers.sonarr-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.sonarr-rtr.service=sonarr-svc
+      - traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc
+      - traefik.http.services.sonarr-svc.loadbalancer.server.port=$SONARR_PORT
+#-----------------------------------------------------------#
   #### Plex - Media Server ####
   # https://hub.docker.com/r/plexinc/pms-docker
   Plex-Media-Server:
@@ -136,7 +806,7 @@ services:
     networks:
       web-proxy:
       br0:
-        ipv4_address: 192.168.1.160
+        ipv4_address: 192.168.1.161
     security_opt:
       - no-new-privileges:true
     ports:
@@ -159,7 +829,7 @@ services:
       - /mnt/user/Series 1:/Series
       - /mnt/disks/Movies:/Movies
      # - /mnt/disks/Storage:/Storage
-      - /mnt/user/mergerfs/gdrive:/user:rw,slave
+      - $MERGERFS/gdrive:/user:rw,slave
       - /dev/shm:/transcode # Offload transcoding to RAM if you have enough RAM
     #   - $USERDIR/plex_tmp:/transcode
     environment:
@@ -180,4 +850,358 @@ services:
       ## HTTP Services
       - traefik.http.routers.Plex-Media-Server-rtr.service=Plex-Media-Server-svc
       - traefik.http.services.Plex-Media-Server-svc.loadbalancer.server.port=$PLEX_PORT
- 
+  #### Ombi - Media Requests ####
+  # https://hub.docker.com/r/linuxserver/ombi
+  ombi:
+    image: linuxserver/ombi:development
+    container_name: ombi
+#    restart: always
+    networks:
+      - $WEB_PROXY
+    ports:
+      - $OMBI_PORT:$OMBI_PORT
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - $USERDIR/ombi:/config
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+#      BASE_URL: /ombi #optional
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.ombi-rtr.entrypoints=https
+      - traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.ombi-rtr.service=ombi-svc
+      - traefik.http.services.ombi-svc.loadbalancer.server.port=$OMBI_PORT
+  #### Tautulli - Plex statistics and monitoring ####
+  # https://hub.docker.com/r/tautulli/tautulli
+  tautulli:
+    image: tautulli/tautulli:latest
+    container_name: tautulli
+    restart: always
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - $TAUTULLI_PORT:$TAUTULLI_PORT
+    volumes:
+      - $USERDIR/tautulli/config:/config
+      - $USERDIR/tautulli/logs:/logs:ro
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
+      ## HTTP Routers
+      - traefik.http.routers.tautulli-rtr.entrypoints=https
+      - traefik.http.routers.tautulli-rtr.rule=Host(`tautulli.$DOMAINNAME`)
+      ## Middlewares
+      - traefik.http.routers.tautulli-rtr.middlewares=chain-no-auth@file
+      ## HTTP Services
+      - traefik.http.routers.tautulli-rtr.service=tautulli-svc
+      - traefik.http.services.tautulli-svc.loadbalancer.server.port=$TAUTULLI_PORT
+	  
+  ############################# MEDIA FILE MANAGEMENT
+
+  # Bazarr - Subtitle Management
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: "no"
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #  - "$BAZARR_PORT:6767"
+    volumes:
+      - $DOCKERDIR/bazarr:/config
+      - $MERGERFS/gdrive:/data:rw,slave
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers Auth Bypass
+      - "traefik.http.routers.bazarr-rtr-bypass.entrypoints=https"
+      - "traefik.http.routers.bazarr-rtr-bypass.rule=Host(`bazarr.$DOMAINNAME`) && (Headers(`X-Api-Key`, `$BAZARR_API_KEY`) || Query(`apikey`, `$BAZARR_API_KEY`))"
+      - "traefik.http.routers.bazarr-rtr-bypass.priority=100"
+      ## HTTP Routers Auth
+      - "traefik.http.routers.bazarr-rtr.entrypoints=https"
+      - "traefik.http.routers.bazarr-rtr.rule=Host(`bazarr.$DOMAINNAME`)"
+      - "traefik.http.routers.bazarr-rtr.priority=99"
+      ## Middlewares
+      - "traefik.http.routers.bazarr-rtr-bypass.middlewares=chain-no-auth@file"
+      - "traefik.http.routers.bazarr-rtr.middlewares=chain-no-auth@file"
+      ## HTTP Services
+      - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
+      - "traefik.http.routers.bazarr-rtr-bypass.service=bazarr-svc"
+      - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
+ ############################# UTILITIES
+
+  # Firefox - Web Broswer
+  firefox:
+    image: jlesage/firefox:latest
+    container_name: firefox
+    restart: unless-stopped
+    network_mode: host
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
+    # ports:
+    #   - "$FIREFOX_PORT:5800"
+    volumes:
+      - $DOCKERDIR/firefox:/config
+      - $MERGERFS/gdrive/downloads:/data/downloads:rw,slave
+      - /dev/shm:/dev/shm
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      TZ: $TZ
+      UMASK: 002
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1920
+      DISPLAY_HEIGHT: 1080
+      labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.firefox-rtr.entrypoints=https"
+      - "traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.firefox-rtr.service=firefox-svc"
+      - "traefik.http.services.firefox-svc.loadbalancer.server.port=5800"
+
+  # Glances - System Information
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$GLANCES_PORT:61208"
+    pid: host
+    volumes:
+      - $DOCKERDIR/glances/glances.conf:/glances/conf/glances.conf # Use this if you want to add a glances.conf file
+      - $USERDIR:/data/home:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Use Docker Socket Proxy instead for improved security
+    environment:
+      # GLANCES_OPT: "-C /glances/conf/glances.conf --quiet --export influxdb"
+      # GLANCES_OPT: "--export influxdb"
+      GLANCES_OPT: "-w"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.glances-rtr.entrypoints=https"
+      - "traefik.http.routers.glances-rtr.rule=Host(`glances.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.glances-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.glances-rtr.service=glances-svc"
+      - "traefik.http.services.glances-svc.loadbalancer.server.port=61208"
+
+  # qDirStat - Directory Statistics
+  qdirstat:
+    image: jlesage/qdirstat:latest
+    container_name: qdirstat
+    restart: unless-stopped
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$QDIRSTAT_PORT:5800"
+    volumes:
+      - $USERDIR:/data/home:ro
+      - $DOCKERDIR/qdirstat/config:/config:rw
+    environment:
+      USER_ID: $PUID
+      GROUP_ID: $PGID
+      UMASK: 002
+      TZ: $TZ
+      KEEP_APP_RUNNING: 1
+      CLEAN_TMP_DIR: 1
+      DISPLAY_WIDTH: 1600
+      DISPLAY_HEIGHT: 960
+      VNC_PASSWORD: $QDIRSTAT_VNC_PASSWD
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.qdirstat-rtr.entrypoints=https"
+      - "traefik.http.routers.qdirstat-rtr.rule=Host(`qdirstat.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.qdirstat-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.qdirstat-rtr.service=qdirstat-svc"
+      - "traefik.http.services.qdirstat-svc.loadbalancer.server.port=5800"
+
+  # Guacamole - Remote desktop, SSH, on Telnet on any HTML5 Browser
+  # Create all databases and tables first
+  guacamole:
+    image: guacamole/guacamole:latest
+    container_name: guacamole
+    restart: unless-stopped
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$GUACAMOLE_PORT:8080"
+    environment:
+      GUACD_HOSTNAME: guacd
+      MYSQL_HOSTNAME: $MARIADB_HOST
+      MYSQL_PORT: $MARIADB_PORT
+      MYSQL_DATABASE_FILE: /run/secrets/guac_db_name
+      MYSQL_USER_FILE: /run/secrets/guac_mysql_user
+      MYSQL_PASSWORD_FILE: /run/secrets/guac_mysql_password
+    secrets:
+      - guac_db_name
+      - guac_mysql_user
+      - guac_mysql_password
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.guacamole-rtr.entrypoints=https"
+      - "traefik.http.routers.guacamole-rtr.rule=Host(`guac.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.guacamole-rtr.middlewares=chain-oauth@file,add-guacamole"
+      - "traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole"
+      ## HTTP Services
+      - "traefik.http.routers.guacamole-rtr.service=guacamole-svc"
+      - "traefik.http.services.guacamole-svc.loadbalancer.server.port=8080"
+
+  # Guacamole Daemon - Needed for Guacamole
+  guacd:
+    image: guacamole/guacd
+    container_name: guacd
+    restart: unless-stopped
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+
+  # Dozzle - Real-time Docker Log Viewer
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    networks:
+      - $WEB_PROXY
+    security_opt:
+      - no-new-privileges:true
+    # ports:
+    #   - "$DOZZLE_PORT:8080"
+    environment:
+      DOZZLE_LEVEL: info
+      DOZZLE_TAILSIZE: 300
+      DOZZLE_FILTER: "status=running"
+      # DOZZLE_FILTER: "label=log_me" # limits logs displayed to containers with this label
+      DOCKER_HOST: tcp://socket-proxy:2375
+    # volumes:
+    #  - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+    labels:
+      - "traefik.enable=true"
+      ## HTTP Routers
+      - "traefik.http.routers.dozzle-rtr.entrypoints=https"
+      - "traefik.http.routers.dozzle-rtr.rule=Host(`dozzle.$DOMAINNAME`)"
+      ## Middlewares
+      - "traefik.http.routers.dozzle-rtr.middlewares=chain-oauth@file"
+      ## HTTP Services
+      - "traefik.http.routers.dozzle-rtr.service=dozzle-svc"
+      - "traefik.http.services.dozzle-svc.loadbalancer.server.port=8080"
+	  
+  #### OpenVPN-as ####
+  # https://hub.docker.com/r/linuxserver/openvpn-as
+  openvpn-as:
+    image: linuxserver/openvpn-as:latest
+    container_name: openvpn-as
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=$PUID
+      - PGID=$PGID
+      - TZ=$TZ
+      - INTERFACE=eth0 #optional
+    volumes:
+      - $USERDIR/openvpn-as:/config
+    ports:
+      - 943:943
+      - 9443:9443
+      - 1194:1194/udp
+    restart: always
+    network_mode: bridge
+  ############################# MAINTENANCE
+
+  # Docker-GC - Automatic Docker Garbage Collection
+  # Create docker-gc-exclude file
+  dockergc:
+    image: clockworksoul/docker-gc-cron:latest
+    container_name: docker-gc
+    restart: unless-stopped
+    networks:
+      - $WEB_PROXY 
+    volumes:
+      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
+    environment:
+      CRON: 0 0 0 * * ? # Everyday at midnight. Previously 0 0 * * *
+      FORCE_IMAGE_REMOVAL: 1
+      FORCE_CONTAINER_REMOVAL: 0
+      GRACE_PERIOD_SECONDS: 604800
+      DRY_RUN: 0
+      CLEAN_UP_VOLUMES: 1
+      TZ: $TZ
+      DOCKER_HOST: tcp://$SERVER_IP:2375
+
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    network_mode: none
+    security_opt:
+      - no-new-privileges:true
+    # command: --restart-containers container1,container2,container3
+    volumes:
+      - $DOCKERDIR/traefik/acme:/traefik:ro
+      #- $DOCKERDIR/shared/certs:/output:rw
+      # - /var/run/docker.sock:/var/run/docker.sock:ro # Only needed if restarting containers (use Docker Socket Proxy instead)
+    environment:
+      DOMAIN: $DOMAINNAME
+
+#-----------------------------------------------------#	  
+  #### DuckDns ####
+  # https://hub.docker.com/r/linuxserver/duckdns
+  duckdns:
+    image: linuxserver/duckdns:latest
+    container_name: duckdns
+    hostname: duckdns
+    environment:
+      - PUID=$PUID #optional
+      - PGID=$PGID #optional
+      - TZ=$TZ
+      - SUBDOMAINS=$DOMAINNAME
+      - TOKEN=$DUCKDNS_TOKEN
+      - LOG_FILE=false #optional
+    network_mode: 'host'
+    volumes:
+      - $USERDIR/duckdns/config:/config #optional
+    restart: always
+#-----------------------------END-------------------------#
