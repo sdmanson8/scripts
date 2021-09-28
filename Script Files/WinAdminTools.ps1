@@ -117,7 +117,7 @@ Else{
 } 
  if ($answer -eq 6){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 14){areyousure}  
