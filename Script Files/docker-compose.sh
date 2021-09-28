@@ -29,13 +29,12 @@ wget https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip -O ~/main.
 printf '\Extracting Container Files.. Please Wait\n\n'
 sleep 1s
 unzip -d ~/Main ~/main.zip
-rm -f main.zip
-clear
+rm main.zip
 
 # Copying Container Files to ~/docker
 #printf '\nCopying Container Files to ~/docker.. Please Wait\n\n'
 #sleep 1s
-#cd ~/Main/scripts-main/Script\ Files
+#cd "~/Main/scripts-main/Script Files"
 #cp -r Authelia/ prometheus/ qbittorrent/ telegraf/ traefik/ transmission/ ~/docker/ && cd ~/ && rm -Rf Main/
 
 
