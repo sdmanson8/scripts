@@ -190,3 +190,15 @@ Force Wildcard Certificates
 sudo sed -i 's/- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/#- --entrypoints.https.http.tls.certresolver=CERT_RESOLVER/g' ~/docker/RealTraefikCert.yml
 docker-compose -f ~/docker/RealTraefikCert.yml up -d && docker logs -tf --tail="50" traefik
 ```
+
+**Continue with Script.ps1 Choose Option 5**
+```
+pwsh ~/Script.ps1
+```
+After running the script run the below command to create the remaining containers
+```
+cd ~/docker && nano docker-compose.yml
+```
+```
+docker-compose.yml up -d && docker logs -tf --tail="50" traefik
+```
