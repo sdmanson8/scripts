@@ -1,4 +1,13 @@
-﻿ #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
+#requires -version 5.0
+#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
+{  
+  $arguments = "& '" +$myinvocation.mycommand.definition + "'"
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
+
+ #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
            if ($areyousure -eq "n"){mainmenu}  
@@ -135,7 +144,7 @@
 }
   if ($answer -eq 11){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 12){areyousure} 
