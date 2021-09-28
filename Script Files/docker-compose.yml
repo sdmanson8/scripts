@@ -222,72 +222,72 @@ services:
     networks:
       - $WEB_PROXY
 #### Authelia - Two Factor Authentication ####
-  https://hub.docker.com/r/authelia/authelia
-  Authelia:
-     image: authelia/authelia:latest
-    container_name: Authelia
-    hostname: Authelia
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-      - $USERDIR/Authelia:/config
-    networks:
-      - $WEB_PROXY
-    #ports:
-    #  - $AUTHELIA_PORT:$AUTHELIA_PORT
-    restart: always
-    environment:
-      - TZ=$TZ
-    labels:
-      - traefik.enable=true
-      - traefik.tags=public
-      ## HTTP Routers
-      - traefik.http.routers.authelia-rtr.entrypoints=https
-      - traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME`)
-      ## Middlewares
-      - traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file
-      ## HTTP Services
-      - traefik.http.routers.authelia-rtr.service=authelia-svc
-      - traefik.http.services.authelia-svc.loadbalancer.server.port=$AUTHELIA_PORT
-  #### Google OAuth - Single Sign On using OAuth 2.0 ####
-  # https://hub.docker.com/r/thomseddon/traefik-forward-auth
-  oauth:
-    container_name: oauth
-    image: thomseddon/traefik-forward-auth:latest
-    hostname: oauth
-    restart: always
-    networks:
-      - $WEB_PROXY
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
-    environment:
-      - CLIENT_ID=$GOOGLE_CLIENT_ID
-      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-      - SECRET=$OAUTH_SECRET
-      - COOKIE_DOMAIN=$DOMAINNAME
-      - INSECURE_COOKIE=false
-      - AUTH_HOST=oauth.$DOMAINNAME
-      - URL_PATH=/_oauth
-      - WHITELIST=$MY_EMAIL
-      - LOG_LEVEL=info
-      - LOG_FORMAT=text
-      - LIFETIME=2592000 # 30 days
-      - DEFAULT_ACTION=auth
-      - DEFAULT_PROVIDER=google
-    labels:
-      - traefik.enable=true
-      - traefik.tags=public
-      ## HTTP Routers
-      - traefik.http.routers.oauth-rtr.entrypoints=https
-      - traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)
-      ## HTTP Services
-      - traefik.http.routers.oauth-rtr.service=oauth-svc
-      - traefik.http.services.oauth-svc.loadbalancer.server.port=$OAUTH_PORT
-      ## Middlewares
-      - traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file
+#  https://hub.docker.com/r/authelia/authelia
+#  Authelia:
+#     image: authelia/authelia:latest
+#    container_name: Authelia
+#    hostname: Authelia
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#      - $USERDIR/Authelia:/config
+#    networks:
+#      - $WEB_PROXY
+#    #ports:
+#    #  - $AUTHELIA_PORT:$AUTHELIA_PORT
+#    restart: always
+#    environment:
+#      - TZ=$TZ
+#    labels:
+#      - traefik.enable=true
+#      - traefik.tags=public
+#      ## HTTP Routers
+#      - traefik.http.routers.authelia-rtr.entrypoints=https
+#      - traefik.http.routers.authelia-rtr.rule=Host(`auth.$DOMAINNAME`)
+#      ## Middlewares
+#      - traefik.http.routers.authelia-rtr.middlewares=chain-authelia@file
+#      ## HTTP Services
+#      - traefik.http.routers.authelia-rtr.service=authelia-svc
+#      - traefik.http.services.authelia-svc.loadbalancer.server.port=$AUTHELIA_PORT
+#  #### Google OAuth - Single Sign On using OAuth 2.0 ####
+#  # https://hub.docker.com/r/thomseddon/traefik-forward-auth
+#  oauth:
+#    container_name: oauth
+#    image: thomseddon/traefik-forward-auth:latest
+#    hostname: oauth
+#    restart: always
+#    networks:
+#      - $WEB_PROXY
+#    security_opt:
+#      - no-new-privileges:true
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /etc/timezone:/etc/timezone:ro
+#    environment:
+#      - CLIENT_ID=$GOOGLE_CLIENT_ID
+#      - CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+#      - SECRET=$OAUTH_SECRET
+#      - COOKIE_DOMAIN=$DOMAINNAME
+#      - INSECURE_COOKIE=false
+#      - AUTH_HOST=oauth.$DOMAINNAME
+#      - URL_PATH=/_oauth
+#      - WHITELIST=$MY_EMAIL
+#      - LOG_LEVEL=info
+#      - LOG_FORMAT=text
+#      - LIFETIME=2592000 # 30 days
+#      - DEFAULT_ACTION=auth
+#      - DEFAULT_PROVIDER=google
+#    labels:
+#      - traefik.enable=true
+#      - traefik.tags=public
+#      ## HTTP Routers
+#      - traefik.http.routers.oauth-rtr.entrypoints=https
+#      - traefik.http.routers.oauth-rtr.rule=Host(`oauth.$DOMAINNAME`)
+#      ## HTTP Services
+#      - traefik.http.routers.oauth-rtr.service=oauth-svc
+#      - traefik.http.services.oauth-svc.loadbalancer.server.port=$OAUTH_PORT
+#      ## Middlewares
+#      - traefik.http.routers.oauth-rtr.middlewares=chain-oauth@file
   #### Portainer - WebUI for Containers ####
   # https://hub.docker.com/r/portainer/portainer-ce
   Portainer-CE:
@@ -599,6 +599,48 @@ services:
       ## HTTP Services
       - traefik.http.routers.qbittorrent-rtr.service=qbittorrent-svc
       - traefik.http.services.qbittorrent-svc.loadbalancer.server.port=$QBITTORRENT_PORT
+      
+     # SABnzbd - Binary newsgrabber (NZB downloader)
+  # https://hub.docker.com/r/linuxserver/sabnzbd
+#  sabnzbd:
+#    image: linuxserver/sabnzbd:latest
+#    container_name: sabnzbd
+#    hostname: sabnzbd
+#    restart: unless-stopped
+#    networks:
+#      - $WEB_PROXY
+#    security_opt:
+#      - no-new-privileges:true
+#    ports:
+#      - 8185:$SABNZBD_PORT
+#    volumes:
+#      - $USERDIR/docker/sabnzbd:/config
+#      - $MERGERFS/gdrive/downloads:/downloads
+#    #   - $USERDIR/Downloads/incomplete:/incomplete-downloads
+#    environment:
+#      PUID: $PUID
+#      PGID: $PGID
+#      TZ: $TZ
+#      UMASK_SET: 002
+#    labels:
+#      - traefik.enable=true
+#      - traefik.tags=public
+#      ## HTTP Routers Auth Bypass
+#      - traefik.http.routers.sabnzbd-rtr-bypass.entrypoints=https
+#       - traefik.http.routers.sabnzbd-rtr-bypass.rule=Headers(`X-Api-Key`, `$SABNZBD_API_KEY`) || Query(`apikey`, `$SABNZBD_API_KEY`)
+#      - traefik.http.routers.sabnzbd-rtr-bypass.priority=100
+#      ## HTTP Routers Auth
+#      - traefik.http.routers.sabnzbd-rtr.entrypoints=https
+#      - traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME`)
+#      - traefik.http.routers.sabnzbd-rtr.priority=99
+#      ## Middlewares
+#      - traefik.http.routers.sabnzbd-rtr-bypass.middlewares=chain-no-auth@file
+#      - traefik.http.routers.sabnzbd-rtr.middlewares=chain-authelia@file
+#      ## HTTP Services
+#      - traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc
+#      - traefik.http.routers.sabnzbd-rtr-bypass.service=sabnzbd-svc
+#      - traefik.http.services.sabnzbd-svc.loadbalancer.server.port=$SABNZBD_PORT
+      
 #-----------------------------------------------------------#
 ################################ INDEXERS ###################
   #### Jackett - Torrent proxy ####
@@ -615,7 +657,7 @@ services:
       - $JACKETT_PORT:$JACKETT_PORT
     volumes:
       - $USERDIR/jackett:/config
-      - /mnt/disks/Movies/downloads:/downloads
+      - $MERGERFS/gdrive/downloads:/downloads
       - /etc/localtime:/etc/localtime:ro
     environment:
       PUID: $PUID
@@ -632,6 +674,39 @@ services:
       ## HTTP Services
       - traefik.http.routers.jackett-rtr.service=jackett-svc
       - traefik.http.services.jackett-svc.loadbalancer.server.port=$JACKETT_PORT
+      
+  # NZBHydra2 - NZB meta search
+  # https://hub.docker.com/r/linuxserver/hydra2
+#  hydra:
+#    image: linuxserver/hydra2:latest
+#    container_name: hydra
+#    hostname: hydra
+#    restart: unless-stopped
+#    networks:
+#      - $WEB_PROXY
+#    security_opt:
+#      - no-new-privileges:true
+#    ports:
+#      - $NZBHYDRA_PORT:5076
+#    volumes:
+#      - $USERDIR/docker/hydra2:/config
+#      - $MERGERFS/gdrive/downloads:/downloads
+#    environment:
+#      PUID: $PUID
+#      PGID: $PGID
+#      TZ: $TZ
+#    labels:
+#      - traefik.enable=true
+#      - traefik.tags=public
+#      ## HTTP Routers
+#      - traefik.http.routers.hydra-rtr.entrypoints=https
+#      - traefik.http.routers.hydra-rtr.rule=Host(`hydra.$DOMAINNAME`)
+#      ## Middlewares
+#      - traefik.http.routers.hydra-rtr.middlewares=chain-authelia@file
+#      ## HTTP Services
+#      - traefik.http.routers.hydra-rtr.service=hydra-svc
+#      - traefik.http.services.hydra-svc.loadbalancer.server.port=5076
+
 #-----------------------------------------------------------#
 ########################### PVR's ###########################
   #### Radarr4k - Movie management ####
@@ -797,7 +872,7 @@ services:
       - traefik.http.routers.sonarr-rtr-bypass.service=sonarr-svc
       - traefik.http.services.sonarr-svc.loadbalancer.server.port=$SONARR_PORT
 #-----------------------------------------------------------#
-  #### Plex - Media Server ####
+  ############ Plex - Media Server #########################
   # https://hub.docker.com/r/plexinc/pms-docker
   Plex-Media-Server:
     image: plexinc/pms-docker:latest
@@ -910,10 +985,10 @@ services:
       ## HTTP Services
       - traefik.http.routers.tautulli-rtr.service=tautulli-svc
       - traefik.http.services.tautulli-svc.loadbalancer.server.port=$TAUTULLI_PORT
-	  
-  ############################# MEDIA FILE MANAGEMENT
+#-----------------------------------------------------------#
+  ############ MEDIA FILE MANAGEMENT #######################	  
 
-  # Bazarr - Subtitle Management
+# Bazarr - Subtitle Management
   bazarr:
     image: linuxserver/bazarr:latest
     container_name: bazarr
@@ -948,7 +1023,116 @@ services:
       - "traefik.http.routers.bazarr-rtr.service=bazarr-svc"
       - "traefik.http.routers.bazarr-rtr-bypass.service=bazarr-svc"
       - "traefik.http.services.bazarr-svc.loadbalancer.server.port=6767"
- ############################# UTILITIES
+      
+  #-----------------------------------------------------------#
+####################### MEDIA FILE MANAGEMENT ###############
+#  #### Nextcloud - On-site Cloud Storage ####
+#  # https://hub.docker.com/_/nextcloud
+#  nextcloud:
+#    image: nextcloud:latest
+#    container_name: nextcloud
+#    hostname: nextcloud
+#    restart: always
+#    depends_on:
+#      - mariadb
+#      - redis
+#    networks:
+#      - $WEB_PROXY
+#    ports:
+#      - 8396:$HTTP_PORT
+#    security_opt:
+#      - no-new-privileges:true
+#    volumes:
+#      - $USERDIR/docker/nextcloud:/config
+#    environment:
+#      - PUID=$PUID
+#      - PGID=$PGID
+#      - TZ=$TZ
+#      - APACHE_DISABLE_REWRITE_IP=1
+#      - TRUSTED_PROXIES=traefik
+#      - OVERWRITEPROTOCOL=https
+#      - NEXTCLOUD_TRUSTED_DOMAINS=nextcloud.$DOMAINNAME
+#      - MYSQL_DATABASE=$NEXTCLOUD_DB
+#      - MYSQL_USER=$NEXTCLOUD_USER
+#      - MYSQL_PASSWORD=$NEXTCLOUD_PASSWORD
+#      - MYSQL_HOST=$NEXTCLOUD_HOST
+#      - REDIS_HOST=$REDIS_HOST
+#    labels:
+#      - traefik.enable=true
+#      - traefik.tags=public
+#      ## HTTP Routers
+#      - traefik.http.routers.nextcloud-rtr.entrypoints=https
+#      - traefik.http.routers.nextcloud-rtr.rule=Host(`nextcloud.$DOMAINNAME`)
+#      ## Middlewares
+#      - traefik.http.middlewares.nextcloud-secure.headers.referrerPolicy=same-origin
+#      - traefik.http.middlewares.nextcloud-secure.headers.stsSeconds=63072000
+#      - traefik.http.middlewares.nextcloud-secure.headers.forceSTSHeader=true
+#      - traefik.http.middlewares.nextcloud-secure.headers.stsPreload=true
+#      - traefik.http.middlewares.nextcloud-secure.headers.stsIncludeSubdomains=true
+#      - traefik.http.middlewares.nextcloud-secure.headers.browserXssFilter=true
+#      - traefik.http.middlewares.nextcloud-secure.headers.customRequestHeaders.X-Forwarded-Proto=https
+#      - traefik.http.routers.nextcloud-rtr.middlewares=nextcloud-secure,middlewares-nextcloud-redirectregex@file
+#      ## HTTP Services
+#      - traefik.http.services.nextcloud-svc.loadbalancer.server.port=$HTTP_PORT
+#      - traefik.http.routers.nextcloud-secure.service=nextcloud-svc
+      
+  #### Nextcloud_cron - Scheduled cron jobs for Nextcloud ####
+#  nextcloud_cron:
+#    image: nextcloud:latest
+#    container_name: nextcloud_cron
+#    hostname: nextcloud_cron
+#    restart: always
+#    depends_on:
+#      - nextcloud
+#    networks:
+#      - $WEB_PROXY
+#    entrypoint: /cron.sh
+#    volumes:
+#      - $USERDIR/docker/nextcloud:/var/www/html
+#    environment:
+#      - TZ=$TZ
+
+  #### OnlyOffice - Document server for NextCloud ####
+  # https://hub.docker.com/r/onlyoffice/documentserver
+#  onlyoffice:
+#    container_name: onlyoffice
+#    image: onlyoffice/documentserver:latest
+#    hostname: onlyoffice
+#    stdin_open: true
+#    tty: true
+#    restart: always
+#    networks:
+#      - $WEB_PROXY
+#    ports:
+#      - "$ONLYOFFICE_PORT:$HTTP_PORT"
+#    security_opt:
+#      - no-new-privileges:true
+#    volumes:
+#      #- onlyoffice_logs:/var/log/onlyoffice
+#      #- onlyoffice_fonts:/usr/share/fonts/truetype/custom
+#      - /etc/timezone:/etc/timezone:ro
+#      - /etc/localtime:/etc/localtime:ro
+#    labels:
+#      - traefik.enable=true
+#      - traefik.tags=public
+#      ## HTTPS Routers
+#      - traefik.http.routers.onlyoffice-rtr.entrypoints=https
+#      - traefik.http.routers.onlyoffice-rtr.rule=Host(`onlyoffice.$DOMAINNAME`)
+#      ## Middlewares
+#      - traefik.http.middlewares.onlyoffice-headers.headers.forceSTSHeader=true
+#      - traefik.http.middlewares.onlyoffice-headers.headers.stsSeconds=63072000
+#      - traefik.http.middlewares.onlyoffice-headers.headers.stsIncludeSubdomains=true
+#     - traefik.http.middlewares.onlyoffice-headers.headers.stsPreload=true
+#      - traefik.http.middlewares.onlyoffice-headers.headers.browserXssFilter=true
+#      - traefik.http.middlewares.onlyoffice-headers.headers.referrerPolicy=same-origin
+#      - traefik.http.middlewares.onlyoffice-headers.headers.customRequestHeaders.X-Forwarded-Proto=https
+#      - traefik.http.routers.onlyoffice-rtr.middlewares=onlyoffice-headers,middlewares-nextcloud-redirectregex@file
+#      ## HTTP Services
+#      - traefik.http.routers.onlyoffice.service=onlyoffice-svc
+#      - traefik.http.services.onlyoffice-svc.loadbalancer.server.port=$HTTP_PORT
+
+#-----------------------------------------------------------#
+  ####################### UTILITIES ##########################
 
   # Firefox - Web Broswer
   firefox:
@@ -1148,7 +1332,8 @@ services:
       - 1194:1194/udp
     restart: always
     network_mode: bridge
-  ############################# MAINTENANCE
+  #-----------------------------------------------------------#
+  ##################### MAINTENANCE ##########################
 
   # Docker-GC - Automatic Docker Garbage Collection
   # Create docker-gc-exclude file
