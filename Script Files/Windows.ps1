@@ -1,5 +1,11 @@
 #requires -version 5.0
-#Requires -RunAsAdministrator
+#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
+{  
+  $arguments = "& '" +$myinvocation.mycommand.definition + "'"
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
 
 REG ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v SystemRestorePointCreationFrequency /t REG_DWORD /d 0 /f
 
