@@ -32,6 +32,20 @@ if ($w64 -or $w32)
 }
 Else{
   Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
+# Check if Windows Terminal is Running, Stop Windows Terminal if Running
+    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "WindowsTerminal"
+        }
+# Check if CMD is Running, Stop Windows Terminal if Running
+    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "cmd"
+        }
 # Check if Powershell is Running, Stop Powershell if Running
     if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
         echo "" 
