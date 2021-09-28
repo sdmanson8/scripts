@@ -1,3 +1,71 @@
+#requires -version 5.0
+#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
+{  
+#Is Powershell 7 Installed
+  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "y7" } catch { $false } }
+  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "y7" } catch { $false } }
+if ($w64 -or $w32)
+{
+  Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
+# Check if Windows Terminal is Running, Stop Windows Terminal if Running
+    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "WindowsTerminal"
+        }
+# Check if CMD is Running, Stop Windows Terminal if Running
+    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "cmd"
+        }
+    # Check if Powershell 7 is Running, Stop Powershell 7 if Running
+    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "pwsh"
+        }
+}
+Else{
+  Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
+# Check if Windows Terminal is Running, Stop Windows Terminal if Running
+    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "WindowsTerminal"
+        }
+# Check if CMD is Running, Stop Windows Terminal if Running
+    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "cmd"
+        }
+# Check if Powershell is Running, Stop Powershell if Running
+    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "powershell"
+        }
+  Break
+    }
+}
+
+ #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
+ function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
+           if ($areyousure -eq "y"){exit}  
+           if ($areyousure -eq "n"){mainmenu}  
+           else {write-host -foregroundcolor red "Invalid Selection"    
+                 areyousure  
+                }  
+                     } 
+#Mainmenu function. Contains the screen output for the menu and waits for and handles user input.                      
 function mainmenu{  
  Clear-Host  
  echo "---------------------------------------------------------"  
@@ -13,6 +81,7 @@ function mainmenu{
  echo ""
  echo "    5. Previous Menu"
  echo "" 
+ echo "    6. exit" 
  echo ""
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
@@ -125,6 +194,11 @@ function mainmenu{
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
-      }  
-                }  
+}
+ if ($answer -eq 6){areyousure} 
+ else {write-host -ForegroundColor red "Invalid Selection"  
+       sleep 5  
+       mainmenu  
+      } 
+                }   
  mainmenu  
