@@ -28,8 +28,7 @@ wget https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip -O ~/main.
 # Extracting Container Files
 printf '\Extracting Container Files.. Please Wait\n\n'
 sleep 1s
-unzip -d ~/Main ~/main.zip
-rm main.zip
+unzip -d ~/Main ~/main.zip && rm main.zip
 
 # Copying Container Files to ~/docker
 printf '\nCopying Container Files to ~/docker.. Please Wait\n\n'
