@@ -90,13 +90,13 @@ $answer = read-host "Please Make a Selection"
             $vpnpassword = "password"
 
 # Ask for confirmation to Connect to a VPN Profile
-    $CreateVPNProfile = Read-Host "Would you like to Connect to a VPN Profile? (Y/N)"
-    if ($CreateVPNProfile -eq 'Y') { 
+    $ConnectVPNProfile = Read-Host "Would you like to Connect to a VPN Profile? (Y/N)"
+    if ($ConnectVPNProfile -eq 'Y') { 
             $vpn = Get-VpnConnection | where {$_.Name -eq "$vpnname"}
             }
             if ($vpn.ConnectionStatus -eq "Disconnected")
             {
-                $cmd = $env:WINDIR + "\System32\rasdial.exe"
+                $cmd = $env:WINDIR + "e\System32\rasdial.exe"
                 $expression = "$cmd ""$vpnname"" $vpnusername $vpnpassword"
                 Invoke-Expression -Command $expression 
             }
