@@ -126,6 +126,7 @@ services:
       - "traefik.http.routers.traefik-rtr.middlewares=chain-basic-auth@file"
       ## Services - API
       - "traefik.http.routers.traefik-rtr.service=api@internal"
+      :s/^/#
   #### Prometheus - Metrics for Gathering Data ####
   # https://hub.docker.com/r/wshihadeh/prometheus
   prometheus:
