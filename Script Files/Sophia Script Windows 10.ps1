@@ -52,7 +52,6 @@ Write-Host Opening Sophia Script File
 PAUSE
 #Is Powershell 7 Installed
 Write-Host "Is Powershell 7 Installed?"
-Write-Host Is Powershell 7 Installed?
 $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
 $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
 if ($w64 -or $w32)
