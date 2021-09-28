@@ -4,6 +4,11 @@
 
 #Script File
 
+# Install Network Tools
+printf '\nInstalling Network Tools.. Please Wait\n\n'
+sleep 1s
+sudo apt install net-tools -y
+
 # Remove Old files
 printf '\nRemoving old files.. Please Wait\n\n'
 sleep 1s
