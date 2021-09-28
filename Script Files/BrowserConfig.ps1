@@ -1,7 +1,6 @@
-$msg     = 'Do you want to Modify Chrome? [Type Y/N]'
-do {
-            $response = Read-Host -Prompt $msg
-            if ($response -eq 'y') {
+# Ask for confirmation to Modify Chrome
+    $ModifyChrome = Read-Host "Would you like to Modify Chrome? (Y/N)"
+    if ($ModifyChrome -eq 'Y') { 
     # Modify Chrome Settings
     Write-Host Is Chrome Installed?
     $w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like 'google chrome*'
@@ -32,12 +31,9 @@ do {
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v IncognitoModeAvailability /t REG_DWORD /d 1
          }
-} until ($response -eq 'n')
-Clear-Host
-$msg     = 'Do you want to Modify Firefox? [Type Y/N]'
-do {
-            $response = Read-Host -Prompt $msg
-            if ($response -eq 'y') {
+# Ask for confirmation to Modify Firefox
+    $ModifyFirefox = Read-Host "Would you like to Modify Firefox? (Y/N)"
+    if ($ModifyFirefox -eq 'Y') { 
     # Modify Firefox Settings
     Write-Host Is Firefox Installed?
     $w64=Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | where-Object DisplayName -like '*Firefox*'
@@ -67,7 +63,6 @@ do {
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Mozilla\Firefox /v DisablePrivateBrowsing /t REG_DWORD /d 1
         }
-} until ($response -eq 'n')
     # Modify Microsoft Edge Settings
     Write-Host Is Microsoft Edge Installed?
     $DIR = "C:\Program Files (x86)\Microsoft\Edge\Application"
