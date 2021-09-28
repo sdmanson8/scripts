@@ -1,4 +1,6 @@
 #!/bin/bash
+#requires -version 7.0
+#Requires -RunAsAdministrator
 
 # Script File
 
