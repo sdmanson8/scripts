@@ -8,14 +8,42 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 if ($w64 -or $w32)
 {
   Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
+# Check if Windows Terminal is Running, Stop Windows Terminal if Running
+    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "WindowsTerminal"
+        }
+# Check if CMD is Running, Stop Windows Terminal if Running
+    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "cmd"
+        }
+    # Check if Powershell 7 is Running, Stop Powershell 7 if Running
+    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "pwsh"
+        }
 }
 Else{
   Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
+# Check if Powershell is Running, Stop Powershell if Running
+    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "powershell"
+        }
   Break
     }
 }
 
- #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
+#Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
            if ($areyousure -eq "n"){mainmenu}  
