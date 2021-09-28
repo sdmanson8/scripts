@@ -1,4 +1,4 @@
-#requires -version 5.0
+#requires -version 5.1
 #Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
 {  
@@ -26,7 +26,10 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     else{ 
     Stop-Process -processname "cmd"
         }
-        
+
+Clear-Host
+#Requires -RunAsAdministrator
+
 # Download latest Sophia Script release from github
 
 $url = 'https://github.com/farag2/Sophia-Script-for-Windows/archive/refs/heads/master.zip'
