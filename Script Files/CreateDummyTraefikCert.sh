@@ -44,4 +44,3 @@ printf '\nDownloading middlewares.yml file.. Please Wait\n\n'
 sleep 1s
 wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/middlewaresStaging.yml -O ~/docker/traefik/rules/middlewares.yml
 
-clear
