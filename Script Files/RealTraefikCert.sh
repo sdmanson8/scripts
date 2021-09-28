@@ -1,4 +1,6 @@
-# Script File
+#!/bin/bash
+#requires -version 7.0
+#Requires -RunAsAdministrator
 
 # Remove Old files
 printf '\nRemoving old files.. Please Wait\n\n'
