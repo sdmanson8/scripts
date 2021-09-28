@@ -39,4 +39,3 @@ cp -r Authelia/ prometheus/ qbittorrent/ telegraf/ traefik/ transmission/ ~/dock
 
 
 cd ~/docker
-clear
