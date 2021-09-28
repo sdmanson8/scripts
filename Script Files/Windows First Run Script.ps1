@@ -1,3 +1,12 @@
+#requires -version 5.0
+#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
+{  
+  $arguments = "& '" +$myinvocation.mycommand.definition + "'"
+  Start-Process powershell -Verb runAs -ArgumentList $arguments
+  Break
+}
+
  #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
            if ($areyousure -eq "y"){exit}  
