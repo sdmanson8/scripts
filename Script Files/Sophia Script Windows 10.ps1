@@ -1,4 +1,4 @@
-#requires -version 5.0
+#requires -version 5.1
 #Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
 {  
