@@ -3,7 +3,7 @@
 #Requires -RunAsAdministrator
 
 #Script File
-
+<<COMMAND
 # Remove Old files
 printf '\nRemoving old files.. Please Wait\n\n'
 sleep 1s
@@ -19,7 +19,7 @@ wget https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/doc
 printf '\nCreating macvlan docker network.. Please Wait\n\n'
 sleep 1s
 docker network create -d macvlan -o parent="$(ip route get 8.8.8.8 | awk -- '{printf $5}')" br0
-
+COMMAND
 # Downloading Container Files
 printf '\nDownloading Container Files.. Please Wait\n\n'
 sleep 1s
@@ -33,11 +33,11 @@ rm -f main.zip
 clear
 
 # Copying Container Files to ~/docker
-printf '\nCopying Container Files to ~/docker.. Please Wait\n\n'
-sleep 1s
-cd ~/Main/scripts-main/Script\ Files
-cp -r Authelia/ prometheus/ qbittorrent/ telegraf/ traefik/ transmission/ ~/docker/
-cd ~/ && rm -Rf Main/
+#printf '\nCopying Container Files to ~/docker.. Please Wait\n\n'
+#sleep 1s
+#cd ~/Main/scripts-main/Script\ Files
+#cp -r Authelia/ prometheus/ qbittorrent/ telegraf/ traefik/ transmission/ ~/docker/
+#cd ~/ && rm -Rf Main/
 
 cd ~/docker
 clear
