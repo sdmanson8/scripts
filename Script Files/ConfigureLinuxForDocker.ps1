@@ -1,4 +1,5 @@
 #requires -version 7.0
+#Requires -RunAsAdministrator
 
  #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
@@ -20,10 +21,11 @@
  echo "    2. Download Rclone and MergerFS Files"
  echo "    3. Configure Traefik Staging Cert"
  echo "    4. Configure Traefik Real Cert"
+ echo "    5. Run docker-compose.yml"
  echo ""
- echo "    5. Previous Menu"
+ echo "    6. Previous Menu"
  echo ""
- echo "    6. exit" 
+ echo "    7. exit" 
  echo ""
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
@@ -51,14 +53,20 @@
     Write-Output "Configure Traefik Real Cert"
     wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/RealTraefikCert.sh" | bash
 }
- if ($answer -eq 5){
+  if ($answer -eq 5){
+    Clear-Host
+    # Run docker-compose.yml
+    Write-Output "Run docker-compose.yml"
+    wget -O - "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/docker-compose.sh" | bash
+}
+ if ($answer -eq 6){
     Clear-Host
     # Previous Menu
     Write-Output "Previous Menu"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
- if ($answer -eq 6){areyousure} 
+ if ($answer -eq 7){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
