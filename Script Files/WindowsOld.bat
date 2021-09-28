@@ -39,7 +39,7 @@ Else{
     else{ 
     Stop-Process -processname "WindowsTerminal"
         }
-# Check if CMD is Running, Stop Windows Terminal if Running
+# Check if CMD is Running, Stop CMD if Running
     if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
         echo "" 
     }
