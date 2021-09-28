@@ -1,10 +1,10 @@
-#requires -version 5.0
+#requires -version 5.1
 #Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
 {  
 #Is Powershell 7 Installed
-  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "y7" } catch { $false } }
-  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "y7" } catch { $false } }
+  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
+  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
 if ($w64 -or $w32)
 {
   Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
@@ -58,6 +58,8 @@ Else{
 }
 
 Clear-Host
+#Requires -RunAsAdministrator
+
 # Ask for confirmation to Create a VPN Profile
     $CreateVPNProfile = Read-Host "Would you like to Create a VPN Profile? (Y/N)"
     if ($CreateVPNProfile -eq 'Y') { 
