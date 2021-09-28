@@ -1,0 +1,87 @@
+http:
+  routers:
+    routers-web-insecure:
+      entrypoints:
+        - http
+      rule: 'HostRegexp(`{host:.+}`)'
+      service: noop@internal
+      middlewares:
+        - middlewares-redirect-to-https
+http:
+  middlewares:
+    middlewares-basic-auth:
+      basicAuth:
+        realm: Traefik2 Basic Auth
+        usersFile: /shared/.htpasswd
+    middlewares-oauth:
+      forwardAuth:
+        address: 'http://oauth:4181'
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "X-Forwarded-User"
+    middlewares-authelia:
+      forwardAuth:
+        address: 'http://authelia:9091/api/verify?rd=https://auth.smanson.duckdns.org/'
+        trustForwardHeader: true
+        authResponseHeaders:
+          - Remote-User
+          - Remote-Groups
+    middlewares-redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    middlewares-rate-limit:
+      rateLimit:
+        average: 100
+        burst: 50
+    middlewares-secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - OPTION
+          - POST
+          - GET
+          - PUT
+          - DELETE
+        accessControlAllowHeaders:
+          - "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+        AccessControlAllowOriginList:
+          - https://*.smanson.duckdns.org
+        hostsProxyHeaders:
+          - X-Forwarded-Host
+        sslRedirect: true
+        stsSeconds: 63072000
+        stsIncludeSubdomains: true
+        stsPreload: true
+        forceSTSHeader: true
+        customFrameOptionsValue: 'SAMEORIGIN'
+        contentSecurityPolicy: >-
+#          default-src 'none';script-src 'strict-dynamic' 'nonce-rAnd0m123';
+#          form-action 'none';base-uri 'none;frame-ancestors 'none';object-src 'none';
+#          require-trusted-types-for 'script';report-uri https://smnsonduckdnsorg.report-uri.com/r/d/csp/wizard;
+        contentTypeNosniff: true
+        browserXssFilter: true
+        referrerPolicy: same-origin
+        featurePolicy: >-
+          camera 'none'; geolocation 'none'; microphone 'none'; payment 'none';
+          usb 'none'; vr 'none';
+        customResponseHeaders:
+          X-Robots-Tag: 'none'
+          server: ''
+          Expect-CT: max-age=30, report-uri="https://smansonduckdnsorg.report-uri.com/r/d/ct/enforce"
+        customRequestHeaders:
+          X-Scheme: https
+          X-Forwarded-Proto: https
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12 # Minimium tls 1.2
+      sniStrict : true # Only browsers with SNI support
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
