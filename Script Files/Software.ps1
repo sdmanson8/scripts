@@ -21,9 +21,12 @@
  echo "    8. Install All of the Above"
  echo " (Choose which to install Google Chrome / Firefox)"
  echo ""
- echo "    9. Previous Menu"
+ echo "    9. Office Uninstaller"
+ echo "    10. ProduKey (Windows License Finder)" 
  echo ""
- echo "    10. exit" 
+ echo "    11. Previous Menu"
+ echo ""
+ echo "    12. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -111,7 +114,26 @@
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
-  if ($answer -eq 9){
+   if ($answer -eq 9){
+    Clear-Host
+    # Office Uninstaller
+    Write-Output "Office Uninstaller"
+    Invoke-WebRequest "https://aka.ms/SaRA-officeUninstallFromPC" -OutFile "C:\SetupProd_OffScrub.exe"
+    Start-Process -Wait -FilePath "C:\SetupProd_OffScrub.exe"
+    Remove-Item "C:\SetupProd_OffScrub.exe"    
+ }
+   if ($answer -eq 10){
+    Clear-Host
+    # ProduKey (Windows License Finder)
+    Write-Output "Downloading ProduKey"
+    Invoke-WebRequest "https://www.nirsoft.net/utils/produkey-x64.zip" -OutFile "\"$env:temp\produkey-x64.zip\"
+    Expand-Archive -path "\"$env:temp\produkey-x64.zip\" -DestinationPath "C:\ProduKey x64"
+    Remove-Item "\"$env:temp\produkey-x64.zip\"
+    Write-Output "Opening ProduKey"
+    Start-Process -Wait -FilePath "C:\ProduKey x64\ProduKey.exe"
+    Remove-Item "C:\ProduKey x64\ProduKey.exe"
+}
+  if ($answer -eq 11){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
