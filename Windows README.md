@@ -2,7 +2,7 @@
 
 Requires Powershell 5.1 and later in an elavated Powershell Window
 
-Download the Script and Open the Script
+Download and Open the Script
 ```        
 Invoke-WebRequest https://bit.ly/39BlH3E -OutFile "C:\Script.ps1"
 ```
