@@ -36,8 +36,8 @@ clear
 #printf '\nCopying Container Files to ~/docker.. Please Wait\n\n'
 #sleep 1s
 #cd ~/Main/scripts-main/Script\ Files
-#cp -r Authelia/ prometheus/ qbittorrent/ telegraf/ traefik/ transmission/ ~/docker/
-#cd ~/ && rm -Rf Main/
+#cp -r Authelia/ prometheus/ qbittorrent/ telegraf/ traefik/ transmission/ ~/docker/ && cd ~/ && rm -Rf Main/
+
 
 cd ~/docker
 clear
