@@ -126,12 +126,12 @@
     Clear-Host
     # ProduKey (Windows License Finder)
     Write-Output "Downloading ProduKey"
-    Invoke-WebRequest "https://www.nirsoft.net/utils/produkey-x64.zip" -OutFile '"\"$env:temp\produkey-x64.zip\"'
-    Expand-Archive -path '"\"$env:temp\produkey-x64.zip\"' -DestinationPath "C:\ProduKey x64"
-    Remove-Item '"\"$env:temp\produkey-x64.zip\"'
+    Invoke-WebRequest "https://www.nirsoft.net/utils/produkey-x64.zip" -OutFile "$Env:Temp\produkey-x64.zip"
+    Expand-Archive -path "$Env:Temp\produkey-x64.zip" -DestinationPath "C:\ProduKey x64"
+    Remove-Item "$Env:Temp\produkey-x64.zip"
     Write-Output "Opening ProduKey"
     Start-Process -Wait -FilePath "C:\ProduKey x64\ProduKey.exe"
-    Remove-Item "C:\ProduKey x64\ProduKey.exe"
+    Remove-Item "C:\ProduKey x64\ProduKey.exe
 }
   if ($answer -eq 11){
     # Previous Menu
