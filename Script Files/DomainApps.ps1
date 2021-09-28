@@ -16,7 +16,7 @@
     Write-Host "Installing Office 365"
     Start-Process $env:USERPROFILE\Downloads\OfficeSetup.exe
     PAUSE
-    Remove-Item $env:USERPROFILE\Downloads\OfficeSetup.exe
+    Remove-Item $env:USERPROFILE\Downloads\OfficeSetup.exe -Force 
 
     # Install Avaya Workplace
     Write-Output "Installing Avaya Workplace"
