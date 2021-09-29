@@ -117,9 +117,10 @@ Clear-Host
     Write-Host Opening Webpage to Download Avaya Agent Desktop
     Start-Process http://avaya-accs/agentdesktop/CCADClickOnce.application
 
-    # Office 365 (Unlicensed)
-    Write-Host "Opening Webpage to Download Office 365 (Unlicensed)"
-    Start-Process "https://c2rsetup.officeapps.live.com/c2r/download.aspx?productReleaseID=O365ProPlusRetail&platform=X64&language=en-us&TaxRegion=db&correlationId=738b3e5c-6a37-4a2b-8f20-3cdd08477dd8&token=0d16b52a-7f7c-4147-8e28-50e755b1eb69&version=O16GA&source=O15OLSO365&Br=2"
+    # Office 365 Work or School (Sign in to download Licensed version)
+    Write-Host "Opening Webpage to Download Office 365"
+    Start-Process "https://aka.ms/office-install"
+    Write-Host "Sign in and Select Install Office"
     PAUSE
     Write-Host "Installing Office 365"
     Start-Process $env:USERPROFILE\Downloads\OfficeSetup.exe
