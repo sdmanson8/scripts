@@ -1,73 +1,10 @@
 #requires -version 5.1
-#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
-{  
-#Is Powershell 7 Installed
-  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-if ($w64 -or $w32)
-{
-  Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-# Check if Powershell 7 is Running, Stop Powershell 7 if Running
-    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "pwsh"
-        }
-}
-Else{
-  Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-  Break
-    }
-}
-
-Clear-Host
-#Requires -RunAsAdministrator
 
 <#
+
+Based on https://bit.ly/3zQ8I8R
+Script has been slightly modified
+
 Purpose:  Deletes Temporary Internet Files for the Current Logged On User.
 			  Deletes Temp Files from Windows Directory.
 			  Deletes Various Internet cache files in Windows 7, 8 and 10.
@@ -140,6 +77,70 @@ $OSVersion = (Get-WMIObject -ComputerName $ComputerName -Class Win32_OperatingSy
 # Get just the User Name for the Current Profile.
 $UserName = ([regex]::matches($Profile, '[^\\]+$') | %{$_.value})
 
+#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
+{  
+#Is Powershell 7 Installed
+  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
+  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
+if ($w64 -or $w32)
+{
+  Start-Process pwsh.exe -Verb RunAs -ArgumentList ($myinvocation.MyCommand.Definition)
+# Check if Windows Terminal is Running, Stop Windows Terminal if Running
+    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "WindowsTerminal"
+        }
+# Check if CMD is Running, Stop CMD if Running
+    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "cmd"
+        }
+# Check if Powershell is Running, Stop Powershell if Running
+    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "powershell"
+        }
+# Check if Powershell 7 is Running, Stop Powershell 7 if Running
+    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "pwsh"
+        }
+}
+Else{
+  Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
+# Check if Windows Terminal is Running, Stop Windows Terminal if Running
+    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "WindowsTerminal"
+        }
+# Check if CMD is Running, Stop CMD if Running
+    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "cmd"
+        }
+# Check if Powershell is Running, Stop Powershell if Running
+    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "powershell"
+        }
+  Break
+    }
+}
 
 #Create Restore Point
 Checkpoint-Computer -Description "Delete Temporary Files for $env:UserName" -RestorePointType MODIFY_SETTINGS
@@ -328,10 +329,12 @@ $HPSetup ="C:\swsetup" -f $ComputerName, $UserName
 
         Start-Sleep -Seconds 2
         Write-Host -ForegroundColor Green "After: $After"
-	
-# Log off User
+
+# Ask to Restart PC
+    $RestartPC = Read-Host "Would you like to Restart PC (RECOMMENDED)? (Y/N)"
+# Restart PC
+    if ($RestartPC -eq 'Y') { 	
+    Write-Host "Restarting PC"
 	Start-Sleep -Seconds 1
-    quser | Select-Object -Skip 1 | ForEach-Object {
-    $id = ($_ -split ' +')[-5]
-    logoff $id
+    Restart-Computer -Force
 }
