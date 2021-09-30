@@ -28,7 +28,6 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
         }
 
 Clear-Host
-#Requires -RunAsAdministrator
 
 # Download latest Sophia Script release from github
 
@@ -79,13 +78,12 @@ Write-Host Notepad++ Installed
 PAUSE
 #Open Sophia Script File
 Write-Host Opening Sophia Script File
-& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
+& "C:\Program Files\Notepad++\notepad++.exe" "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia Script\Sophia Script for Windows 11\Sophia.ps1"
 
 PAUSE
 Write-Host Running Sophia Script
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-Powershell.exe "& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1'"
-#pwsh.exe "C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia\Windows 11\Sophia.ps1"
+Powershell.exe "& 'C:\Sophia Script Master\Sophia-Script-for-Windows-master\Sophia Script\Sophia Script for Windows 11\Sophia.ps1'"
 
 PAUSE
 #Open Wrapper from Windows Explorer
