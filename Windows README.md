@@ -7,12 +7,10 @@ Download and Open the Script
 Invoke-WebRequest https://bit.ly/39BlH3E -OutFile "C:\Script.ps1"
 ```
 ```
+Set-ExecutionPolicy Unrestricted `
 & "C:\Script.ps1"
  ```
-Run the below command if you get an error
-```
-Set-ExecutionPolicy Unrestricted
-```
+
 Depending on the options selected you might require editing the script which will automatically download and open on your system
 
 Preview of Script Menu
