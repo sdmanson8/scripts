@@ -3,15 +3,6 @@
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
 {  
   Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-  Break
-    }
 # Check if Windows Terminal is Running, Stop Windows Terminal if Running
     if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
         echo "" 
@@ -26,7 +17,15 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     else{ 
     Stop-Process -processname "cmd"
         }
-
+# Check if Powershell is Running, Stop Powershell if Running
+    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
+        echo "" 
+    }
+    else{ 
+    Stop-Process -processname "powershell"
+        }
+  Break
+    }
 Clear-Host
 
 # Download latest Sophia Script release from github
