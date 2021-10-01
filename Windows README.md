@@ -7,7 +7,7 @@ Download and Open the Script
 Invoke-WebRequest https://bit.ly/39BlH3E -OutFile "C:\Script.ps1"
 ```
 ```
-Set-ExecutionPolicy Unrestricted `
+Set-ExecutionPolicy Unrestricted \
 & "C:\Script.ps1"
  ```
 
