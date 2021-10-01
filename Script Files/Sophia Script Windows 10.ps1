@@ -312,6 +312,7 @@ function CreateRestorePoint
 	{
 		Disable-ComputerRestore -Drive $env:SystemDrive
 	}
+}
 CreateRestorePoint
 
 #Continue on error
