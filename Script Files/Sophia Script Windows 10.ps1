@@ -283,7 +283,9 @@ if ($Functions)
 	}
 
 # Create a restore point for the system drive
-	$SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID
+function CreateRestorePoint
+{
+        $SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID
 	$SystemProtection = ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SPP\Clients")."{09F7EDC5-294E-4180-AF6A-FB0E6A0E9513}") | Where-Object -FilterScript {$_ -match [regex]::Escape($SystemDriveUniqueID)}
 
 	$ComputerRestorePoint = $false
@@ -310,6 +312,7 @@ if ($Functions)
 	{
 		Disable-ComputerRestore -Drive $env:SystemDrive
 	}
+CreateRestorePoint
 
 #Continue on error
 $ErrorActionPreference = 'silentlycontinue'
