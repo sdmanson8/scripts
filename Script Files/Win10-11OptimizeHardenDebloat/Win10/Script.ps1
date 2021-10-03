@@ -152,6 +152,8 @@ Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 pwsh.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Sophia.ps1"
 Write-Warning "Please Restart your Computer !!"
 
+Set-Location "$env:USERPROFILE"
+Start-Sleep -Seconds 1
 Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
 #Reboot Computer
