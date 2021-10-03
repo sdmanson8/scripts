@@ -85,7 +85,7 @@ Clear-Host
  echo "    4. Download PatchMyPC"
  echo "    5. Uninstall Microsoft Edge"
  echo "    6. Optimizor, Hardening and Bloatware Removal Script for Windows 10"
- echo "    7. (Moderate-Advanced) Sophia Script to Tweak Windows 11"
+ echo "    7. Optimizor, Hardening and Bloatware Removal Script for Windows 11"
  echo "    8. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
  echo "    9. Cleanup Windows.Old folder"
  echo "    10. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
@@ -140,9 +140,9 @@ Clear-Host
  } 
  if ($answer -eq 7){
     Clear-Host
-    # prompt to run Sophia Script for Windows 11
-    Write-Output "Running Sophia Script for Windows 11"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Sophia%20Script%20Windows%2011.ps1
+    # Optimizor, Hardening and Bloatware Removal Script for Windows 11
+    Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 11"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 8){
