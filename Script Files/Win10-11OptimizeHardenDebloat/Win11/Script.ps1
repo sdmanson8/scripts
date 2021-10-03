@@ -1,4 +1,4 @@
-$Host.UI.RawUI.WindowTitle = "Main Script for Windows 10 Optimizer"
+$Host.UI.RawUI.WindowTitle = "Main Script for Windows 11 Optimizer"
 
 Write-Host "`nLet's Start with the Basics...`n"
 Start-Sleep -Seconds 1
@@ -132,7 +132,6 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer
 
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
-$scriptname = "sos-optimize-windows.ps1"
 $ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
 $Destination= "$env:USERPROFILE\Downloads\"
 Write-Host "Downloading $Url"
