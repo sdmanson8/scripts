@@ -1,5 +1,5 @@
 $Host.UI.RawUI.WindowTitle = "Main Script for Windows 10 Optimizer"
-<#
+
 Write-Host "`nLet's Start with the Basics...`n"
 Start-Sleep -Seconds 1
 
@@ -129,7 +129,7 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer
     Write-Host "Setting Cleanup for your Downloads Folder every 30 days"
     New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 512 -PropertyType DWord -Value 30 -Force
       }
-#>
+
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
 $ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
