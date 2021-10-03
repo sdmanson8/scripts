@@ -84,17 +84,15 @@ Clear-Host
  echo "    3. Update Powershell"  
  echo "    4. Download PatchMyPC"
  echo "    5. Uninstall Microsoft Edge"
- echo "    6. (Moderate-Advanced) Sophia Script to Tweak Windows 10"
+ echo "    6. Optimizor, Hardening and Bloatware Removal Script for Windows 10"
  echo "    7. (Moderate-Advanced) Sophia Script to Tweak Windows 11"
- echo "    8. (Moderate) Windows Optimization Script for Windows"
- echo "    9. (Moderate) Remove-Windows10-Bloat by matthewjberger"
- echo "    10. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
- echo "    11. Cleanup Windows.Old folder"
- echo "    12. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
+ echo "    8. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+ echo "    9. Cleanup Windows.Old folder"
+ echo "    10. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
  echo ""
- echo "    13. Previous Menu"
+ echo "    11. Previous Menu"
  echo ""
- echo "    14. exit" 
+ echo "    12. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -135,9 +133,9 @@ Clear-Host
  }  
  if ($answer -eq 6){
     Clear-Host
-    # prompt to run Sophia Script for Windows 10
-    Write-Output "Running Sophia Script for Windows 10"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Sophia%20Script%20Windows%2010.ps1
+    # Optimizor, Hardening and Bloatware Removal Script for Windows 10
+    Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 10"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/Script.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
  if ($answer -eq 7){
@@ -149,60 +147,31 @@ Clear-Host
  }
  if ($answer -eq 8){
     Clear-Host
-    # prompt to run Windows Optimization for Windows
-    Write-Output "Running Windows Optimization for Windows"
-    Write-Host Downloading Optimizer Script File
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Optimizer.bat -OutFile C:\Optimizer.bat
-    Write-Host Setting Execution Policy to Unrestricted
-    Set-ExecutionPolicy Unrestricted
-    # Optimizer Script File
-    PAUSE
-    Write-Host Edit Optimizer Script File
-    & "C:\Program Files\Notepad++\notepad++.exe" "C:\Optimizer.bat"
-    PAUSE
-    Write-Host Running Optimizer Script
-    Start-Process C:\Optimizer.bat
-    PAUSE
-    Write-Host Removing Leftover Files
-    Remove-Item "C:\Optimizer.bat"
-    Write-Host Restarting PC 
-    #Force restart in 5 seconds
-    shutdown /r /f /t 5 
- }  
- if ($answer -eq 9){
-    Clear-Host
-    # prompt to run Remove-Windows10-Bloat by matthewjberger
-    Write-Output "Running Remove-Windows10-Bloat by matthewjberger"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Remove-Windows10-Bloat.bat
-    Invoke-Expression $($ScriptFromGithHub.Content)
- }  
- if ($answer -eq 10){
-    Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
- if ($answer -eq 11){
+ if ($answer -eq 9){
     Clear-Host
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat
     Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
- if ($answer -eq 12){
+ if ($answer -eq 10){
     Clear-Host
     # prompt to reboot machine
     Write-Output "Restarting PC"
     shutdown -r -t 00
 } 
- if ($answer -eq 13){
+ if ($answer -eq 11){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 14){areyousure}  
-       sleep 5  
+ if ($answer -eq 12){areyousure}  
+       sleep 5 
        mainmenu  
                    }  
  mainmenu 
