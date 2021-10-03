@@ -571,7 +571,7 @@ AeroShaking -Enable
 
 # Delete temporary files that apps aren't using
 # Удалять временные файлы, не используемые в приложениях
-# StorageSenseTempFiles -Enable
+StorageSenseTempFiles -Enable
 
 # Do not delete temporary files that apps aren't using
 # Не удалять временные файлы, не используемые в приложениях

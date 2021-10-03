@@ -132,7 +132,6 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer
 
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
-$scriptname = "sos-optimize-windows.ps1"
 $ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
 $Destination= "$env:USERPROFILE\Downloads\"
 Write-Host "Downloading $Url"
@@ -146,10 +145,10 @@ Set-Location "$Destination\scripts-main\Script Files"
 Move-Item "Win10-11OptimizeHardenDebloat" "$Destination\Win10-11OptimizeHardenDebloat"
 Set-Location $Destination
 Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Set-Location "$Destination\Win10-11OptimizeHardenDebloat"
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 
-Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Manifest.ps1"
-Write-Warning "Please Restart your Computer !!"
+#Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Manifest.ps1"
+#Write-Warning "Please Restart your Computer !!"
 pwsh.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Sophia.ps1"
 Write-Warning "Please Restart your Computer !!"
 
