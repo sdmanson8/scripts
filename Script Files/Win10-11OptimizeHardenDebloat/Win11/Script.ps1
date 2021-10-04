@@ -218,7 +218,7 @@ Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 
 Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Manifest.ps1"
 Write-Warning "Please Restart your Computer !!"
-pwsh.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Sophia.ps1"
+Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Sophia.ps1"
 Write-Warning "Please Restart your Computer !!"
 
 Set-Location "$env:USERPROFILE"
