@@ -68,7 +68,7 @@ if ($ActivateWindows -eq 'y') {
 $ProductKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
   if ($null -ne $ProductKey)
     {
-        #start-process c:\Windows\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
+        start-process c:\Windows\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
         Start-Sleep -Seconds 1
         $status = (Get-ActivationStatus)
         If ($status.Status -eq "licensed") {
@@ -86,9 +86,9 @@ $confirmation = Read-Host
 if ($confirmation -eq 'y') {
     Write-Host @writecolor "Please Enter your Genuine 25 Digit Product key"
     $key = Read-Host 
-    #changepk.exe /ProductKey $key
-    #Start-Sleep -Seconds 2
-    #slmgr.vbs /ato
+    changepk.exe /ProductKey $key
+    Start-Sleep -Seconds 2
+    slmgr.vbs /ato
     $status = (Get-ActivationStatus)
     If ($status.Status -eq "licensed") {
     Write-Host "Windows is activated" -ForegroundColor Yellow
@@ -118,6 +118,7 @@ Start-Sleep -Seconds 1
 		}
 	}
 	# Never skip creating a restore point
+	New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\" -Name "SystemRestore" -Force
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force
 
 	Checkpoint-Computer -Description "Windows 11 Optimizer" -RestorePointType MODIFY_SETTINGS
