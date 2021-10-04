@@ -36,12 +36,18 @@ Start-Process -FilePath $installerPath -Args "/S" -Verb RunAs -Wait
 Remove-Item $installerPath
    Write-Host Notepad++ Updated
  
+#####################
+$url = 'https://github.com/PowerShell/PowerShell/releases/latest'
+$request = [System.Net.WebRequest]::Create($url)
+$response = $request.GetResponse()
+$realTagUrl = $response.ResponseUri.OriginalString
+$version = $realTagUrl.split('/')[-1].Trim('v')
 
+####################
 #Updating Powershell
-    Write-Output "Powershell is updating"
-    Write-Host "Preparing to Update Powershell 7.x ... Please wait..."
-    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
-    Write-Host "Powershell updated to 7.x"
+    Write-Host "Preparing to Silently Update Powershell to Version $version ... Please wait..."
+    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
+    Write-Host "Powershell updated to $version"
 
 ################ -------------------------------------------- ######################
 ####################################################################################
@@ -161,7 +167,7 @@ $services = @(
     'ScDeviceEnum',
     'SCPolicySvc',
     'SNMPTRAP',
-    'TabletInputService',
+    #'TabletInputService',
     'WFDSConSvc',
     'FrameServer',
     'wisvc',
@@ -661,9 +667,6 @@ Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies
 Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\AppCompat" -Name "AITEnable" -Type "DWORD" -Value 0 -Force
 Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Privacy" -Name "TailoredExperiencesWithDiagnosticDataEnabled" -Type "DWORD" -Value 0 -Force
 
-#Disable synchronization of all settings to Microsoft
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\SettingSync" -Name "SyncPolicy" -Type "DWORD" -Value "5" -Force
-
 #Disable Input Personalization
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Personalization\Settings" -Name "AcceptedPrivacyPolicyy" -Type "DWORD" -Value 0 -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\InputPersonalization" -Name "RestrictImplicitInkCollection" -Type "DWORD" -Value 1 -Force
@@ -762,7 +765,7 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "AccentColor
 #Remove acrylic blur on sign-in screen
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type "DWORD" -Value 1 -Force
 
-#Disable Some Service 
+#Disable Some Services 
 sc stop DiagTrack
 sc stop diagnosticshub.standardcollector.service
 sc stop dmwappushservice
@@ -994,14 +997,11 @@ foreach ($task in $tasks) {
 #Disable MRU lists (jump lists) of XAML apps in Start Menu 
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Start_TrackDocs" -Type "DWORD" -Value 0 -Force
 
-#NOW JUST SOME TWEAKS
-#Show hidden files in Explorer 
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type "DWORD" -Value 1 -Force
-
 #Show Super Hidden System Files in Explorer
     # Ask for confirmation to Show Super Hidden System Files in Explorer
     $SuperHidden = Read-Host "Would you like to Enable Hidden Files in Explorer? (Y/N)"
     if ($SuperHidden -eq 'Y') { 
+Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type "DWORD" -Value 1 -Force
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type "DWORD" -Value 1 -Force
 }
 
@@ -1125,10 +1125,7 @@ Write-Warning "A reboot is needed"
 Start-Sleep -Seconds 1
 
 Clear-Host
-
-#Apply Classic Shell settings
-Set-Location -Path "$env:Programfiles\Classic Shell"
-ClassicStartMenu.exe -xml $env:WINDIR\Custom\startmenu.xml
+Write-Warning "A reboot is needed"
 
 #Install OneDrive
     # Ask for confirmation to Install Onedrive
@@ -1203,7 +1200,7 @@ $path = Test-Path HKCR:\
 IF ($path -eq $true) {Remove-PSDrive HKCR} ELSE {Write-Host }
 
 #Delete startup shortcut
-Remove-Item "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\startup.bat" -Force -Confirm:$false
+Remove-Item "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\startup.bat" -Force -Confirm:$false -ErrorAction SilentlyContinue
 
 Clear-Host
 #Removing Leftover Files
