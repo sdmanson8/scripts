@@ -190,7 +190,7 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimi
 New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\' -Name 'DeliveryOptimization'
 New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\' -Name 'Config'
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config' -Name 'DODownloadMode' -Type DWord -Value '0' -Force
-
+<#
 # Disables all of the known enabled-by-default optional features. There are some particulary bad defaults like SMB1. Sigh.
 Write-Host 'Disabling optional features...'
 $features = @(
@@ -210,7 +210,7 @@ $features = @(
 foreach ($feature in $features) {
     Disable-WindowsOptionalFeature -Online -FeatureName $feature -NoRestart -ErrorAction SilentlyContinue
 }
-
+#>
 #Create Shortcut on Desktop | Reboot to Advanced Menu
 Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/troubleshoot.ico" -OutFile "$env:USERPROFILE\Downloads\troubleshoot.ico"
 $item = "$env:USERPROFILE\Downloads\troubleshoot.ico"
