@@ -195,8 +195,8 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Delivery
 Write-Host 'Disabling optional features...'
 $features = @(
     'MediaPlayback',
-    'SMB1Protocol',
-    'Xps-Foundation-Xps-Viewer',
+    #'SMB1Protocol',
+    #'Xps-Foundation-Xps-Viewer',
     'WorkFolders-Client',
     'WCF-Services45',
     'NetFx4-AdvSrvs',
