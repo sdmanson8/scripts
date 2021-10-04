@@ -63,7 +63,7 @@ regedit.exe /S $env:USERPROFILE\Downloads\enable-photo-viewer.reg
 #Disable Edge Prelaunch
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/disable-edge-prelaunch.reg -OutFile $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg
 regedit.exe /S $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg
-
+<#
 # Prevents Apps from re-installing
 $cdm = @(
     "ContentDeliveryAllowed"
@@ -85,7 +85,7 @@ New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\" -Name "Content
 foreach ($key in $cdm) {
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" $key 0
 }
-
+#>
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\" -Name "WindowsStore" -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore" "AutoDownload" 2
 
