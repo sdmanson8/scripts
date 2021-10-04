@@ -11,6 +11,7 @@ IF ($path -eq $False) {New-PSDrive -PSProvider Registry -Name HKCR -Root HKEY_CL
 #Kill Foreground
 taskkill /F /IM "msedge.exe"
 taskkill /F /IM "explorer.exe"
+<#
 taskkill /F /IM "ShellExperienceHost.exe"
 	if (Test-Path -Path "$env:WINDIR\SystemApps\ShellExperienceHost_cw5n1h2txyewy")
 	{
@@ -51,7 +52,7 @@ $version = $realTagUrl.split('/')[-1].Trim('v')
 
 ################ -------------------------------------------- ######################
 ####################################################################################
-
+#>
 #Lower Ram
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $env:USERPROFILE\Downloads\ram-reducer.reg
 regedit.exe /S $env:USERPROFILE\Downloads\ram-reducer.reg
