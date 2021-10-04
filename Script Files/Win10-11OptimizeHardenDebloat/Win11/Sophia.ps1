@@ -1,4 +1,4 @@
-﻿<#
+<#
 	.SYNOPSIS
 	Default preset file for "Sophia Script for Windows 11"
 
@@ -958,7 +958,7 @@ RunPowerShellShortcut -Elevated
 	Пакеты приложений не будут установлены для новых пользователей, если отмечена галочка "Для всех пользователей"
 	Аргумент "ForAllUsers" устанавливает галочку для удаления пакетов для всех пользователей
 #>
-# UninstallUWPApps -ForAllUsers
+UninstallUWPApps -ForAllUsers
 
 <#
 	Restore the default UWP apps using the pop-up dialog box
@@ -967,7 +967,7 @@ RunPowerShellShortcut -Elevated
 	Восстановить стандартные UWP-приложения, используя всплывающее диалоговое окно
 	UWP-приложения могут быть восстановлены, только если они были удалены для текущего пользователя
 #>
-RestoreUWPApps
+# RestoreUWPApps
 
 # Download and install "HEVC Video Extensions from Device Manufacturer" to be able to open .heic and .heif formats
 # Скачать и установить "Расширения для видео HEVC от производителя устройства", чтобы иметь возможность открывать форматы .heic и .heif
