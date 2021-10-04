@@ -40,7 +40,7 @@ Remove-Item $installerPath
 #Updating Powershell
     Write-Output "Powershell is updating"
     Write-Host "Preparing to Update Powershell 7.x ... Please wait..."
-    iex "& { $(irm https://aka.ms/install-powershell.ps1)} -UseMSI -Quiet"
+    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
     Write-Host "Powershell updated to 7.x"
 
 ################ -------------------------------------------- ######################
