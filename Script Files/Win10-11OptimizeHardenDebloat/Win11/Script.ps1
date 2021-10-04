@@ -4,12 +4,20 @@ Write-Host "`nLet's Start with the Basics...`n"
 Start-Sleep -Seconds 1
 
 #Set TimeZone
+cmd.exe --% /c sc triggerinfo w32time start/networkon stop/networkoff
 Write-Host "`nSet your TimeZone..`n"
 
 $key = Read-Host "Enter the City for your Time Zone WITHOUT "" "" ..."
 Get-TimeZone -ListAvailable | Where-Object {$_.displayname -match "$key"}
 $key2 = Read-Host "Enter the 'Id' for your Time Zone WITHOUT "" "" ..."
 Set-TimeZone -Id "$key2"
+
+Write-Host "`nForce Re-Sync Windows Time Server`n"
+net stop w32time
+w32tm /unregister
+w32tm /register
+net start w32time
+w32tm /resync /force
 
 Write-Host "Checking if Windows is Activated"
 function Get-ActivationStatus {
