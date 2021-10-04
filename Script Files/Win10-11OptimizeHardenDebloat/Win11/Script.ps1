@@ -69,7 +69,7 @@ $ProductKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginal
   if ($null -ne $ProductKey)
     {
         start-process c:\Windows\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
-        Start-Sleep -Seconds 1
+        Start-Sleep -Seconds 3
         $status = (Get-ActivationStatus)
         If ($status.Status -eq "licensed") {
         Write-Host "Windows is activated" -ForegroundColor Yellow
@@ -89,6 +89,7 @@ if ($confirmation -eq 'y') {
     changepk.exe /ProductKey $key
     Start-Sleep -Seconds 2
     slmgr.vbs /ato
+    Start-Sleep -Seconds 3
     $status = (Get-ActivationStatus)
     If ($status.Status -eq "licensed") {
     Write-Host "Windows is activated" -ForegroundColor Yellow
