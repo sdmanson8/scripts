@@ -94,9 +94,6 @@ Start-Job -Name "Mitigations" -ScriptBlock {
         Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Office\$officeversion\Outlook\Security\" -Name "ShowOLEPackageObj" -Type "DWORD" -Value "0" -Force
         Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\$officeversion\Outlook\Security\" -Name "ShowOLEPackageObj" -Type "DWORD" -Value "0" -Force
     }
-
-    #Disable Hibernate
-    powercfg -h off
 }
 
 Start-Job -Name "PowerShell Hardening" -ScriptBlock {
@@ -108,45 +105,26 @@ Start-Job -Name "PowerShell Hardening" -ScriptBlock {
     #https://www.digitalshadows.com/blog-and-research/powershell-security-best-practices/
     #https://www.cyber.gov.au/acsc/view-all-content/publications/securing-powershell-enterprise
     New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\" -Name "Transcription" -Force
-    New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription" -Name "OutputDirectory" -Type "STRING" -Value "C:\PowershellLogs" -Force
+    New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription" -Name "OutputDirectory" -Type "STRING" -Value "$env:SystemDrive\PowershellLogs" -Force
     New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" -Name "EnableScriptBlockLogging" -Type "DWORD" -Value "1" -Force
     New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription\" -Name "EnableTranscripting" -Type "DWORD" -Value "1" -Force
     New-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription\" -Name "EnableInvocationHeader" -Type "DWORD" -Value "1" -Force
-    Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription" -Name "OutputDirectory" -Type "STRING" -Value "C:\PowershellLogs" -Force
+    Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription" -Name "OutputDirectory" -Type "STRING" -Value "$env:SystemDrive\PowershellLogs" -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging\" -Name "EnableScriptBlockLogging" -Type "DWORD" -Value "1" -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription\" -Name "EnableTranscripting" -Type "DWORD" -Value "1" -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\PowerShell\Transcription\" -Name "EnableInvocationHeader" -Type "DWORD" -Value "1" -Force
-
-    #Prevent WinRM from using Basic Authentication
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WinRM\Client" -Name "AllowBasic" -Type "DWORD" -Value 0 -Force
-
-    #WinRM Hardening
-    #https://4sysops.com/archives/powershell-remoting-over-https-with-a-self-signed-ssl-certificate/
-    #$Cert = New-SelfSignedCertificate -CertstoreLocation Cert:\LocalMachine\My -DnsName (cmd /c hostname) 
-    #Export-Certificate -Cert $Cert -FilePath C:\temp\cert
-    #Remove Previous WinRM Listeners
-    #Get-ChildItem WSMan:\Localhost\listener | Where-Object -Property Keys -eq "Transport=HTTP" | Remove-Item -Recurse
-    #Remove-Item -Path WSMan:\Localhost\listener\listener* -Recurse
-    #Add New HTTPS (ONLY) Listener
-    #New-Item -Path WSMan:\LocalHost\Listener -Transport HTTPS -Address * -CertificateThumbPrint $Cert.Thumbprint –Force
-    #Start the service at boot
-    #Set-Service -Name "WinRM" -StartupType Automatic -Status Running
-    #Enable Firewall rule
-    #New-NetFirewallRule -DisplayName "Windows Remote Management (HTTPS-In)" -Name "Windows Remote Management (HTTPS-In)" -Profile Private, Domain -LocalPort 5986 -Protocol TCP
-    #Enable PSRemoting
-    #Enable-PSRemoting -SkipNetworkProfileCheck -Force
 }
 
 #Windows Defender Configuration Files
-New-Item -Path "C:\" -Name "Temp" -ItemType "directory" -Force | Out-Null; New-Item -Path "C:\temp\" -Name "Windows Defender" -ItemType "directory" -Force | Out-Null; Copy-Item -Path .\Files\"Windows Defender Configuration Files"\* -Destination "C:\temp\Windows Defender\" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+New-Item -Path "$env:SystemDrive\" -Name "Temp" -ItemType "directory" -Force | Out-Null; New-Item -Path "$env:SystemDrive\temp\" -Name "Windows Defender" -ItemType "directory" -Force | Out-Null; Copy-Item -Path .\Files\"Windows Defender Configuration Files"\* -Destination "$env:SystemDrive\temp\Windows Defender\" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
 
 Start-Job -Name "Windows Defender Hardening" -ScriptBlock {
     #Enable Windows Defender Exploit Protection
-    Set-ProcessMitigation -PolicyFilePath "C:\temp\Windows Defender\DOD_EP_V3.xml"
+    Set-ProcessMitigation -PolicyFilePath "$env:SystemDrive\temp\Windows Defender\DOD_EP_V3.xml"
 
     #Enable Windows Defender Application Control
     #https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-control/select-types-of-rules-to-create
-    Set-RuleOption -FilePath "C:\temp\Windows Defender\WDAC_V1_Recommended_Audit.xml" -Option 0
+    Set-RuleOption -FilePath "$env:SystemDrive\temp\Windows Defender\WDAC_V1_Recommended_Audit.xml" -Option 0
 
     #Windows Defender Hardening
     #https://www.powershellgallery.com/packages/WindowsDefender_InternalEvaluationSetting
@@ -194,7 +172,7 @@ Start-Job -Name "Windows Defender Hardening" -ScriptBlock {
     Set-MpPreference -DisableIntrusionPreventionSystem $false
     #Enable Windows Defender Exploit Protection
     Write-Host "Enabling Exploit Protection"
-    Set-ProcessMitigation -PolicyFilePath C:\temp\"Windows Defender"\DOD_EP_V3.xml
+    Set-ProcessMitigation -PolicyFilePath $env:SystemDrive\temp\"Windows Defender"\DOD_EP_V3.xml
     #Set cloud block level to 'High'
     Write-Host "Set cloud block level to 'High'"
     Set-MpPreference -CloudBlockLevel High
@@ -257,9 +235,7 @@ New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 Start-Job -Name "Start-Debloat" -ScriptBlock {
     
     #Removes AppxPackages
-    [regex]$WhitelistedApps = 'Microsoft.ScreenSketch|Microsoft.Paint3D|Microsoft.WindowsCalculator|Microsoft.WindowsStore|Microsoft.Windows.Photos|CanonicalGroupLimited.UbuntuonWindows|`
-    Microsoft.MicrosoftStickyNotes|Microsoft.MSPaint|Microsoft.WindowsCamera|.NET|Framework|Microsoft.HEIFImageExtension|Microsoft.ScreenSketch|Microsoft.StorePurchaseApp|`
-    Microsoft.VP9VideoExtensions|Microsoft.WebMediaExtensions|Microsoft.WebpImageExtension|Microsoft.DesktopAppInstaller'
+    [regex]$WhitelistedApps = 'Microsoft.WindowsStore'
     Get-AppxPackage -AllUsers | Where-Object { $_.Name -NotMatch $WhitelistedApps } | Remove-AppxPackage -ErrorAction SilentlyContinue
     #Run this again to avoid error on 1803 or having to reboot.
     Get-AppxPackage -AllUsers | Where-Object { $_.Name -NotMatch $WhitelistedApps } | Remove-AppxPackage -ErrorAction SilentlyContinue
@@ -359,15 +335,7 @@ Start-Job -Name "Protect-Privacy" -ScriptBlock {
     If (Test-Path $Holo) {
         Set-ItemProperty $Holo -Name FirstRunSucceeded -Value 0 -Verbose
     }
-    
-    #Disables live tiles
-    Write-Output "Disabling live tiles"
-    $Live = 'HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications'    
-    If (!(Test-Path $Live)) {
-        mkdir $Live -ErrorAction SilentlyContinue     
-        New-ItemProperty $Live -Name NoTileApplicationNotification -Value 1 -Verbose
-    }
-    
+   
     #Turns off Data Collection via the AllowTelemtry key by changing it to 0
     Write-Output "Turning off Data Collection"
     $DataCollection = 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\DataCollection'    
@@ -391,7 +359,7 @@ Start-Job -Name "Protect-Privacy" -ScriptBlock {
     }
 
     #Loads the registry keys/values below into the NTUSER.DAT file which prevents the apps from redownloading. Credit to a60wattfish
-    reg load HKU\Default_User C:\Users\Default\NTUSER.DAT
+    reg load HKU\Default_User $env:SystemDrive\Users\Default\NTUSER.DAT
     Set-ItemProperty -Path Registry::HKU\Default_User\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SystemPaneSuggestionsEnabled -Value 0
     Set-ItemProperty -Path Registry::HKU\Default_User\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name PreInstalledAppsEnabled -Value 0
     Set-ItemProperty -Path Registry::HKU\Default_User\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name OemPreInstalledAppsEnabled -Value 0
@@ -411,16 +379,10 @@ Start-Job -Name "Protect-Privacy" -ScriptBlock {
 #This includes fixes by xsisbest
 Start-Job -Name "FixWhitelistedApps" -ScriptBlock {
     
-    If (!(Get-AppxPackage -AllUsers | Select-Object Microsoft.Paint3D, Microsoft.MSPaint, Microsoft.WindowsCalculator, Microsoft.WindowsStore, Microsoft.MicrosoftStickyNotes, Microsoft.WindowsSoundRecorder, Microsoft.Windows.Photos)) {
+    If (!(Get-AppxPackage -AllUsers | Select-Object Microsoft.WindowsStore)) {
     
         #Credit to abulgatz for the 4 lines of code
-        Get-AppxPackage -allusers Microsoft.Paint3D | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-        Get-AppxPackage -allusers Microsoft.MSPaint | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-        Get-AppxPackage -allusers Microsoft.WindowsCalculator | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
         Get-AppxPackage -allusers Microsoft.WindowsStore | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-        Get-AppxPackage -allusers Microsoft.MicrosoftStickyNotes | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-        Get-AppxPackage -allusers Microsoft.WindowsSoundRecorder | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" }
-        Get-AppxPackage -allusers Microsoft.Windows.Photos | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" } 
     }
 }
 
@@ -601,7 +563,7 @@ Start-Job -Name "Remove Windows Bloatware" -ScriptBlock {
     Import-Module -DisableNameChecking $PSScriptRoot\..\lib\Mkdir -Force .psm1
     Import-Module -DisableNameChecking $PSScriptRoot\..\lib\take-own.psm1
 
-
+    <#
     Write-Output "Removing OneDrive leftovers"
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$env:localappdata\Microsoft\OneDrive"
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue "$env:programdata\Microsoft OneDrive"
@@ -617,7 +579,7 @@ Start-Job -Name "Remove Windows Bloatware" -ScriptBlock {
 
     #Thank you Matthew Israelsson
     Write-Output "Removing run hook for new users"
-    reg load "hku\Default" "C:\Users\Default\NTUSER.DAT"
+    reg load "hku\Default" "$env:SystemDrive\Users\Default\NTUSER.DAT"
     reg delete "HKEY_USERS\Default\Software\Microsoft\Windows\CurrentVersion\Run" /v "OneDriveSetup" /f
     reg unload "hku\Default"
 
@@ -638,6 +600,8 @@ Start-Job -Name "Remove Windows Bloatware" -ScriptBlock {
         Takeown-Folder $item.FullName
         Remove-Item -Recurse -Force $item.FullName
     }
+
+#>
 }
 
 Start-Job -Name "Disable Telemetry and Services" -ScriptBlock {
@@ -650,19 +614,13 @@ Start-Job -Name "Disable Telemetry and Services" -ScriptBlock {
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Windows Search" -Name AllowCortana -Type "DWORD" -Value 0 -Force
     New-Item -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\" -Name "Search" -Force
     Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Search" -Name BingSearchEnabled -Type "DWORD" -Value 0 -Force
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" -Name "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" -Type "String" -Value  "BlockCortana|Action=Block|Active=TRUE|Dir=Out|App=C:\windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\searchui.exe|Name=Search and Cortana application|AppPkgId=S-1-15-2-1861897761-1695161497-2927542615-642690995-327840285-2659745135-2630312742|" -Force
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" -Name "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" -Type "String" -Value  "BlockCortana|Action=Block|Active=TRUE|Dir=Out|App=$env:SystemDrive\windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\searchui.exe|Name=Search and Cortana application|AppPkgId=S-1-15-2-1861897761-1695161497-2927542615-642690995-327840285-2659745135-2630312742|" -Force
     New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\" -Name "AU" -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name NoAutoUpdate -Type "DWORD" -Value 0 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name AUOptions -Type "DWORD" -Value 2 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name ScheduledInstallDay -Type "DWORD" -Value 0 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name ScheduledInstallTime -Type "DWORD" -Value 3 -Force
     New-Item -Path "HKLM:\Software\Microsoft\PolicyManager\current\device\" -Name "Update" -Force
-    Set-ItemProperty -Path "HKLM:\Software\Microsoft\PolicyManager\current\device\Update" -Name ExcludeWUDriversInQualityUpdate -Type "DWORD" -Value 1 -Force
-    Set-ItemProperty -Path "HKLM:\Software\Microsoft\PolicyManager\default\Update" -Name ExcludeWUDriversInQualityUpdate -Type "DWORD" -Value 1 -Force
-    New-Item -Path "HKLM:\Software\Microsoft\PolicyManager\default\Update\" -Name "ExcludeWUDriversInQualityUpdates" -Force
-    Set-ItemProperty -Path "HKLM:\Software\Microsoft\PolicyManager\default\Update\ExcludeWUDriversInQualityUpdates" -Name Value -Type "DWORD" -Value 1 -Force
-    Set-ItemProperty -Path "HKLM:\Software\Microsoft\WindowsUpdate\UX\Settings" -Name ExcludeWUDriversInQualityUpdate -Type "DWORD" -Value 1 -Force
-    Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\WindowsUpdate" -Name ExcludeWUDriversInQualityUpdate -Type "DWORD" -Value 1 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\WMDRM" -Name DisableOnline -Type "DWORD" -Value 1 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Edge" -Name BlockThirdPartyCookies -Type "DWORD" -Value 1 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Edge" -Name AutofillCreditCardEnabled -Type "DWORD" -Value 0 -Force
@@ -672,7 +630,6 @@ Start-Job -Name "Disable Telemetry and Services" -ScriptBlock {
     New-Item -Path "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\" -Name "MicrosoftEdge.exe" -Force
     Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MicrosoftEdge.exe" -Name Debugger -Type "String" -Value "%windir%\System32\taskkill.exe" -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Edge" -Name BackgroundModeEnabled -Type "DWORD" -Value 0 -Force
-    Set-ItemProperty -Path "HKLM:\Software\Microsoft" -Name DoNotUpdateToEdgeWithChromium -Type "DWORD" -Value 1 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\GameDVR" -Name AllowgameDVR -Type "DWORD" -Value 0 -Force
     Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name GameDVR_Enabled -Type "DWORD" -Value 0 -Force
     New-Item -Path "HKLM:\System\" -Name "GameConfigStore" -Force
@@ -733,9 +690,6 @@ Start-Job -Name "Disable Telemetry and Services" -ScriptBlock {
     schtasks /change /TN "Microsoft\Office\OfficeTelemetryAgentFallBack2016" /DISABLE
     schtasks /change /TN "Microsoft\Office\OfficeTelemetryAgentLogOn" /DISABLE
     schtasks /change /TN "Microsoft\Office\OfficeTelemetryAgentLogOn2016" /DISABLE
-    #Disable Office Subscription Heartbeat
-    schtasks /change /TN "Microsoft\Office\Office 15 Subscription Heartbeat" /DISABLE
-    schtasks /change /TN "Microsoft\Office\Office 16 Subscription Heartbeat" /DISABLE
     #Disable Office feedback
     New-Item -Path "HKCU:\SOFTWARE\Microsoft\Office\15.0\Common\Feedback" -Force
     New-Item -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Common\Feedback" -Force
@@ -964,9 +918,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     #Disable Windows Setting Sync
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\SettingSync" -Name "DisableWindowsSettingSync" -Type "DWORD" -Value 2 -Force
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\SettingSync" -Name "DisableWindowsSettingSyncUserOverride" -Type "DWORD" -Value 1 -Force
-    #Disable Windows Insider Service
-    Stop-Service "wisvc" 
-    Set-Service "wisvc" -StartupType Disabled
     #Disable ad customization with Advertising ID
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Type "DWORD" -Value 0 -Force 
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo" -Name "DisabledByGroupPolicy" -Type "DWORD" -Value 1 -Force
@@ -1066,9 +1017,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -Type "DWORD" -Value 0 -Force
     #Do not send file samples for further analysis
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Type "DWORD" -Value 2 -Force
-    #Disable live tile data collection
-    New-Item -Path "HKCU:\Software\Policies\Microsoft\MicrosoftEdge\Main" -Force
-    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\MicrosoftEdge\Main" -Name "PreventLiveTileDataCollection" -Type "DWORD" -Value 1 -Force
     #Disable MFU tracking
     New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\EdgeUI" -Force
     Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\EdgeUI" -Name "DisableMFUTracking" -Type "DWORD" -Value 1 -Force
@@ -1103,9 +1051,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     Set-Service "WMPNetworkSvc" -StartupType Disabled
     #Disable lock screen camera
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreenCamera" -Type "DWORD" -Value 1 -Force
-    #Disable remote Assistance
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Remote Assistance" -Name "fAllowToGetHelp" -Type "DWORD" -Value 0 -Force
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Remote Assistance" -Name "fAllowFullControl" -Type "DWORD" -Value 0 -Force
     #Disable AutoPlay and AutoRun
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoDriveTypeAutoRun" -Type "DWORD" -Value 255 -Force 
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutorun" -Type "DWORD" -Value 1 -Force
@@ -1144,12 +1089,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -Type "DWORD" -Value 0 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Type "DWORD" -Value 2 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\MRT" -Name "DontReportInfectionInformation" -Type "DWORD" -Value 1 -Force
-    #Remove the automatic start item for OneDrive from the default user profile registry hive
-    Write-Output "remove onedrive automatic start"
-    Remove-Item -Path "C:\\Windows\\ServiceProfiles\\NetworkService\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\OneDrive.lnk" -Force 
-    Start-Process C:\\Windows\\System32\\Reg.exe -ArgumentList "Load HKLM\\Temp C:\\Users\\Default\\NTUSER.DAT" -Wait
-    Start-Process C:\\Windows\\System32\\Reg.exe -ArgumentList "Delete HKLM\\Temp\\Software\\Microsoft\\Windows\\CurrentVersion\\Run -Name OneDriveSetup -Force" -Wait
-    Start-Process C:\\Windows\\System32\\Reg.exe -ArgumentList "Unload HKLM\\Temp"
     #Disable Cortana
     Write-Output "disabling cortona"
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\Windows Search" -Name AllowCortana -Type "DWORD" -Value 0 -Force
@@ -1169,9 +1108,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     #Restrict License Manager
     Write-Output "Restrict License Manager"
     Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Services\LicenseManager" -Name Start -Type "DWORD" -Value 4 -Force
-    #Disable Live Tiles
-    Write-Output "Disable Live Tiles"
-    Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" -Name NoCloudApplicationNotification -Type "DWORD" -Value 1 -Force
     #Disable Windows Mail App
     Write-Output "Disable Windows Mail App"
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows Mail" -Name ManualLaunchAllowed -Type "DWORD" -Value 0 -Force
@@ -1322,7 +1258,7 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     If (!(Test-Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules")) {
         New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" -Force | Out-Null
     }
-    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" -Name "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" -Type "String" -Value "BlockCortana|Action=Block|Active=TRUE|Dir=Out|App=C:\windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\searchui.exe|Name=Search and Cortana application|AppPkgId=S-1-15-2-1861897761-1695161497-2927542615-642690995-327840285-2659745135-2630312742|" -Force
+    New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\FirewallRules" -Name "{2765E0F4-2918-4A46-B9C9-43CDD8FCBA2B}" -Type "String" -Value "BlockCortana|Action=Block|Active=TRUE|Dir=Out|App=$env:SystemDrive\windows\systemapps\microsoft.windows.cortana_cw5n1h2txyewy\searchui.exe|Name=Search and Cortana application|AppPkgId=S-1-15-2-1861897761-1695161497-2927542615-642690995-327840285-2659745135-2630312742|" -Force
 
     #Display full path in explorer
     New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\" -Name "CabinetState" -Force
@@ -1548,13 +1484,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     Set-ItemProperty -Path "HKLM:\Software\Policies\Adobe\Acrobat Reader\DC\FeatureLockdown\cServices" -Name "bUpdater" -Type "String" -Value 0 -Force
     Set-ItemProperty -Path "HKCU:\Software\Adobe\Adobe ARM\1.0\ARM" -Name "iCheck" -Type "String" -Value 0 -Force
 
-    #Disable Adobe Acrobat Update Service
-    Set-Service "Adobe Acrobat Update Task" -StartupType Disabled
-    Set-Service "Adobe Flash Player Updater" -StartupType Disabled
-    Set-Service "adobeflashplayerupdatesvc" -StartupType Disabled
-    Set-Service "adobeupdateservice" -StartupType Disabled
-    Set-Service "AdobeARMservice" -StartupType Disabled
-
     #Disable CCleaner Health Check
     Stop-Process -Force -Force -Name  ccleaner.exe
     Stop-Process -Force -Force -Name  ccleaner64.exe
@@ -1577,20 +1506,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     Set-ItemProperty -Path "HKLM:\Software\Piriform\CCleaner" -Name "(Cfg)SoftwareUpdater" -Type "DWORD" -Value 0 -Force
     Set-ItemProperty -Path "HKLM:\Software\Piriform\CCleaner" -Name "(Cfg)SoftwareUpdaterIpm" -Type "DWORD" -Value 0 -Force
 
-    #Disable Dropbox Update service
-    Set-Service dbupdate -StartupType Disabled
-    Set-Service dbupdatem -StartupType Disabled
-    Get-ScheduledTask -TaskName "DropboxUpdateTaskMachineCore" | Disable-ScheduledTask
-    Get-ScheduledTask -TaskName "DropboxUpdateTaskMachineUA" | Disable-ScheduledTask
-    #schtasks /Change /TN "DropboxUpdateTaskMachineCore" /Disable
-    #schtasks /Change /TN "DropboxUpdateTaskMachineUA" /Disable
-
-    #Disable Google update service
-    Get-ScheduledTask -TaskName "GoogleUpdateTaskMachineCore" | Disable-ScheduledTask
-    Get-ScheduledTask -TaskName "GoogleUpdateTaskMachineUA" | Disable-ScheduledTask
-    #schtasks /Change /TN "GoogleUpdateTaskMachineCore" /Disable
-    #schtasks /Change /TN "GoogleUpdateTaskMachineUA" /Disable
-
     #Disable Media Player Telemetry
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\MediaPlayer\Preferences" -Name "UsageTracking" -Type "DWORD" -Value 0 -Force
     Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\WindowsMediaPlayer" -Name "PreventCDDVDMetadataRetrieval" -Type "DWORD" -Value 1 -Force
@@ -1598,14 +1513,6 @@ Start-Job -Name "Enable Privacy and Security Settings" -ScriptBlock {
     Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\WindowsMediaPlayer" -Name "PreventRadioPresetsRetrieval" -Type "DWORD" -Value 1 -Force
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\WMDRM" -Name "DisableOnline" -Type "DWORD" -Value 1 -Force
     Set-Service WMPNetworkSvc -StartupType Disabled
-
-    #Disable Microsoft Office Telemetry
-    Get-ScheduledTask -TaskName "OfficeTelemetryAgentFallBack2016" | Disable-ScheduledTask
-    Get-ScheduledTask -TaskName "OfficeTelemetryAgentLogOn2016" | Disable-ScheduledTask
-    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\15.0\osm" -Name "Enablelogging" -Type "DWORD" -Value 0 -Force
-    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\15.0\osm" -Name "EnableUpload" -Type "DWORD" -Value 0 -Force
-    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\osm" -Name "Enablelogging" -Type "DWORD" -Value 0 -Force
-    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\osm" -Name "EnableUpload" -Type "DWORD" -Value 0 -Force
 
     #Disable Microsoft Windows Live ID service
     Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\services\wlidsvc" -Name Start -Type "DWORD" -Value 4 -Force
@@ -1791,7 +1698,7 @@ Start-Job -Name "Image Cleanup" -ScriptBlock {
     #Cmd.exe /c Cleanmgr /sageset:65535 
     Cmd.exe /c Cleanmgr /sagerun:65535
     Write-Verbose "Removing .tmp, .etl, .evtx, thumbcache*.db, *.log files not in use"
-    Get-ChildItem -Path c:\ -Include *.tmp, *.dmp, *.etl, *.evtx, thumbcache*.db, *.log -File -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -ErrorAction SilentlyContinue
+    Get-ChildItem -Path $env:SystemDrive\ -Include *.tmp, *.dmp, *.etl, *.evtx, thumbcache*.db, *.log -File -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -ErrorAction SilentlyContinue
     #Delete "RetailDemo" content (if it exits)
     Write-Verbose "Removing Retail Demo content (if it exists)"
     Get-ChildItem -Path $env:ProgramData\Microsoft\Windows\RetailDemo\* -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -ErrorAction SilentlyContinue
@@ -2074,8 +1981,8 @@ Write-Host "simeononsecurity/FireFox-STIG-Script" -ForegroundColor Green -Backgr
 Write-Host "https://github.com/simeononsecurity/FireFox-STIG-Script" -ForegroundColor Green -BackgroundColor Black 
 
 #https://www.itsupportguides.com/knowledge-base/tech-tips-tricks/how-to-customise-firefox-installs-using-mozilla-cfg/
-$firefox64 = "C:\Program Files\Mozilla Firefox"
-$firefox32 = "C:\Program Files (x86)\Mozilla Firefox"
+$firefox64 = "$env:ProgramFiles\Mozilla Firefox"
+$firefox32 = "env:ProgramFiles(x86)\Mozilla Firefox"
 Write-Host "Installing Firefox Configurations - Please Wait." -ForegroundColor White -BackgroundColor Black
 Write-Host "Window will close after install is complete" -ForegroundColor White -BackgroundColor Black
 If (Test-Path -Path $firefox64) {
@@ -2107,23 +2014,23 @@ Write-Host "https://github.com/simeononsecurity/JAVA-STIG-Script" -ForegroundCol
 #- or -
 #<JRE Installation Directory>\lib\deployment.config
 
-If (Test-Path -Path "C:\Windows\Sun\Java\Deployment\deployment.config") {
+If (Test-Path -Path "$env:WINDIR\Sun\Java\Deployment\deployment.config") {
     Write-Host "JAVA Deployment Config Already Installed" -ForegroundColor Green -BackgroundColor Black
 }
 Else {
     Write-Host "Installing JAVA Deployment Config...." -ForegroundColor Green -BackgroundColor Black
-    Mkdir "C:\Windows\Sun\Java\Deployment\"
-    Copy-Item -Path .\Files\"JAVA Configuration Files"\deployment.config -Destination "C:\Windows\Sun\Java\Deployment\" -Force
+    Mkdir "$env:WINDIR\Sun\Java\Deployment\"
+    Copy-Item -Path .\Files\"JAVA Configuration Files"\deployment.config -Destination "$env:WINDIR\Sun\Java\Deployment\" -Force
     Write-Host "JAVA Configs Installed" -ForegroundColor White -BackgroundColor Black
 }
-If (Test-Path -Path "C:\temp\JAVA\") {
+If (Test-Path -Path "$env:SystemDrive\temp\JAVA\") {
     Write-Host "JAVA Configs Already Deployed" -ForegroundColor Green -BackgroundColor Black
 }
 Else {
     Write-Host "Installing JAVA Configurations...." -ForegroundColor Green -BackgroundColor Black
-    Mkdir "C:\temp\JAVA"
-    Copy-Item -Path .\Files\"JAVA Configuration Files"\deployment.properties -Destination "C:\temp\JAVA\" -Force
-    Copy-Item -Path .\Files\"JAVA Configuration Files"\exception.sites -Destination "C:\temp\JAVA\" -Force
+    Mkdir "$env:SystemDrive\temp\JAVA"
+    Copy-Item -Path .\Files\"JAVA Configuration Files"\deployment.properties -Destination "$env:SystemDrive\temp\JAVA\" -Force
+    Copy-Item -Path .\Files\"JAVA Configuration Files"\exception.sites -Destination "$env:SystemDrive\temp\JAVA\" -Force
     Write-Host "JAVA Configs Installed" -ForegroundColor White -BackgroundColor Black
 }
 
@@ -2136,8 +2043,8 @@ Write-Host "Implementing simeononsecurity/.NET-STIG-Script" -ForegroundColor Gre
 Write-Host "https://github.com/simeononsecurity/.NET-STIG-Script" -ForegroundColor Green -BackgroundColor Black 
 
 #Setting Netframework path variables
-$NetFramework32 = "C:\Windows\Microsoft.NET\Framework"
-$NetFramework64 = "C:\Windows\Microsoft.NET\Framework64"
+$NetFramework32 = "$env:WINDIR\Microsoft.NET\Framework"
+$NetFramework64 = "$env:WINDIR\Microsoft.NET\Framework64"
 
 Write-Host "Beginning .NET STIG Script" -ForegroundColor Green -BackgroundColor Black
 
@@ -2192,7 +2099,7 @@ Function Set-SecureConfig {
     $SecureMachineConfig = [xml](Get-Content $SecureMachineConfigPath)
         
     #Write-Host "Still using test path at $(Get-CurrentLine)"
-    #$MachineConfigPath = "C:\Users\hiden\Desktop\NET-STIG-Script-master\Files\secure.machine - Copy.config"
+    #$MachineConfigPath = "$env:SystemDrive\Users\hiden\Desktop\NET-STIG-Script-master\Files\secure.machine - Copy.config"
     $MachineConfigPath = "$VersionPath"
     $MachineConfig = [xml](Get-Content $MachineConfigPath)
     #Ensureing file is closed
@@ -2438,14 +2345,14 @@ Start-Process "$($PSScriptRoot)\Files\Sysmon\sysmon.exe"  -ArgumentList "-accept
 Write-Host "Implementing simeononsecurity/Windows-Audit-Policy" -ForegroundColor Green -BackgroundColor Black
 Write-Host "https://github.com/simeononsecurity/Windows-Audit-Policy" -ForegroundColor Green -BackgroundColor Black 
 
-New-Item -Force -ItemType "Directory" "C:\temp"
-Copy-Item $PSScriptRoot\files\auditing\auditbaseline.csv C:\temp\auditbaseline.csv 
+New-Item -Force -ItemType "Directory" "$env:SystemDrive\temp"
+Copy-Item $PSScriptRoot\files\auditing\auditbaseline.csv $env:SystemDrive\temp\auditbaseline.csv 
 
 #Clear Audit Policy
 auditpol /clear /y
 
 #Enforce the Audit Policy Baseline
-auditpol /restore /file:C:\temp\auditbaseline.csv
+auditpol /restore /file:$env:SystemDrive\temp\auditbaseline.csv
 
 #Confirm Changes
 auditpol /list /user /v
@@ -2465,6 +2372,9 @@ Foreach ($gpocategory in Get-ChildItem "$(Get-Location)\Files\GPOs") {
         Write-Host "Done" -ForegroundColor Green -BackgroundColor Black
     }
 }
+
+Remove-Item $env:SystemDrive\temp -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
+
 Gpupdate /force
 Write-Warning "A reboot is required for all changed to take effect"
 
