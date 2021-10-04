@@ -103,7 +103,7 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies
 C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
 Remove-Item -Path 'HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}' -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path 'HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}' -Recurse -ErrorAction SilentlyContinue -Confirm:$false
-
+<#
 Write-Host 'Disabling services...'
 $services = @(
     # See https://virtualfeller.com/2017/04/25/optimize-vdi-windows-10-services-original-anniversary-and-creator-updates/
@@ -182,7 +182,7 @@ $services = @(
 foreach ($service in $services) {
     Set-Service $service -StartupType Disabled -ErrorAction SilentlyContinue
 }
-
+#>
 # Ensure updates are downloaded from Microsoft instead of other computers on the internet.
 New-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\' -Name 'DeliveryOptimization' -Force
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' -Name 'DODownloadMode' -Type DWord -Value '0' -Force
