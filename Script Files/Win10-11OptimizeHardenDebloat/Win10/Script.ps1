@@ -1,4 +1,4 @@
-$Host.UI.RawUI.WindowTitle = "Main Script for Windows 10 Optimizer"
+$Host.UI.RawUI.WindowTitle = "Main Script for Windows 11 Optimizer"
 
 Write-Host "`nLet's Start with the Basics...`n"
 Start-Sleep -Seconds 1
@@ -11,16 +11,74 @@ Get-TimeZone -ListAvailable | Where-Object {$_.displayname -match "$key"}
 $key2 = Read-Host "Enter the 'Id' for your Time Zone WITHOUT "" "" ..."
 Set-TimeZone -Id "$key2"
 
+Write-Host "Checking if Windows is Activated"
+function Get-ActivationStatus {
+[CmdletBinding()]
+ param(
+ [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+ [string]$DNSHostName = $Env:COMPUTERNAME
+ )
+ process {
+ try {
+ $wpa = Get-WmiObject SoftwareLicensingProduct -ComputerName $DNSHostName `
+ -Filter "ApplicationID = '55c92734-d682-4d71-983e-d6ec3f16059f'" `
+ -Property LicenseStatus -ErrorAction Stop
+ } catch {
+ $status = New-Object ComponentModel.Win32Exception ($_.Exception.ErrorCode)
+ $wpa = $null 
+ }
+ $out = New-Object psobject -Property @{
+ ComputerName = $DNSHostName;
+ Status = [string]::Empty;
+ }
+ if ($wpa) {
+ :outer foreach($item in $wpa) {
+ switch ($item.LicenseStatus) {
+ 0 {$out.Status = "Unlicensed"}
+ 1 {$out.Status = "Licensed"; break outer}
+ 2 {$out.Status = "Out-Of-Box Grace Period"; break outer}
+ 3 {$out.Status = "Out-Of-Tolerance Grace Period"; break outer}
+ 4 {$out.Status = "Non-Genuine Grace Period"; break outer}
+ 5 {$out.Status = "Notification"; break outer}
+ 6 {$out.Status = "Extended Grace"; break outer}
+ default {$out.Status = "Unknown value"}
+ }
+ }
+ } else { $out.Status = $status.Message }
+ $out
+ }
+}
+
+Write-Host "`nChecking to see if Windows is Activated`n"
+Start-Sleep -Seconds 1
+
+$status = (Get-ActivationStatus)
+
+If ($status.Status -eq "licensed") {
+Write-Host "Windows is activated" -ForegroundColor Yellow
+}
+else { ($status.Status -eq "Unlicensed") 
+Write-Host "Windows is not activated" -ForegroundColor Red -BackgroundColor Black
+
 #Activate Windows
-Write-Host "`nActivate Windows..`n"
+Write-Host "`nPreparing to Activate Windows..`n"
 Start-Sleep -Seconds 1
 $ActivateWindows = Read-Host "Do you want to Activate Windows using OEM Key? [Y = OEM | N = Own Key / Skip License Activation]"
 if ($ActivateWindows -eq 'y') {
 $ProductKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
   if ($null -ne $ProductKey)
     {
-        start-process c:\Windows\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
+        #start-process c:\Windows\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
+        Start-Sleep -Seconds 1
+        $status = (Get-ActivationStatus)
+        If ($status.Status -eq "licensed") {
+        Write-Host "Windows is activated" -ForegroundColor Yellow
     }
+        else { ($status.Status -eq "Unlicensed") 
+        Write-Host "Windows is not activated" -ForegroundColor Red -BackgroundColor Black
+        }
+    }
+
 }
 else {
 Write-Host @writecolor "Do you want to use your own Windows Product key? (Y = Yes | N = Skip License Activation)"
@@ -28,10 +86,18 @@ $confirmation = Read-Host
 if ($confirmation -eq 'y') {
     Write-Host @writecolor "Please Enter your Genuine 25 Digit Product key"
     $key = Read-Host 
-    changepk.exe /ProductKey $key
-    Start-Sleep -Seconds 2
-    slmgr.vbs /ato
+    #changepk.exe /ProductKey $key
+    #Start-Sleep -Seconds 2
+    #slmgr.vbs /ato
+    $status = (Get-ActivationStatus)
+    If ($status.Status -eq "licensed") {
+    Write-Host "Windows is activated" -ForegroundColor Yellow
     }
+      else { ($status.Status -eq "Unlicensed") 
+      Write-Host "Windows is not activated" -ForegroundColor Red -BackgroundColor Black
+           }
+       }
+   }
 }
 
 Write-Host "`nPreparing to Configure your Computer.. Please Wait`n"
@@ -54,7 +120,7 @@ Start-Sleep -Seconds 1
 	# Never skip creating a restore point
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force
 
-	Checkpoint-Computer -Description "Windows 10 Optimizer" -RestorePointType MODIFY_SETTINGS
+	Checkpoint-Computer -Description "Windows 11 Optimizer" -RestorePointType MODIFY_SETTINGS
 
 	# Revert the System Restore checkpoint creation frequency to 1440 minutes
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 1440 -Force
@@ -145,7 +211,7 @@ Set-Location "$Destination\scripts-main\Script Files"
 Move-Item "Win10-11OptimizeHardenDebloat" "$Destination\Win10-11OptimizeHardenDebloat"
 Set-Location $Destination
 Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 
 Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Manifest.ps1"
 Write-Warning "Please Restart your Computer !!"
@@ -155,6 +221,9 @@ Write-Warning "Please Restart your Computer !!"
 Set-Location "$env:USERPROFILE"
 Start-Sleep -Seconds 1
 Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
+
+#Removing Get-ActivationStatus Function
+Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
 
 #Reboot Computer
     # Ask for confirmation to Reboot Computer
