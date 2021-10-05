@@ -253,7 +253,7 @@ $tweaks = @(
 	# "UninstallOneDrive",            
 	# "InstallOneDrive",
     
-	"UninstallMsftBloat",           
+	# "UninstallMsftBloat",           
 	# "InstallMsftBloat",
     
 	"UninstallThirdPartyBloat",     
@@ -307,9 +307,9 @@ $tweaks = @(
    
     ### Connexion / Windows / GPDW ###
     "DisableConnectedStandby",
-    "DisableHibernation",
-    #"EnableBigDesktopIcons"
-    "DisableUpdateDriver" # Disable automatic driver updates
+    # "EnableBigDesktopIcons"
+    # "DisableUpdateDriver" # Disable automatic driver updates
+    "DisableHibernation"
 )
  
  ##############################################################
@@ -2129,8 +2129,11 @@ function Test-RegistryValue {
 # Parse parameters and apply tweaks
 ##########
  
-Write-Host "Let's Go !"
- 
+Clear-Host
+Start-Sleep -Seconds 2
+Write-Host "`nExecuting Script`n"
+Write-Host ""
+Start-Sleep -Seconds 1
 # Normalize path to preset file
 $preset = ""
 $PSCommandArgs = $args
