@@ -232,7 +232,13 @@ Start-Sleep -Seconds 1
 Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Win10-11OptimizeHarden.ps1'
+
+#Repair SMB
+#Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All -NoRestart
+Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10" -Force
+Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "SMB1" -Force
 Start-Sleep -Seconds 1
+
 Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
@@ -243,10 +249,6 @@ Start-Sleep -Seconds 1
 
 #Removing Get-ActivationStatus Function
 Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
-
-#Install SMB
-Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All -NoRestart
-Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters -Name "SMB1" -Type "DWORD" -Value 1 -Force
 
 #Configure Browsers
 #Mozilla Firefox
@@ -271,6 +273,8 @@ Remove-Item "$env:USERPROFILE\Downloads\chrome.reg" -ErrorAction SilentlyContinu
 Remove-Item "$env:USERPROFILE\Downloads\Chromium.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
+#Install .Net Framework 3.5
+Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
 
 #Prevent Bloatware Reinstall
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
