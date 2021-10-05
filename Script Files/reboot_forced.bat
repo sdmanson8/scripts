@@ -7,4 +7,4 @@ cls
 )
 
 :: Force restart
-:: shutdown /r /f /t 00
+shutdown /r /f /t 00
