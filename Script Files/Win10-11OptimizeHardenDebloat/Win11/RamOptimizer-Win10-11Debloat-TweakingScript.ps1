@@ -1,3 +1,4 @@
+Clear-Host
 Write-Host "`nPlease wait a few minutes...`n"
 Start-Sleep -Seconds 1
 ################### Starting Script ############################################################
@@ -11,6 +12,7 @@ IF ($path -eq $False) {New-PSDrive -PSProvider Registry -Name HKCR -Root HKEY_CL
 #Kill Foreground
 taskkill /F /IM "msedge.exe"
 taskkill /F /IM "explorer.exe"
+Clear-Host
 
 # Updating Notepad++
 Write-Host "Silently Updating Notepad++ ... Please wait..."
@@ -29,7 +31,9 @@ Invoke-WebRequest $dlUrl -OutFile $installerPath
 Start-Process -FilePath $installerPath -Args "/S" -Verb RunAs -Wait
 Remove-Item $installerPath
    Write-Host Notepad++ Updated
- 
+Start-Sleep -Milliseconds 500
+Clear-Host
+
 #####################
 $url = 'https://github.com/PowerShell/PowerShell/releases/latest'
 $request = [System.Net.WebRequest]::Create($url)
@@ -45,6 +49,8 @@ $version = $realTagUrl.split('/')[-1].Trim('v')
 
 ################ -------------------------------------------- ######################
 ####################################################################################
+Start-Sleep -Milliseconds 500
+Clear-Host
 
 #Lower Ram
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $env:USERPROFILE\Downloads\ram-reducer.reg
