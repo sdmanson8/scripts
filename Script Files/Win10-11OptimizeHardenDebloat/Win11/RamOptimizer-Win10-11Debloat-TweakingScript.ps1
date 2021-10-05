@@ -88,7 +88,7 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'EnableFirstLogonAnimation' -Type "DWord" -Value '0' -Force
 
 # Remove OneDrive, and stop it from showing in Explorer side menu.
-C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
+$env:WINDIR\SysWOW64\OneDriveSetup.exe /uninstall
 Remove-Item -Path 'HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}' -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path 'HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}' -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 

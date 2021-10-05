@@ -2018,7 +2018,7 @@ Function EnableIEEnhancedSecurity {
 # Delete Temp Files
 Function DeleteTempFiles {
     Write-Host "Cleaning up temporary files..."
-    $tempfolders = @("C:\Windows\Temp\*", "C:\Windows\Prefetch\*", "C:\Documents and Settings\*\Local Settings\temp\*", "C:\Users\*\Appdata\Local\Temp\*")
+    $tempfolders = @("$env:WINDIR\Temp\*", "$env:WINDIR\Prefetch\*", "$env:SystemDrive\Documents and Settings\*\Local Settings\temp\*", "$env:SystemDrive\Users\*\Appdata\Local\Temp\*")
     Remove-Item $tempfolders -force -recurse 2>&1 | Out-Null
 }
  
@@ -2060,7 +2060,7 @@ Function DisableCompatibilityAppraiser {
         Disable-ScheduledTask | Out-Null
     }
  
-    del C:\ProgramData\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl -ErrorAction SilentlyContinue
+    del $env:ProgramData\Microsoft\Diagnosis\ETLLogs\AutoLogger\AutoLogger-Diagtrack-Listener.etl -ErrorAction SilentlyContinue
  
     # Disable the Autologger session at the next computer restart
     Set-AutologgerConfig -Name 'AutoLogger-Diagtrack-Listener' -Start 0

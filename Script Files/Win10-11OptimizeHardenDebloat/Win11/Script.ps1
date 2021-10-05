@@ -118,7 +118,7 @@ if ($ActivateWindows -eq 'y') {
 $ProductKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
   if ($null -ne $ProductKey)
     {
-        start-process c:\Windows\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
+        start-process $env:WINDIR\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
         Start-Sleep -Seconds 3
         $status = (Get-ActivationStatus)
         If ($status.Status -eq "licensed") {
@@ -355,11 +355,11 @@ SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
 ##################################################################################
 
 #Remove Windows.Old
-if (Test-Path -Path c:\Windows.old\)
+if (Test-Path -Path $env:SystemDrive\Windows.old\)
 	  {
-         takeown /F c:\Windows.old\* /R /A /D Y
-         cacls c:\Windows.old\*.* /T /grant administrators:F
-         Remove-Item c:\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
+         takeown /F $env:SystemDrive\Windows.old\* /R /A /D Y
+         cacls $env:SystemDrive\Windows.old\*.* /T /grant administrators:F
+         Remove-Item $env:SystemDrive\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
          Write-Host "Clearing Component Store (WinSxS)"
          Start-Sleep -Seconds 2
          dism /online /cleanup-image /StartComponentCleanup /ResetBase
