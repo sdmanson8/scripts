@@ -228,8 +228,10 @@ Remove-Item "$Destination\Win10-11OptimizeHardenDebloat\Win10" -ErrorAction Sile
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\RamOptimizer-Win10-11Debloat-TweakingScript.ps1'
 Start-Sleep -Seconds 1
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Win10-11OptimizeHarden.ps1'
 Start-Sleep -Seconds 1
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
 Start-Sleep -Seconds 1
 Write-Warning "Please Restart your Computer !!"
