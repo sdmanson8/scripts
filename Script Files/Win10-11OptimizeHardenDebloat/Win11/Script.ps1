@@ -299,6 +299,6 @@ Move-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot"
 SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
 
 #Reboot Computer
-$ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat"
-Invoke-Expression $($ScriptFromGithHub.Content)
+Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
+cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
 
