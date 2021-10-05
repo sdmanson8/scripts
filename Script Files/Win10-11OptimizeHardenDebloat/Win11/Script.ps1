@@ -224,14 +224,13 @@ Set-Location $Destination
 Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 
-Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win11\Win10-11OptimizeHarden.ps1"
+& '.\Win10-11OptimizeHarden.ps1'
 Start-Sleep -Seconds 1
-Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win11\Sophia.ps1"
+& '.\Sophia .ps1'
 Start-Sleep -Seconds 1
-Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win11\RamOptimizer-Win10-11Debloat-TweakingScript.ps1"
+& '.\RamOptimizer-Win10-11Debloat-TweakingScript.ps1'
 Start-Sleep -Seconds 1
 Write-Warning "Please Restart your Computer !!"
-
 Set-Location "$env:USERPROFILE"
 Start-Sleep -Seconds 1
 Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
