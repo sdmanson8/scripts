@@ -348,8 +348,8 @@ Set-ItemProperty "HKCU:\Control Panel\International" -Name "sTimeFormat" -Type "
 #Disable Reboot after Windows Updates are installed
 
 SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
-Rename-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot" "Reboot.bak"
-Move-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot"
+Rename-Item "$env:WINDIR\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot" "Reboot.bak"
+Move-Item "$env:WINDIR\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot"
 SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
 
 ##################################################################################
