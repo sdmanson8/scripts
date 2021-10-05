@@ -225,15 +225,19 @@ Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$
 Remove-Item "$Destination\Win10-11OptimizeHardenDebloat\Win10" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
 #Executing Scripts
+Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\RamOptimizer-Win10-11Debloat-TweakingScript.ps1'
 Start-Sleep -Seconds 1
+Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Win10-11OptimizeHarden.ps1'
 Start-Sleep -Seconds 1
+Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
 Start-Sleep -Seconds 1
+Clear-Host
 Write-Warning "Please Restart your Computer !!"
 Start-Sleep -Seconds 1
 
