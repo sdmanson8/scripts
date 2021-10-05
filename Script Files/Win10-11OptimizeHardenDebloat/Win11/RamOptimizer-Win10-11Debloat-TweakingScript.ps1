@@ -890,8 +890,10 @@ Start-Sleep -Seconds 2
 Write-Warning "A reboot is needed"
 Start-Sleep -Seconds 1
 
+#Starting Windows Explorer
+explorer.exe
+
 Clear-Host
-Write-Warning "A reboot is needed"
 
 #Install OneDrive
     # Ask for confirmation to Install Onedrive
@@ -975,8 +977,5 @@ Remove-Item -Path $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg -Force -
 Remove-Item -Path $env:USERPROFILE\Downloads\enable-photo-viewer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path $env:USERPROFILE\Downloads\ram-reducer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path $env:USERPROFILE\Downloads\bloatware.ps1 -Force -ErrorAction SilentlyContinue -Confirm:$false
-
-#Starting Windows Explorer
-explorer.exe
 
 exit
