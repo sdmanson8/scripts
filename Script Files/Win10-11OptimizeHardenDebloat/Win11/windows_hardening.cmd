@@ -1,7 +1,7 @@
-#Kill Foreground
+:: Kill Foreground
 taskkill /F /IM "msedge.exe"
 taskkill /F /IM "explorer.exe"
-Clear-Host
+cls
 
 :: Block remote commands https://docs.microsoft.com/en-us/windows/win32/com/enabledcom
 reg add HKEY_LOCAL_MACHINE\Software\Microsoft\OLE /v EnableDCOM /t REG_SZ /d N /F
