@@ -871,7 +871,8 @@ foreach ($task in $tasks) {
 #Disable MRU lists (jump lists) of XAML apps in Start Menu 
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Start_TrackDocs" -Type "DWORD" -Value 0 -Force
 
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type "DWORD" -Value 1 -Force
+#Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type "DWORD" -Value 1 -Force
+
 #Show Super Hidden System Files in Explorer
     # Ask for confirmation to Show Super Hidden System Files in Explorer
     $SuperHidden = Read-Host "Would you like to Enable Hidden Files in Explorer? (Y/N)"
