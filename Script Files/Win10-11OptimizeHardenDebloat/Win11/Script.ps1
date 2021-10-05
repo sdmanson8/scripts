@@ -167,7 +167,7 @@ Start-Sleep -Seconds 1
 
     #Install all available Updates & Reboot if Required
     Write-Host Install Windows Updates
-    Install-WindowsUpdate -AcceptAll -AutoReboot
+    Install-WindowsUpdate -AcceptAll
 
 ##################################################################################
 
