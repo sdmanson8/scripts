@@ -222,8 +222,10 @@ Set-Location "$Destination\scripts-main\Script Files"
 Move-Item "Win10-11OptimizeHardenDebloat" "$Destination\Win10-11OptimizeHardenDebloat"
 Set-Location $Destination
 Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
+Remove-Item "$Destination\Win10-11OptimizeHardenDebloat\Win10" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
+#Executing Scripts
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\RamOptimizer-Win10-11Debloat-TweakingScript.ps1'
 Start-Sleep -Seconds 1
 & '.\Win10-11OptimizeHarden.ps1'
