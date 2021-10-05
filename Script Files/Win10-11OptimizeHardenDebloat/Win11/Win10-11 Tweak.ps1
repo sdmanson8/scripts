@@ -2150,7 +2150,7 @@ If ($args) {
     }
 }
  
-Write-Warning "A reboot is required for all changed to take effect"
+Write-Warning "A reboot is required for all changes to take effect"
 
 # Call the desired tweak functions
 $tweaks | ForEach { Invoke-Expression $_ }

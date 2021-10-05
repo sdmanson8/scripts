@@ -897,7 +897,7 @@ Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
 }
 
 Start-Sleep -Seconds 2
-Write-Warning "A reboot is required for all changed to take effect"
+Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
 
 #Starting Windows Explorer
@@ -969,7 +969,7 @@ Clear-Host
 }
 
 Start-Sleep -Seconds 2
-Write-Warning "A reboot is required for all changed to take effect"
+Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
 
 Clear-Host

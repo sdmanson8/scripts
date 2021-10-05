@@ -277,7 +277,7 @@ Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
 Start-Sleep -Seconds 1
-Write-Warning "A reboot is required for all changed to take effect"
+Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
 
 Clear-Host
