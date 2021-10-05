@@ -1,4 +1,11 @@
+Clear-Host
+
 $Host.UI.RawUI.WindowTitle = "Win10/11 Optimizer, Hardening and Debloating Script"
+
+Write-Host "`nPlease wait a few minutes...`n"
+Start-Sleep -Seconds 1
+
+################### Starting Script ############################################################
 
 #Continue on error
 $ErrorActionPreference = 'silentlycontinue'
