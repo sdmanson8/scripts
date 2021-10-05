@@ -215,7 +215,7 @@ Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 
 & '.\Win10-11OptimizeHarden.ps1'
 Start-Sleep -Seconds 1
-& '.\Sophia .ps1'
+& '.\Sophia.ps1'
 Start-Sleep -Seconds 1
 & '.\RamOptimizer-Win10-11Debloat-TweakingScript.ps1'
 Start-Sleep -Seconds 1
