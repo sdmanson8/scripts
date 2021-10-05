@@ -264,6 +264,11 @@ Remove-Item "$env:USERPROFILE\Downloads\chrome.reg" -ErrorAction SilentlyContinu
 Remove-Item "$env:USERPROFILE\Downloads\Chromium.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
+#Prevent Bloatware Reinstall
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
+regedit.exe /S $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
+Remove-Item "$env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+
 #Reboot Computer
     # Ask for confirmation to Reboot Computer
     $Reboot = Read-Host "Would you like to Restart your Computer? (Y/N)"
