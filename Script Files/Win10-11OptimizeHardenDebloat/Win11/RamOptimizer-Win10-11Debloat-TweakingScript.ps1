@@ -1,3 +1,12 @@
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
+    }
+}
+RequireAdmin
+
 Clear-Host
 Write-Host "`nPlease wait a few minutes...`n"
 Start-Sleep -Seconds 1
@@ -888,7 +897,7 @@ Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
 }
 
 Start-Sleep -Seconds 2
-Write-Warning "A reboot is needed"
+Write-Warning "A reboot is required for all changed to take effect"
 Start-Sleep -Seconds 1
 
 #Starting Windows Explorer
@@ -960,7 +969,7 @@ Clear-Host
 }
 
 Start-Sleep -Seconds 2
-Write-Warning "A reboot is needed"
+Write-Warning "A reboot is required for all changed to take effect"
 Start-Sleep -Seconds 1
 
 Clear-Host

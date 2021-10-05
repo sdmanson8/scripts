@@ -1,4 +1,44 @@
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
+    }
+}
+RequireAdmin
+
 $Host.UI.RawUI.WindowTitle = "Main Script for Windows 11 Optimizer"
+
+#Create A Restore Point
+	$SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID#
+	$SystemProtection = ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SPP\Clients")."{09F7EDC5-294E-4180-AF6A-FB0E6A0E9513}") | Where-Object -FilterScript {$_ -match [regex]::Escape($SystemDriveUniqueID)}
+
+    $ComputerRestorePoint = $false
+
+	switch ($null -eq $SystemProtection)
+	{
+		$true
+		{
+			$ComputerRestorePoint = $true
+			Enable-ComputerRestore -Drive $env:SystemDrive
+		}
+	}
+	# Never skip creating a restore point
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force
+
+	Checkpoint-Computer -Description "Windows 11 Optimizer" -RestorePointType MODIFY_SETTINGS
+
+	# Revert the System Restore checkpoint creation frequency to 1440 minutes
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 1440 -Force
+
+	# Turn off System Protection for the system drive if it was turned off before without deleting the existing restore points
+	if ($ComputerRestorePoint)
+	{
+		Disable-ComputerRestore -Drive $env:SystemDrive
+	}   
+
+########################### Script Starting ###################################
+###############################################################################
 
 Write-Host "`nLet's Start with the Basics...`n"
 Start-Sleep -Seconds 1
@@ -18,6 +58,8 @@ w32tm /unregister
 w32tm /register
 net start w32time
 w32tm /resync /force
+
+##################################################################################
 
 Write-Host "Checking if Windows is Activated"
 function Get-ActivationStatus {
@@ -109,38 +151,27 @@ if ($confirmation -eq 'y') {
    }
 }
 
+##################################################################################
+
 Write-Host "`nPreparing to Configure your Computer.. Please Wait`n"
 Start-Sleep -Seconds 1
 
-#Create A Restore Point
-	$SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID#
-	$SystemProtection = ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SPP\Clients")."{09F7EDC5-294E-4180-AF6A-FB0E6A0E9513}") | Where-Object -FilterScript {$_ -match [regex]::Escape($SystemDriveUniqueID)}
+    # Run PSWindowsUpdate
 
-    $ComputerRestorePoint = $false
+    Write-Host Installing PSWindowsUpdate module
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
 
-	switch ($null -eq $SystemProtection)
-	{
-		$true
-		{
-			$ComputerRestorePoint = $true
-			Enable-ComputerRestore -Drive $env:SystemDrive
-		}
-	}
-	# Never skip creating a restore point
-	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force
+    Install-Module -Name PSWindowsUpdate -Force
+    Import-Module -Name PSWindowsUpdate
+    ECHO Y | powershell Add-WUServiceManager -MicrosoftUpdate
 
-	Checkpoint-Computer -Description "Windows 11 Optimizer" -RestorePointType MODIFY_SETTINGS
+    #Install all available Updates & Reboot if Required
+    Write-Host Install Windows Updates
+    Install-WindowsUpdate -AcceptAll -AutoReboot
 
-	# Revert the System Restore checkpoint creation frequency to 1440 minutes
-	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 1440 -Force
+##################################################################################
 
-	# Turn off System Protection for the system drive if it was turned off before without deleting the existing restore points
-	if ($ComputerRestorePoint)
-	{
-		Disable-ComputerRestore -Drive $env:SystemDrive
-	}   
-
-    #Stops edge from taking over as the default .PDF viewer    
+    #Stop edge from taking over as the default .PDF viewer    
     Write-Host "Stopping Edge from taking over as the default .PDF viewer"
     # Identify the edge application class 
     $Packages = "HKCU:SOFTWARE\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages" 
@@ -161,6 +192,7 @@ Start-Sleep -Seconds 1
     $Filetypes.Property | foreach { $Associations += $FileAssoc.$_ } 
     $URLTypes.Property | foreach { $Associations += $URLAssoc.$_ }
 
+
     # add registry values in each software class to stop edge from associating as the default 
     foreach ($Association in $Associations) { 
         $Class = Join-Path HKCU:SOFTWARE\Classes $Association 
@@ -171,12 +203,17 @@ Start-Sleep -Seconds 1
         Set-ItemProperty $Class -Name NoStaticDefaultVerb -Value "" 
     } 
 
-#Change Performance Options to Adjust for best performance
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name VisualFXSetting -Type "DWORD" -Value 2 -Force
+##################################################################################
+
+    #Change Performance Options to Adjust for best performance
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name VisualFXSetting -Type "DWORD" -Value 2 -Force
+
+##################################################################################
 
     New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\" -Name "Parameters" -Force
     New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters" -Name "StoragePolicy" -Force
-#Storage Sense
+    
+    #Storage Sense
     #Frequency Run Every 7 Days
     $7DFrequencyRun = Read-Host -Prompt "Do you want to run Storage Sense every 7 Days? [Y/N]"
     if ($7DFrequencyRun -eq 'y') {  
@@ -206,6 +243,8 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer
     Write-Host "Setting Cleanup for your Downloads Folder every 30 days"
     New-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 512 -PropertyType DWord -Value 30 -Force
       }
+
+##################################################################################
 
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
@@ -238,12 +277,15 @@ Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
 Start-Sleep -Seconds 1
-Clear-Host
-Write-Warning "Please Restart your Computer !!"
+Write-Warning "A reboot is required for all changed to take effect"
 Start-Sleep -Seconds 1
+
+Clear-Host
 
 #Removing Get-ActivationStatus Function
 Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
+
+##################################################################################
 
 #Configure Browsers
 #Mozilla Firefox
@@ -268,8 +310,12 @@ Remove-Item "$env:USERPROFILE\Downloads\chrome.reg" -ErrorAction SilentlyContinu
 Remove-Item "$env:USERPROFILE\Downloads\Chromium.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
+##################################################################################
+
 #Install .Net Framework 3.5
 Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
+
+##################################################################################
 
 #Repair SMB
 Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All -NoRestart
@@ -279,10 +325,14 @@ wmic service where "Name LIKE '%%lanmanserver%%'" call StartService
 wmic service where "Name LIKE '%%lanmanserver%%'" call ChangeStartMode Automatic
 Start-Sleep -Seconds 1
 
+##################################################################################
+
 #Prevent Bloatware Reinstall
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
 regedit.exe /S $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
 Remove-Item "$env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+
+##################################################################################
 
 #Change Clock and Date formats 24H, metric (Sign out required to see changes)
 
@@ -293,6 +343,8 @@ Set-ItemProperty "HKCU:\Control Panel\International" -Name "sShortDate" -Type "S
 Set-ItemProperty "HKCU:\Control Panel\International" -Name "sShortTime" -Type "String" -Value "HH:mm" -Force
 Set-ItemProperty "HKCU:\Control Panel\International" -Name "sTimeFormat" -Type "String" -Value "H:mm:ss" -Force
 
+##################################################################################
+
 #Disable Reboot after Windows Updates are installed
 
 SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
@@ -300,7 +352,26 @@ Rename-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot
 Move-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot"
 SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
 
-#Reboot Computer
+##################################################################################
+
+#Remove Windows.Old
+if (Test-Path -Path c:\Windows.old\)
+	  {
+         takeown /F c:\Windows.old\* /R /A /D Y
+         cacls c:\Windows.old\*.* /T /grant administrators:F
+         Remove-Item c:\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
+         Write-Host "Clearing Component Store (WinSxS)"
+         Start-Sleep -Seconds 2
+         dism /online /cleanup-image /StartComponentCleanup /ResetBase
+      }
+		else
+    	{
+          Write-Host "`nWindows.Old does not Exist... Ignoring`n" -ForegroundColor Red
+        }
+
+##################################################################################
+
+#Force Reboot Computer
 Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
 cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
 
