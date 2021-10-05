@@ -1,4 +1,4 @@
-$Host.UI.RawUI.WindowTitle = "Main Script for Windows 11 Optimizer"
+$Host.UI.RawUI.WindowTitle = "Main Script for Windows 10 Optimizer"
 
 Write-Host "`nLet's Start with the Basics...`n"
 Start-Sleep -Seconds 1
@@ -211,11 +211,14 @@ Set-Location "$Destination\scripts-main\Script Files"
 Move-Item "Win10-11OptimizeHardenDebloat" "$Destination\Win10-11OptimizeHardenDebloat"
 Set-Location $Destination
 Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 
-Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Manifest.ps1"
-Write-Warning "Please Restart your Computer !!"
-pwsh.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Sophia.ps1"
+Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Win10-11OptimizeHarden.ps1"
+Start-Sleep -Seconds 1
+Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\Sophia.ps1"
+Start-Sleep -Seconds 1
+Powershell.exe "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat\Win10\RamOptimizer-Win10-11Debloat-TweakingScript.ps1"
+Start-Sleep -Seconds 1
 Write-Warning "Please Restart your Computer !!"
 
 Set-Location "$env:USERPROFILE"
