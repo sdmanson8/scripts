@@ -225,9 +225,6 @@ Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAct
 Remove-Item "$env:USERPROFILE\Downloads\stop" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Set-Location "$env:USERPROFILE"
 
-Start-Sleep -Seconds 1
-Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-
 #Removing Get-ActivationStatus Function
 Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
 
