@@ -211,8 +211,10 @@ Set-Location "$Destination\scripts-main\Script Files"
 Move-Item "Win10-11OptimizeHardenDebloat" "$Destination\Win10-11OptimizeHardenDebloat"
 Set-Location $Destination
 Remove-Item "$Destination\scripts-main" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
+Remove-Item "$Destination\Win10-11OptimizeHardenDebloat\Win11" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
+#Executing Scripts
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 & '.\RamOptimizer-Win10-11Debloat-TweakingScript.ps1'
 Start-Sleep -Seconds 1
 & '.\Win10-11OptimizeHarden.ps1'
@@ -226,7 +228,7 @@ Start-Sleep -Seconds 1
 Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
 
 #Install SMB
-Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All
+Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All -NoRestart
 Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters -Name "SMB1" -Type "DWORD" -Value 1 -Force
 
 #Configure Browsers
