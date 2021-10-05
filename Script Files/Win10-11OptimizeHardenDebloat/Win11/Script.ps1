@@ -232,13 +232,6 @@ Start-Sleep -Seconds 1
 Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Win10-11OptimizeHarden.ps1'
-
-#Repair SMB
-#Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All -NoRestart
-Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10" -Force
-Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "SMB1" -Force
-Start-Sleep -Seconds 1
-
 Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
@@ -276,15 +269,36 @@ Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue 
 #Install .Net Framework 3.5
 Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
 
+#Repair SMB
+Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol" -All -NoRestart
+Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10" -Force
+Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "SMB1" -Force
+wmic service where "Name LIKE '%%lanmanserver%%'" call StartService
+wmic service where "Name LIKE '%%lanmanserver%%'" call ChangeStartMode Automatic
+Start-Sleep -Seconds 1
+
 #Prevent Bloatware Reinstall
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
 regedit.exe /S $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
 Remove-Item "$env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
+#Change Clock and Date formats 24H, metric (Sign out required to see changes)
+
+Set-ItemProperty "HKCU:\Control Panel\International" -Name "iMeasure" -Type "String" -Value 0 -Force
+Set-ItemProperty "HKCU:\Control Panel\International" -Name "iNegCurr" -Type "String" -Value 1 -Force
+Set-ItemProperty "HKCU:\Control Panel\International" -Name "iTime" -Type "String" -Value 1 -Force
+Set-ItemProperty "HKCU:\Control Panel\International" -Name "sShortDate" -Type "String" -Value "dd.MM.yyyy" -Force
+Set-ItemProperty "HKCU:\Control Panel\International" -Name "sShortTime" -Type "String" -Value "HH:mm" -Force
+Set-ItemProperty "HKCU:\Control Panel\International" -Name "sTimeFormat" -Type "String" -Value "H:mm:ss" -Force
+
+#Disable Reboot after Windows Updates are installed
+
+SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
+Rename-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot" "Reboot.bak"
+Move-Item "%WinDir%\System32\Tasks\Microsoft\Windows\UpdateOrchestrator\Reboot"
+SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
+
 #Reboot Computer
-    # Ask for confirmation to Reboot Computer
-    $Reboot = Read-Host "Would you like to Restart your Computer? (Y/N)"
-    if ($Reboot -eq 'Y') { 
-    Restart-Computer
-}
+$ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat"
+Invoke-Expression $($ScriptFromGithHub.Content)
 
