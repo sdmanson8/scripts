@@ -221,9 +221,6 @@ Start-Sleep -Seconds 1
 Start-Sleep -Seconds 1
 Write-Warning "Please Restart your Computer !!"
 Start-Sleep -Seconds 1
-Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Remove-Item "$env:USERPROFILE\Downloads\stop" -ErrorAction SilentlyContinue -Confirm:$false -Force
-Set-Location "$env:USERPROFILE"
 
 #Removing Get-ActivationStatus Function
 Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
@@ -247,6 +244,9 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/
 regedit.exe /S $env:USERPROFILE\Downloads\Edge.reg
 
 #Remove Old Files
+Set-Location "$env:USERPROFILE"
+Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
+Remove-Item "$env:USERPROFILE\Downloads\stop" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Remove-Item "$env:USERPROFILE\Downloads\firefox.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Remove-Item "$env:USERPROFILE\Downloads\chrome.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 Remove-Item "$env:USERPROFILE\Downloads\Chromium.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
