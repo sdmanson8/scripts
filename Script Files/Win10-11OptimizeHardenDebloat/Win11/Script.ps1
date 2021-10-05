@@ -119,7 +119,7 @@ $ProductKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginal
   if ($null -ne $ProductKey)
     {
         start-process $env:WINDIR\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
-        Start-Sleep -Seconds 3
+        Start-Sleep -Seconds 10
         $status = (Get-ActivationStatus)
         If ($status.Status -eq "licensed") {
         Write-Host "Windows is activated" -ForegroundColor Yellow
@@ -139,7 +139,7 @@ if ($confirmation -eq 'y') {
     changepk.exe /ProductKey $key
     Start-Sleep -Seconds 2
     slmgr.vbs /ato
-    Start-Sleep -Seconds 3
+    Start-Sleep -Seconds 10
     $status = (Get-ActivationStatus)
     If ($status.Status -eq "licensed") {
     Write-Host "Windows is activated" -ForegroundColor Yellow
@@ -161,8 +161,8 @@ Start-Sleep -Seconds 1
     Write-Host Installing PSWindowsUpdate module
     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
 
-    Install-Module -Name PSWindowsUpdate -Force
-    Import-Module -Name PSWindowsUpdate
+    ECHO Y | powershell Install-Module -Name PSWindowsUpdate -Force
+    ECHO Y | powershell Import-Module -Name PSWindowsUpdate
     ECHO Y | powershell Add-WUServiceManager -MicrosoftUpdate
 
     #Install all available Updates & Reboot if Required
