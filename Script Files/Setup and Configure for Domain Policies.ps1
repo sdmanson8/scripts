@@ -1,70 +1,4 @@
 #requires -version 5.1
-#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
-{  
-#Is Powershell 7 Installed
-  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-if ($w64 -or $w32)
-{
-  Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-# Check if Powershell 7 is Running, Stop Powershell 7 if Running
-    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "pwsh"
-        }
-}
-Else{
-  Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-  Break
-    }
-}
-
-Clear-Host
 #Requires -RunAsAdministrator
 
 #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
@@ -93,59 +27,37 @@ Clear-Host
  echo "---------------------------------------------------------"  
 $answer = read-host "Please Make a Selection"  
 
-# Edit VPN Name, Address, Username, Password
-            $vpnname = "VPN"
-            $address = "vpn.example.com"
-            $vpnusername = "username"
-            $vpnpassword = "password"
-
-# Ask for confirmation to Connect to a VPN Profile
+# Ask for confirmation to Create a VPN Profile
     $ConnectVPNProfile = Read-Host "Would you like to Connect to a VPN Profile? (Y/N)"
     if ($ConnectVPNProfile -eq 'Y') { 
+        $vpnname = Read-Host ""Enter the Configured VPN Name"" "WITHOUT "" "" ..."
+        $vpnusername = Read-Host "Enter your Domain Username WITHOUT "" "" ..."
+        $vpnpassword = Read-Host "Enter your Domain Password" -AsSecureString;
+        $BSTR=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($vpnpassword);
+        $password=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            Write-Host Connecting to VPN configuration
             $vpn = Get-VpnConnection | where {$_.Name -eq "$vpnname"}
-            }
             if ($vpn.ConnectionStatus -eq "Disconnected")
             {
-                $cmd = $env:WINDIR + "e\System32\rasdial.exe"
-                $expression = "$cmd ""$vpnname"" $vpnusername $vpnpassword"
+                $cmd = $env:WINDIR + "\System32\rasdial.exe"
+                $expression = "$cmd ""$vpnname"" $vpnusername $password"
                 Invoke-Expression -Command $expression 
             }
+}
 
  if ($answer -eq 1){
     Clear-Host
     # Configure/Connect to Domain VPN
-    Remove-Item "C:\vpn.ps1"
     Write-Output "Downloading VPN Script File"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1 -OutFile C:\vpn.ps1
-    # VPN Script File
-    PAUSE
-    Write-Host Edit VPN Script File
-    & "C:\Program Files\Notepad++\notepad++.exe" "C:\vpn.ps1"
-    PAUSE
-    Write-Host Running VPN Script
-    Clear-Host
-    & C:\vpn.ps1
-    PAUSE
-    Write-Host Removing Leftover Files
-    Remove-Item "C:\vpn.ps1"
+    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1 -OutFile C:\vpn.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # Join Domain Network
-    Remove-Item "C:\joindomain.ps1"
     Write-Output "Downloading JoinDomain Script File"
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1 -OutFile C:\joindomain.ps1
-    # JoinDomain Script File
-    PAUSE
-    Write-Host Edit JoinDomain Script File
-    & "C:\Program Files\Notepad++\notepad++.exe" "C:\joindomain.ps1"
-    PAUSE
-    Write-Host Running JoinDomain Script
-    Clear-Host
-    & C:\joindomain.ps1
-    PAUSE
-    Write-Host Removing Leftover Files
-    Remove-Item "C:\joindomain.ps1"
+    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1 -OutFile C:\joindomain.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
     Clear-Host
