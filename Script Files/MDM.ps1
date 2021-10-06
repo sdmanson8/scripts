@@ -2,11 +2,14 @@
 #Requires -RunAsAdministrator
 
 # Edit Member, Group, and username for MDM
-
+# Ask for confirmation to Add User to Local Admin Group
+    $MakeLocalAdmin = Read-Host "Would you like to Add User to Local Admin Group? (Y/N)"
+    if ($MakeLocalAdmin -eq 'Y') { 
 $user= Read-Host "Enter your Username 'Example: domain\user'"
 
 Write-Host Adding Domain User to Local Admin group
 Add-LocalGroupMember -Group "Administrators" -Member $user
+}
 
 PAUSE
 #MDM Enrolment
