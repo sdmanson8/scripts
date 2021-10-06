@@ -49,14 +49,14 @@ $answer = read-host "Please Make a Selection"
     Clear-Host
     # Configure/Connect to Domain VPN
     Write-Output "Downloading VPN Script File"
-    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1 -OutFile C:\vpn.ps1
+    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # Join Domain Network
     Write-Output "Downloading JoinDomain Script File"
-    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1 -OutFile C:\joindomain.ps1
+    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
@@ -72,18 +72,8 @@ $answer = read-host "Please Make a Selection"
     Clear-Host
     # Setup and configure MDM
     Write-Output "Downloading MDMEnrolment Script File"
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1" -OutFile C:\MDMEnrolment.ps1
-    # MDMEnrolment Script File
-    PAUSE
-    Write-Host Edit MDMEnrolment Script File
-    & "C:\Program Files\Notepad++\notepad++.exe" "C:\MDMEnrolment.ps1"
-    PAUSE
-    Write-Host Running MDMEnrolment Script
-    Clear-Host
-    & C:\MDMEnrolment.ps1
-    PAUSE
-    Write-Host Removing Leftover Files
-    Remove-Item "C:\MDMEnrolment.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1"
+    Invoke-Expression $($ScriptFromGithHub.Content)
  }
    if ($answer -eq 5){
     Clear-Host
