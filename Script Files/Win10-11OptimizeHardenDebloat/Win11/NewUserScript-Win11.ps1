@@ -7,7 +7,7 @@ Function RequireAdmin {
 }
 RequireAdmin
 
-$Host.UI.RawUI.WindowTitle = "Main Script for Windows 11 Optimizer"
+$Host.UI.RawUI.WindowTitle = "New User Script for Windows 11 Optimizer"
 
 #Create A Restore Point
 	$SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID#
