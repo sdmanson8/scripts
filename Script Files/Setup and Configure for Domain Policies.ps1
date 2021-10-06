@@ -56,14 +56,14 @@ $answer = read-host "Please Make a Selection"
     Clear-Host
     # Join Domain Network
     Write-Output "Downloading JoinDomain Script File"
-    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1
+    $ScriptFromGithHub = "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
     Clear-Host
     # Domain GPUpdate
     Write-Output "Domain GPUpdate"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/gpupdate.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/gpupdate.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
   if ($answer -eq 4){
@@ -79,13 +79,13 @@ $answer = read-host "Please Make a Selection"
     Clear-Host
     # Install Required Domain Apps
     Write-Output "Install Required Domain Apps"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
   if ($answer -eq 6){
     # Previous Menu
     Clear-Host
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 7){areyousure} 
