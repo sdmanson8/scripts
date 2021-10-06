@@ -48,7 +48,7 @@ Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
 PAUSE
 (New-Object -comObject Shell.Application).Windows() | ? { $_.FullName -ne $null} | ? {
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
-    # Install FortiClient VPN
+    # Install Seco VPN
     Write-Output "Installing Seco VPN"
     Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\secoclient-win-64-7.0.5.1.exe' -ArgumentList '/S' -PassThru
 
