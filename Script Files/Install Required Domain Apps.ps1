@@ -95,6 +95,24 @@ Clear-Host
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
 
+# Ask for confirmation to Create a VPN Profile
+    $ConnectVPNProfile = Read-Host "Would you like to Connect to a VPN Profile? (Y/N)"
+    if ($ConnectVPNProfile -eq 'Y') { 
+        $vpnname = Read-Host ""Enter the Configured VPN Name"" "WITHOUT "" "" ..."
+        $vpnusername = Read-Host "Enter your Domain Username WITHOUT "" "" ..."
+        $vpnpassword = Read-Host "Enter your Domain Password" -AsSecureString;
+        $BSTR=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($vpnpassword);
+        $password=[System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+            Write-Host Connecting to VPN configuration
+            $vpn = Get-VpnConnection | where {$_.Name -eq "$vpnname"}
+            if ($vpn.ConnectionStatus -eq "Disconnected")
+            {
+                $cmd = $env:WINDIR + "\System32\rasdial.exe"
+                $expression = "$cmd ""$vpnname"" $vpnusername $password"
+                Invoke-Expression -Command $expression 
+            }
+}
+
  if ($answer -eq 1){
     Clear-Host
     # Avaya Agent Desktop
