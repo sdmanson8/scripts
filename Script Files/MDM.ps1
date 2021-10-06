@@ -11,7 +11,6 @@ Write-Host Adding Domain User to Local Admin group
 Add-LocalGroupMember -Group "Administrators" -Member $user
 }
 
-PAUSE
 #MDM Enrolment
 Write-Host Starting Device Enrolment
 Start-Process ms-device-enrollment:?mode=mdm"&"username=user@example.com
