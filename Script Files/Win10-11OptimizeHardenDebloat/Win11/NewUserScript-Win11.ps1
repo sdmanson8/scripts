@@ -200,6 +200,7 @@ Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue 
 Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
 
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ClickOnce.reg -OutFile $env:USERPROFILE\Downloads\ClickOnce.reg
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\Security\TrustManager\PromptingLevel" -Name "LocalIntranet" -Force
 regedit.exe /S $env:USERPROFILE\Downloads\ClickOnce.reg
 Start-Sleep -Milliseconds 400
 Remove-Item "$env:USERPROFILE\Downloads\ClickOnce.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
@@ -272,6 +273,71 @@ if (Test-Path -Path $env:SystemDrive\Windows.old\)
     	{
           Write-Host "`nWindows.Old does not Exist... Ignoring`n" -ForegroundColor Red
         }
+
+##################################################################################
+
+#Install OneDrive
+    # Ask for confirmation to Install Onedrive
+    $InstallOneDrive = Read-Host "Would you like to Install Onedrive? (Y/N)"
+    if ($InstallOneDrive -eq 'Y') { 
+	    	$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
+			if (-not $OneDrive)
+			{
+				if (Test-Path -Path $env:SystemRoot\SysWOW64\OneDriveSetup.exe)
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
+					Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
+				}
+				else
+				{
+					try
+					{
+						# Downloading the latest OneDrive installer x64
+						if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
+						{
+							Write-Information -MessageData "" -InformationAction Continue
+							Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
+
+							# Parse XML to get the URL
+							# https://go.microsoft.com/fwlink/p/?LinkID=844652
+							$Parameters = @{
+								Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProduction"
+								UseBasicParsing = $true
+								Verbose         = $true
+							}
+							$Content = Invoke-RestMethod @Parameters
+
+							# Remove invalid chars
+							[xml]$OneDriveXML = $Content -replace "﻿", ""
+
+							$OneDriveURL = ($OneDriveXML).root.update.amd64binary.url[-1]
+							$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+							$Parameters = @{
+								Uri         = $OneDriveURL
+								OutFile     = "$DownloadsFolder\OneDriveSetup.exe"
+								SslProtocol = "Tls12"
+								Verbose     = $true
+							}
+							Invoke-WebRequest @Parameters
+
+							Start-Process -FilePath "$DownloadsFolder\OneDriveSetup.exe"
+						}
+					}
+					catch [System.Net.WebException]
+					{
+						Write-Warning -Message $Localization.NoInternetConnection
+						Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
+
+						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line) -ErrorAction SilentlyContinue
+
+						return
+					}
+				}
+
+				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
+			}
+}
 
 ##################################################################################
 
@@ -536,72 +602,8 @@ CleanTempFiles
 
 ##################################################################################
 
-#Install OneDrive
-    # Ask for confirmation to Install Onedrive
-    $InstallOneDrive = Read-Host "Would you like to Install Onedrive? (Y/N)"
-    if ($InstallOneDrive -eq 'Y') { 
-	    	$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
-			if (-not $OneDrive)
-			{
-				if (Test-Path -Path $env:SystemRoot\SysWOW64\OneDriveSetup.exe)
-				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
-					Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
-				}
-				else
-				{
-					try
-					{
-						# Downloading the latest OneDrive installer x64
-						if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
-						{
-							Write-Information -MessageData "" -InformationAction Continue
-							Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
-
-							# Parse XML to get the URL
-							# https://go.microsoft.com/fwlink/p/?LinkID=844652
-							$Parameters = @{
-								Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProduction"
-								UseBasicParsing = $true
-								Verbose         = $true
-							}
-							$Content = Invoke-RestMethod @Parameters
-
-							# Remove invalid chars
-							[xml]$OneDriveXML = $Content -replace "﻿", ""
-
-							$OneDriveURL = ($OneDriveXML).root.update.amd64binary.url[-1]
-							$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-							$Parameters = @{
-								Uri         = $OneDriveURL
-								OutFile     = "$DownloadsFolder\OneDriveSetup.exe"
-								SslProtocol = "Tls12"
-								Verbose     = $true
-							}
-							Invoke-WebRequest @Parameters
-
-							Start-Process -FilePath "$DownloadsFolder\OneDriveSetup.exe"
-						}
-					}
-					catch [System.Net.WebException]
-					{
-						Write-Warning -Message $Localization.NoInternetConnection
-						Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line) -ErrorAction SilentlyContinue
-
-						return
-					}
-				}
-
-				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
-			}
-}
-
-##################################################################################
-
 #Force Reboot Computer
 Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
 cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
+
 

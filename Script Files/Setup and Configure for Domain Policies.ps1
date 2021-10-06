@@ -1,5 +1,19 @@
 #requires -version 5.1
-#Requires -RunAsAdministrator
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
+    }
+}
+RequireAdmin
+
+$Host.UI.RawUI.WindowTitle = "Setup and Configure for Domain Policies"
+
+########################### Script Starting ###################################
+###############################################################################
+
+Clear-Host
 
 #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  

@@ -1,71 +1,19 @@
 #requires -version 5.1
-#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
-{  
-#Is Powershell 7 Installed
-  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-if ($w64 -or $w32)
-{
-  Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-# Check if Powershell 7 is Running, Stop Powershell 7 if Running
-    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "pwsh"
-        }
-}
-Else{
-  Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-  Break
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
     }
 }
+RequireAdmin
+
+$Host.UI.RawUI.WindowTitle = "Modify Browser Settings (Filtering)"
+
+########################### Script Starting ###################################
+###############################################################################
 
 Clear-Host
-#Requires -RunAsAdministrator
 
 # Ask for confirmation to Modify Chrome
     $ModifyChrome = Read-Host "Would you like to Modify Chrome? (Y/N)"
@@ -114,10 +62,10 @@ Clear-Host
     Else{
     Write-Output "Firefox is not installed on your machine." 
     Write-Output "Downloading Firefox"
-    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "C:\firefox-latest.exe"
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe"
     Write-Host "Installing Firefox"
-    Start-Process -Wait -FilePath "C:\firefox-latest.exe"
-    Remove-Item "C:\firefox-latest.exe"
+    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\firefox-latest.exe"
+    Remove-Item "$env:USERPROFILE\Downloads\firefox-latest.exe"
 }
    # Check if Firefox is Running, Stop Firefox if Running
     Write-Host "Is Firefox Running?"
@@ -134,7 +82,7 @@ Clear-Host
         }
     # Modify Microsoft Edge Settings
     Write-Host Is Microsoft Edge Installed?
-    $DIR = "C:\Program Files (x86)\Microsoft\Edge\Application"
+    $DIR = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application"
     if (Test-Path -Path $DIR)
     {
     Write-output "Microsoft Edge is already installed on your machine."
@@ -142,10 +90,10 @@ Clear-Host
     Else{
     Write-Output "Microsoft Edge is not installed on your machine."
     Write-Output "Downloading Microsoft Edge"
-    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "C:\MicrosoftEdgeSetup.exe"
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
     Write-Host "Installing Microsoft Edge"
-    Start-Process -Wait -FilePath "C:\MicrosoftEdgeSetup.exe"
-    Remove-Item "C:\MicrosoftEdgeSetup.exe"
+    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+    Remove-Item "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
    }
     # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
     Write-Host "Is Microsoft Edge Running?"

@@ -1,4 +1,19 @@
+#requires -version 5.1
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
+    }
+}
+RequireAdmin
 
+$Host.UI.RawUI.WindowTitle = "Clean Temp Files"
+
+########################### Script Starting ###################################
+###############################################################################
+
+Clear-Host
 <#
 Purpose:  Deletes Temporary Internet Files for the Current Logged On User.
 			  Deletes Temp Files from Windows Directory.
@@ -172,9 +187,9 @@ $WindowsFiles = "\\{0}\C$\Windows" -f $ComputerName
 # Clean-Up Windows Temp Files
 DeleteTempFiles "Windows Temp Files" $WindowsTempFiles "Red"
 
-$WinTempFiles = "C:\Windows\Temp\*" -f $ComputerName, $UserName
-$PrefetchTempFiles = "C:\Windows\Prefetch\*" -f $ComputerName, $UserName
-$OtherTempFiles = "C:\Documents and Settings\*\Local Settings\temp\*" -f $ComputerName, $UserName
+$WinTempFiles = "$env:WINDIR\Temp\*" -f $ComputerName, $UserName
+$PrefetchTempFiles = "$env:WINDIR\Prefetch\*" -f $ComputerName, $UserName
+$OtherTempFiles = "$env:SystemDrive\Documents and Settings\*\Local Settings\temp\*" -f $ComputerName, $UserName
 
 # Clean-Up Windows Temp Files
 DeleteTempFiles "Windows Temp Files" $WinTempFiles "Cyan"
@@ -186,7 +201,7 @@ DeleteTempFiles "Prefetch Temp Files" $PrefetchTempFiles "Cyan"
 DeleteTempFiles "Other Temp Files" $OtherTempFiles "Cyan"
 
 # Clear HP Support Assistant Installation Folder
-$HPSetup ="C:\swsetup" -f $ComputerName, $UserName
+$HPSetup ="$env:SystemDrive\swsetup" -f $ComputerName, $UserName
     if (Test-Path $HPSetup) {
         DeleteTempFiles "Clearing HP Support Assistant Installation Folder" $HPSetup "Cyan"
     }
@@ -197,7 +212,7 @@ $HPSetup ="C:\swsetup" -f $ComputerName, $UserName
     if ($DeleteOldDownloads -eq 'Y') { 
         Write-Host -ForegroundColor Yellow "Deleting files older than 90 days from User Downloads folder`n"
         Foreach ($user in $Users) {
-            $UserDownloads = "C:\Users\$user\Downloads" -f $ComputerName, $UserName
+            $UserDownloads = "$env:SystemDrive\Users\$user\Downloads" -f $ComputerName, $UserName
             $OldFiles = Get-ChildItem -Path "$UserDownloads\" -Recurse -File $ErrorActionPreference | Where-Object LastWriteTime -LT $DelDownloadsDate
             foreach ($file in $OldFiles) {
                 DeleteTempFiles "Deleting files older than 90 days from Downloads folder" "$UserDownloads\$file" "Cyan"
@@ -208,7 +223,7 @@ $HPSetup ="C:\swsetup" -f $ComputerName, $UserName
   # Empty Recycle Bin
         Write-Host -ForegroundColor Green "Cleaning Recycle Bin`n"
         $ErrorActionPreference = 'SilentlyContinue'
-        $RecycleBin = "C:\`$Recycle.Bin"  -f $ComputerName, $UserName
+        $RecycleBin = "$env:SystemDrive\`$Recycle.Bin"  -f $ComputerName, $UserName
         $BinFolders = Get-ChildItem $RecycleBin -Directory -Force
 
         Foreach ($Folder in $BinFolders) {

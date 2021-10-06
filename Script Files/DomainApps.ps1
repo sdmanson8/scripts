@@ -1,4 +1,19 @@
+#requires -version 5.1
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
+    }
+}
+RequireAdmin
 
+$Host.UI.RawUI.WindowTitle = "Install Domain Apps"
+
+########################### Script Starting ###################################
+###############################################################################
+
+Clear-Host
     # Avaya Agent Desktop
     Write-Host Opening Webpage to Download Prerequisites
     Start-Process http://avaya-accs/agentdesktop/setup.exe
@@ -26,7 +41,7 @@ PAUSE
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Avaya Workplace
     Write-Output "Installing Avaya Workplace"
-    msiexec.exe /i '\\zarbkfs01\Company Folder\Avaya IX Workplace Setup 3.8.0.136.14.msi' 
+    msiexec.exe /i '\\reflex.co.za\Shared\Company Folder\Avaya IX Workplace Setup 3.8.0.136.14.msi' 
 
 Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
 PAUSE
@@ -34,7 +49,7 @@ PAUSE
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Ninja
     Write-Output "Installing Ninja"
-    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\#NINJA_INSTALLS\REFLEX\reflexsolutionsworkstationmainoffice-4.4.6012-windows-installer.msi'
+    msiexec.exe /i '\\reflex.co.za\Shared\Company Folder\BU - EUC\BU - Managed Services\#Software\#NINJA_INSTALLS\REFLEX\reflexsolutionsworkstationmainoffice-4.4.6012-windows-installer.msi'
 
 Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
 PAUSE
@@ -42,7 +57,7 @@ PAUSE
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install ESET
     Write-Output "Installing ESET"
-    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\ESET\AIO_FOR_ALL_CLIENTS\_WORK_STATION_AIO_ALL_CLIENTS_x64_en_US.exe' -ArgumentList '/S' -PassThru
+    Start-Process -Wait -FilePath '\\reflex.co.za\Shared\Company Folder\BU - EUC\BU - Managed Services\#Software\ESET\AIO_FOR_ALL_CLIENTS\_WORK_STATION_AIO_ALL_CLIENTS_x64_en_US.exe' -ArgumentList '/S' -PassThru
 
 Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
 PAUSE
@@ -50,7 +65,7 @@ PAUSE
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Seco VPN
     Write-Output "Installing Seco VPN"
-    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\secoclient-win-64-7.0.5.1.exe' -ArgumentList '/S' -PassThru
+    Start-Process -Wait -FilePath '\\reflex.co.za\Shared\Company Folder\secoclient-win-64-7.0.5.1.exe' -ArgumentList '/S' -PassThru
 
 Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
 PAUSE
@@ -58,5 +73,5 @@ PAUSE
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Reflex Remote Support
     Write-Output "Installing Reflex Remote Support"
-    msiexec.exe /i '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi'
+    msiexec.exe /i '\\reflex.co.za\Shared\Company Folder\BU - EUC\BU - Managed Services\#Software\RS\Reflex Internal\Reflex_RS_PCs.msi'
 

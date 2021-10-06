@@ -1,71 +1,19 @@
 #requires -version 5.1
-#Calling Powershell as Admin and setting Execution Policy to Bypass to avoid Cannot run Scripts error
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))  
-{  
-#Is Powershell 7 Installed
-  $w64=Get-ItemProperty "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-  $w32=Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"  | Where-Object { try { $_.DisplayName -match "PowerShell 7-x64" } catch { $false } }
-if ($w64 -or $w32)
-{
-  Start-Process pwsh.exe -Verb RunAs -ArgumentList ('-noprofile -noexit -file "{0}" -elevated' -f ($myinvocation.MyCommand.Definition))
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-# Check if Powershell 7 is Running, Stop Powershell 7 if Running
-    if((get-process "pwsh" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "pwsh"
-        }
-}
-Else{
-  Start-Process powershell -Verb runAs -ArgumentList ("&'" +$myinvocation.mycommand.definition + "'")
-# Check if Windows Terminal is Running, Stop Windows Terminal if Running
-    if((get-process "WindowsTerminal" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "WindowsTerminal"
-        }
-# Check if CMD is Running, Stop CMD if Running
-    if((get-process "cmd" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "cmd"
-        }
-# Check if Powershell is Running, Stop Powershell if Running
-    if((get-process "powershell" -ea SilentlyContinue) -eq $Null){ 
-        echo "" 
-    }
-    else{ 
-    Stop-Process -processname "powershell"
-        }
-  Break
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
     }
 }
+RequireAdmin
+
+$Host.UI.RawUI.WindowTitle = "Install HP Drivers and Software"
+
+########################### Script Starting ###################################
+###############################################################################
 
 Clear-Host
-#Requires -RunAsAdministrator
 
 #Areyousure function. Alows user to select y or n when asked to exit. Y exits and N returns to main menu.  
  function areyousure {$areyousure = read-host "Are you sure you want to exit? (y/n)"  
@@ -101,15 +49,15 @@ Clear-Host
     Write-Host "Installing HP Drivers"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
     Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
-    Remove-Item C:\SWSetup
+    Remove-Item $env:SystemRoot\SWSetup
 }  
  if ($answer -eq 2){
     Clear-Host
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
-    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "C:\CASLSetup.exe"
+    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:SystemRoot\CASLSetup.exe"
     Write-Host "Installing HP Software Framework"
-    Start-Process -Wait -FilePath C:\CASLSetup.exe
+    Start-Process -Wait -FilePath $env:SystemRoot\CASLSetup.exe
     Remove-Item "$env:USERPROFILE\Downloads\CASLSetup.exe"
  }  
  if ($answer -eq 3){
