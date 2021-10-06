@@ -5,39 +5,25 @@ cls
 
 :: Block remote commands https://docs.microsoft.com/en-us/windows/win32/com/enabledcom
 reg add HKEY_LOCAL_MACHINE\Software\Microsoft\OLE /v EnableDCOM /t REG_SZ /d N /F
-:: Change file associations to protect against common ransomware and social engineering attacks. These are for regular users. Technicallly savvy 
-:: users know how to mount an iso or run a script even if they are associated with notepad. 
-assoc .bat=txtfile
-assoc .cmd=txtfile
-assoc .chm=txtfile
-assoc .hta=txtfile
-assoc .jse=txtfile
-assoc .js=txtfile
-assoc .vbe=txtfile
-assoc .vbs=txtfile
-assoc .wsc=txtfile
-assoc .wsf=txtfile
-assoc .ws=txtfile
-assoc .wsh=txtfile
-assoc .sct=txtfile
-assoc .url=txtfile
-assoc .ps1=txtfile
-assoc .iso=txtfile
-assoc .reg=txtfile
-assoc .wcx=txtfile
-assoc .msc=txtfile 
-assoc .slk=txtfile
-assoc .iqy=txtfile
-assoc .prn=txtfile
-assoc .diff=txtfile
+:: Change the extention files to use notepad++
+
+:: ftype bat=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: assoc .bat=bat
+:: ftype cmd=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: assoc .cmd=cmd
+:: ftype ps1=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: assoc .ps1=ps1
+:: ftype txt=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: assoc .txt=txt
+
 reg delete "HKLM\SOFTWARE\Classes\.devicemetadata-ms" /f
 reg delete "HKLM\SOFTWARE\Classes\.devicemanifest-ms" /f
 :: CVE-2020-0765 impacting Remote Desktop Connection Manager (RDCMan) configuration files - MS won't fix
-assoc .rdg=txtfile
+:: assoc .rdg=txtfile
 :: Mitigate ClickOnce .application and .deploy files vector
 :: https://blog.redxorblue.com/2020/07/one-click-to-compromise-fun-with.html
 :: assoc .application=txtfile
-assoc .deploy=txtfile
+:: assoc .deploy=txtfile
 :: TODO mitigate ClickOnce .appref-ms files vector
 :: https://www.blackhat.com/us-19/briefings/schedule/#clickonce-and-youre-in---when-appref-ms-abuse-is-operating-as-intended-15375
 :: reg delete "HKLM\SOFTWARE\Classes\.appref-ms" /f
