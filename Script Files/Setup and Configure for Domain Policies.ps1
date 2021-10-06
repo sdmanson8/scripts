@@ -49,7 +49,7 @@ $answer = read-host "Please Make a Selection"
     Clear-Host
     # Configure/Connect to Domain VPN
     Write-Output "Downloading VPN Script File"
-    $ScriptFromGithHub = https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1
+    $ScriptFromGithHub = "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
