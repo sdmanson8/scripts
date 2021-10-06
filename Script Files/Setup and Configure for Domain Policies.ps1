@@ -49,14 +49,14 @@ $answer = read-host "Please Make a Selection"
     Clear-Host
     # Configure/Connect to Domain VPN
     Write-Output "Downloading VPN Script File"
-    $ScriptFromGithHub = "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # Join Domain Network
     Write-Output "Downloading JoinDomain Script File"
-    $ScriptFromGithHub = "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
