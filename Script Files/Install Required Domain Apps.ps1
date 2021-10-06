@@ -18,7 +18,7 @@
  echo "    3. Install Avaya Workspace"
  echo "    4. Install Ninja"
  echo "    5. Install ESET"
- echo "    6. Install FortiClient VPN"
+ echo "    6. Install Seco VPN"
  echo "    7. Install Reflex Remote Support"
  echo ""
  echo "    8. Install All of the Above"
@@ -110,7 +110,7 @@ PAUSE
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install FortiClient VPN
     Write-Output "Installing FortiClient VPN"
-    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\BU - EUC\BU - Managed Services\#Software\Fortinet\FortiClientSetup_6.0.9.0277_x64.exe' -ArgumentList '/S' -PassThru
+    Start-Process -Wait -FilePath '\\zarbkfs01\Company Folder\secoclient-win-64-7.0.5.1.exe' -ArgumentList '/S' -PassThru
  }
   if ($answer -eq 7){
     Clear-Host
