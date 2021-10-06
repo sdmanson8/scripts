@@ -21,7 +21,7 @@ Write-Host "Opening Manage Bitlocker in Control Panel"
 control /name Microsoft.BitLockerDriveEncryption
 
 PAUSE
-Write-Host "Sign out of Current User Account in 5 seconds"
-Start-Sleep -Seconds 5
-#Sign Out of Local Admin Account
-shutdown -l 
+#Force Reboot Computer
+Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
+cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
+Start-Sleep -Milliseconds 400
