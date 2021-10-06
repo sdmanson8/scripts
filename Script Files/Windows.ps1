@@ -44,7 +44,7 @@ if ($answer -eq 1){
  if ($answer -eq 2){
     Clear-Host
     # Setup and configure for Domain Policies
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1" -OutFile C:\ConfigureDomainPolicies.ps1
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
   if ($answer -eq 3){
