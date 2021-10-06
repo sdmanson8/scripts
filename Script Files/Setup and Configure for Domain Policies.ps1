@@ -68,8 +68,6 @@ $answer = read-host "Please Make a Selection"
  }
   if ($answer -eq 4){
     Clear-Host
-    Remove-Item "C:\MDMEnrolment.ps1"
-    Clear-Host
     # Setup and configure MDM
     Write-Output "Downloading MDMEnrolment Script File"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1"
