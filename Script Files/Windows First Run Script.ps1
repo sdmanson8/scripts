@@ -86,13 +86,14 @@ Clear-Host
  echo "    5. Uninstall Microsoft Edge"
  echo "    6. Optimizor, Hardening and Bloatware Removal Script for Windows 10"
  echo "    7. Optimizor, Hardening and Bloatware Removal Script for Windows 11"
- echo "    8. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
- echo "    9. Cleanup Windows.Old folder"
- echo "    10. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
+ echo "    8. New User Script Windows 11"
+ echo "    9. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+ echo "    10. Cleanup Windows.Old folder"
+ echo "    11. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
  echo ""
- echo "    11. Previous Menu"
+ echo "    12. Previous Menu"
  echo ""
- echo "    12. exit" 
+ echo "    13. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -147,30 +148,37 @@ Clear-Host
  }
  if ($answer -eq 8){
     Clear-Host
+    # New User Script Windows 11
+    Write-Output "New User Script Windows 11"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/NewUserScript-Win11.ps1
+    Invoke-Expression $($ScriptFromGithHub.Content)   
+ }  
+ if ($answer -eq 9){
+    Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
- if ($answer -eq 9){
+ if ($answer -eq 10){
     Clear-Host
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat
     Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
- if ($answer -eq 10){
+ if ($answer -eq 11){
     Clear-Host
     # prompt to reboot machine
     Write-Output "Restarting PC"
     shutdown -r -t 00
 } 
- if ($answer -eq 11){
+ if ($answer -eq 12){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 12){areyousure}  
+ if ($answer -eq 13){areyousure}  
        sleep 5 
        mainmenu  
                    }  
