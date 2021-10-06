@@ -315,6 +315,10 @@ Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue 
 #Install .Net Framework 3.5
 Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
 
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ClickOnce.reg -OutFile $env:USERPROFILE\Downloads\ClickOnce.reg
+regedit.exe /S $env:USERPROFILE\Downloads\ClickOnce.reg
+Start-Sleep -Milliseconds 400
+Remove-Item "$env:USERPROFILE\Downloads\ClickOnce.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 ##################################################################################
 
 #Repair SMB
