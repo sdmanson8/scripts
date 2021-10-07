@@ -132,7 +132,6 @@ Start-Sleep -Seconds 1
       }
 
 ##################################################################################
-
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
 $ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
@@ -162,12 +161,10 @@ Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 & '.\Win10-11 Tweak.ps1'
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
-& '.\Sophia_NewUser.ps1'
+& '.\Sophia.ps1'
 Start-Sleep -Seconds 1
 Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
-
-Clear-Host
 
 ##################################################################################
 
