@@ -245,7 +245,6 @@ Start-Sleep -Seconds 1
       }
 
 ##################################################################################
-
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
 $ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
