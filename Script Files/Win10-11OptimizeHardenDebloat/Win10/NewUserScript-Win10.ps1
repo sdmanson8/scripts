@@ -26,7 +26,7 @@ $Host.UI.RawUI.WindowTitle = "New User Script for Windows 10 Optimizer"
 	# Never skip creating a restore point
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force
 
-	Checkpoint-Computer -Description "Windows 11 Optimizer" -RestorePointType MODIFY_SETTINGS
+	Checkpoint-Computer -Description "Windows 10 Optimizer" -RestorePointType MODIFY_SETTINGS
 
 	# Revert the System Restore checkpoint creation frequency to 1440 minutes
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 1440 -Force
