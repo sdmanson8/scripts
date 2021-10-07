@@ -665,11 +665,11 @@ WindowsManageDefaultPrinter -Disable
 	Если вы хотите оставить параметр "Параметры мультимедиа" в дополнительных параметрах схемы управления питанием, не отключайте "Компоненты для работы с медиа"
 	Отключить компоненты Windows, используя всплывающее диалоговое окно
 #>
-WindowsFeatures -Disable
+# WindowsFeatures -Disable
 
 # Enable the Windows features using the pop-up dialog box
 # Включить компоненты Windows, используя всплывающее диалоговое окно
-# WindowsFeatures -Enable
+WindowsFeatures -Enable
 
 <#
 	Uninstall optional features using the pop-up dialog box
@@ -678,11 +678,11 @@ WindowsFeatures -Disable
 	Удалить дополнительные компоненты, используя всплывающее диалоговое окно
 	Если вы хотите оставить параметр "Параметры мультимедиа" в дополнительных параметрах схемы управления питанием, не удаляйте компонент "Компоненты для работы с медиа"
 #>
-WindowsCapabilities -Uninstall
+#WindowsCapabilities -Uninstall
 
 # Install optional features using the pop-up dialog box
 # Установить дополнительные компоненты, используя всплывающее диалоговое окно
-# WindowsCapabilities -Install
+WindowsCapabilities -Install
 
 # Receive updates for other Microsoft products when you update Windows
 # При обновлении Windows получать обновления для других продуктов Майкрософт
@@ -971,7 +971,7 @@ PinToStart -Tiles ControlPanel, DevicesPrinters, PowerShell
 	Пакеты приложений не будут установлены для новых пользователей, если отмечена галочка "Для всех пользователей"
 	Аргумент "ForAllUsers" устанавливает галочку для удаления пакетов для всех пользователей
 #>
-UninstallUWPApps -ForAllUsers
+# UninstallUWPApps -ForAllUsers
 
 <#
 	Restore the default UWP apps using the pop-up dialog box
@@ -980,7 +980,7 @@ UninstallUWPApps -ForAllUsers
 	Восстановить стандартные UWP-приложения, используя всплывающее диалоговое окно
 	UWP-приложения могут быть восстановлены, только если они были удалены для текущего пользователя
 #>
-# RestoreUWPApps
+RestoreUWPApps
 
 # Download and install "HEVC Video Extensions from Device Manufacturer" to be able to open .heic and .heif formats
 # Скачать и установить "Расширения для видео HEVC от производителя устройства", чтобы иметь возможность открывать форматы .heic и .heif

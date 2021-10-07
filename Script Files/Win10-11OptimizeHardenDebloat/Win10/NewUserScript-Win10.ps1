@@ -7,7 +7,7 @@ Function RequireAdmin {
 }
 RequireAdmin
 
-$Host.UI.RawUI.WindowTitle = "Main Script for Windows 10 Optimizer"
+$Host.UI.RawUI.WindowTitle = "New User Script for Windows 10 Optimizer"
 
 #Create A Restore Point
 	$SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID#
@@ -40,119 +40,6 @@ $Host.UI.RawUI.WindowTitle = "Main Script for Windows 10 Optimizer"
 ########################### Script Starting ###################################
 ###############################################################################
 
-Write-Host "`nLet's Start with the Basics...`n"
-Start-Sleep -Seconds 1
-
-#Set TimeZone
-cmd.exe --% /c sc triggerinfo w32time start/networkon stop/networkoff
-Write-Host "`nSet your TimeZone..`n"
-
-$key = Read-Host "Enter the City for your Time Zone WITHOUT "" "" ..."
-Get-TimeZone -ListAvailable | Where-Object {$_.displayname -match "$key"}
-$key2 = Read-Host "Enter the 'Id' for your Time Zone WITHOUT "" "" ..."
-Set-TimeZone -Id "$key2"
-
-Write-Host "`nForce Re-Sync Windows Time Server`n"
-net stop w32time
-w32tm /unregister
-w32tm /register
-net start w32time
-w32tm /resync /force
-
-##################################################################################
-
-Write-Host "Checking if Windows is Activated"
-function Get-ActivationStatus {
-[CmdletBinding()]
- param(
- [Parameter(ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
- [string]$DNSHostName = $Env:COMPUTERNAME
- )
- process {
- try {
- $wpa = Get-WmiObject SoftwareLicensingProduct -ComputerName $DNSHostName `
- -Filter "ApplicationID = '55c92734-d682-4d71-983e-d6ec3f16059f'" `
- -Property LicenseStatus -ErrorAction Stop
- } catch {
- $status = New-Object ComponentModel.Win32Exception ($_.Exception.ErrorCode)
- $wpa = $null 
- }
- $out = New-Object psobject -Property @{
- ComputerName = $DNSHostName;
- Status = [string]::Empty;
- }
- if ($wpa) {
- :outer foreach($item in $wpa) {
- switch ($item.LicenseStatus) {
- 0 {$out.Status = "Unlicensed"}
- 1 {$out.Status = "Licensed"; break outer}
- 2 {$out.Status = "Out-Of-Box Grace Period"; break outer}
- 3 {$out.Status = "Out-Of-Tolerance Grace Period"; break outer}
- 4 {$out.Status = "Non-Genuine Grace Period"; break outer}
- 5 {$out.Status = "Notification"; break outer}
- 6 {$out.Status = "Extended Grace"; break outer}
- default {$out.Status = "Unknown value"}
- }
- }
- } else { $out.Status = $status.Message }
- $out
- }
-}
-
-Write-Host "`nChecking to see if Windows is Activated`n"
-Start-Sleep -Seconds 1
-
-$status = (Get-ActivationStatus)
-
-If ($status.Status -eq "licensed") {
-Write-Host "Windows is activated" -ForegroundColor Yellow
-}
-else { ($status.Status -eq "Unlicensed") 
-Write-Host "Windows is not activated" -ForegroundColor Red -BackgroundColor Black
-
-#Activate Windows
-Write-Host "`nPreparing to Activate Windows..`n"
-Start-Sleep -Seconds 1
-$ActivateWindows = Read-Host "Do you want to Activate Windows using OEM Key? [Y = OEM | N = Own Key / Skip License Activation]"
-if ($ActivateWindows -eq 'y') {
-$ProductKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
-  if ($null -ne $ProductKey)
-    {
-        start-process $env:WINDIR\System32\changePK.exe -ArgumentList "/ProductKey $ProductKey"
-        Start-Sleep -Seconds 10
-        $status = (Get-ActivationStatus)
-        If ($status.Status -eq "licensed") {
-        Write-Host "Windows is activated" -ForegroundColor Yellow
-    }
-        else { ($status.Status -eq "Unlicensed") 
-        Write-Host "Windows is not activated" -ForegroundColor Red -BackgroundColor Black
-        }
-    }
-
-}
-else {
-Write-Host @writecolor "Do you want to use your own Windows Product key? (Y = Yes | N = Skip License Activation)"
-$confirmation = Read-Host 
-if ($confirmation -eq 'y') {
-    Write-Host @writecolor "Please Enter your Genuine 25 Digit Product key"
-    $key = Read-Host 
-    changepk.exe /ProductKey $key
-    Start-Sleep -Seconds 2
-    slmgr.vbs /ato
-    Start-Sleep -Seconds 10
-    $status = (Get-ActivationStatus)
-    If ($status.Status -eq "licensed") {
-    Write-Host "Windows is activated" -ForegroundColor Yellow
-    }
-      else { ($status.Status -eq "Unlicensed") 
-      Write-Host "Windows is not activated" -ForegroundColor Red -BackgroundColor Black
-           }
-       }
-   }
-}
-
-##################################################################################
-
 Write-Host "`nPreparing to Configure your Computer.. Please Wait`n"
 Start-Sleep -Seconds 1
 
@@ -165,7 +52,7 @@ Start-Sleep -Seconds 1
     ECHO Y | powershell Import-Module -Name PSWindowsUpdate
     ECHO Y | powershell Add-WUServiceManager -MicrosoftUpdate
 
-    #Install all available Updates & Reboot if Required
+    #Install all available Updates
     Write-Host Install Windows Updates
     Install-WindowsUpdate -AcceptAll
 
@@ -274,15 +161,10 @@ Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
 & '.\Win10-11 Tweak.ps1'
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win10"
-& '.\Sophia.ps1'
+& '.\Sophia_NewUser.ps1'
 Start-Sleep -Seconds 1
 Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
-
-Clear-Host
-
-#Removing Get-ActivationStatus Function
-Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
 
 ##################################################################################
 
@@ -720,3 +602,4 @@ CleanTempFiles
 #Force Reboot Computer
 Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
 cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
+

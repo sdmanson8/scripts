@@ -1,3 +1,13 @@
+# Relaunch the script with administrator privileges
+Function RequireAdmin {
+    If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" $PSCommandArgs" -WorkingDirectory $pwd -Verb RunAs
+        Exit
+    }
+}
+RequireAdmin
+
+Clear-Host
 Write-Host "`nPlease wait a few minutes...`n"
 Start-Sleep -Seconds 1
 ################### Starting Script ############################################################
@@ -11,6 +21,7 @@ IF ($path -eq $False) {New-PSDrive -PSProvider Registry -Name HKCR -Root HKEY_CL
 #Kill Foreground
 taskkill /F /IM "msedge.exe"
 taskkill /F /IM "explorer.exe"
+Clear-Host
 
 # Updating Notepad++
 Write-Host "Silently Updating Notepad++ ... Please wait..."
@@ -29,7 +40,9 @@ Invoke-WebRequest $dlUrl -OutFile $installerPath
 Start-Process -FilePath $installerPath -Args "/S" -Verb RunAs -Wait
 Remove-Item $installerPath
    Write-Host Notepad++ Updated
- 
+Start-Sleep -Milliseconds 500
+Clear-Host
+
 #####################
 $url = 'https://github.com/PowerShell/PowerShell/releases/latest'
 $request = [System.Net.WebRequest]::Create($url)
@@ -45,6 +58,9 @@ $version = $realTagUrl.split('/')[-1].Trim('v')
 
 ################ -------------------------------------------- ######################
 ####################################################################################
+
+Start-Sleep -Milliseconds 500
+Clear-Host
 
 #Lower Ram
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $env:USERPROFILE\Downloads\ram-reducer.reg
@@ -72,7 +88,7 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent' 
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'EnableFirstLogonAnimation' -Type "DWord" -Value '0' -Force
 
 # Remove OneDrive, and stop it from showing in Explorer side menu.
-C:\Windows\SysWOW64\OneDriveSetup.exe /uninstall
+"'$env:WINDIR\SysWOW64\OneDriveSetup.exe' /uninstall"
 Remove-Item -Path 'HKCR:\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}' -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path 'HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}' -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 
@@ -864,7 +880,8 @@ foreach ($task in $tasks) {
 #Disable MRU lists (jump lists) of XAML apps in Start Menu 
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Start_TrackDocs" -Type "DWORD" -Value 0 -Force
 
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type "DWORD" -Value 1 -Force
+#Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type "DWORD" -Value 1 -Force
+
 #Show Super Hidden System Files in Explorer
     # Ask for confirmation to Show Super Hidden System Files in Explorer
     $SuperHidden = Read-Host "Would you like to Enable Hidden Files in Explorer? (Y/N)"
@@ -880,77 +897,14 @@ Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer
 }
 
 Start-Sleep -Seconds 2
-Write-Warning "A reboot is needed"
+Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
 
-Clear-Host
-Write-Warning "A reboot is needed"
-
-#Install OneDrive
-    # Ask for confirmation to Install Onedrive
-    $InstallOneDrive = Read-Host "Would you like to Install Onedrive? (Y/N)"
-    if ($InstallOneDrive -eq 'Y') { 
-	    	$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
-			if (-not $OneDrive)
-			{
-				if (Test-Path -Path $env:SystemRoot\SysWOW64\OneDriveSetup.exe)
-				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
-					Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
-				}
-				else
-				{
-					try
-					{
-						# Downloading the latest OneDrive installer x64
-						if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
-						{
-							Write-Information -MessageData "" -InformationAction Continue
-							Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
-
-							# Parse XML to get the URL
-							# https://go.microsoft.com/fwlink/p/?LinkID=844652
-							$Parameters = @{
-								Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProduction"
-								UseBasicParsing = $true
-								Verbose         = $true
-							}
-							$Content = Invoke-RestMethod @Parameters
-
-							# Remove invalid chars
-							[xml]$OneDriveXML = $Content -replace "﻿", ""
-
-							$OneDriveURL = ($OneDriveXML).root.update.amd64binary.url[-1]
-							$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-							$Parameters = @{
-								Uri         = $OneDriveURL
-								OutFile     = "$DownloadsFolder\OneDriveSetup.exe"
-								SslProtocol = "Tls12"
-								Verbose     = $true
-							}
-							Invoke-WebRequest @Parameters
-
-							Start-Process -FilePath "$DownloadsFolder\OneDriveSetup.exe"
-						}
-					}
-					catch [System.Net.WebException]
-					{
-						Write-Warning -Message $Localization.NoInternetConnection
-						Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line) -ErrorAction SilentlyContinue
-
-						return
-					}
-				}
-
-				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
-			}
-}
+#Starting Windows Explorer
+explorer.exe
 
 Start-Sleep -Seconds 2
-Write-Warning "A reboot is needed"
+Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
 
 Clear-Host
@@ -968,8 +922,5 @@ Remove-Item -Path $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg -Force -
 Remove-Item -Path $env:USERPROFILE\Downloads\enable-photo-viewer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path $env:USERPROFILE\Downloads\ram-reducer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
 Remove-Item -Path $env:USERPROFILE\Downloads\bloatware.ps1 -Force -ErrorAction SilentlyContinue -Confirm:$false
-
-#Starting Windows Explorer
-explorer.exe
 
 exit
