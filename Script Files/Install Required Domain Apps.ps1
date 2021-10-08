@@ -1,5 +1,4 @@
 #requires -version 5.1
-#requires -version 5.1
 # Relaunch the script with administrator privileges
 Function RequireAdmin {
     If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
@@ -125,7 +124,7 @@ Clear-Host
  }
    if ($answer -eq 9){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps10"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 10){areyousure} 
