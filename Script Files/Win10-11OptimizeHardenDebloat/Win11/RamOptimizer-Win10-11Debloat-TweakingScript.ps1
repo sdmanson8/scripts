@@ -12,7 +12,7 @@ Write-Host "`nPlease wait a few minutes...`n"
 Start-Sleep -Seconds 1
 ################### Starting Script ############################################################
 
-$Host.UI.RawUI.WindowTitle = "Ram Optimizer and Windows Tweaking Script"
+$Host.UI.RawUI.WindowTitle = "Ram Optimizer and Windows Tweaking Script for Windows 11"
 
 #Creates a PSDrive to be able to access the 'HKCR' tree
 $path = Test-Path HKCR:\
@@ -79,7 +79,7 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore" "AutoDow
 
 # Prevents "Suggested Applications" returning
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\" -Name "CloudContent" -Force
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" "DisableWindowsConsumerFeatures" 1
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name "DisableWindowsConsumerFeatures" -Type DWord -Value 1 -Force
 
 # Disable some of the "new" features of Windows 10, such as forcibly installing apps you don't want, and the new annoying animation for first time login.
 New-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\' -Name 'CloudContent' -Force
@@ -96,8 +96,8 @@ Remove-Item -Path 'HKCR:\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6
 New-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\' -Name 'DeliveryOptimization' -Force
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' -Name 'DODownloadMode' -Type DWord -Value '0' -Force
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization' -Name 'SystemSettingsDownloadMode' -Type DWord -Value '0' -Force
-New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\' -Name 'DeliveryOptimization'
-New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\' -Name 'Config'
+New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\' -Name 'DeliveryOptimization' -Force
+New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\' -Name 'Config' -Force
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config' -Name 'DODownloadMode' -Type DWord -Value '0' -Force
 
 #Create Shortcut on Desktop | Reboot to Advanced Menu
@@ -634,7 +634,7 @@ Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\MicrosoftEdge\TabPrelo
 Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\MicrosoftEdge\TabPreloader" -Name "AllowTabPreloading" -Type "DWORD" -Value 0 -Force
 
 #Change active title bar color to black
-cmd.exe --% /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Accent" /v "AccentPalette" /t REG_BINARY /d "6B 6B 6B FF 59 59 59 FF 4C 4C 4C FF 3F 3F 3F FF 33 33 33 FF 26 26 26 FF 14 14 14 FF 88 17 98 00" /f 1>NUL 2>NUL
+cmd.exe --% /c reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Accent" /v "AccentPalette" /t REG_BINARY /d "6B 6B 6B FF 59 59 59 FF 4C 4C 4C FF 3F 3F 3F FF 33 33 33 FF 26 26 26 FF 14 14 14 FF 88 17 98 00" /f
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Accent" -Name "StartColorMenu" -Type "DWORD" -Value "4281545523" -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Accent" -Name "AccentColorMenu" -Type "DWORD" -Value "4278190080" -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "AccentColor" -Type "DWORD" -Value "4278190080" -Force
