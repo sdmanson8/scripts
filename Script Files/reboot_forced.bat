@@ -1,8 +1,8 @@
 :: Countdown
 cls
-for %%r in (5 4 3 2 1) do (
+for %%r in (10 9 8 7 6 5 4 3 2 1) do (
 echo Restarting in %%r...
-timeout 1 1>NUL 2>NUL
+timeout 1
 cls
 )
 
