@@ -13,7 +13,8 @@ $Host.UI.RawUI.WindowTitle = "Removal of Windows.Old Folder"
 ########################### Script Starting ###################################
 ###############################################################################
 
-
+if (Test-Path -Path $env:SystemDrive\Windows.old\)
+	  {
 takeown /F c:\Windows.old\* /R /A /D Y
 cacls c:\Windows.old\*.* /T /grant administrators:F
 Remove-Item c:\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
@@ -21,3 +22,8 @@ Remove-Item c:\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confi
 echo "Clearing Component Store (WinSxS)"
 timeout 5
 dism /online /cleanup-image /StartComponentCleanup /ResetBase
+ }
+		else
+    	{
+          Write-Host "`nWindows.Old does not Exist... Ignoring`n" -ForegroundColor Red
+        }
