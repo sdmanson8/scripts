@@ -62,13 +62,14 @@ $answer = read-host "Please Make a Selection"
  if ($answer -eq 1){
     Clear-Host
     # Configure/Connect to Domain VPN
-    Write-Output "Downloading VPN Script File"
+	Write-Output "Configure Domain VPN"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/vpn.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # Join Domain Network
+	Write-Output "Join Domain"
     Write-Output "Downloading JoinDomain Script File"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/join%20domain.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
@@ -83,7 +84,7 @@ $answer = read-host "Please Make a Selection"
   if ($answer -eq 4){
     Clear-Host
     # Setup and configure MDM
-    Write-Output "Downloading MDMEnrolment Script File"
+    Write-Output "Configure MDM"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/MDM.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
