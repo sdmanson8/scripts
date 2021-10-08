@@ -22,14 +22,14 @@ Clear-Host
     Write-Host "Installing HP Drivers"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
     Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
-    Remove-Item C:\SWSetup
+    Remove-Item C:\SWSetup -Force -ErrorAction SilentlyContinue -Confirm:$false
 
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
     Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:USERPROFILE\DownloadsCASLSetup.exe"
     Write-Host "Installing HP Software Framework"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\CASLSetup.exe"
-    Remove-Item "$env:USERPROFILE\DownloadsCASLSetup.exe"
+    Remove-Item "$env:USERPROFILE\DownloadsCASLSetup.exe" -Force -ErrorAction SilentlyContinue -Confirm:$false
 
     # HP Support Assistant
     Write-Host "Opening Webpage to Download HP Support Assistant"
@@ -38,4 +38,4 @@ Clear-Host
     Write-Host "Installing HP Support Assistant"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
     Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\SWSetup"
+    Remove-Item "$env:USERPROFILE\Downloads\SWSetup" -Force -ErrorAction SilentlyContinue -Confirm:$false
