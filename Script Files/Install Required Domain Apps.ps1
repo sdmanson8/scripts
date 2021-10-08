@@ -37,8 +37,9 @@ Clear-Host
  echo ""
  echo "    8. Install All of the Above"
  echo ""
- echo "    9. exit" 
+ echo "    9. Previous Menu"
  echo "" 
+ echo "    10. exit" 
  echo ""
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
@@ -142,7 +143,12 @@ $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/DomainApps.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 9){areyousure} 
+   if ($answer -eq 9){
+    # Previous Menu
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps10"
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }
+ if ($answer -eq 10){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
