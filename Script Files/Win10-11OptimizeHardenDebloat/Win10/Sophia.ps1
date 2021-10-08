@@ -552,7 +552,7 @@ AeroShaking -Enable
 #region OneDrive
 # Uninstall OneDrive. The OneDrive user folder won't be removed
 # Удалить OneDrive. Папка пользователя OneDrive не будет удалена
-# OneDrive -Uninstall
+OneDrive -Uninstall
 
 # Install OneDrive (default value)
 # Установить OneDrive (значение по умолчанию)
