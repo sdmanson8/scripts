@@ -7,13 +7,13 @@ cls
 reg add HKEY_LOCAL_MACHINE\Software\Microsoft\OLE /v EnableDCOM /t REG_SZ /d N /F
 :: Change the extention files to use notepad++
 
-:: ftype bat=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: ftype bat=%programfiles%\Notepad++\notepad++.exe "%1"
 :: assoc .bat=bat
-:: ftype cmd=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: ftype cmd=%programfiles%\Notepad++\notepad++.exe "%1"
 :: assoc .cmd=cmd
-:: ftype ps1=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: ftype ps1=%programfiles%\Notepad++\notepad++.exe "%1"
 :: assoc .ps1=ps1
-:: ftype txt=c:\Program Files\Notepad++\notepad++.exe "%1"
+:: ftype txt=%programfiles%\Notepad++\notepad++.exe "%1"
 :: assoc .txt=txt
 
 reg delete "HKLM\SOFTWARE\Classes\.devicemetadata-ms" /f
@@ -89,8 +89,6 @@ powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 92E97FA1-2EDF-4
 :: Block Office applications from creating executable content
 powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 3B576869-A4EC-4529-8536-B80A7769E899 -AttackSurfaceReductionRules_Actions enable
 ::
-:: Block execution of potentially obfuscated scripts
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 5BEB7EFE-FD9A-4556-801D-275E5FFC04CC -AttackSurfaceReductionRules_Actions Enabled
 ::
 :: Block executable content from email client and webmail
 powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550 -AttackSurfaceReductionRules_Actions Enabled
@@ -115,7 +113,7 @@ powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids B2B3F03D-6A65-4
 :: In environments where you can whitelist CFA apps through Group Policy your life will be easier. 
 :: Read and follow this guide before enabling: https://www.prajwaldesai.com/enable-controlled-folder-access-using-group-policy/
 powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
-:: to add exclusion folders or apps, use the following command: powershell.exe Add-MpPreference -ExclusionPath 'C:\Program Files\App\app.exe' 
+:: to add exclusion folders or apps, use the following command: powershell.exe Add-MpPreference -ExclusionPath '%programfiles%\App\app.exe' 
 ::
 :: Enable Cloud functionality of Windows Defender
 powershell.exe Set-MpPreference -MAPSReporting Advanced
@@ -400,16 +398,14 @@ reg add "HKLM\SOFTWARE\MICROSOFT\.NETFramework\Security\TrustManager\PromptingLe
 :: Block Win32/64 binaries (LOLBins) from making net connections when they shouldn't
 :: ---------------------
 netsh Advfirewall set allprofiles state on
-netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="C:\Program Files (x86)\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="C:\Program Files\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="%programfiles(x86)%\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="%programfiles%\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block calc.exe netconns" program="%systemroot%\system32\calc.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block calc.exe netconns" program="%systemroot%\SysWOW64\calc.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block certutil.exe netconns" program="%systemroot%\system32\certutil.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block certutil.exe netconns" program="%systemroot%\SysWOW64\certutil.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block cmstp.exe netconns" program="%systemroot%\system32\cmstp.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block cmstp.exe netconns" program="%systemroot%\SysWOW64\cmstp.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block cscript.exe netconns" program="%systemroot%\system32\cscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block cscript.exe netconns" program="%systemroot%\SysWOW64\cscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block esentutl.exe netconns" program="%systemroot%\system32\esentutl.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block esentutl.exe netconns" program="%systemroot%\SysWOW64\esentutl.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block expand.exe netconns" program="%systemroot%\system32\expand.exe" protocol=tcp dir=out enable=yes action=block profile=any
@@ -443,16 +439,10 @@ netsh advfirewall firewall add rule name="Block replace.exe netconns" program="%
 netsh advfirewall firewall add rule name="Block rpcping.exe netconns" program="%systemroot%\SysWOW64\rpcping.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block rundll32.exe netconns" program="%systemroot%\system32\rundll32.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block rundll32.exe netconns" program="%systemroot%\SysWOW64\rundll32.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block runscripthelper.exe netconns" program="%systemroot%\system32\runscripthelper.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block runscripthelper.exe netconns" program="%systemroot%\SysWOW64\runscripthelper.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block scriptrunner.exe netconns" program="%systemroot%\system32\scriptrunner.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block scriptrunner.exe netconns" program="%systemroot%\SysWOW64\scriptrunner.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe netconns" program="%systemroot%\system32\SyncAppvPublishingServer.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe netconns" program="%systemroot%\SysWOW64\SyncAppvPublishingServer.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block wmic.exe netconns" program="%systemroot%\system32\wbem\wmic.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block wmic.exe netconns" program="%systemroot%\SysWOW64\wbem\wmic.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%systemroot%\system32\wscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%systemroot%\SysWOW64\wscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh Advfirewall set allprofiles state on
 ::
 :: Disable TCP timestamps
