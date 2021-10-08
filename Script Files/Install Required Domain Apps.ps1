@@ -89,8 +89,6 @@ Clear-Host
  }  
  if ($answer -eq 3){
     Clear-Host
-Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
-PAUSE
 (New-Object -comObject Shell.Application).Windows() | ? { $_.FullName -ne $null} | ? {
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Avaya Workplace
@@ -99,8 +97,6 @@ $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
  }
   if ($answer -eq 4){
     Clear-Host
-Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
-PAUSE
 (New-Object -comObject Shell.Application).Windows() | ? { $_.FullName -ne $null} | ? {
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Ninja
@@ -109,8 +105,6 @@ $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
  }
   if ($answer -eq 5){
     Clear-Host
-Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
-PAUSE
 (New-Object -comObject Shell.Application).Windows() | ? { $_.FullName -ne $null} | ? {
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install ESET
@@ -119,8 +113,6 @@ $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
  }
   if ($answer -eq 6){
     Clear-Host
-Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
-PAUSE
 (New-Object -comObject Shell.Application).Windows() | ? { $_.FullName -ne $null} | ? {
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Seco VPN
@@ -129,8 +121,6 @@ $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
  }
   if ($answer -eq 7){
     Clear-Host
-Start-Process -FilePath "\\reflex.co.za\Shared\Company Folder"
-PAUSE
 (New-Object -comObject Shell.Application).Windows() | ? { $_.FullName -ne $null} | ? {
 $_.FullName.toLower().Endswith('\explorer.exe') } | % { $_.Quit() }
     # Install Reflex Remote Support
