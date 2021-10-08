@@ -60,7 +60,7 @@ setx /M MP_FORCE_USE_SANDBOX 1
 :: Update signatures
 "%ProgramFiles%"\"Windows Defender"\MpCmdRun.exe -SignatureUpdate
 :: Enable Defender signatures for Potentially Unwanted Applications (PUA)
-powershell.exe Set-MpPreference -PUAProtection enable
+:: powershell.exe Set-MpPreference -PUAProtection enable
 :: Enable Defender periodic scanning
 reg add "HKCU\SOFTWARE\Microsoft\Windows Defender" /v PassiveMode /t REG_DWORD /d 2 /f
 ::
@@ -112,7 +112,7 @@ powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids B2B3F03D-6A65-4
 :: required to approve an app install through CFA. This is an extremely valuable setting but only for machines which are already fully configured. 
 :: In environments where you can whitelist CFA apps through Group Policy your life will be easier. 
 :: Read and follow this guide before enabling: https://www.prajwaldesai.com/enable-controlled-folder-access-using-group-policy/
-powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
+:: powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
 :: to add exclusion folders or apps, use the following command: powershell.exe Add-MpPreference -ExclusionPath '%programfiles%\App\app.exe' 
 ::
 :: Enable Cloud functionality of Windows Defender
