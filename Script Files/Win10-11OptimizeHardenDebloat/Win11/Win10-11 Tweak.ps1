@@ -1,4 +1,4 @@
-$Host.UI.RawUI.WindowTitle = "Windows 10/11 Tweaks"
+$Host.UI.RawUI.WindowTitle = "Windows 11 Tweaks"
 
 # Tweaks
 # Adds a # to disable functions
