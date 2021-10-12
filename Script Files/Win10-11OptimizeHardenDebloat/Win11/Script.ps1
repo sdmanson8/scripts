@@ -282,9 +282,6 @@ Start-Sleep -Seconds 1
 
 Clear-Host
 
-#Removing Get-ActivationStatus Function
-Get-Item -Path Function:\Get-ActivationStatus | Remove-Item
-
 ##################################################################################
 
 #Configure Browsers
