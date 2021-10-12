@@ -256,86 +256,6 @@ if (Test-Path -Path $env:SystemDrive\Windows.old\)
         }
 
 
-#Remove Windows.Old
-if (Test-Path -Path $env:SystemDrive\Windows.old\)
-	  {
-         takeown /F $env:SystemDrive\Windows.old\* /R /A /D Y
-         cacls $env:SystemDrive\Windows.old\*.* /T /grant administrators:F
-         Remove-Item $env:SystemDrive\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
-         Write-Host "Clearing Component Store (WinSxS)"
-         Start-Sleep -Seconds 2
-         dism /online /cleanup-image /StartComponentCleanup /ResetBase
-      }
-		else
-    	{
-          Write-Host "`nWindows.Old does not Exist... Ignoring`n" -ForegroundColor Red
-        }
-
-##################################################################################
-
-#Install OneDrive
-    # Ask for confirmation to Install Onedrive
-    $InstallOneDrive = Read-Host "Would you like to Install Onedrive? (Y/N)"
-    if ($InstallOneDrive -eq 'Y') { 
-	    	$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
-			if (-not $OneDrive)
-			{
-				if (Test-Path -Path $env:SystemRoot\SysWOW64\OneDriveSetup.exe)
-				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
-					Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
-				}
-				else
-				{
-					try
-					{
-						# Downloading the latest OneDrive installer x64
-						if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
-						{
-							Write-Information -MessageData "" -InformationAction Continue
-							Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
-
-							# Parse XML to get the URL
-							# https://go.microsoft.com/fwlink/p/?LinkID=844652
-							$Parameters = @{
-								Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProduction"
-								UseBasicParsing = $true
-								Verbose         = $true
-							}
-							$Content = Invoke-RestMethod @Parameters
-
-							# Remove invalid chars
-							[xml]$OneDriveXML = $Content -replace "﻿", ""
-
-							$OneDriveURL = ($OneDriveXML).root.update.amd64binary.url[-1]
-							$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
-							$Parameters = @{
-								Uri         = $OneDriveURL
-								OutFile     = "$DownloadsFolder\OneDriveSetup.exe"
-								SslProtocol = "Tls12"
-								Verbose     = $true
-							}
-							Invoke-WebRequest @Parameters
-
-							Start-Process -FilePath "$DownloadsFolder\OneDriveSetup.exe"
-						}
-					}
-					catch [System.Net.WebException]
-					{
-						Write-Warning -Message $Localization.NoInternetConnection
-						Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
-
-						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line) -ErrorAction SilentlyContinue
-
-						return
-					}
-				}
-
-				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
-			}
-}
-
 ##################################################################################
 
 <#
@@ -596,6 +516,71 @@ $HPSetup ="C:\swsetup" -f $ComputerName, $UserName
         Write-Host -ForegroundColor Green "After: $After"
 }
 CleanTempFiles
+
+##################################################################################
+
+#Install OneDrive
+    # Ask for confirmation to Install Onedrive
+    $InstallOneDrive = Read-Host "Would you like to Install Onedrive? (Y/N)"
+    if ($InstallOneDrive -eq 'Y') { 
+	    	$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
+			if (-not $OneDrive)
+			{
+				if (Test-Path -Path $env:SystemRoot\SysWOW64\OneDriveSetup.exe)
+				{
+					Write-Information -MessageData "" -InformationAction Continue
+					Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
+					Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
+				}
+				else
+				{
+					try
+					{
+						# Downloading the latest OneDrive installer x64
+						if ((Invoke-WebRequest -Uri https://www.google.com -UseBasicParsing -DisableKeepAlive -Method Head).StatusDescription)
+						{
+							Write-Information -MessageData "" -InformationAction Continue
+							Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
+
+							# Parse XML to get the URL
+							# https://go.microsoft.com/fwlink/p/?LinkID=844652
+							$Parameters = @{
+								Uri             = "https://g.live.com/1rewlive5skydrive/OneDriveProduction"
+								UseBasicParsing = $true
+								Verbose         = $true
+							}
+							$Content = Invoke-RestMethod @Parameters
+
+							# Remove invalid chars
+							[xml]$OneDriveXML = $Content -replace "﻿", ""
+
+							$OneDriveURL = ($OneDriveXML).root.update.amd64binary.url[-1]
+							$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
+							$Parameters = @{
+								Uri         = $OneDriveURL
+								OutFile     = "$DownloadsFolder\OneDriveSetup.exe"
+								SslProtocol = "Tls12"
+								Verbose     = $true
+							}
+							Invoke-WebRequest @Parameters
+
+							Start-Process -FilePath "$DownloadsFolder\OneDriveSetup.exe"
+						}
+					}
+					catch [System.Net.WebException]
+					{
+						Write-Warning -Message $Localization.NoInternetConnection
+						Write-Error -Message $Localization.NoInternetConnection -ErrorAction SilentlyContinue
+
+						Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line) -ErrorAction SilentlyContinue
+
+						return
+					}
+				}
+
+				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
+			}
+}
 
 ##################################################################################
 
