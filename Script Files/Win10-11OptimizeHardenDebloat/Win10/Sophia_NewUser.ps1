@@ -422,11 +422,11 @@ WindowsInkWorkspace -Hide
 
 # Always show all icons in the notification area
 # Всегда отображать все значки в области уведомлений
-NotificationAreaIcons -Show
+# NotificationAreaIcons -Show
 
 # Hide all icons in the notification area (default value)
 # Скрыть все значки в области уведомлений (значение по умолчанию)
-# NotificationAreaIcons -Hide
+NotificationAreaIcons -Hide
 
 # Hide the Meet Now icon in the notification area
 # Скрыть иконку "Провести собрание" в области уведомлений
