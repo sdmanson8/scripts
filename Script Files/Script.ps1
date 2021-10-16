@@ -45,7 +45,7 @@ $Host.UI.RawUI.WindowTitle = "Main Script for Windows"
     Clear-Host
     # Configure Linux to use Docker
     Write-Output "Configure Linux to use Docker"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ConfigureLinuxForDocker.ps1" -UseBasicParsing
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ConfigureLinuxForDocker.ps1"
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
  if ($answer -eq 3){areyousure} 
