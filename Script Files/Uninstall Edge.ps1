@@ -20,7 +20,7 @@ Checkpoint-Computer -Description "Removal of Microsoft Edge" -RestorePointType M
 
 Clear-Host
 Write-Host Downloading Edge Legacy Uninstaller
-Invoke-WebRequest -Uri https://gorazy.com/it-support/downloads/uninstall_edge.zip -OutFile $env:USERPROFILE\Downloads\uninstall_edge.zip
+Invoke-WebRequest -Uri https://gorazy.com/it-support/downloads/uninstall_edge.zip -OutFile $env:USERPROFILE\Downloads\uninstall_edge.zip -UseBasicParsing -UseBasicParsing
 
 Write-Host Extracting files
 Expand-Archive "$env:USERPROFILE\Downloads\uninstall_edge.zip" -DestinationPath "$env:USERPROFILE\Downloads\uninstall_edge"
@@ -73,7 +73,7 @@ cd $DIR\[0-9]*\Installer
 <#
 Clear-Host
     Write-Host Downloading Geek Uninstaller
-    Invoke-WebRequest -Uri https://geekuninstaller.com/geek.zip -OutFile $env:USERPROFILE\Downloads\geek.zip
+    Invoke-WebRequest -Uri https://geekuninstaller.com/geek.zip -OutFile $env:USERPROFILE\Downloads\geek.zip -UseBasicParsing
     
     PAUSE
     Write-Host Extracting files

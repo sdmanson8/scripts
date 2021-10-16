@@ -51,14 +51,14 @@ Clear-Host
     Clear-Host
     # prompt to run Windows Update
     Write-Output "Running Windows Update"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # prompt to Disable Windows Update
     Write-Output "Running Sledgehammer 2.7.2 (Disable Windows Update)"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Disable%20Windows%20Update.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Disable%20Windows%20Update.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 3){
@@ -71,56 +71,56 @@ Clear-Host
     Clear-Host
     # prompt to download PatchMyPC
     Write-Output "Downloading PatchMyPC"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PatchMyPC.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PatchMyPC.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 5){
     Clear-Host
     # prompt to run Microsoft Edge Uninstaller
     Write-Output "Running Microsoft Edge Uninstaller"  
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Uninstall%20Edge.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Uninstall%20Edge.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 6){
     Clear-Host
     # Optimizor, Hardening and Bloatware Removal Script for Windows 10
     Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 10"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/Script.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/Script.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
   if ($answer -eq 7){
     Clear-Host
     # New User Script Windows 10
     Write-Output "New User Script Windows 10"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/NewUserScript-Win10.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/NewUserScript-Win10.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }
  if ($answer -eq 8){
     Clear-Host
     # Optimizor, Hardening and Bloatware Removal Script for Windows 11
     Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 11"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/Script.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/Script.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 9){
     Clear-Host
     # New User Script Windows 11
     Write-Output "New User Script Windows 11"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/NewUserScript-Win11.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/NewUserScript-Win11.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
  if ($answer -eq 10){
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
  if ($answer -eq 11){
     Clear-Host
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
  if ($answer -eq 12){
@@ -131,7 +131,7 @@ Clear-Host
 } 
  if ($answer -eq 13){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 14){areyousure}  

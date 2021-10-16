@@ -66,13 +66,13 @@ Clear-Host
     Clear-Host
     # Grammarly
     Write-Output "Downloading Grammarly for Windows"
-    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
+    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlySetup.exe" -UseBasicParsing
     Write-Host "Installing Grammarly"
     Start-Process -FilePath "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
     PAUSE
     Remove-Item "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
     Write-Output "Downloading Grammarly for Microsoft Office"
-    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe"
+    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe" -UseBasicParsing
     Write-Host "Installing Grammarly for Microsoft Office"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe"
     PAUSE
@@ -85,14 +85,14 @@ Clear-Host
     Clear-Host
     # Install Google Chrome
     Write-Output "Installing Google Chrome"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
    if ($answer -eq 4){
     Clear-Host
     # Install Firefox
     Write-Output "Downloading Firefox"
-    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe"
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe" -UseBasicParsing
     Write-Host "Installing Firefox"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\firefox-latest.exe"
     Remove-Item "$env:USERPROFILE\Downloads\firefox-latest.exe"
@@ -101,7 +101,7 @@ Clear-Host
     Clear-Host
     # Install Microsoft Edge
     Write-Output "Downloading Microsoft Edge"
-    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -UseBasicParsing
     Write-Host "Installing Microsoft Edge"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
     Remove-Item "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
@@ -110,7 +110,7 @@ Clear-Host
      Clear-Host
     # Google Drive
     Write-Host "Downloading Google Drive"
-    Invoke-WebRequest -Uri "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe"
+    Invoke-WebRequest -Uri "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe" -UseBasicParsing
     Write-Host "Installing Google Drive"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe"
     Remove-Item "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe"
@@ -119,7 +119,7 @@ Clear-Host
      Clear-Host
     # Tree Size
     Write-Host "Downloading Tree Size"
-    Invoke-WebRequest -Uri "https://downloads.jam-software.de/treesize_free/TreeSizeFreeSetup.exe" -OutFile "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe"
+    Invoke-WebRequest -Uri "https://downloads.jam-software.de/treesize_free/TreeSizeFreeSetup.exe" -OutFile "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe" -UseBasicParsing
     Write-Host "Installing Tree Size"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe"
     Remove-Item "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe"
@@ -128,14 +128,14 @@ Clear-Host
     Clear-Host
     # Install All of the Above
     Write-Output "Install All of the Above"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
    if ($answer -eq 9){
     Clear-Host
     # Office Uninstaller
     Write-Output "Office Uninstaller"
-    Invoke-WebRequest "https://aka.ms/SaRA-officeUninstallFromPC" -OutFile "$env:USERPROFILE\Downloads\SetupProd_OffScrub.exe"
+    Invoke-WebRequest "https://aka.ms/SaRA-officeUninstallFromPC" -OutFile "$env:USERPROFILE\Downloads\SetupProd_OffScrub.exe" -UseBasicParsing
     Write-Host "Opening Office Uninstaller"
     Start-Process -FilePath "$env:USERPROFILE\Downloads\SetupProd_OffScrub.exe"
     PAUSE
@@ -145,7 +145,7 @@ Clear-Host
     Clear-Host
     # ProduKey (Windows License Finder)
     Write-Output "Downloading ProduKey"
-    Invoke-WebRequest "https://www.nirsoft.net/utils/produkey-x64.zip" -OutFile "$Env:Temp\produkey-x64.zip"
+    Invoke-WebRequest "https://www.nirsoft.net/utils/produkey-x64.zip" -OutFile "$Env:Temp\produkey-x64.zip" -UseBasicParsing
     Expand-Archive -Path "$Env:Temp\produkey-x64.zip" -DestinationPath "$env:USERPROFILE\Downloads\ProduKey x64"
     Remove-Item "$Env:Temp\produkey-x64.zip"
     Write-Output "Opening ProduKey"
@@ -154,7 +154,7 @@ Clear-Host
 }
   if ($answer -eq 11){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 12){areyousure} 

@@ -55,7 +55,7 @@ Clear-Host
     Clear-Host
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
-    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:SystemRoot\CASLSetup.exe"
+    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:SystemRoot\CASLSetup.exe" -UseBasicParsing
     Write-Host "Installing HP Software Framework"
     Start-Process -Wait -FilePath $env:SystemRoot\CASLSetup.exe
     Remove-Item "$env:USERPROFILE\Downloads\CASLSetup.exe" -Force -ErrorAction SilentlyContinue -Confirm:$false
@@ -74,12 +74,12 @@ Clear-Host
     Clear-Host
     # Install All of the Above
     Write-Output "Install All of the Above"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/HPSoftwareDrivers.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/HPSoftwareDrivers.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
   if ($answer -eq 5){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 6){areyousure} 

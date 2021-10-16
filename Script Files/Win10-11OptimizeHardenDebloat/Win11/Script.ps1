@@ -251,7 +251,7 @@ $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
 $ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
 $Destination= "$env:USERPROFILE\Downloads\"
 Write-Host "Downloading $Url"
-Invoke-WebRequest -Uri $Url -OutFile $ZipFile
+Invoke-WebRequest -Uri $Url -OutFile $ZipFile -UseBasicParsing
 $ExtractShell = New-Object -ComObject Shell.Application
 $Files = $ExtractShell.Namespace($ZipFile).Items()
 Write-Output "Extracting ZIP..... This might take a little while"
@@ -286,16 +286,16 @@ Clear-Host
 
 #Configure Browsers
 #Mozilla Firefox
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Mozilla.reg -OutFile $env:USERPROFILE\Downloads\firefox.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Mozilla.reg -OutFile $env:USERPROFILE\Downloads\firefox.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\firefox.reg
 #Chrome
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.reg -OutFile $env:USERPROFILE\Downloads\chrome.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.reg -OutFile $env:USERPROFILE\Downloads\chrome.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\chrome.reg
 #Chromium
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chromium.reg -OutFile $env:USERPROFILE\Downloads\Chromium.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chromium.reg -OutFile $env:USERPROFILE\Downloads\Chromium.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\Chromium.reg
 #Edge
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Edge.reg -OutFile $env:USERPROFILE\Downloads\Edge.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Edge.reg -OutFile $env:USERPROFILE\Downloads\Edge.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\Edge.reg
 
 #Remove Old Files
@@ -312,7 +312,7 @@ Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue 
 #Install .Net Framework 3.5
 Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
 
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ClickOnce.reg -OutFile $env:USERPROFILE\Downloads\ClickOnce.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ClickOnce.reg -OutFile $env:USERPROFILE\Downloads\ClickOnce.reg -UseBasicParsing
 Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\Security\TrustManager\PromptingLevel" -Name "LocalIntranet" -Force
 regedit.exe /S $env:USERPROFILE\Downloads\ClickOnce.reg
 Start-Sleep -Milliseconds 400
@@ -330,7 +330,7 @@ Start-Sleep -Seconds 1
 ##################################################################################
 
 #Prevent Bloatware Reinstall
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
 Remove-Item "$env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
@@ -701,6 +701,6 @@ CleanTempFiles
 ##################################################################################
 
 #Force Reboot Computer
-Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
+Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat" -UseBasicParsing
 cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
 

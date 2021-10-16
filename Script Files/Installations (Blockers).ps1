@@ -76,7 +76,7 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     }
     Else{
     Write-Output "Google Chrome is not installed on your machine."
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
     } 
     # Check if Chrome is Running, Stop Chrome if Running

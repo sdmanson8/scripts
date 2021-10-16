@@ -52,48 +52,48 @@ if ($answer -eq 1){
     Clear-Host
     # Windows First Run (Post Clean Install) Tweaks
     Write-Output "Windows First Run (Post Clean Install) Tweaks"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20First%20Run%20Script.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20First%20Run%20Script.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # Setup and configure for Domain Policies
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Setup%20and%20Configure%20for%20Domain%20Policies.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
   if ($answer -eq 3){
     Clear-Host
     # "Content Blockers (Adult, Social, Gambling,etc)"
     Write-Output "Content Blockers (Adult, Social, Gambling,etc)"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Content%20Blockers%20(Adult%2C%20Social%2C%20Gambling%2Cetc).ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
    if ($answer -eq 4){
     Clear-Host
     # "Install HP Software and Drivers"
     Write-Output "Install HP Software and Drivers"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/InstallHPDriversandSoftware.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/InstallHPDriversandSoftware.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
    if ($answer -eq 5){
     Clear-Host
     # Software
     Write-Output "Software"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Software.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Software.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
    if ($answer -eq 6){
     Clear-Host
     # Windows 10/11 Admin Tools
     Write-Output "Windows 10/11 Admin Tools"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WinAdminTools.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WinAdminTools.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
   if ($answer -eq 7){
     Clear-Host
     # Previous Menu
     Write-Output "Previous Menu"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1"
+    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
  if ($answer -eq 8){areyousure} 

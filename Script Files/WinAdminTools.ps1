@@ -43,34 +43,34 @@ Clear-Host
     Clear-Host
     # prompt to run Windows Update
     Write-Output "Running Windows Update"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
  if ($answer -eq 2){
     Clear-Host
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
   if ($answer -eq 3){
     Clear-Host
     # prompt to Cleanup Temporary Files
     Write-Output "Cleanup Temporary Files"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/CleanTempFiles.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/CleanTempFiles.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  } 
    if ($answer -eq 4){
     Clear-Host
     # prompt to Reset the Windows Update Service
     Write-Output "Reset the Windows Update Service"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ResetWinUpdates.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ResetWinUpdates.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  } 
 
  if ($answer -eq 5){
     # Previous Menu
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 6){areyousure}  

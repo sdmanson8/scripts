@@ -36,7 +36,7 @@ if ($res.StatusCode -ne 200) {throw ("status code to getDownloadUrl was not 200:
 $dlUrl = ($res.Links | Where-Object {$_.href -like "*x64.exe"})[0].href
 if ($dlUrl.StartsWith("/")) { $dlUrl = "$homeUrl$dlUrl" }
 $installerPath = Join-Path $env:TEMP (Split-Path $dlUrl -Leaf)
-Invoke-WebRequest $dlUrl -OutFile $installerPath
+Invoke-WebRequest $dlUrl -OutFile $installerPath -UseBasicParsing
 Start-Process -FilePath $installerPath -Args "/S" -Verb RunAs -Wait
 Remove-Item $installerPath
    Write-Host Notepad++ Updated
@@ -63,15 +63,15 @@ Start-Sleep -Milliseconds 500
 Clear-Host
 
 #Lower Ram
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $env:USERPROFILE\Downloads\ram-reducer.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $env:USERPROFILE\Downloads\ram-reducer.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\ram-reducer.reg
 
 #Enable Photo Viewer
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/enable-photo-viewer.reg -Outfile $env:USERPROFILE\Downloads\enable-photo-viewer.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/enable-photo-viewer.reg -Outfile $env:USERPROFILE\Downloads\enable-photo-viewer.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\enable-photo-viewer.reg
 
 #Disable Edge Prelaunch
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/disable-edge-prelaunch.reg -OutFile $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/disable-edge-prelaunch.reg -OutFile $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg
 
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\" -Name "WindowsStore" -Force
@@ -101,7 +101,7 @@ New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimiza
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config' -Name 'DODownloadMode' -Type DWord -Value '0' -Force
 
 #Create Shortcut on Desktop | Reboot to Advanced Menu
-Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/troubleshoot.ico" -OutFile "$env:USERPROFILE\Downloads\troubleshoot.ico"
+Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/troubleshoot.ico" -OutFile "$env:USERPROFILE\Downloads\troubleshoot.ico" -UseBasicParsing
 $item = "$env:USERPROFILE\Downloads\troubleshoot.ico"
 Move-Item $item "$env:WINDIR\troubleshoot.ico" -Force -ErrorAction SilentlyContinue -Confirm:$false
 $location = "$env:WINDIR\troubleshoot.ico"
@@ -257,7 +257,7 @@ Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVers
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "MultipleInvokePromptMinimum" -Type "DWORD" -Value 999 -Force
 
 #Download SetAcl.exe
-Invoke-WebRequest -Uri https://github.com/Fahim732/Windows-10-optimize-script/raw/master/SetACL.exe -OutFile $env:USERPROFILE\Downloads\SetACL.exe
+Invoke-WebRequest -Uri https://github.com/Fahim732/Windows-10-optimize-script/raw/master/SetACL.exe -OutFile $env:USERPROFILE\Downloads\SetACL.exe -UseBasicParsing
 Set-Location -Path $env:USERPROFILE\Downloads
 
 #Replace "Personalize" with "Appearance" in desktop context menu

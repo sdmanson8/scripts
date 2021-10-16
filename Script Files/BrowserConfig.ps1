@@ -28,7 +28,7 @@ Clear-Host
     }
     Else{
     Write-Output "Google Chrome is not installed on your machine."
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
     } 
     # Check if Chrome is Running, Stop Chrome if Running
@@ -62,7 +62,7 @@ Clear-Host
     Else{
     Write-Output "Firefox is not installed on your machine." 
     Write-Output "Downloading Firefox"
-    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe"
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe" -UseBasicParsing
     Write-Host "Installing Firefox"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\firefox-latest.exe"
     Remove-Item "$env:USERPROFILE\Downloads\firefox-latest.exe"
@@ -90,7 +90,7 @@ Clear-Host
     Else{
     Write-Output "Microsoft Edge is not installed on your machine."
     Write-Output "Downloading Microsoft Edge"
-    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -UseBasicParsing
     Write-Host "Installing Microsoft Edge"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
     Remove-Item "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"

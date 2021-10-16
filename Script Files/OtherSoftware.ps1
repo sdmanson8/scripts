@@ -28,13 +28,13 @@ Clear-Host
 
     # Grammarly
     Write-Output "Downloading Grammarly for Windows"
-    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
+    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlySetup.exe" -UseBasicParsing
     Write-Host "Installing Grammarly"
     Start-Process -FilePath "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
     PAUSE
     Remove-Item "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
     Write-Output "Downloading Grammarly for Microsoft Office"
-    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe"
+    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe" -UseBasicParsing
     Write-Host "Installing Grammarly for Microsoft Office"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe"
     PAUSE

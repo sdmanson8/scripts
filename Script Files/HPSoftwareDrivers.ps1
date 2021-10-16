@@ -26,7 +26,7 @@ Clear-Host
 
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
-    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:USERPROFILE\DownloadsCASLSetup.exe"
+    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:USERPROFILE\DownloadsCASLSetup.exe" -UseBasicParsing
     Write-Host "Installing HP Software Framework"
     Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\CASLSetup.exe"
     Remove-Item "$env:USERPROFILE\DownloadsCASLSetup.exe" -Force -ErrorAction SilentlyContinue -Confirm:$false

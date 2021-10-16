@@ -35,6 +35,6 @@ control /name Microsoft.BitLockerDriveEncryption
 
 PAUSE
 #Force Reboot Computer
-Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat"
+Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat" -UseBasicParsing
 cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
 Start-Sleep -Milliseconds 400
