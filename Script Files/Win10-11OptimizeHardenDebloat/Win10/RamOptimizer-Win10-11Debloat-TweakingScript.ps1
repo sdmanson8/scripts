@@ -53,7 +53,7 @@ $version = $realTagUrl.split('/')[-1].Trim('v')
 ####################
 #Updating Powershell
     Write-Host "Preparing to Silently Update Powershell to Version $version ... Please wait..."
-    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI -Quiet"
+    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
     Write-Host "Powershell updated to $version"
 
 ################ -------------------------------------------- ######################
