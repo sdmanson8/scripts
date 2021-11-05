@@ -698,7 +698,7 @@ CleanTempFiles
 }
 
 ##################################################################################
-
+Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name sShortDate -Value dd/MM/yyyy
 #Force Reboot Computer
 Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/reboot_forced.bat" -OutFile "$env:SystemDrive\reboot_forced.bat" -UseBasicParsing
 cmd.exe /k "%SystemDrive%\reboot_forced.bat & del %SystemDrive%\reboot_forced.bat"
