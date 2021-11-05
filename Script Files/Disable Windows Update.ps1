@@ -18,7 +18,7 @@ Clear-Host
 # Disable Windows Update
 Write-Host Download Sledgehammer 2.7.2
 
-Invoke-WebRequest -Uri https://files2.majorgeeks.com/cc8d575f44ca82d499ecb31c9ac59fa4a50be0aa/system/Sledgehammer_2.7.2.zip -OutFile $env:USERPROFILE\Downloads\Sledgehammer_2.7.2.zip  -UseBasicParsing
+Invoke-WebRequest -Uri "https://softpedia-secure-download.com/dl/1a7c5e5049efb235f7ec9c59bc143923/6184ea19/100258453/software/system/Sledgehammer_2.7.2.zip" -OutFile $env:USERPROFILE\Downloads\Sledgehammer_2.7.2.zip  -UseBasicParsing
 
 PAUSE
 Write-Host Extracting release files
