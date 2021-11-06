@@ -263,11 +263,10 @@ if (Test-Path -Path $env:SystemDrive\Windows.old\)
 #Edge
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win11ClassicRClickMenu.reg -OutFile $env:USERPROFILE\Downloads\Win11ClassicRClickMenu.reg -UseBasicParsing
 regedit.exe /S $env:USERPROFILE\Downloads\Win11ClassicRClickMenu.reg
-Stop-Process explorer.exe
-Start-Process explorer.exe
+taskkill /F /IM "explorer.exe"
+explorer.exe
 
 #Remove Old Files
-Set-Location "$env:USERPROFILE"
 Remove-Item "$env:USERPROFILE\Downloads\Win11ClassicRClickMenu.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
 ##################################################################################
