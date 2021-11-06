@@ -247,7 +247,7 @@ SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
 if (Test-Path -Path $env:SystemDrive\Windows.old\)
 	  {
          takeown /F $env:SystemDrive\Windows.old\* /R /A /D Y
-         cacls $env:SystemDrive\Windows.old\*.* /T /grant administrators:F
+         ECHO Y | cacls $env:SystemDrive\Windows.old\*.* /T /grant administrators:F
          Remove-Item $env:SystemDrive\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
          Write-Host "Clearing Component Store (WinSxS)"
          Start-Sleep -Seconds 2
@@ -257,6 +257,18 @@ if (Test-Path -Path $env:SystemDrive\Windows.old\)
     	{
           Write-Host "`nWindows.Old does not Exist... Ignoring`n" -ForegroundColor Red
         }
+
+##################################################################################
+
+#Edge
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win11ClassicRClickMenu.reg -OutFile $env:USERPROFILE\Downloads\Win11ClassicRClickMenu.reg -UseBasicParsing
+regedit.exe /S $env:USERPROFILE\Downloads\Win11ClassicRClickMenu.reg
+Stop-Process explorer.exe
+Start-Process explorer.exe
+
+#Remove Old Files
+Set-Location "$env:USERPROFILE"
+Remove-Item "$env:USERPROFILE\Downloads\Win11ClassicRClickMenu.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
 ##################################################################################
 
