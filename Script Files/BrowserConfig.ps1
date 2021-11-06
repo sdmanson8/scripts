@@ -62,10 +62,11 @@ Clear-Host
     Else{
     Write-Output "Firefox is not installed on your machine." 
     Write-Output "Downloading Firefox"
-    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$downloads\firefox-latest.exe" -UseBasicParsing
     Write-Host "Installing Firefox"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\firefox-latest.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\firefox-latest.exe"
+    Start-Process -Wait -FilePath "$downloads\firefox-latest.exe"
+    Remove-Item "$downloads\firefox-latest.exe"
 }
    # Check if Firefox is Running, Stop Firefox if Running
     Write-Host "Is Firefox Running?"
@@ -90,10 +91,11 @@ Clear-Host
     Else{
     Write-Output "Microsoft Edge is not installed on your machine."
     Write-Output "Downloading Microsoft Edge"
-    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$downloads\MicrosoftEdgeSetup.exe" -UseBasicParsing
     Write-Host "Installing Microsoft Edge"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+    Start-Process -Wait -FilePath "$downloads\MicrosoftEdgeSetup.exe"
+    Remove-Item "$downloads\MicrosoftEdgeSetup.exe"
    }
     # Check if Microsoft Edge is Running, Stop Microsoft Edge if Running
     Write-Host "Is Microsoft Edge Running?"

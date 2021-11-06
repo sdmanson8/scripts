@@ -61,18 +61,18 @@ $version = $realTagUrl.split('/')[-1].Trim('v')
 
 Start-Sleep -Milliseconds 500
 Clear-Host
-
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
 #Lower Ram
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $env:USERPROFILE\Downloads\ram-reducer.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\ram-reducer.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/lower-ram-usage.reg -OutFile $downloads\ram-reducer.reg -UseBasicParsing
+regedit.exe /S $downloads\ram-reducer.reg
 
 #Enable Photo Viewer
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/enable-photo-viewer.reg -Outfile $env:USERPROFILE\Downloads\enable-photo-viewer.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\enable-photo-viewer.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/enable-photo-viewer.reg -Outfile $downloads\enable-photo-viewer.reg -UseBasicParsing
+regedit.exe /S $downloads\enable-photo-viewer.reg
 
 #Disable Edge Prelaunch
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/disable-edge-prelaunch.reg -OutFile $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/W4RH4WK/Debloat-Windows-10/master/utils/disable-edge-prelaunch.reg -OutFile $downloads\disable-edge-prelaunch.reg -UseBasicParsing
+regedit.exe /S $downloads\disable-edge-prelaunch.reg
 
 New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\" -Name "WindowsStore" -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore" "AutoDownload" 2
@@ -101,8 +101,9 @@ New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimiza
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config' -Name 'DODownloadMode' -Type DWord -Value '0' -Force
 
 #Create Shortcut on Desktop | Reboot to Advanced Menu
-Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/troubleshoot.ico" -OutFile "$env:USERPROFILE\Downloads\troubleshoot.ico" -UseBasicParsing
-$item = "$env:USERPROFILE\Downloads\troubleshoot.ico"
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/troubleshoot.ico" -OutFile "$downloads\troubleshoot.ico" -UseBasicParsing
+$item = "$downloads\troubleshoot.ico"
 Move-Item $item "$env:WINDIR\troubleshoot.ico" -Force -ErrorAction SilentlyContinue -Confirm:$false
 $location = "$env:WINDIR\troubleshoot.ico"
 
@@ -257,8 +258,9 @@ Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVers
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "MultipleInvokePromptMinimum" -Type "DWORD" -Value 999 -Force
 
 #Download SetAcl.exe
-Invoke-WebRequest -Uri https://github.com/Fahim732/Windows-10-optimize-script/raw/master/SetACL.exe -OutFile $env:USERPROFILE\Downloads\SetACL.exe -UseBasicParsing
-Set-Location -Path $env:USERPROFILE\Downloads
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Invoke-WebRequest -Uri https://github.com/Fahim732/Windows-10-optimize-script/raw/master/SetACL.exe -OutFile $downloads\SetACL.exe -UseBasicParsing
+Set-Location -Path $downloads
 
 #Replace "Personalize" with "Appearance" in desktop context menu
 & .\SetACL.exe -silent -on "HKCR:\DesktopBackground\Shell\Personalize" -ot reg -actn setowner -ownr "n:Administrators"
@@ -917,10 +919,11 @@ Remove-Item "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\star
 
 Clear-Host
 #Removing Leftover Files
-Remove-Item -Path $env:USERPROFILE\Downloads\SetACL.exe -Force -ErrorAction SilentlyContinue -Confirm:$false
-Remove-Item -Path $env:USERPROFILE\Downloads\disable-edge-prelaunch.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
-Remove-Item -Path $env:USERPROFILE\Downloads\enable-photo-viewer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
-Remove-Item -Path $env:USERPROFILE\Downloads\ram-reducer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
-Remove-Item -Path $env:USERPROFILE\Downloads\bloatware.ps1 -Force -ErrorAction SilentlyContinue -Confirm:$false
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Remove-Item -Path $downloads\SetACL.exe -Force -ErrorAction SilentlyContinue -Confirm:$false
+Remove-Item -Path $downloads\disable-edge-prelaunch.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
+Remove-Item -Path $downloads\enable-photo-viewer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
+Remove-Item -Path $downloads\ram-reducer.reg -Force -ErrorAction SilentlyContinue -Confirm:$false
+Remove-Item -Path $downloads\bloatware.ps1 -Force -ErrorAction SilentlyContinue -Confirm:$false
 
 exit

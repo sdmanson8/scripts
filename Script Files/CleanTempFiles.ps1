@@ -212,7 +212,7 @@ $HPSetup ="$env:SystemDrive\swsetup" -f $ComputerName, $UserName
     if ($DeleteOldDownloads -eq 'Y') { 
         Write-Host -ForegroundColor Yellow "Deleting files older than 90 days from User Downloads folder`n"
         Foreach ($user in $Users) {
-            $UserDownloads = "$env:SystemDrive\Users\$user\Downloads" -f $ComputerName, $UserName
+            $UserDownloads = "(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path" -f $ComputerName, $UserName
             $OldFiles = Get-ChildItem -Path "$UserDownloads\" -Recurse -File $ErrorActionPreference | Where-Object LastWriteTime -LT $DelDownloadsDate
             foreach ($file in $OldFiles) {
                 DeleteTempFiles "Deleting files older than 90 days from Downloads folder" "$UserDownloads\$file" "Cyan"

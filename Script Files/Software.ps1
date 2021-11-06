@@ -56,9 +56,10 @@ Clear-Host
     Start-Process "https://www.dashlane.com/download/desktop#downloaded"
     PAUSE
     Write-Host "Installing Dashlane Desktop"
-    Start-Process -FilePath "$env:USERPROFILE\Downloads\DashlaneInst.exe"
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process -FilePath "$downloads\DashlaneInst.exe"
     PAUSE
-    Remove-Item "$env:USERPROFILE\Downloads\DashlaneInst.exe"
+    Remove-Item "$downloads\DashlaneInst.exe"
     Write-Host "Opening Webpage to Setup Dashlane Addon for Microsoft Edge"
     Start-Process "https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph"
  }
@@ -66,17 +67,18 @@ Clear-Host
     Clear-Host
     # Grammarly
     Write-Output "Downloading Grammarly for Windows"
-    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlySetup.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://download-editor.grammarly.com/windows/GrammarlySetup.exe" -OutFile "$downloads\GrammarlySetup.exe" -UseBasicParsing
     Write-Host "Installing Grammarly"
-    Start-Process -FilePath "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
+    Start-Process -FilePath "$downloads\GrammarlySetup.exe"
     PAUSE
-    Remove-Item "$env:USERPROFILE\Downloads\GrammarlySetup.exe"
+    Remove-Item "$downloads\GrammarlySetup.exe"
     Write-Output "Downloading Grammarly for Microsoft Office"
-    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe" -UseBasicParsing
+    Invoke-WebRequest -Uri "https://download-office.grammarly.com/latest/GrammarlyAddInSetup.exe" -OutFile "$downloads\GrammarlyAddInSetup.exe" -UseBasicParsing
     Write-Host "Installing Grammarly for Microsoft Office"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe"
+    Start-Process -Wait -FilePath "$downloads\GrammarlyAddInSetup.exe"
     PAUSE
-    Remove-Item "$env:USERPROFILE\Downloads\GrammarlyAddInSetup.exe"
+    Remove-Item "$downloads\GrammarlyAddInSetup.exe"
     Write-Host "Opening Webpage to Setup Grammarly Addon for Microsoft Edge"
     Start-Process "https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd"
 
@@ -92,37 +94,41 @@ Clear-Host
     Clear-Host
     # Install Firefox
     Write-Output "Downloading Firefox"
-    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$env:USERPROFILE\Downloads\firefox-latest.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=en-US" -OutFile "$downloads\firefox-latest.exe" -UseBasicParsing
     Write-Host "Installing Firefox"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\firefox-latest.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\firefox-latest.exe"
+    Start-Process -Wait -FilePath "$downloads\firefox-latest.exe"
+    Remove-Item "$downloads\firefox-latest.exe"
  }
    if ($answer -eq 5){
     Clear-Host
     # Install Microsoft Edge
     Write-Output "Downloading Microsoft Edge"
-    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://c2rsetup.officeapps.live.com/c2r/downloadEdge.aspx?platform=Default&source=EdgeStablePage&Channel=Stable&language=en" -OutFile "$downloads\MicrosoftEdgeSetup.exe" -UseBasicParsing
     Write-Host "Installing Microsoft Edge"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\MicrosoftEdgeSetup.exe"
+    Start-Process -Wait -FilePath "$downloads\MicrosoftEdgeSetup.exe"
+    Remove-Item "$downloads\MicrosoftEdgeSetup.exe"
  }
    if ($answer -eq 6){
      Clear-Host
     # Google Drive
     Write-Host "Downloading Google Drive"
-    Invoke-WebRequest -Uri "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" -OutFile "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe" -OutFile "$downloads\GoogleDriveSetup.exe" -UseBasicParsing
     Write-Host "Installing Google Drive"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\GoogleDriveSetup.exe"
+    Start-Process -Wait -FilePath "$downloads\GoogleDriveSetup.exe"
+    Remove-Item "$downloads\GoogleDriveSetup.exe"
  }
     if ($answer -eq 7){
      Clear-Host
     # Tree Size
     Write-Host "Downloading Tree Size"
-    Invoke-WebRequest -Uri "https://downloads.jam-software.de/treesize_free/TreeSizeFreeSetup.exe" -OutFile "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://downloads.jam-software.de/treesize_free/TreeSizeFreeSetup.exe" -OutFile "$downloads\TreeSizeFreeSetup.exe" -UseBasicParsing
     Write-Host "Installing Tree Size"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\TreeSizeFreeSetup.exe"
+    Start-Process -Wait -FilePath "$downloads\TreeSizeFreeSetup.exe"
+    Remove-Item "$downloads\TreeSizeFreeSetup.exe"
  }
   if ($answer -eq 8){
     Clear-Host
@@ -135,22 +141,24 @@ Clear-Host
     Clear-Host
     # Office Uninstaller
     Write-Output "Office Uninstaller"
-    Invoke-WebRequest "https://aka.ms/SaRA-officeUninstallFromPC" -OutFile "$env:USERPROFILE\Downloads\SetupProd_OffScrub.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest "https://aka.ms/SaRA-officeUninstallFromPC" -OutFile "$downloads\SetupProd_OffScrub.exe" -UseBasicParsing
     Write-Host "Opening Office Uninstaller"
-    Start-Process -FilePath "$env:USERPROFILE\Downloads\SetupProd_OffScrub.exe"
+    Start-Process -FilePath "$downloads\SetupProd_OffScrub.exe"
     PAUSE
-    Remove-Item "$env:USERPROFILE\Downloads\SetupProd_OffScrub.exe"    
+    Remove-Item "$downloads\SetupProd_OffScrub.exe"    
  }
    if ($answer -eq 10){
     Clear-Host
     # ProduKey (Windows License Finder)
     Write-Output "Downloading ProduKey"
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
     Invoke-WebRequest "https://www.nirsoft.net/utils/produkey-x64.zip" -OutFile "$Env:Temp\produkey-x64.zip" -UseBasicParsing
-    Expand-Archive -Path "$Env:Temp\produkey-x64.zip" -DestinationPath "$env:USERPROFILE\Downloads\ProduKey x64"
+    Expand-Archive -Path "$Env:Temp\produkey-x64.zip" -DestinationPath "$downloads\ProduKey x64"
     Remove-Item "$Env:Temp\produkey-x64.zip"
     Write-Output "Opening ProduKey"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\ProduKey x64\ProduKey.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\ProduKey x64\ProduKey.exe"
+    Start-Process -Wait -FilePath "$downloads\ProduKey x64\ProduKey.exe"
+    Remove-Item "$downloads\ProduKey x64\ProduKey.exe"
 }
   if ($answer -eq 11){
     # Previous Menu

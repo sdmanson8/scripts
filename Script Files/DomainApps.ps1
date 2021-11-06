@@ -19,9 +19,10 @@ Clear-Host
     Start-Process http://avaya-accs/agentdesktop/setup.exe
     PAUSE
     Write-Host "Installing Avaya Agent Prerequisites"
-    Start-Process $env:USERPROFILE\Downloads\setup.exe
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process $downloads\setup.exe
     PAUSE
-    Remove-Item $env:USERPROFILE\Downloads\setup.exe
+    Remove-Item $downloads\setup.exe
     Write-Host Opening Webpage to Download Avaya Agent Desktop
     Start-Process http://avaya-accs/agentdesktop/CCADClickOnce.application
 
@@ -31,9 +32,10 @@ Clear-Host
     Write-Host "Sign in and Select Install Office"
     PAUSE
     Write-Host "Installing Office 365"
-    Start-Process $env:USERPROFILE\Downloads\OfficeSetup.exe
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process $downloads\OfficeSetup.exe
     PAUSE
-    Remove-Item $env:USERPROFILE\Downloads\OfficeSetup.exe -Force 
+    Remove-Item $downloads\OfficeSetup.exe -Force 
 
     # Install Avaya Workplace
     Write-Output "Installing Avaya Workplace"

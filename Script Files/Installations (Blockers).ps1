@@ -21,10 +21,11 @@ Clear-Host
     Start-Process "https://getcoldturkey.com/download/win/"
     PAUSE
     Write-Host "Installing Cold Turkey Blocker"
-    Start-Process $env:USERPROFILE\Downloads\Cold_Turkey_Installer.exe
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process $downloads\Cold_Turkey_Installer.exe
     PAUSE
     Write-Host "Removing Setup File"
-    Remove-Item $env:USERPROFILE\Downloads\Cold_Turkey_Installer.exe
+    Remove-Item $downloads\Cold_Turkey_Installer.exe
 	
     # Install Truple
 	
@@ -32,10 +33,11 @@ Clear-Host
     Start-Process "https://support.truple.io/articles/windows/windows-setup-guide"
     PAUSE
     Write-Host "Installing Truple"
-    Start-Process $env:USERPROFILE\Downloads\truple*
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process $downloads\truple*
     PAUSE
     Write-Host "Removing Setup File"
-    Remove-Item $env:USERPROFILE\Downloads\truple*
+    Remove-Item $downloads\truple*
 	
     # Install Qustodio
 	
@@ -55,10 +57,11 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
     Start-Process "https://cleanbrowsing.org/guides/windows/"
     PAUSE
     Write-Host "Installing CleanBrowsing"
-    Start-Process $env:USERPROFILE\Downloads\CleanBrowsing*
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process $downloads\CleanBrowsing*
     PAUSE
     Write-Host "Removing Setup File"
-    Remove-Item $env:USERPROFILE\Downloads\CleanBrowsing*
+    Remove-Item $downloads\CleanBrowsing*
 	
     # Add Safe Search to Hosts File
 	

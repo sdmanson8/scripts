@@ -20,20 +20,21 @@ Checkpoint-Computer -Description "Removal of Microsoft Edge" -RestorePointType M
 
 Clear-Host
 Write-Host Downloading Edge Legacy Uninstaller
-Invoke-WebRequest -Uri https://gorazy.com/it-support/downloads/uninstall_edge.zip -OutFile $env:USERPROFILE\Downloads\uninstall_edge.zip -UseBasicParsing -UseBasicParsing
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Invoke-WebRequest -Uri https://gorazy.com/it-support/downloads/uninstall_edge.zip -OutFile $downloads\uninstall_edge.zip -UseBasicParsing -UseBasicParsing
 
 Write-Host Extracting files
-Expand-Archive "$env:USERPROFILE\Downloads\uninstall_edge.zip" -DestinationPath "$env:USERPROFILE\Downloads\uninstall_edge"
+Expand-Archive "$downloads\uninstall_edge.zip" -DestinationPath "$downloads\uninstall_edge"
 Clear-Host
 Remove-Item $env:USERPROFILE\Downloads\uninstall_edge.zip
 
 Write-Host Run Edge Legacy Uninstaller
-& "$env:USERPROFILE\Downloads\uninstall_edge\Uninstall Edge.cmd"
+& "$downloads\uninstall_edge\Uninstall Edge.cmd"
 
 PAUSE
 Clear-Host
 Write-Host Removing Edge Legacy Uninstaller folders
-Remove-Item "$env:USERPROFILE\Downloads\uninstall_edge" -Recurse -ErrorAction SilentlyContinue -Confirm:$false
+Remove-Item "$downloads\uninstall_edge" -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 
 $sysapppath = "$env:systemroot\SystemApps"
 $sysapps = @(
@@ -73,19 +74,20 @@ cd $DIR\[0-9]*\Installer
 <#
 Clear-Host
     Write-Host Downloading Geek Uninstaller
-    Invoke-WebRequest -Uri https://geekuninstaller.com/geek.zip -OutFile $env:USERPROFILE\Downloads\geek.zip -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri https://geekuninstaller.com/geek.zip -OutFile $downloads\geek.zip -UseBasicParsing
     
     PAUSE
     Write-Host Extracting files
-    Expand-Archive "$env:USERPROFILE\Downloads\geek.zip" -DestinationPath "$env:USERPROFILE\Downloads\Geek Uninstaller"
-    Remove-Item C:\geek.zip
+    Expand-Archive "$downloads\geek.zip" -DestinationPath "$downloads\Geek Uninstaller"
+    Remove-Item $downloads\geek.zip
     
     PAUSE
     Write-Host Running Geek Uninstaller PS!! RIGHT CLICK ON ALL MICROSOFT EDGE INSTANCES AND SELECT "FORCE REMOVAL"
-    & "$env:USERPROFILE\Downloads\Geek Uninstaller\geek.exe"
+    & "$downloads\Geek Uninstaller\geek.exe"
 
     PAUSE
     Write-Host Removing Edge Legacy Uninstaller folders
-    Remove-Item "$env:USERPROFILE\Downloads\Geek Uninstaller"  -Recurse -ErrorAction SilentlyContinue -Confirm:$false
+    Remove-Item "$downloads\Geek Uninstaller"  -Recurse -ErrorAction SilentlyContinue -Confirm:$false
 #>
 

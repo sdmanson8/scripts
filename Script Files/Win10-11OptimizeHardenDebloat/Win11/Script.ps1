@@ -248,8 +248,9 @@ Start-Sleep -Seconds 1
 
 $github = "Windows-Optimize-Harden-Debloat"
 $Url = "https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip"
-$ZipFile = "$env:USERPROFILE\Downloads\" + $(Split-Path -Path $Url -Leaf)
-$Destination= "$env:USERPROFILE\Downloads\"
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+$ZipFile = "$downloads\" + $(Split-Path -Path $Url -Leaf)
+$Destination= "$downloads\"
 Write-Host "Downloading $Url"
 Invoke-WebRequest -Uri $Url -OutFile $ZipFile -UseBasicParsing
 $ExtractShell = New-Object -ComObject Shell.Application
@@ -285,38 +286,39 @@ Clear-Host
 ##################################################################################
 
 #Configure Browsers
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
 #Mozilla Firefox
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Mozilla.reg -OutFile $env:USERPROFILE\Downloads\firefox.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\firefox.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Mozilla.reg -OutFile $dDownloads\firefox.reg -UseBasicParsing
+regedit.exe /S $downloads\firefox.reg
 #Chrome
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.reg -OutFile $env:USERPROFILE\Downloads\chrome.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\chrome.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.reg -OutFile $downloads\chrome.reg -UseBasicParsing
+regedit.exe /S $downloads\chrome.reg
 #Chromium
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chromium.reg -OutFile $env:USERPROFILE\Downloads\Chromium.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\Chromium.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chromium.reg -OutFile $downloads\Chromium.reg -UseBasicParsing
+regedit.exe /S $downloads\Chromium.reg
 #Edge
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Edge.reg -OutFile $env:USERPROFILE\Downloads\Edge.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\Edge.reg
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Edge.reg -OutFile $downloads\Edge.reg -UseBasicParsing
+regedit.exe /S $downloads\Edge.reg
 
 #Remove Old Files
-Set-Location "$env:USERPROFILE"
-Remove-Item "$env:USERPROFILE\Downloads\Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
-Remove-Item "$env:USERPROFILE\Downloads\stop" -ErrorAction SilentlyContinue -Confirm:$false -Force
-Remove-Item "$env:USERPROFILE\Downloads\firefox.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
-Remove-Item "$env:USERPROFILE\Downloads\chrome.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
-Remove-Item "$env:USERPROFILE\Downloads\Chromium.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
-Remove-Item "$env:USERPROFILE\Downloads\Edge.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+Set-Location "(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path"
+Remove-Item "Win10-11OptimizeHardenDebloat" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
+Remove-Item "stop" -ErrorAction SilentlyContinue -Confirm:$false -Force
+Remove-Item "firefox.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+Remove-Item "chrome.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+Remove-Item "Chromium.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+Remove-Item "Edge.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
 ##################################################################################
 
 #Install .Net Framework 3.5
 Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -NoRestart
-
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ClickOnce.reg -OutFile $env:USERPROFILE\Downloads\ClickOnce.reg -UseBasicParsing
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ClickOnce.reg -OutFile $downloads\ClickOnce.reg -UseBasicParsing
 Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\.NETFramework\Security\TrustManager\PromptingLevel" -Name "LocalIntranet" -Force
-regedit.exe /S $env:USERPROFILE\Downloads\ClickOnce.reg
+regedit.exe /S $downloads\ClickOnce.reg
 Start-Sleep -Milliseconds 400
-Remove-Item "$env:USERPROFILE\Downloads\ClickOnce.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+Remove-Item "$downloads\ClickOnce.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 ##################################################################################
 
 #Repair SMB
@@ -330,9 +332,10 @@ Start-Sleep -Seconds 1
 ##################################################################################
 
 #Prevent Bloatware Reinstall
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg -UseBasicParsing
-regedit.exe /S $env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg
-Remove-Item "$env:USERPROFILE\Downloads\PreventBloatwareReInstall.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PreventBloatwareReInstall.reg -OutFile $downloads\PreventBloatwareReInstall.reg -UseBasicParsing
+regedit.exe /S $downloads\PreventBloatwareReInstall.reg
+Remove-Item "$downloads\PreventBloatwareReInstall.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force
 
 ##################################################################################
 
@@ -360,7 +363,7 @@ SCHTASKS /Change /TN "Microsoft\Windows\UpdateOrchestrator\Reboot" /Disable
 if (Test-Path -Path $env:SystemDrive\Windows.old\)
 	  {
          takeown /F $env:SystemDrive\Windows.old\* /R /A /D Y
-         cacls $env:SystemDrive\Windows.old\*.* /T /grant administrators:F
+         ECHO Y | cacls $env:SystemDrive\Windows.old\*.* /T /grant administrators:F
          Remove-Item $env:SystemDrive\Windows.old\ -Recurse -Force -ErrorAction SilentlyContinue -Confirm:$false
          Write-Host "Clearing Component Store (WinSxS)"
          Start-Sleep -Seconds 2
@@ -371,6 +374,17 @@ if (Test-Path -Path $env:SystemDrive\Windows.old\)
           Write-Host "`nWindows.Old does not Exist... Ignoring`n" -ForegroundColor Red
         }
 
+##################################################################################
+
+#Change New Explorer Right Click Menu back to Classic
+$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win11ClassicRClickMenu.reg -OutFile $downloads\Win11ClassicRClickMenu.reg -UseBasicParsing
+regedit.exe /S $downloads\Win11ClassicRClickMenu.reg
+taskkill /F /IM "explorer.exe"
+explorer.exe
+
+#Remove Old Files
+Remove-Item "$downloads\Win11ClassicRClickMenu.reg" -ErrorAction SilentlyContinue -Confirm:$false -Force -Recurse
 
 ##################################################################################
 
@@ -572,7 +586,7 @@ $HPSetup ="C:\swsetup" -f $ComputerName, $UserName
     if ($DeleteOldDownloads -eq 'Y') { 
         Write-Host -ForegroundColor Yellow "Deleting files older than 90 days from User Downloads folder`n"
         Foreach ($user in $Users) {
-            $UserDownloads = "C:\Users\$user\Downloads" -f $ComputerName, $UserName
+            $UserDownloads = "(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path" -f $ComputerName, $UserName
             $OldFiles = Get-ChildItem -Path "$UserDownloads\" -Recurse -File $ErrorActionPreference | Where-Object LastWriteTime -LT $DelDownloadsDate
             foreach ($file in $OldFiles) {
                 DeleteTempFiles "Deleting files older than 90 days from Downloads folder" "$UserDownloads\$file" "Cyan"

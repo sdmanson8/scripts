@@ -20,22 +20,25 @@ Clear-Host
     Start-Process "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/HP_Driverpack_Matrix_x64.html"
     PAUSE
     Write-Host "Installing HP Drivers"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process -Wait -FilePath "$downloads\sp*.exe"
+    Remove-Item "$downloads\sp*.exe"
     Remove-Item C:\SWSetup -Force -ErrorAction SilentlyContinue -Confirm:$false
 
     # HP Software Framework
     Write-Host "Downloading HP Software Framework"
-    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$env:USERPROFILE\DownloadsCASLSetup.exe" -UseBasicParsing
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/softpaq/CASLSetup.exe" -OutFile "$downloads\CASLSetup.exe" -UseBasicParsing
     Write-Host "Installing HP Software Framework"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\CASLSetup.exe"
-    Remove-Item "$env:USERPROFILE\DownloadsCASLSetup.exe" -Force -ErrorAction SilentlyContinue -Confirm:$false
+    Start-Process -Wait -FilePath "$downloads\CASLSetup.exe"
+    Remove-Item "$downloads\CASLSetup.exe" -Force -ErrorAction SilentlyContinue -Confirm:$false
 
     # HP Support Assistant
     Write-Host "Opening Webpage to Download HP Support Assistant"
     Start-Process "https://support.hp.com/us-en/help/hp-support-assistant"
     PAUSE
     Write-Host "Installing HP Support Assistant"
-    Start-Process -Wait -FilePath "$env:USERPROFILE\Downloads\sp*.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\sp*.exe"
-    Remove-Item "$env:USERPROFILE\Downloads\SWSetup" -Force -ErrorAction SilentlyContinue -Confirm:$false
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process -Wait -FilePath "$downloads\sp*.exe"
+    Remove-Item "$downloads\sp*.exe"
+    Remove-Item "$downloads\SWSetup" -Force -ErrorAction SilentlyContinue -Confirm:$false
