@@ -63,8 +63,11 @@ chmod +x torrent-disk-check.sh
 ```
 ./torrent-disk-check.sh
 ```
-    
+
 If Plex was installed use the below to update to the latest version
+```
+cd ..
+```
 ```
 app-plex upgrade --plex-version=public
 ```
@@ -131,6 +134,10 @@ Edit the Rclone Upload Script to meet your requirements
 replace <user> with slot username (Get this value by running whoami)
 ```
 nano ~/scripts/rclone-upload.sh
+```
+Set Permission for Upload Script
+```
+chmod +x ~/scripts/rclone-upload.sh
 ```
     
 Edit Excludes File to add or remove file extensions from being uploaded
