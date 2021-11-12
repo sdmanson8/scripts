@@ -17,6 +17,7 @@ Edit Transmission settings to your desired config:
 
 app-transmission stop
 nano ~/.config/transmission-daemon/settings.json
+
 After saving and closing editor app-transmission start
 
 Download Transmission Disk Space check Script
