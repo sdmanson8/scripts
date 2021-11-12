@@ -1,0 +1,25 @@
+[Unit]
+Description=RClone Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=notify
+KillMode=none
+Environment=GOMAXPROCS=2
+
+ExecStart=~%h/bin/rclone mount gdrive: %h/remote \
+  --config %h/.config/rclone/rclone.conf \
+  --dir-cache-time 1000h \
+  --use-mmap \
+  --poll-interval=15s \
+  --vfs-cache-mode writes \
+  --poll-interval=15s \
+  --tpslimit 10
+
+StandardOutput=file:%h/scripts/rclone_vfs_mount.log
+ExecStop=/bin/fusermount -uz %h/remote
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
