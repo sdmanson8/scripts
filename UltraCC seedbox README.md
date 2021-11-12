@@ -160,7 +160,7 @@ Add the below to cron and edit as desired
 ```
 crontab -e
 ```
-
+```
 # Rclone Upload ->
 # Every 6 Hours
 0 */6 * * * /home/sheldon/scripts/rclone-upload.sh
@@ -170,5 +170,6 @@ crontab -e
 # Torrent Disk Check cron ->
 # Every 5 Minutes
 */5 * * * * /home/sheldon/scripts/torrent-disk-check.sh
-
+```
+    
 Start using Radarr, Sonarr, Plex, etc
