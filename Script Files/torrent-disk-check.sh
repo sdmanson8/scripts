@@ -17,7 +17,7 @@ exec 2>&1
 # exit if something goes wrong
 set -e
 
-fileSystem="/dev/sdn1"     # Filesystem you want to monitor
+fileSystem="<filesystem>"     # Filesystem you want to monitor
 Threshold1="95"   # Free space 1st threshold percentage
 Threshold2="88"   # Free space 2nd threshold percentage
 checkInterval="3600"     # Interval between checks in seconds
