@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Logging
-LOGDIRECTORY="/home/sheldon/scripts"
+LOGDIRECTORY="/home/<user>/scripts"
 SCRIPT_NAME="torrent-disk-check"
 
 export LOGFILE=$LOGDIRECTORY/${SCRIPT_NAME}.log
@@ -22,7 +22,7 @@ Threshold1="95"   # Free space 1st threshold percentage
 Threshold2="88"   # Free space 2nd threshold percentage
 checkInterval="3600"     # Interval between checks in seconds
 #APP=transmission # Transmission Torrent Application
-USER=sheldon
+USER=<user>
 DATE="$(date +"%x %r")"
 
     # Get the output of Quota and put in a variable for parsing
@@ -32,7 +32,7 @@ DATE="$(date +"%x %r")"
             QuotaUsed=$(echo "${QuotaOutPut}" | awk 'END{print substr($2, 1, length($2)-1)}')
 
     # Change the quota value into percentage
-            pctUsed=$(awk -vn="${QuotaUsed}" 'BEGIN{printf("%.0f\n",n*0.0089)}') # 100/slot limit (quota -s) = 0.0089
+            pctUsed=$(awk -vn="${QuotaUsed}" 'BEGIN{printf("%.0f\n",n*0.0089)}') # 100/slot limit (quota -s) = 0.0xyz
 
     # Check if free space percentage is below threshold value
         if [ "${pctUsed}" -ge "$Threshold1" ]; then
