@@ -26,13 +26,15 @@ USER=<user>
 DATE="$(date +"%x %r")"
 
     # Get the output of Quota and put in a variable for parsing
-            QuotaOutPut=$(quota -s "$USER" 2>/dev/null)
+           # QuotaOutPut=$(quota -s "$USER" 2>/dev/null) # Disk Space Above 1.5TB
+            QuotaOutPut=$(quota "$USER" 2>/dev/null) # Disk Space Below 1TB
 
     # Exctract the fields containing total and available 1K-blocks
             QuotaUsed=$(echo "${QuotaOutPut}" | awk 'END{print substr($2, 1, length($2)-1)}')
 
-    # Change the quota value into percentage
-            pctUsed=$(awk -vn="${QuotaUsed}" 'BEGIN{printf("%.0f\n",n*0.0089)}') # 100/slot limit (quota -s) = 0.0xyz
+    # Change the quota value into percentage | [100 / slot limit]
+          #  pctUsed=$(awk -vn="${QuotaUsed}" 'BEGIN{printf("%.0f\n",n*0.053)}') # Disk Space Above 1.5TB
+            pctUsed=$(awk -vn="${QuotaUsed}" 'BEGIN{printf("%.0f\n",n*0.0000001)}') # Disk Space Below 1TB
 
     # Check if free space percentage is below threshold value
         if [ "${pctUsed}" -ge "$Threshold1" ]; then
