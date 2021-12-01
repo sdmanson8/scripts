@@ -1133,7 +1133,6 @@ services:
 
 #-----------------------------------------------------------#
   ####################### UTILITIES ##########################
-
   # Firefox - Web Broswer
   firefox:
     image: jlesage/firefox:latest
@@ -1146,8 +1145,8 @@ services:
     # ports:
     #   - "$FIREFOX_PORT:5800"
     volumes:
-      - $DOCKERDIR/firefox:/config
-      - $MERGERFS/gdrive/downloads:/data/downloads:rw,slave
+      - $USERDIR/firefox:/config
+      - /mnt/user/rclone_mergerfs/gdrive/downloads:/data/downloads:rw,slave
       - /dev/shm:/dev/shm
     environment:
       USER_ID: $PUID
@@ -1158,17 +1157,17 @@ services:
       CLEAN_TMP_DIR: 1
       DISPLAY_WIDTH: 1920
       DISPLAY_HEIGHT: 1080
-      labels:
-      - "traefik.enable=true"
+    labels:
+      - traefik.enable=true
+      - traefik.tags=public
       ## HTTP Routers
-      - "traefik.http.routers.firefox-rtr.entrypoints=https"
-      - "traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME`)"
+      - traefik.http.routers.firefox-rtr.entrypoints=https
+      - traefik.http.routers.firefox-rtr.rule=Host(`firefox.$DOMAINNAME`)
       ## Middlewares
-      - "traefik.http.routers.firefox-rtr.middlewares=chain-oauth@file"
+      - traefik.http.routers.firefox-rtr.middlewares=chain-no-auth@file
       ## HTTP Services
-      - "traefik.http.routers.firefox-rtr.service=firefox-svc"
-      - "traefik.http.services.firefox-svc.loadbalancer.server.port=5800"
-
+      - traefik.http.routers.firefox-rtr.service=firefox-svc
+      - traefik.http.services.firefox-svc.loadbalancer.server.port=5800
   # Glances - System Information
   glances:
     image: nicolargo/glances:latest
