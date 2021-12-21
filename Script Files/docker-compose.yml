@@ -1138,12 +1138,15 @@ services:
     image: jlesage/firefox:latest
     container_name: firefox
     restart: unless-stopped
-    network_mode: host
+    networks:
+      web-proxy:
+      br0:
+        ipv4_address: 192.168.4.161
     security_opt:
       - no-new-privileges:true
       - seccomp:unconfined # October 15, 2020 https://github.com/jlesage/docker-firefox/blob/master/README.md#allowing-the-membarrier-system-call
-    # ports:
-    #   - "$FIREFOX_PORT:5800"
+    ports:
+       - 5800:5800
     volumes:
       - $USERDIR/firefox:/config
       - /mnt/user/rclone_mergerfs/gdrive/downloads:/data/downloads:rw,slave
