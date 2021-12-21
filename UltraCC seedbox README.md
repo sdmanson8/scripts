@@ -116,7 +116,10 @@ wget https://bit.ly/3c38nGw -O ~/scripts/excludes
 ```
 wget https://bit.ly/30iUwZT -O ~/scripts/rclone-upload.sh
 ```
-    
+```
+wget https://bit.ly/3mirLF5 -O ~/scripts/app-upgrades.sh
+```   
+
 Configure Rclone
 ```
 rclone config
