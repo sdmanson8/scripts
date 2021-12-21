@@ -140,7 +140,7 @@ nano ~/scripts/rclone-upload.sh
 ```
 Set Permission for Upload Script
 ```
-chmod +x ~/scripts/rclone-upload.sh
+chmod +x ~/scripts/rclone-upload.sh && chmod +x ~/scripts/app-upgrades.sh
 ```
     
 Edit Excludes File to add or remove file extensions from being uploaded
