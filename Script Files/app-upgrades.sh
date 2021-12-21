@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Logging
-LOGDIRECTORY="/home/sheldon/scripts"
+LOGDIRECTORY="/home/<user>/scripts"
 SCRIPT_NAME="app-upgrades"
 
 export LOGFILE=$LOGDIRECTORY/${SCRIPT_NAME}.log
