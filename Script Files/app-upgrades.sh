@@ -15,7 +15,7 @@ exec 2>&1
 #set -o xtrace
 
 # exit if something goes wrong
-set -e
+#set -e # can cause script not to run
 
 DATE="$(date +"%x %r")"
 
