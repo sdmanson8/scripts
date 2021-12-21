@@ -155,21 +155,22 @@ Enable and start the systemd services
 systemctl --user enable --now rclone-vfs && systemctl --user enable --now mergerfs
 ```
     
-Add the below to cron and edit as desired
+Add the below to cron (bottom of page) and edit as desired
 
 ```
 crontab -e
 ```
 ```
-# Rclone Upload ->
-# Every 6 Hours
+# Rclone Upload -> Every 6 Hours
 0 */6 * * * /home/sheldon/scripts/rclone-upload.sh
 # Midnight Everyday
 0 0 * * * /home/sheldon/scripts/rclone-upload.sh
 
-# Torrent Disk Check cron ->
-# Every 5 Minutes
-*/5 * * * * /home/sheldon/scripts/torrent-disk-check.sh
+# Torrent Disk Check cron -> Every 5 Minutes
+#*/5 * * * * /home/sheldon/scripts/torrent-disk-check.sh
+
+# Upgrade Apps -> Once Weekly [Every Sunday at 05:00]
+0 5 * * 0 /home/sheldon/scripts/app-upgrades.sh
 ```
     
 Start using Radarr, Sonarr, Plex, etc
