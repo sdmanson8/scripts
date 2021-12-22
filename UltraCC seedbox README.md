@@ -165,15 +165,15 @@ crontab -e
 ```
 ```
 # Rclone Upload -> Every 6 Hours
-0 */6 * * * /home/sheldon/scripts/rclone-upload.sh
+0 */6 * * * /home/<user>/scripts/rclone-upload.sh
 # Midnight Everyday
-0 0 * * * /home/sheldon/scripts/rclone-upload.sh
+0 0 * * * /home/<user>/scripts/rclone-upload.sh
 
 # Torrent Disk Check cron -> Every 5 Minutes
-#*/5 * * * * /home/sheldon/scripts/torrent-disk-check.sh
+#*/5 * * * * /home/<user>/scripts/torrent-disk-check.sh
 
 # Upgrade Apps -> Once Weekly [Every Sunday at 05:00]
-0 5 * * 0 /home/sheldon/scripts/app-upgrades.sh
+0 5 * * 0 /home/<user>/scripts/app-upgrades.sh
 ```
     
 Start using Radarr, Sonarr, Plex, etc
