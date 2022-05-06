@@ -416,6 +416,9 @@ Else
 $FireFoxProfilesFolder = "\\{0}\C$\Users\{1}\AppData\Local\Mozilla\Firefox\Profiles\" -f $ComputerName, $UserName
 $FireFoxProfiles = Get-ChildItem $FireFoxProfilesFolder -Directory
 
+#Install Windows Media Player
+Dism /Online /Enable-Feature /FeatureName:WindowsMediaPlayer /All
+
 # Clean-Up User Mozilla Firefox Cache.
 Foreach($FFProfile in $FireFoxProfiles)
 {
