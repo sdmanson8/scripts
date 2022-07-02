@@ -27,43 +27,26 @@ Clear-Host
  echo "        Install Other Software"
  echo ""
  echo ""  
- echo "    1. Dashlane"
- echo "    2. Grammarly"
- echo "    3. Google Chrome"
- echo "    4. Firefox"
- echo "    5. Microsoft Edge"
- echo "    6. Google Drive"
- echo "    7. Tree Size" 
+ echo "    1. Grammarly"
+ echo "    2. Google Chrome"
+ echo "    3. Firefox"
+ echo "    4. Microsoft Edge"
+ echo "    5. Google Drive"
+ echo "    6. Tree Size" 
  echo ""
- echo "    8. Install All of the Above"
- echo " (Choose which to install Google Chrome / Firefox)"
  echo ""
- echo "    9. Office Uninstaller"
- echo "    10. ProduKey (Windows License Finder)" 
+ echo "    7. Office Uninstaller"
+ echo "    8. ProduKey (Windows License Finder)" 
  echo ""
- echo "    11. Previous Menu"
+ echo "    9. Previous Menu"
  echo ""
- echo "    12. exit" 
+ echo "    10. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
  $answer = read-host "Please Make a Selection"  
  
   if ($answer -eq 1){
-    Clear-Host
-    # Dashlane Desktop
-    Write-Host "Opening Webpage to Download Dashlane Desktop"
-    Start-Process "https://www.dashlane.com/download/desktop#downloaded"
-    PAUSE
-    Write-Host "Installing Dashlane Desktop"
-	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
-    Start-Process -FilePath "$downloads\DashlaneInst.exe"
-    PAUSE
-    Remove-Item "$downloads\DashlaneInst.exe"
-    Write-Host "Opening Webpage to Setup Dashlane Addon for Microsoft Edge"
-    Start-Process "https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph"
- }
-  if ($answer -eq 2){
     Clear-Host
     # Grammarly
     Write-Output "Downloading Grammarly for Windows"
@@ -83,14 +66,14 @@ Clear-Host
     Start-Process "https://microsoftedge.microsoft.com/addons/detail/grammarly-for-microsoft-e/cnlefmmeadmemmdciolhbnfeacpdfbkd"
 
  }
-   if ($answer -eq 3){
+   if ($answer -eq 2){
     Clear-Host
     # Install Google Chrome
     Write-Output "Installing Google Chrome"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
-   if ($answer -eq 4){
+   if ($answer -eq 3){
     Clear-Host
     # Install Firefox
     Write-Output "Downloading Firefox"
@@ -100,7 +83,7 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\firefox-latest.exe"
     Remove-Item "$downloads\firefox-latest.exe"
  }
-   if ($answer -eq 5){
+   if ($answer -eq 4){
     Clear-Host
     # Install Microsoft Edge
     Write-Output "Downloading Microsoft Edge"
@@ -110,7 +93,7 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\MicrosoftEdgeSetup.exe"
     Remove-Item "$downloads\MicrosoftEdgeSetup.exe"
  }
-   if ($answer -eq 6){
+   if ($answer -eq 5){
      Clear-Host
     # Google Drive
     Write-Host "Downloading Google Drive"
@@ -120,7 +103,7 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\GoogleDriveSetup.exe"
     Remove-Item "$downloads\GoogleDriveSetup.exe"
  }
-    if ($answer -eq 7){
+    if ($answer -eq 6){
      Clear-Host
     # Tree Size
     Write-Host "Downloading Tree Size"
@@ -130,14 +113,14 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\TreeSizeFreeSetup.exe"
     Remove-Item "$downloads\TreeSizeFreeSetup.exe"
  }
-  if ($answer -eq 8){
-    Clear-Host
-    # Install All of the Above
-    Write-Output "Install All of the Above"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1" -UseBasicParsing
-    Invoke-Expression $($ScriptFromGithHub.Content)
- }
-   if ($answer -eq 9){
+ # if ($answer -eq 7){
+ #   Clear-Host
+ #   # Install All of the Above
+ #   Write-Output "Install All of the Above"
+ #   $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1" -UseBasicParsing
+ #   Invoke-Expression $($ScriptFromGithHub.Content)
+ #}
+   if ($answer -eq 7){
     Clear-Host
     # Office Uninstaller
     Write-Output "Office Uninstaller"
@@ -148,7 +131,7 @@ Clear-Host
     PAUSE
     Remove-Item "$downloads\SetupProd_OffScrub.exe"    
  }
-   if ($answer -eq 10){
+   if ($answer -eq 8){
     Clear-Host
     # ProduKey (Windows License Finder)
     Write-Output "Downloading ProduKey"
@@ -160,12 +143,12 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\ProduKey x64\ProduKey.exe"
     Remove-Item "$downloads\ProduKey x64\ProduKey.exe"
 }
-  if ($answer -eq 11){
+  if ($answer -eq 9){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 12){areyousure} 
+ if ($answer -eq 10){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  

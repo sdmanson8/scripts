@@ -15,18 +15,6 @@ $Host.UI.RawUI.WindowTitle = "Install Other Software"
 
 Clear-Host
 
-    # Dashlane Desktop
-    Write-Host "Opening Webpage to Download Dashlane Desktop"
-    Start-Process "https://www.dashlane.com/download/desktop#downloaded"
-    PAUSE
-    Write-Host "Installing Dashlane Desktop"
-	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
-    Start-Process -FilePath "$downloads\DashlaneInst.exe"
-    PAUSE
-    Remove-Item "$downloads\DashlaneInst.exe"
-    Write-Host "Opening Webpage to Setup Dashlane Addon for Microsoft Edge"
-    Start-Process "https://microsoftedge.microsoft.com/addons/detail/dashlane-password-manag/gehmmocbbkpblljhkekmfhjpfbkclbph"
-
     # Grammarly
     Write-Output "Downloading Grammarly for Windows"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
