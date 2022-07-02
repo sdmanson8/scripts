@@ -8,7 +8,7 @@ Function RequireAdmin {
 }
 RequireAdmin
 
-$Host.UI.RawUI.WindowTitle = "Install Other Software"
+$Host.UI.RawUI.WindowTitle = "Install Software"
 
 ########################### Script Starting ###################################
 ###############################################################################
@@ -24,7 +24,7 @@ Clear-Host
  function mainmenu{  
  Clear-Host  
  echo "---------------------------------------------------------"  
- echo "        Install Other Software"
+ echo "        Install Software"
  echo ""
  echo ""  
  echo "    1. Grammarly"
@@ -38,9 +38,9 @@ Clear-Host
  echo "    9. PatchMyPC (100+ Applications)"
  echo "    10. Update Powershell"
  echo ""
- echo "    10. Previous Menu"
+ echo "    11. Previous Menu"
  echo ""
- echo "    11. exit" 
+ echo "    12. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
