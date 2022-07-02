@@ -31,11 +31,10 @@ Clear-Host
  echo "    2. Join Domain Network"
  echo "    3. Domain GPUpdate"
  echo "    4. MDM Enrolment"
- echo "    5. Install Required Domain Apps"
  echo ""
- echo "    6. Previous Menu"
+ echo "    5. Previous Menu"
  echo ""
- echo "    7. exit" 
+ echo "    6. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -89,19 +88,12 @@ $answer = read-host "Please Make a Selection"
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
    if ($answer -eq 5){
-    Clear-Host
-    # Install Required Domain Apps
-    Write-Output "Install Required Domain Apps"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Install%20Required%20Domain%20Apps.ps1" -UseBasicParsing
-    Invoke-Expression $($ScriptFromGithHub.Content)
- }
-  if ($answer -eq 6){
     # Previous Menu
     Clear-Host
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 7){areyousure} 
+ if ($answer -eq 6){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
