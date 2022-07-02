@@ -33,14 +33,14 @@ REG ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v Sys
  echo "                     WINDOWS SCRIPT MENU"
  echo ""
  echo ""  
- echo "    1. Windows First Run (Post Clean Install) Tweaks"
+ echo "    1. Windows 10/11 (After Clean Install) Tweaks"
  echo "    2. Setup and configure for Domain Policies"
  echo "    3. Content Blockers (Adult, Social, Gambling,etc)"
  echo "    4. Install HP Software + Drivers"
  echo "    5. Software"
  echo "    6. Windows 10/11 Admin Tools"
  echo ""
- echo "    7. Previous Menu"
+ echo "    7. Restart Computer (RECOMMENDED IF CHANGES WERE MADE)"
  echo ""
  echo "    8. exit" 
  echo "" 
@@ -89,13 +89,12 @@ if ($answer -eq 1){
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WinAdminTools.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
 }
-  if ($answer -eq 7){
+ if ($answer -eq 7){
     Clear-Host
-    # Previous Menu
-    Write-Output "Previous Menu"
-    $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Script.ps1" -UseBasicParsing
-    Invoke-Expression $($ScriptFromGithHub.Content)
-}
+    # prompt to reboot machine
+    Write-Output "Restarting PC"
+    shutdown -r -t 00
+} 
  if ($answer -eq 8){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  

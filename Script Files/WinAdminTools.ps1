@@ -27,14 +27,16 @@ Clear-Host
  echo "       WINDOWS ADMIN TOOLS"
  echo ""
  echo ""  
- echo "    1. Run Windows Update"  
+ echo "    1. Run Windows Update" 
+ echo "    2. Disable Windows Update" 
  echo "    2. Cleanup Windows.Old folder"
  echo "    3. Cleanup Temporary Files"
- echo "    4. Reset the Windows Update Service" 
+ echo "    4. Reset the Windows Update Service"
+ echo "    5. Uninstall Microsoft Edge" 
  echo ""
- echo "    5. Previous Menu"
+ echo "    6. Previous Menu"
  echo ""
- echo "    6. exit" 
+ echo "    7. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -46,21 +48,35 @@ Clear-Host
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows%20Update.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
- if ($answer -eq 2){
+  if ($answer -eq 2){
+    Clear-Host
+    # prompt to Disable Windows Update
+    Write-Output "Running Sledgehammer 2.7.2 (Disable Windows Update)"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Disable%20Windows%20Update.ps1 -UseBasicParsing
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }  
+ if ($answer -eq 3){
     Clear-Host
     # prompt to Cleanup Windows.Old
     Write-Output "Cleanup Windows.Old"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/WindowsOld.bat -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  }  
-  if ($answer -eq 3){
+  if ($answer -eq 4){
     Clear-Host
     # prompt to Cleanup Temporary Files
     Write-Output "Cleanup Temporary Files"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/CleanTempFiles.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  } 
-   if ($answer -eq 4){
+  if ($answer -eq 5){
+    Clear-Host
+    # prompt to run Microsoft Edge Uninstaller
+    Write-Output "Running Microsoft Edge Uninstaller"  
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Uninstall%20Edge.ps1 -UseBasicParsing
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ } 
+   if ($answer -eq 6){
     Clear-Host
     # prompt to Reset the Windows Update Service
     Write-Output "Reset the Windows Update Service"
@@ -68,12 +84,12 @@ Clear-Host
     Invoke-Expression $($ScriptFromGithHub.Content)  
  } 
 
- if ($answer -eq 5){
+ if ($answer -eq 7){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 6){areyousure}  
+ if ($answer -eq 7){areyousure}  
        sleep 5  
        mainmenu  
                    }  

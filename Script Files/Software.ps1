@@ -36,6 +36,7 @@ Clear-Host
  echo "    7. Office Uninstaller"
  echo "    8. ProduKey (Windows License Finder)" 
  echo "    9. PatchMyPC (100+ Applications)"
+ echo "    10. Update Powershell"
  echo ""
  echo "    10. Previous Menu"
  echo ""
@@ -150,11 +151,17 @@ Clear-Host
     Invoke-Expression $($ScriptFromGithHub.Content)
  }  
   if ($answer -eq 10){
+    Clear-Host
+    # prompt to update Powershell
+    Write-Host "Preparing to Update Powershell ... Please wait..."
+    iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
+ } 
+  if ($answer -eq 11){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 11){areyousure} 
+ if ($answer -eq 12){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
