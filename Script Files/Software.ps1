@@ -33,14 +33,13 @@ Clear-Host
  echo "    4. Microsoft Edge"
  echo "    5. Google Drive"
  echo "    6. Tree Size" 
- echo ""
- echo ""
  echo "    7. Office Uninstaller"
  echo "    8. ProduKey (Windows License Finder)" 
+ echo "    9. PatchMyPC (100+ Applications)"
  echo ""
- echo "    9. Previous Menu"
+ echo "    10. Previous Menu"
  echo ""
- echo "    10. exit" 
+ echo "    11. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -143,12 +142,19 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\ProduKey x64\ProduKey.exe"
     Remove-Item "$downloads\ProduKey x64\ProduKey.exe"
 }
-  if ($answer -eq 9){
+ if ($answer -eq 9){
+    Clear-Host
+    # prompt to download PatchMyPC
+    Write-Output "Downloading PatchMyPC"
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/PatchMyPC.ps1 -UseBasicParsing
+    Invoke-Expression $($ScriptFromGithHub.Content)
+ }  
+  if ($answer -eq 10){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 10){areyousure} 
+ if ($answer -eq 11){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
