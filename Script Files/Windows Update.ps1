@@ -16,14 +16,20 @@ $Host.UI.RawUI.WindowTitle = "Windows PSUpdate"
 Clear-Host
 
 # Run PSWindowsUpdate
+Write-Host "`nPreparing to Configure your Computer.. Please Wait`n"
+Start-Sleep -Seconds 1
 
-Write-Host Installing PSWindowsUpdate module
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
+    # Run PSWindowsUpdate
 
-Install-Module -Name PSWindowsUpdate -Force
-Import-Module -Name PSWindowsUpdate
-ECHO Y | powershell Add-WUServiceManager -MicrosoftUpdate
+    Write-Host Installing PSWindowsUpdate module
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Unrestricted -Force
 
-#Install all available Updates & Reboot if Required
-Write-Host Install Windows Updates
-Install-WindowsUpdate -AcceptAll -AutoReboot
+    ECHO Y | powershell Install-Module -Name PSWindowsUpdate -Force
+    ECHO Y | powershell Import-Module -Name PSWindowsUpdate
+    ECHO Y | powershell Add-WUServiceManager -MicrosoftUpdate
+
+    #Install all available Updates & Reboot if Required
+    Write-Host Install Windows Updates
+    Install-WindowsUpdate -AcceptAll -AutoReboot
+
+
