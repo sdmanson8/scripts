@@ -37,10 +37,11 @@ Clear-Host
  echo "    8. ProduKey (Windows License Finder)" 
  echo "    9. PatchMyPC (100+ Applications)"
  echo "    10. Update Powershell"
+ echo "    11. Plex"
  echo ""
- echo "    11. Previous Menu"
+ echo "    12. Previous Menu"
  echo ""
- echo "    12. exit" 
+ echo "    13. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -157,11 +158,23 @@ Clear-Host
     iex "& { $(irm https://aka.ms/install-powershell.ps1) } -UseMSI"
  } 
   if ($answer -eq 11){
+    Clear-Host
+    # prompt to Open Plex website
+    Write-Host "Opening Webpage to Download HP Support Assistant"
+    Start-Process "https://www.plex.tv/media-server-downloads/#plex-app"
+    PAUSE
+    Write-Host "Installing Plex"
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Start-Process -Wait -FilePath "$downloads\Plex*.exe"
+    PAUSE
+	Remove-Item "$downloads\Plex*.exe" -Force -ErrorAction SilentlyContinue -Confirm:$false
+ }  
+  if ($answer -eq 12){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 12){areyousure} 
+ if ($answer -eq 13){areyousure} 
  else {write-host -ForegroundColor red "Invalid Selection"  
        sleep 5  
        mainmenu  
