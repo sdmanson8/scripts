@@ -160,7 +160,7 @@ Clear-Host
   if ($answer -eq 11){
     Clear-Host
     # prompt to Open Plex website
-    Write-Host "Opening Webpage to Download HP Support Assistant"
+    Write-Host "Opening Webpage to Download Plex for Windows"
     Start-Process "https://www.plex.tv/media-server-downloads/#plex-app"
     PAUSE
     Write-Host "Installing Plex"
