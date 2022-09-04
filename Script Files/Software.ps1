@@ -161,7 +161,7 @@ Clear-Host
     Clear-Host
     # prompt to Open Plex website
     Write-Host "Opening Webpage to Download Plex for Windows"
-    Start-Process "https://www.plex.tv/media-server-downloads/#plex-app"
+    Start-Process "https://www.plex.tv/"
     PAUSE
     Write-Host "Installing Plex"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
