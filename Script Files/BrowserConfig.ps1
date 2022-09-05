@@ -41,6 +41,13 @@ Clear-Host
     Stop-Process -processname "chrome"
         }
     # Tweak Chrome
+    Write-Output "Setting Chrome as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Google Chrome"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
+	
     Write-Host "Disabling Guest Mode"
     REG ADD HKLM\SOFTWARE\Policies\Google\Chrome /v BrowserGuestModeEnabled /t REG_DWORD /d 0
     #Write-Host "Disabling Add Profile"
@@ -78,6 +85,13 @@ Clear-Host
     Stop-Process -processname "firefox"
         }
     # Tweak Firefox
+	Write-Output "Setting Firefox as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Firefox-308046B0AF4A39CB"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
+	
     Write-Host "Disabling Incognito"
     REG ADD HKLM\SOFTWARE\Policies\Mozilla\Firefox /v DisablePrivateBrowsing /t REG_DWORD /d 1
         }
@@ -107,6 +121,13 @@ Clear-Host
     Stop-Process -processname "msedge"
         }
     # Tweak Microsoft Edge
+    Write-Output "Setting Microsoft Edge as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Microsoft Edge"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
+	
     Write-Host "Disabling Guest Mode"
     REG ADD HKLM\SOFTWARE\Policies\Microsoft\Edge /v BrowserGuestModeEnabled /t REG_DWORD /d 0
     Write-Host "Disabling Add Profile"
