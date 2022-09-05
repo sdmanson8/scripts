@@ -51,6 +51,7 @@ Clear-Host
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/HP_Driverpack_Matrix_x64.html"
+Exit
 }
     PAUSE
     Write-Host "Installing HP Drivers"
