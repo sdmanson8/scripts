@@ -33,10 +33,13 @@ Clear-Host
  echo "    4. Cleanup Temporary Files"
  echo "    5. Reset the Windows Update Service"
  echo "    6. Uninstall Microsoft Edge" 
+ echo "	   7. Make Google Chrome the default Browser"
+ echo "	   8. Make Firefox the default Browser"
+ echo "	   9. Make Microsoft Edge the default Browser"
  echo ""
- echo "    7. Previous Menu"
+ echo "    10. Previous Menu"
  echo ""
- echo "    8. exit" 
+ echo "    11. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -83,13 +86,45 @@ Clear-Host
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/ResetWinUpdates.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)  
  } 
-
- if ($answer -eq 7){
+   if ($answer -eq 7){
+    Clear-Host
+    # prompt to Make Google Chrome the default Browser
+    Write-Output "Setting Google Chrome to be the default Browser"
+    Write-Output "Setting Chrome as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Google Chrome"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
+ } 
+    if ($answer -eq 8){
+    Clear-Host
+    # prompt to Make Firefox the default Browser
+    Write-Output "Setting Firefox to be the default Browser"
+	Write-Output "Setting Firefox as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Firefox-308046B0AF4A39CB"
+    Remove-Item "$downloads\SetDefaultBrowser.exe" 
+ } 
+    if ($answer -eq 9){
+    Clear-Host
+    # prompt to Make Microsoft Edge the default Browser
+    Write-Output "Setting Microsoft Edge to be the default Browser"
+    Write-Output "Setting Microsoft Edge as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Microsoft Edge"
+    Remove-Item "$downloads\SetDefaultBrowser.exe" 
+ } 
+ if ($answer -eq 10){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 7){areyousure}  
+ if ($answer -eq 11){areyousure}  
        sleep 5  
        mainmenu  
                    }  
