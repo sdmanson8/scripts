@@ -24,7 +24,6 @@ Clear-Host
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "http://ftp.ext.hp.com//pub/caps-softpaq/cmit/HP_Driverpack_Matrix_x64.html"
-Exit
 }
 function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 	Pause
@@ -58,7 +57,6 @@ function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://support.hp.com/us-en/help/hp-support-assistant"
-Exit
 }
 function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 	Pause

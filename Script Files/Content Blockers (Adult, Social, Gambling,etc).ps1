@@ -56,7 +56,6 @@ Clear-Host
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://getcoldturkey.com/download/win/"
-Exit
 }
 function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 	Pause
@@ -78,7 +77,6 @@ function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://support.truple.io/articles/windows/windows-setup-guide"
-Exit
 }
 function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 	Pause
@@ -113,7 +111,6 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://cleanbrowsing.org/guides/windows/"
-Exit
 }
 function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
 	Pause
