@@ -17,8 +17,15 @@ Clear-Host
 
     # Install Cold Turkey Blocker
 	
-    Write-Host Opening Webpage to Download Cold Turkey Blocker
+    Write-Host Preparing to Download Cold Turkey Blocker
+    Do {
+    Write-Host "Proceed to Manually download Application?" -ForegroundColor Yellow
+    Write-Host "https://getcoldturkey.com/download/win/"
+    $result = Read-Host "   ( y / n ) " 
+}Until ($result -eq "y" -or $result -eq "n")
+if($result -eq "y"){
     Start-Process "https://getcoldturkey.com/download/win/"
+}
     PAUSE
     Write-Host "Installing Cold Turkey Blocker"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
@@ -29,8 +36,15 @@ Clear-Host
 	
     # Install Truple
 	
-    Write-Host "Opening Webpage to Download Truple"
+    Write-Host "Preparing to Download Truple"
+    Do {
+    Write-Host "Proceed to Manually download Application?" -ForegroundColor Yellow
+    Write-Host "https://support.truple.io/articles/windows/windows-setup-guide"
+    $result = Read-Host "   ( y / n ) " 
+}Until ($result -eq "y" -or $result -eq "n")
+if($result -eq "y"){
     Start-Process "https://support.truple.io/articles/windows/windows-setup-guide"
+}
     PAUSE
     Write-Host "Installing Truple"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
@@ -53,11 +67,17 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
 	
     # Install CleanBrowsing
 	
-    Write-Host "Opening Webpage to Download CleanBrowsing"
+    Write-Host "Preparing to Download CleanBrowsing"
+    Do {
+    Write-Host "Proceed to Manually download Application?" -ForegroundColor Yellow
+    Write-Host "https://cleanbrowsing.org/guides/windows/"
+    $result = Read-Host "   ( y / n ) " 
+}Until ($result -eq "y" -or $result -eq "n")
+if($result -eq "y"){
     Start-Process "https://cleanbrowsing.org/guides/windows/"
+}
     PAUSE
     Write-Host "Installing CleanBrowsing"
-	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
     Start-Process $downloads\CleanBrowsing*
     PAUSE
     Write-Host "Removing Setup File"

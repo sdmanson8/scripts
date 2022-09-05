@@ -73,6 +73,12 @@ Clear-Host
     Write-Output "Installing Google Chrome"
     $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Chrome.ps1" -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
+    Write-Output "Setting Chrome as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Google Chrome"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
  }
    if ($answer -eq 3){
     Clear-Host
@@ -83,6 +89,12 @@ Clear-Host
     Write-Host "Installing Firefox"
     Start-Process -Wait -FilePath "$downloads\firefox-latest.exe"
     Remove-Item "$downloads\firefox-latest.exe"
+	Write-Output "Setting Firefox as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Firefox-308046B0AF4A39CB"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
  }
    if ($answer -eq 4){
     Clear-Host
@@ -93,6 +105,12 @@ Clear-Host
     Write-Host "Installing Microsoft Edge"
     Start-Process -Wait -FilePath "$downloads\MicrosoftEdgeSetup.exe"
     Remove-Item "$downloads\MicrosoftEdgeSetup.exe"
+    Write-Output "Setting Microsoft Edge as Default Browser... Please Wait..."
+	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
+    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/raw/main/Script%20Files/SetDefaultBrowser.exe" -OutFile "$downloads\SetDefaultBrowser.exe" -UseBasicParsing
+    Set-Location "$downloads"
+    & '.\SetDefaultBrowser.exe' HKLM "Microsoft Edge"
+    Remove-Item "$downloads\SetDefaultBrowser.exe"
  }
    if ($answer -eq 5){
      Clear-Host
@@ -114,13 +132,6 @@ Clear-Host
     Start-Process -Wait -FilePath "$downloads\TreeSizeFreeSetup.exe"
     Remove-Item "$downloads\TreeSizeFreeSetup.exe"
  }
- # if ($answer -eq 7){
- #   Clear-Host
- #   # Install All of the Above
- #   Write-Output "Install All of the Above"
- #   $ScriptFromGithHub = Invoke-WebRequest "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/OtherSoftware.ps1" -UseBasicParsing
- #   Invoke-Expression $($ScriptFromGithHub.Content)
- #}
    if ($answer -eq 7){
     Clear-Host
     # Office Uninstaller
@@ -160,8 +171,15 @@ Clear-Host
   if ($answer -eq 11){
     Clear-Host
     # prompt to Open Plex website
-    Write-Host "Opening Webpage to Download Plex for Windows"
-    Start-Process "https://www.plex.tv/"
+    Write-Host "Preparing to Download Plex for Windows"
+    Do {
+    Write-Host "Proceed to Manually download Application?" -ForegroundColor Yellow
+    Write-Host https://www.plex.tv/media-server-downloads/#plex-app
+    $result = Read-Host "   ( y / n ) " 
+}Until ($result -eq "y" -or $result -eq "n")
+if($result -eq "y"){
+    Start-Process "https://www.plex.tv/media-server-downloads/#plex-app"
+}
     PAUSE
     Write-Host "Installing Plex"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
