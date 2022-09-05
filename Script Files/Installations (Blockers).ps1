@@ -25,8 +25,10 @@ Clear-Host
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://getcoldturkey.com/download/win/"
+Exit
 }
-    PAUSE
+function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
+	Pause
     Write-Host "Installing Cold Turkey Blocker"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
     Start-Process $downloads\Cold_Turkey_Installer.exe
@@ -44,8 +46,10 @@ if($result -eq "y"){
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://support.truple.io/articles/windows/windows-setup-guide"
+Exit
 }
-    PAUSE
+function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
+	Pause
     Write-Host "Installing Truple"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
     Start-Process $downloads\truple*
@@ -75,8 +79,10 @@ $appdata = Get-Childitem env:APPDATA | %{ $_.Value }
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://cleanbrowsing.org/guides/windows/"
+Exit
 }
-    PAUSE
+function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
+	Pause
     Write-Host "Installing CleanBrowsing"
     Start-Process $downloads\CleanBrowsing*
     PAUSE

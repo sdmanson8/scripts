@@ -179,8 +179,10 @@ Clear-Host
 }Until ($result -eq "y" -or $result -eq "n")
 if($result -eq "y"){
     Start-Process "https://www.plex.tv/media-server-downloads/#plex-app"
+Exit
 }
-    PAUSE
+function Pause{ $null = Read-Host 'Press Enter if Application downloaded' }
+	Pause
     Write-Host "Installing Plex"
 	$downloads=(New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
     Start-Process -Wait -FilePath "$downloads\Plex*.exe"
