@@ -26,13 +26,14 @@ Clear-Host
  echo "---------------------------------------------------------"  
  echo "    Windows 10/11 (After Clean Install) Tweaks"
  echo""
-Write-Host "The following first 4 scripts have been slightly modified for my own personal use" -ForegroundColor Red
-Write-Host "Credit goes to the following sources:" -ForegroundColor Red
-Write-Host "https://github.com/Disassembler0/Win10-Initial-Setup-Script" -ForegroundColor Red
-Write-Host "https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6" -ForegroundColor Red
-Write-Host "https://github.com/farag2/Sophia-Script-for-Windows" -ForegroundColor Red
-Write-Host "https://github.com/Sophia-Community/SophiApp" -ForegroundColor Red
-Write-Host "https://github.com/ChrisTitusTech/winutil" -ForegroundColor Red
+ echo  "The following first 4 scripts have been slightly modified for my own personal use"
+ echo  "Credit goes to the following sources:"
+ echo  "1. https://github.com/Disassembler0/Win10-Initial-Setup-Script"
+ echo  "2. https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6"
+ echo  "3. https://github.com/farag2/Sophia-Script-for-Windows" 
+ echo ""
+ echo  "1. https://github.com/Sophia-Community/SophiApp"
+ echo  "2. https://github.com/ChrisTitusTech/winutil"
  echo ""
  echo ""   
  echo "    1. Optimizor, Hardening and Bloatware Removal Script for Windows 10 x64"
@@ -53,9 +54,6 @@ Write-Host "https://github.com/ChrisTitusTech/winutil" -ForegroundColor Red
  $answer = read-host "Please Make a Selection"  
 
 
- 
-
- 
  if ($answer -eq 1){
     Clear-Host
     # Optimizor, Hardening and Bloatware Removal Script for Windows 10
@@ -87,13 +85,13 @@ Write-Host "https://github.com/ChrisTitusTech/winutil" -ForegroundColor Red
  if ($answer -eq 5){
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
-    Write-Host "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+    Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
     iwr -useb https://christitus.com/win | iex   
  }  
  if ($answer -eq 6){
     Clear-Host
     # prompt to run (Beginner) SophiApp
-    Write-Host "Running (Beginner) SophiApp"
+    Write-Output "Running (Beginner) SophiApp"
     irm app.sophi.app | iex    
  }  
  if ($answer -eq 7){
