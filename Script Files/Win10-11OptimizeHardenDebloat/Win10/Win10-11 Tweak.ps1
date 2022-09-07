@@ -10,16 +10,16 @@ $tweaks = @(
     # "DisableTelemetry",             
 	# "EnableTelemetry",
 	
-    "DisableWiFiSense",             
+    #"DisableWiFiSense",             
 	# "EnableWiFiSense", # Please comment this line if you want to do connection sharing
 	
-    "DisableSmartScreen",           
+    #"DisableSmartScreen",           
 	# "EnableSmartScreen",
 	
-    "DisableWebSearch",             
+    #"DisableWebSearch",             
 	# "EnableWebSearch",
 	
-    "DisableAppSuggestions",        
+    #"DisableAppSuggestions",        
 	# "EnableAppSuggestions",
 	
     "DisableBackgroundApps",        
@@ -31,16 +31,16 @@ $tweaks = @(
     "DisableLocationTracking",      
 	# "EnableLocationTracking",
 	
-    "DisableMapUpdates",            
+    #"DisableMapUpdates",            
 	# "EnableMapUpdates",
 	
-    "DisableFeedback",              
+    #"DisableFeedback",              
 	# "EnableFeedback",
 	
-    "DisableAdvertisingID",         
+    #"DisableAdvertisingID",         
 	# "EnableAdvertisingID",
 	
-    "DisableCortana",               
+    #"DisableCortana",               
 	# "EnableCortana",
 	
     "DisableErrorReporting",        
@@ -52,14 +52,14 @@ $tweaks = @(
     # "DisableAutoLogger",          
 	# "EnableAutoLogger", # May cause instability.
 	
-    "DisableDiagTrack",             
+    #"DisableDiagTrack",             
 	# "EnableDiagTrack",
 	
-    "DisableWAPPush",               
+    #"DisableWAPPush",               
 	# "EnableWAPPush",
  
     # Permissions / Firewall / Autorun et cie #
-    "SetUACLow",                    
+    #"SetUACLow",                    
 	# "SetUACHigh", # This option disables user action confirmations. Disabling it is fine, but may cause some problems with some apps.
     
 	 "EnableSharingMappedDrives",   
@@ -71,7 +71,7 @@ $tweaks = @(
     # "DisableSMB1",                 
 	# "EnableSMB1",
     
-	"SetCurrentNetworkPrivate",      
+	#"SetCurrentNetworkPrivate",      
 	# "SetCurrentNetworkPublic",
     
 	# "SetUnknownNetworksPrivate",   
@@ -110,7 +110,7 @@ $tweaks = @(
 	"DisableRemoteDesktop",          
 	# "EnableRemoteDesktop",
     
-	"DisableAutoplay",               
+	#"DisableAutoplay",               
 	# "EnableAutoplay",
     
 	"DisableAutorun",               
@@ -156,19 +156,19 @@ $tweaks = @(
 	"DisableStickyKeys",            
 	# "EnableStickyKeys",
     
-	"ShowTaskManagerDetails"        
+	#"ShowTaskManagerDetails"        
 	# "HideTaskManagerDetails",
     
-	"ShowFileOperationsDetails",    
+	#"ShowFileOperationsDetails",    
 	# "HideFileOperationsDetails",
     
 	"DisableFileDeleteConfirm",     
 	# "EnableFileDeleteConfirm", ## This line will delete without confirmation the files you delete without going through the trashcan.
     
 	#"ShowTaskbarSearchBox",         
-    "HideTaskbarSearchBox",
+    #"HideTaskbarSearchBox",
     
-	"HideTaskView",                 
+	#"HideTaskView",                 
 	# "ShowTaskView",
    
     # "ShowSmallTaskbarIcons",        
@@ -177,10 +177,10 @@ $tweaks = @(
 	# "HideTaskbarTitles",            
 	# "ShowTaskbarTitles",
 	
-    "HideTaskbarPeopleIcon",        
+    #"HideTaskbarPeopleIcon",        
 	# "ShowTaskbarPeopleIcon",
 
-    "ShowTrayIcons",                
+    #"ShowTrayIcons",                
 	# "HideTrayIcons",
 
     # "ShowKnownExtensions",          
@@ -1738,7 +1738,7 @@ Function DisableXboxFeatures {
  
 # Enable Xbox features
 Function EnableXboxFeatures {
-    Write-Host "R�installation de Xbox..."
+    Write-Host "R installation de Xbox..."
     Get-AppxPackage -AllUsers "Microsoft.XboxApp" | ForEach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"}
     Get-AppxPackage -AllUsers "Microsoft.XboxIdentityProvider" | ForEach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"}
     Get-AppxPackage -AllUsers "Microsoft.XboxSpeechToTextOverlay" | ForEach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"}
