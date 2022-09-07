@@ -86,13 +86,13 @@ Clear-Host
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
-    iwr -useb https://christitus.com/win | iex   
+    #iwr -useb https://christitus.com/win | iex   
  }  
  if ($answer -eq 6){
     Clear-Host
     # prompt to run (Beginner) SophiApp
     Write-Output "Running (Beginner) SophiApp"
-    irm app.sophi.app | iex    
+    #irm app.sophi.app | iex    
  }  
  if ($answer -eq 7){
     # Previous Menu
