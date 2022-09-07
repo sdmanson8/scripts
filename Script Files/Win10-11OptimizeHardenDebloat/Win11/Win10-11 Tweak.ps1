@@ -7,7 +7,7 @@ $tweaks = @(
     "RequireAdmin",
  
     # Privacy - AntiTracking - Telemetry #
-    "DisableTelemetry",             
+    #"DisableTelemetry",             
 	# "EnableTelemetry",
 	
     "DisableWiFiSense",             

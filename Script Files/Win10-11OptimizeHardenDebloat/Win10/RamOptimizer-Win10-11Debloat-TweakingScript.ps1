@@ -542,7 +542,7 @@ Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\DeviceAc
 #Disable user steps recorder
 New-Item -Path "HKLM:\Software\Policies\Microsoft\Windows" -Name "AppCompat" -Force
 Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\AppCompat" -Name "DisableUAR" -Type "DWORD" -Value 1 -Force
-
+<#
 #Disable telemetry
 Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\DiagTrack" -Name "Start" -Type "DWORD" -Value "4" -Force
 Set-ItemProperty -Path "HKLM:\SYSTEM\ControlSet001\Services\dmwappushservice" -Name "Start" -Type "DWORD" -Value "4" -Force
@@ -552,7 +552,7 @@ Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\DataCollection
 Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\DataCollection" -Name "AllowTelemetry" -Type "DWORD" -Value 0 -Force
 Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Windows\AppCompat" -Name "AITEnable" -Type "DWORD" -Value 0 -Force
 Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Privacy" -Name "TailoredExperiencesWithDiagnosticDataEnabled" -Type "DWORD" -Value 0 -Force
-
+#>
 #Disable Input Personalization
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Personalization\Settings" -Name "AcceptedPrivacyPolicyy" -Type "DWORD" -Value 0 -Force
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\InputPersonalization" -Name "RestrictImplicitInkCollection" -Type "DWORD" -Value 1 -Force
@@ -669,9 +669,9 @@ sc config WSearch start= disabled
 # This will disable certain scheduled tasks
 
 $tasks = @(
-    "\Microsoft\Office\OfficeTelemetryAgentLogOn"
-    "\Microsoft\Office\OfficeTelemetryAgentFallBack"
-    "\Microsoft\Office\Office 15 Subscription Heartbeat"
+    #"\Microsoft\Office\OfficeTelemetryAgentLogOn"
+    #"\Microsoft\Office\OfficeTelemetryAgentFallBack"
+    #"\Microsoft\Office\Office 15 Subscription Heartbeat"
     
     # Windows base scheduled tasks
     "\Microsoft\Windows\.NET Framework\.NET Framework NGEN v4.0.30319"
