@@ -26,14 +26,14 @@ Clear-Host
  echo "---------------------------------------------------------"  
  echo "    Windows 10/11 (After Clean Install) Tweaks"
  echo""
- echo  "The following first 4 scripts have been slightly modified for my own personal use"
- echo  "Credit goes to the following sources:"
- echo  "1. https://github.com/Disassembler0/Win10-Initial-Setup-Script"
- echo  "2. https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6"
- echo  "3. https://github.com/farag2/Sophia-Script-for-Windows" 
+ Write-Host "The following first 4 scripts have been slightly modified for my own personal use" -ForegroundColor Red
+ Write-Host "Credit goes to the following sources:" -ForegroundColor Red
+ Write-Host "1. https://github.com/Disassembler0/Win10-Initial-Setup-Script" -ForegroundColor Yellow
+ Write-Host "2. https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6" -ForegroundColor Yellow
+ Write-Host "3. https://github.com/farag2/Sophia-Script-for-Windows" -ForegroundColor Yellow
  echo ""
- echo  "1. https://github.com/Sophia-Community/SophiApp"
- echo  "2. https://github.com/ChrisTitusTech/winutil"
+ Write-Host "1. https://github.com/Sophia-Community/SophiApp" -ForegroundColor Yellow
+ Write-Host "2. https://github.com/ChrisTitusTech/winutil" -ForegroundColor Yellow
  echo ""
  echo ""   
  echo "    1. Optimizor, Hardening and Bloatware Removal Script for Windows 10 x64"
@@ -86,13 +86,15 @@ Clear-Host
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
-    #iwr -useb https://christitus.com/win | iex   
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/winutil.ps1 -UseBasicParsing
+    Invoke-Expression $($ScriptFromGithHub.Content)    
  }  
  if ($answer -eq 6){
     Clear-Host
     # prompt to run (Beginner) SophiApp
     Write-Output "Running (Beginner) SophiApp"
-    #irm app.sophi.app | iex    
+    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/Sophia-Community/SophiApp/master/Download_SophiApp.ps1 -UseBasicParsing
+    Invoke-Expression $($ScriptFromGithHub.Content)        
  }  
  if ($answer -eq 7){
     # Previous Menu
