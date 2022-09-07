@@ -85,14 +85,14 @@ Clear-Host
  if ($answer -eq 5){
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
-    Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+    #Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/ChrisTitusTech/winutil/main/winutil.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)    
  }  
  if ($answer -eq 6){
     Clear-Host
     # prompt to run (Beginner) SophiApp
-    Write-Output "Running (Beginner) SophiApp"
+    #Write-Output "Running (Beginner) SophiApp"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/Sophia-Community/SophiApp/master/Download_SophiApp.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)        
  }  
