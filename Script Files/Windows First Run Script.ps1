@@ -25,6 +25,14 @@ Clear-Host
  Clear-Host  
  echo "---------------------------------------------------------"  
  echo "    Windows 10/11 (After Clean Install) Tweaks"
+ echo""
+Write-Host "The following first 4 scripts have been slightly modified for my own personal use" -ForegroundColor Red
+Write-Host "Credit goes to the following sources:" -ForegroundColor Red
+Write-Host "https://github.com/Disassembler0/Win10-Initial-Setup-Script" -ForegroundColor Red
+Write-Host "https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6" -ForegroundColor Red
+Write-Host "https://github.com/farag2/Sophia-Script-for-Windows" -ForegroundColor Red
+Write-Host "https://github.com/Sophia-Community/SophiApp" -ForegroundColor Red
+Write-Host "https://github.com/ChrisTitusTech/winutil" -ForegroundColor Red
  echo ""
  echo ""   
  echo "    1. Optimizor, Hardening and Bloatware Removal Script for Windows 10 x64"
@@ -34,10 +42,11 @@ Clear-Host
  echo "    4. New User Script Windows 11 x64"
  echo ""
  echo "    5. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+ echo "    6. (Beginner) SophiApp" 
  echo ""
- echo "    6. Previous Menu"
+ echo "    7. Previous Menu"
  echo ""
- echo "    7. exit" 
+ echo "    8. exit" 
  echo "" 
  echo ""
  echo "---------------------------------------------------------"  
@@ -79,16 +88,20 @@ Clear-Host
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
     Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
-    $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/debloat.ps1 -UseBasicParsing
-    Invoke-Expression $($ScriptFromGithHub.Content)   
+    iwr -useb https://christitus.com/win | iex   
  }  
-
  if ($answer -eq 6){
+    Clear-Host
+    # prompt to run (Beginner) SophiApp
+    Write-Output "Running (Beginner) SophiApp "
+    irm app.sophi.app | iex    
+ }  
+ if ($answer -eq 7){
     # Previous Menu
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Windows.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
- if ($answer -eq 7){areyousure}  
+ if ($answer -eq 8){areyousure}  
        sleep 5 
        mainmenu  
                    }  
