@@ -248,7 +248,7 @@ RemoveFaxPrinter                # AddFaxPrinter
 
 ### Unpinning ###
 UnpinStartMenuTiles
-UnpinTaskbarIcons
+#UnpinTaskbarIcons
 
 ### Auxiliary Functions ###
 # WaitForKey
