@@ -32,8 +32,6 @@ Clear-Host
  Write-Host "2. https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6" -ForegroundColor Yellow
  Write-Host "3. https://github.com/farag2/Sophia-Script-for-Windows" -ForegroundColor Yellow
  echo ""
- Write-Host "1. https://github.com/Sophia-Community/SophiApp" -ForegroundColor Yellow
- Write-Host "2. https://github.com/ChrisTitusTech/winutil" -ForegroundColor Yellow
  echo ""
  echo ""   
  echo "    1. Optimizor, Hardening and Bloatware Removal Script for Windows 10 x64"
@@ -43,7 +41,9 @@ Clear-Host
  echo "    4. New User Script Windows 11 x64"
  echo ""
  echo "    5. (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+ Write-Host "    https://github.com/ChrisTitusTech/winutil" -ForegroundColor Yellow
  echo "    6. (Beginner) SophiApp" 
+ Write-Host "    https://github.com/Sophia-Community/SophiApp" -ForegroundColor Yellow
  echo ""
  echo "    7. Previous Menu"
  echo ""
