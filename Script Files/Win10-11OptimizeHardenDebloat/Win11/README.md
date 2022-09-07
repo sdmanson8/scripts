@@ -3,6 +3,9 @@ This folder contains scripts that has been slightly modified for my own personal
 Main script Files are Script.ps1 and NewUserScript-Win11.ps1
 
 Credit goes to the following sources
+
 https://github.com/Disassembler0/Win10-Initial-Setup-Script
+
 https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6
+
 https://github.com/farag2/Sophia-Script-for-Windows
