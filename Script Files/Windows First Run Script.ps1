@@ -87,13 +87,13 @@ Write-Host "https://github.com/ChrisTitusTech/winutil" -ForegroundColor Red
  if ($answer -eq 5){
     Clear-Host
     # prompt to run (Beginner) Remove Windows Bloatware by ChrisTitusTech
-    Write-Output "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
+    Write-Host "Running (Beginner) Remove Windows Bloatware by ChrisTitusTech"
     iwr -useb https://christitus.com/win | iex   
  }  
  if ($answer -eq 6){
     Clear-Host
     # prompt to run (Beginner) SophiApp
-    Write-Output "Running (Beginner) SophiApp "
+    Write-Host "Running (Beginner) SophiApp"
     irm app.sophi.app | iex    
  }  
  if ($answer -eq 7){
