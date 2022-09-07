@@ -57,28 +57,28 @@ Clear-Host
  if ($answer -eq 1){
     Clear-Host
     # Optimizor, Hardening and Bloatware Removal Script for Windows 10
-    Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 10"
+    #Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 10"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/Script.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  } 
   if ($answer -eq 2){
     Clear-Host
     # New User Script Windows 10
-    Write-Output "New User Script Windows 10"
+    #Write-Output "New User Script Windows 10"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win10/NewUserScript-Win10.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }
  if ($answer -eq 3){
     Clear-Host
     # Optimizor, Hardening and Bloatware Removal Script for Windows 11
-    Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 11"
+    #Write-Output "Optimizor, Hardening and Bloatware Removal Script for Windows 11"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/Script.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)
  }
  if ($answer -eq 4){
     Clear-Host
     # New User Script Windows 11
-    Write-Output "New User Script Windows 11"
+    #Write-Output "New User Script Windows 11"
     $ScriptFromGithHub = Invoke-WebRequest https://raw.githubusercontent.com/sdmanson8/scripts/main/Script%20Files/Win10-11OptimizeHardenDebloat/Win11/NewUserScript-Win11.ps1 -UseBasicParsing
     Invoke-Expression $($ScriptFromGithHub.Content)   
  }  
