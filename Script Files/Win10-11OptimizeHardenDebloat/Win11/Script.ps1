@@ -311,8 +311,12 @@ cmd.exe /k .\windows_hardening.cmd
 Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Win10-11 Tweak.ps1'
+Clear-Host
 Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
 & '.\Sophia.ps1'
+Clear-Host
+Set-Location "$Destination\Win10-11OptimizeHardenDebloat\Win11"
+cmd.exe /k .\Default.cmd
 Start-Sleep -Seconds 1
 Write-Warning "A reboot is required for all changes to take effect"
 Start-Sleep -Seconds 1
