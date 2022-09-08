@@ -104,7 +104,7 @@ $tweaks = @(
 	# "DisableSharedExperiences",      
 	"EnableSharedExperiences",
     
-	"DisableRemoteAssistance",       
+	#"DisableRemoteAssistance",       
 	# "EnableRemoteAssistance",
     
 	"DisableRemoteDesktop",          
