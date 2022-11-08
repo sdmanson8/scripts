@@ -102,11 +102,11 @@ services:
     security_opt:
       - no-new-privileges:true # https://docs.docker.com/engine/reference/run/#security-configuration
     volumes:
-      - $USERDIR/traefik/rules:/rules # file provider directory
+      - $DOCKERDIR/traefik/rules:/rules # file provider directory
       - /var/run/docker.sock:/var/run/docker.sock:ro # Connect to docker-socket-proxy tcp://docker-socket-proxy:2375
-      - $USERDIR/traefik/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
-      - $USERDIR/traefik/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
-      - $USERDIR/shared:/shared
+      - $DOCKERDIR/traefik/acme/acme.json:/acme.json # cert location - you must touch this file and change permissions to 600
+      - $DOCKERDIR/traefik/traefik.log:/traefik.log # for fail2ban - make sure to touch file before starting container
+      - $DOCKERDIR/shared:/shared
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     environment:
