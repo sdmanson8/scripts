@@ -150,7 +150,7 @@ After running the [script](https://github.com/sdmanson8/scripts/edit/main/Script
   
 Go to [HTPasswd Generator](https://www.web2generators.com/apache-tools/htpasswd-generator) and paste the result in the below file
 ```
-nano ~/docker/.passwd
+nano ~/docker/shared/.htpasswd
 ```
  
 ![image](https://user-images.githubusercontent.com/90516190/134488892-e1d016ca-bd88-4ca3-8384-561101985a4c.png)
