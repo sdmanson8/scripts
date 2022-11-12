@@ -136,16 +136,16 @@ services:
 #    ports:
 #      - 9791:$PROMETHEUS_PORT
 #    environment: &env
-#      TRAEFIK_USERNAME: sheldon
-#      TRAEFIK_PASSWORD: ramona123
+#      TRAEFIK_USERNAME: 
+#      TRAEFIK_PASSWORD: 
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --web.console.libraries=/usr/share/prometheus/console_libraries
       - --web.console.templates=/usr/share/prometheus/consoles
     volumes:
-      - $USERDIR/prometheus:/prometheus
-      - $USERDIR/prometheus/configs:/etc/prometheus
+      - $DOCKERDIR/prometheus:/prometheus
+      - $DOCKERDIR/prometheus/configs:/etc/prometheus
     networks:
       -  $WEB_PROXY
     labels:
@@ -230,7 +230,7 @@ services:
 #    volumes:
 #      - /etc/localtime:/etc/localtime:ro
 #      - /etc/timezone:/etc/timezone:ro
-#      - $USERDIR/Authelia:/config
+#      - $DOCKERDIR/Authelia:/config
 #    networks:
 #      - $WEB_PROXY
 #    #ports:
@@ -306,7 +306,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - $USERDIR/Portainer-CE/data:/data
+      - $DOCKERDIR/Portainer-CE/data:/data
     environment:
       - TZ=$TZ
     labels:
@@ -334,7 +334,7 @@ services:
     ports:
       - $ORGANIZER_PORT:$HTTP_PORT
     volumes:
-      - $USERDIR/organizrv2:/config
+      - $DOCKERDIR/organizrv2:/config
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     environment:
@@ -368,7 +368,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - $USERDIR/heimdall/:/config
+      - $DOCKERDIR/heimdall/:/config
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -400,7 +400,7 @@ services:
     ports:
       - $DB_PORT:$DB_PORT
     volumes:
-      - $USERDIR/mariadb/data:/config
+      - $DOCKERDIR/mariadb/data:/config
       - /var/lib/mysql/mysql.sock:/mysql.sock
     environment:
       - PUID=$PUID
@@ -422,7 +422,7 @@ services:
     ports:
       - $PHPMYADMIN_PORT:$HTTP_PORT
     volumes:
-      - $USERDIR/phpmyadmin:/var/lib/phpmyadmin/
+      - $DOCKERDIR/phpmyadmin:/var/lib/phpmyadmin/
     environment:
       - PMA_HOST=$DB_HOST
       - PMA_ARBITRARY=1
@@ -444,7 +444,7 @@ services:
     container_name: Redis
     hostname: Redis
     volumes:
-      - $USERDIR/Redis/data:/data
+      - $DOCKERDIR/Redis/data:/data
       - /etc/localtime:/etc/localtime:ro
     networks:
       - $WEB_PROXY
@@ -496,9 +496,9 @@ services:
     ports:
       - $INFLUXDB_PORT:$INFLUXDB_PORT
     volumes:
-#      - $USERDIR/Influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
-      - $USERDIR/Influxdb/db:/var/lib/influxdb
-#    command: -config /etc/influxdb/influxdb.conf
+     - $DOCKERDIR/Influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+     - $DOCKERDIR/Influxdb/db:/var/lib/influxdb
+    command: -config /etc/influxdb/influxdb.conf
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -529,7 +529,7 @@ services:
     depends_on:
       - Influxdb
     volumes:
-      - $USERDIR/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - $DOCKERDIR/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -549,7 +549,7 @@ services:
       - $GRAFANA_PORT:$GRAFANA_PORT
     user: "0"
     volumes:
-      - $USERDIR/Grafana:/var/lib/grafana
+      - $DOCKERDIR/Grafana:/var/lib/grafana
     environment:
       GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource,grafana-worldmap-panel,grafana-piechart-panel
     labels:
@@ -580,8 +580,8 @@ services:
       - 6881:6881
       - 6881:6881/udp
     volumes:
-      - $MERGERFS/gdrive/downloads:/downloads:rw,slave
-      - $USERDIR/qbittorrent:/config
+      - /mnt/local/downloads:/downloads
+      - $DOCKERDIR/qbittorrent:/config
     environment:
       - PUID=$PUID
       - PGID=$PGID
@@ -614,9 +614,9 @@ services:
 #    ports:
 #      - 8185:$SABNZBD_PORT
 #    volumes:
-#      - $USERDIR/docker/sabnzbd:/config
-#      - $MERGERFS/gdrive/downloads:/downloads
-#    #   - $USERDIR/Downloads/incomplete:/incomplete-downloads
+#      - $DOCKERDIR/sabnzbd:/config
+#      - /mnt/local/downloads:/downloads
+#      - /mnt/md0/Downloads/incomplete:/incomplete-downloads
 #    environment:
 #      PUID: $PUID
 #      PGID: $PGID
@@ -656,8 +656,8 @@ services:
     ports:
       - $JACKETT_PORT:$JACKETT_PORT
     volumes:
-      - $USERDIR/jackett:/config
-      - $MERGERFS/gdrive/downloads:/downloads
+      - $DOCKERDIR/jackett:/config
+      - /mnt/local/downloads:/downloads
       - /etc/localtime:/etc/localtime:ro
     environment:
       PUID: $PUID
@@ -689,8 +689,8 @@ services:
 #    ports:
 #      - $NZBHYDRA_PORT:5076
 #    volumes:
-#      - $USERDIR/docker/hydra2:/config
-#      - $MERGERFS/gdrive/downloads:/downloads
+#      - $DOCKERDIR/docker/hydra2:/config
+#      - /mnt/local/downloads:/downloads
 #    environment:
 #      PUID: $PUID
 #      PGID: $PGID
@@ -722,14 +722,13 @@ services:
     ports:
       - $RADARR4k_PORT:$RADARR4k_PORT
     volumes:
-      - $USERDIR/radarr4k:/config
-      - /mnt/disks/Movies/downloads/completed:/downloads:rw
-      - /mnt/disks/Movies/4k:/Movies
+      - $DOCKERDIR/radarr4k:/config
+      - /mnt/md0/Downloads/completed:/downloads:rw
       - $MERGERFS/gdrive:/user:rw,slave
       - /etc/localtime:/etc/localtime:ro
     environment:
-      PUID: $PUID
-      PGID: $PGID
+      PUID: 0
+      PGID: 0
       TZ: $TZ
     labels:
       - traefik.enable=true
@@ -762,14 +761,13 @@ services:
     ports:
       - $RADARR_PORT:$RADARR_PORT
     volumes:
-      - $USERDIR/radarr:/config
-      - /mnt/disks/Movies/downloads/completed:/downloads
-      - /mnt/disks/Movies/HD:/Movies
+      - $DOCKERDIR/radarr:/config
+      - /mnt/md0/Downloads/completed:/downloads
       - $MERGERFS/gdrive:/user:rw,slave
       - /etc/localtime:/etc/localtime:ro
     environment:
-      PUID: $PUID
-      PGID: $PGID
+      PUID: 0
+      PGID: 0
       TZ: $TZ
     labels:
       - traefik.enable=true
@@ -802,15 +800,13 @@ services:
     ports:
       - $SONARR4k_PORT:$SONARR4k_PORT
     volumes:
-      - $USERDIR/sonarr4k:/config
-      - /mnt/disks/Movies/downloads/completed:/downloads
-      - /mnt/user/Series 1/4k:/Series
-      - /mnt/disks/Series/4k:/Series2
+      - $DOCKERDIR/sonarr4k:/config
+      - /mnt/md0/Downloads/completed:/downloads
       - $MERGERFS/gdrive:/user:rw,slave     
       - /etc/localtime:/etc/localtime:ro 
     environment:
-      PUID: $PUID
-      PGID: $PGID
+      PUID: 0
+      PGID: 0
       TZ: $TZ
     labels:
       - traefik.enable=true
@@ -843,15 +839,13 @@ services:
     ports:
       - $SONARR_PORT:$SONARR_PORT
     volumes:
-      - $USERDIR/docker/sonarr:/config
-      - /mnt/disks/Movies/downloads/completed:/downloads
-      - /mnt/user/Series 1/HD:/Series
-      - /mnt/disks/Series/HD:/Series2
+      - $DOCKERDIR/sonarr:/config
+      - /mnt/md0/Downloads/completed:/downloads
       - $MERGERFS/gdrive:/user:rw,slave
       - /etc/localtime:/etc/localtime:ro
     environment:
-      PUID: $PUID
-      PGID: $PGID
+      PUID: 0
+      PGID: 0
       TZ: $TZ
     labels:
       - traefik.enable=true
@@ -896,23 +890,17 @@ services:
       - 32414:32414
       - 32469:32469
     volumes:
-      #- /mnt/user/Series:/Series
-      - $USERDIR/Plex-Media-Server:/config
-      - /mnt/disks/Movies/downloads:/downloads
-      - /mnt/disks/Series:/Series2
-     # - /mnt/disks/Series3:/Series3
-      - /mnt/user/Series 1:/Series
-      - /mnt/disks/Movies:/Movies
-     # - /mnt/disks/Storage:/Storage
+      - $DOCKERDIR/Plex-Media-Server:/config
+      - /mnt/md0/Downloads:/downloads
       - $MERGERFS/gdrive:/user:rw,slave
-      - /dev/shm:/transcode # Offload transcoding to RAM if you have enough RAM
-    #   - $USERDIR/plex_tmp:/transcode
+      - /dev/md0:/transcode # Offload transcoding to RAM if you have enough RAM
+      - /mnt/md0/tmp/plex_tmp:/transcode
     environment:
       TZ: $TZ
       HOSTNAME: Plex-Media-Server
       PLEX_CLAIM: $PLEX_CLAIM
-      PLEX_UID: $PUID
-      PLEX_GID: $PGID
+      PLEX_UID: 998 #Create plex user on host
+      PLEX_GID: 998
       ADVERTISE_IP: http://$SERVER_IP:$PLEX_PORT/
     labels:
       - traefik.enable=true
@@ -938,7 +926,7 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - $USERDIR/ombi:/config
+      - $DOCKERDIR/ombi:/config
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -968,8 +956,8 @@ services:
     ports:
       - $TAUTULLI_PORT:$TAUTULLI_PORT
     volumes:
-      - $USERDIR/tautulli/config:/config
-      - $USERDIR/tautulli/logs:/logs:ro
+      - $DOCKERDIR/tautulli/config:/config
+      - $DOCKERDIR/tautulli/logs:/logs:ro
     environment:
       PUID: $PUID
       PGID: $PGID
@@ -1003,8 +991,8 @@ services:
       - $DOCKERDIR/bazarr:/config
       - $MERGERFS/gdrive:/data:rw,slave
     environment:
-      PUID: $PUID
-      PGID: $PGID
+      PUID: 0
+      PGID: 0
       TZ: $TZ
     labels:
       - "traefik.enable=true"
@@ -1043,7 +1031,7 @@ services:
 #    security_opt:
 #      - no-new-privileges:true
 #    volumes:
-#      - $USERDIR/docker/nextcloud:/config
+#      - $DOCKERDIR/nextcloud:/config
 #    environment:
 #      - PUID=$PUID
 #      - PGID=$PGID
@@ -1088,7 +1076,7 @@ services:
 #      - $WEB_PROXY
 #    entrypoint: /cron.sh
 #    volumes:
-#      - $USERDIR/docker/nextcloud:/var/www/html
+#      - $DOCKERDIR/nextcloud:/var/www/html
 #    environment:
 #      - TZ=$TZ
 
@@ -1148,8 +1136,8 @@ services:
     ports:
        - 5800:5800
     volumes:
-      - $USERDIR/firefox:/config
-      - /mnt/user/rclone_mergerfs/gdrive/downloads:/data/downloads:rw,slave
+      - $DOCKERDIR/firefox:/config
+      - /mnt/md0/Downloads:/data/downloads
       - /dev/shm:/dev/shm
     environment:
       USER_ID: $PUID
@@ -1327,7 +1315,7 @@ services:
       - TZ=$TZ
       - INTERFACE=eth0 #optional
     volumes:
-      - $USERDIR/openvpn-as:/config
+      - $DOCKERDIR/openvpn-as:/config
     ports:
       - 943:943
       - 9443:9443
@@ -1338,7 +1326,7 @@ services:
   ##################### MAINTENANCE ##########################
 
   # Docker-GC - Automatic Docker Garbage Collection
-  # Create docker-gc-exclude file
+  # Create docker-gc-exclude file --> https://raw.githubusercontent.com/swarmstack/swarmstack/master/docker-gc-exclude <--
   dockergc:
     image: clockworksoul/docker-gc-cron:latest
     container_name: docker-gc
@@ -1346,7 +1334,7 @@ services:
     networks:
       - $WEB_PROXY 
     volumes:
-      # - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+    #  - /var/run/docker.sock:/var/run/docker.sock # Use Docker Socket Proxy instead for improved security
       - $DOCKERDIR/docker-gc/docker-gc-exclude:/etc/docker-gc-exclude
     environment:
       CRON: 0 0 0 * * ? # Everyday at midnight. Previously 0 0 * * *
@@ -1389,6 +1377,6 @@ services:
       - LOG_FILE=false #optional
     network_mode: 'host'
     volumes:
-      - $USERDIR/duckdns/config:/config #optional
+      - $DOCKERDIR/duckdns/config:/config #optional
     restart: always
 #-----------------------------END-------------------------#
