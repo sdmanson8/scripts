@@ -502,7 +502,7 @@ JPEGWallpapersQuality -Max
 
 # Start Task Manager in the expanded mode
 # Запускать Диспетчера задач в развернутом виде
-TaskManagerWindow -Expanded
+#TaskManagerWindow -Expanded
 
 # Start Task Manager in the compact mode (default value)
 # Запускать Диспетчера задач в свернутом виде (значение по умолчанию)
