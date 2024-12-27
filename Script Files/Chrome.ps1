@@ -92,6 +92,6 @@ Download-Chrome
 Install-Chrome
 Clean-Up
 
-if ($RunScriptSilent -NE $True){
-    Read-Host 'Install complete! Press [Enter] to exit'
-}
+#if ($RunScriptSilent -NE $True){
+#    Read-Host 'Install complete! Press [Enter] to exit'
+#}
