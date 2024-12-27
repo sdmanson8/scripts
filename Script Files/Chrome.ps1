@@ -71,9 +71,6 @@ Function Install-Chrome {
         Write-Host 'success!' -ForegroundColor Green
     } else {
         Write-Host "failed. There was a problem installing Google Chrome. MsiExec returned exit code $ExitCode." -ForegroundColor Red
-        Clean-Up
-        if ($RunScriptSilent -NE $True){
-            Read-Host 'Press [Enter] to exit'
         }
 	    exit
     }
