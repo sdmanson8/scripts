@@ -49,14 +49,14 @@ Function Download-Chrome {
 	        Write-Host 'failed. There was a problem with the download.' -ForegroundColor Red
 #            if ($RunScriptSilent -NE $True){
 #                Read-Host 'Press [Enter] to exit'
-            }
+#            }
 	        exit
         }
     } else {
         Write-Host "failed. Unable to connect to Google's servers." -ForegroundColor Red
 #        if ($RunScriptSilent -NE $True){
 #            Read-Host 'Press [Enter] to exit'
-        }
+#        }
 	    exit
     }
 }
@@ -74,7 +74,7 @@ Function Install-Chrome {
         Clean-Up
  #       if ($RunScriptSilent -NE $True){
  #           Read-Host 'Press [Enter] to exit'
-        }
+#        }
 	    exit
     }
 }
