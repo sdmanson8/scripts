@@ -47,15 +47,15 @@ Function Download-Chrome {
             Write-Host 'success!' -ForegroundColor Green
         } catch {
 	        Write-Host 'failed. There was a problem with the download.' -ForegroundColor Red
-            if ($RunScriptSilent -NE $True){
-                Read-Host 'Press [Enter] to exit'
+#            if ($RunScriptSilent -NE $True){
+#                Read-Host 'Press [Enter] to exit'
             }
 	        exit
         }
     } else {
         Write-Host "failed. Unable to connect to Google's servers." -ForegroundColor Red
-        if ($RunScriptSilent -NE $True){
-            Read-Host 'Press [Enter] to exit'
+#        if ($RunScriptSilent -NE $True){
+#            Read-Host 'Press [Enter] to exit'
         }
 	    exit
     }
@@ -71,11 +71,13 @@ Function Install-Chrome {
         Write-Host 'success!' -ForegroundColor Green
     } else {
         Write-Host "failed. There was a problem installing Google Chrome. MsiExec returned exit code $ExitCode." -ForegroundColor Red
+        Clean-Up
+ #       if ($RunScriptSilent -NE $True){
+ #           Read-Host 'Press [Enter] to exit'
         }
 	    exit
     }
 }
-
 Function Clean-Up {
     Write-Host 'Removing Chrome installer... ' -NoNewline
 
