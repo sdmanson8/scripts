@@ -2,7 +2,9 @@ windows 10
 
 "Main Script"
 
-Add yes or no to windows update
+give option to run win update y/n
+  	- if yes open new window for update while existing window continues with script
+  	
 Telemetry not working (Type invalid)
 
 change:
