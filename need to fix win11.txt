@@ -1,0 +1,40 @@
+"Main"
+
+give option to run win update y/n
+  	- if yes open new window for update while existing window continues with script
+  	- NoReboot
+
+Telemetry not working (Type invalid)
+line 198
+line 217 - 225
+
+clear host before main.zip extraction
+give title "preparing script files ...."
+ - extracting zip ...
+ 
+ "Ram optimizer ...."
+ 
+does not exist:
+HKLM....Policies\Explorer
+HKCU....Explorer\OperationStatusManager
+line 509
+line 576
+
+ sc config DiagTrack
+ 		   diagnosticshub.standardcollector.service
+ 		   dmwappushservice
+ 		   remoteRegistry
+ 		   TrkWks
+ 		   WMPNetworkSvc
+ 		   WSearch
+
+"Win10 tweaks"
+
+service not found:
+HomeGroupProvider 
+HomeGroupListener
+
+sophia script broken
+
+"Win11.psm1"
+line 4060-4061
