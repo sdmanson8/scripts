@@ -1,0 +1,55 @@
+windows 10 
+
+"Main Script"
+
+Add yes or no to windows update
+Telemetry not working (Type invalid)
+
+change:
+clear host before main.zip extraction
+give title "preparing script files ...."
+ - extracting zip ...
+ 
+ "Ram optimizer ...."
+ 
+ does not exist:
+ PeerDistSvc
+ HKLM....Policies\Explorer
+ HKCU....Explorer\OperationStatusManager
+ HKCU....CurrentVersion\DeliveryOptimization
+ 
+ sc config DiagTrack
+ 		   diagnosticshub.standardcollector.service
+ 		   dmwappushservice
+ 		   remoteRegistry
+ 		   TrkWks
+ 		   WMPNetworkSvc
+ 		   WSearch
+
+"Win10 tweaks"
+
+service not found:
+HomeGroupProvider 
+HomeGroupListener
+
+"Sophia"
+
+Import module -name usewindowspowershell
+start-process windowsdefender://ransomware....
+disable-netadapterbinding tcpip6
+get-content -asbytestream
+set-content
+get-startapps
+
+change taskbar to be shortened
+
+export-startlayout
+get-content startlayout.xml
+line 8707
+line 8708
+line 8646-8714
+line 8744
+line 8791-8792
+line 8981
+
+add rename pc option
