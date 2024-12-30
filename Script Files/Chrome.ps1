@@ -13,8 +13,6 @@ $Host.UI.RawUI.WindowTitle = "Chrome Installer"
 ########################### Script Starting ###################################
 ###############################################################################
 
-Clear-Host
-
 Write-Host 'Preparing to Install Google Chrome'
 
 # Install Google Chrome x64 on 64-Bit systems? $True or $False
