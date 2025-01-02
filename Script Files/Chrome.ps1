@@ -1,4 +1,4 @@
-#requires -version 5.1
+#requires -version 3
 # Relaunch the script with administrator privileges
 Function RequireAdmin {
     If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
