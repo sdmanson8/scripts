@@ -1,0 +1,7 @@
+
+
+1. install pwsh - done
+2. activation, rename, timezone, etc to delay in order for pwsh to fully install
+3. initialchecks
+4. more random stuff, periodically clearing console.
+5. show Sophia menu

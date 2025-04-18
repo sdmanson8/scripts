@@ -1,0 +1,31 @@
+main files
+------------
+
+Main Script.ps1 -> Script.ps1 -> Windows.ps1
+	-> Windows First Run Script.ps1 ->
+		/Win10/Script.ps1
+		/Win10/NewUserScript-Win10.ps1
+		/Win11/Script.ps1
+		/Win11/NewUserScript-Win11.ps1
+	-> Setup and Configure for Domain Policies.ps1 ->
+		vpn.ps1
+		join domain.ps1
+		gpupdate.ps1
+		MDM.ps1	
+	-> Content Blockers (Adult, Social, Gambling,etc).ps1 ->
+		Installations (Blockers).ps1
+		BrowserSettings.ps1
+	-> InstallHPDriversandSoftware.ps1 ->
+		HPSoftwareDrivers.ps1
+	-> Software.ps1 ->
+		Chrome.ps1
+		SetDefaultBrowser.exe
+		PatchMyPC.ps1
+	-> WinAdminTools.ps1 ->
+		Windows%20Update.ps1
+		Disable%20Windows%20Update.ps1
+		WindowsOld.bat
+		CleanTempFiles.ps1
+		Uninstall%20Edge.ps1
+		ResetWinUpdates.ps1
+
