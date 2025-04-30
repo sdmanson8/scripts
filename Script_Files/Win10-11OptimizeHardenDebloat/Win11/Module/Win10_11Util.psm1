@@ -2083,13 +2083,13 @@ function ScheduledTasks
 
 <#
     .SYNOPSIS
-    Manage the offering of Malicious Software Removal Tool through Windows Update settings and scripting
+    Manage the offering of Malicious Software Removal Tool through Windows Update settings
 
     .PARAMETER Enable
-    Enable the offering of Malicious Software Removal Tool through Windows Update for the current user.
+    Enable the offering of Malicious Software Removal Tool through Windows Update
 
     .PARAMETER Disable
-    Disable the offering of Malicious Software Removal Tool through Windows Update for the current user.
+    Disable the offering of Malicious Software Removal Tool through Windows Update
 
     .EXAMPLE
     UpdateMSRT -Enable
@@ -2098,7 +2098,7 @@ function ScheduledTasks
     UpdateMSRT -Disable
 
     .NOTES
-    Current user.
+    Current user
 #>
 function UpdateMSRT
 {
@@ -2143,22 +2143,22 @@ function UpdateMSRT
 
 <#
     .SYNOPSIS
-    Offering of drivers through Windows Update settings and scripting
+    Offering of drivers through Windows Update settings
 
     .DESCRIPTION
-    This script enables or disables the Offering of drivers through Windows Update for the current user.
+    This script enables or disables the Offering of drivers through Windows Update
 
     IMPORTANT NOTE:
-    This does not work properly if you use a driver intended for another hardware model.
-    For example, Intel I219-V on Windows Server works only with the I219-LM driver.
+    This does not work properly if you use a driver intended for another hardware model
+    For example, Intel I219-V on Windows Server works only with the I219-LM driver
     Therefore, Windows Update will repeatedly try and fail to install the I219-V driver indefinitely,
-    even if you use this tweak.
+    even if you use this tweak
 
     .PARAMETER Enable
-    Enable the Offering of drivers through Windows Update for the current user.
+    Enable the Offering of drivers through Windows Update
 
     .PARAMETER Disable
-    Disable the Offering of drivers through Windows Update for the current user.
+    Disable the Offering of drivers through Windows Update
 
     .EXAMPLE
     UpdateDriver -Enable
@@ -2167,7 +2167,7 @@ function UpdateMSRT
     UpdateDriver -Disable
 
     .NOTES
-    Current user.
+    Current user
 #>
 function UpdateDriver
 {
@@ -2222,13 +2222,13 @@ function UpdateDriver
 
 <#
 .SYNOPSIS
-Configure the setting to receive updates for other Microsoft products via Windows Update.
+Configure the setting to receive updates for other Microsoft products via Windows Update
 
 .PARAMETER Enable
-Enable receiving updates for other Microsoft products via Windows Update for the current user.
+Enable receiving updates for other Microsoft products via Windows Update
 
 .PARAMETER Disable
-Disable receiving updates for other Microsoft products via Windows Update for the current user.
+Disable receiving updates for other Microsoft products via Windows Update
 
 .EXAMPLE
 UpdateMSProducts -Enable
@@ -2237,7 +2237,7 @@ UpdateMSProducts -Enable
 UpdateMSProducts -Disable
 
 .NOTES
-Current user.
+Current user
 #>
 function UpdateMSProducts
 {
@@ -2281,13 +2281,13 @@ function UpdateMSProducts
 
 <#
     .SYNOPSIS
-    Windows Update automatic downloads settings and scripting
+    Windows Update automatic downloads settings
 
     .PARAMETER Enable
-    Enable Windows Update automatic downloads for the current user.
+    Enable Windows Update automatic downloads
 
     .PARAMETER Disable
-    Disable Windows Update automatic downloads for the current user.
+    Disable Windows Update automatic downloads
 
     .EXAMPLE
     UpdateAutoDownload -Enable
@@ -2296,7 +2296,7 @@ function UpdateMSProducts
     UpdateAutoDownload -Disable
 
     .NOTES
-    Current user.
+    Current user
 #>
 function UpdateAutoDownload
 {
@@ -2341,17 +2341,17 @@ function UpdateAutoDownload
 
 <#
     .SYNOPSIS
-    Automatic restart after Windows Update installation settings and scripting
+    Automatic restart after Windows Update installation settings
 
     .DESCRIPTION
-    IMPORTANT: This tweak is experimental and should be used with caution.
+    IMPORTANT: This tweak is experimental and should be used with caution
     It works by registering a dummy debugger for MusNotification.exe, which effectively blocks the restart prompt executable from running. This prevents the system from scheduling the automatic restart after a Windows Update installation, potentially avoiding unwanted restarts.
     
     .PARAMETER Enable
-    Enable automatic restart after Windows Update installation for the current user.
+    Enable automatic restart after Windows Update installation
 
     .PARAMETER Disable
-    Disable automatic restart after Windows Update installation for the current user.
+    Disable automatic restart after Windows Update installation
 
     .EXAMPLE
     UpdateRestart -Enable
@@ -2360,7 +2360,7 @@ function UpdateAutoDownload
     UpdateRestart -Disable
 
     .NOTES
-    Current user.
+    Current user
 #>
 function UpdateRestart
 {
@@ -2408,10 +2408,10 @@ function UpdateRestart
     Nightly wake-up for Automatic Maintenance and Windows Updates
 
     .PARAMETER Enable
-    Enable the nightly wake-up for automatic maintenance and Windows updates for the current user.
+    Enable the nightly wake-up for automatic maintenance and Windows updates
 
     .PARAMETER Disable
-    Disable the nightly wake-up for automatic maintenance and Windows updates for the current user.
+    Disable the nightly wake-up for automatic maintenance and Windows updates
 
     .EXAMPLE
     MaintenanceWakeUp -Enable
@@ -2420,7 +2420,7 @@ function UpdateRestart
     MaintenanceWakeUp -Disable
 
     .NOTES
-    Current user.
+    Current user
 #>
 function MaintenanceWakeUp
 {
@@ -2465,8 +2465,25 @@ function MaintenanceWakeUp
 	}
 }
 
-# Shared Experiences - Applicable since 1703. Not applicable to Server
-# This setting can be set also via GPO, however doing so causes reset of Start Menu cache. See https://github.com/Disassembler0/Win10-Initial-Setup-Script/issues/145 for details
+<#
+    .SYNOPSIS
+    Shared Experiences feature settings
+
+    .PARAMETER Enable
+    Enable the Shared Experiences feature
+
+    .PARAMETER Disable
+    Disable the Shared Experiences feature
+
+    .EXAMPLE
+    SharedExperiences -Enable
+
+    .EXAMPLE
+    SharedExperiences -Disable
+
+    .NOTES
+    Current user
+#>
 function SharedExperiences
 {
 	param
@@ -2508,7 +2525,25 @@ function SharedExperiences
 	}
 }
 
-# Clipboard History - Applicable since 1809. Not applicable to Server
+<#
+    .SYNOPSIS
+    Clipboard History feature settings
+
+    .PARAMETER Enable
+    Enable the Clipboard History feature
+
+    .PARAMETER Disable
+    Disable the Clipboard History feature
+
+    .EXAMPLE
+    ClipboardHistory -Enable
+
+    .EXAMPLE
+    ClipboardHistory -Disable
+
+    .NOTES
+    Current user
+#>
 function ClipboardHistory
 {
 	param
@@ -2550,7 +2585,25 @@ function ClipboardHistory
 	}
 }
 
-# Superfetch service
+<#
+    .SYNOPSIS
+    Superfetch service settings
+
+    .PARAMETER Enable
+    Enable the Superfetch service
+
+    .PARAMETER Disable
+    Disable the Superfetch service
+
+    .EXAMPLE
+    Superfetch -Enable
+
+    .EXAMPLE
+    Superfetch -Disable
+
+    .NOTES
+    Current user
+#>
 function Superfetch
 {
 	param
@@ -2591,7 +2644,25 @@ function Superfetch
 	}
 }
 
-# NTFS paths with length over 260 characters
+<#
+.SYNOPSIS
+NTFS paths with length over 260 characters settings
+
+.PARAMETER Enable
+Enable NTFS paths with length over 260 characters
+
+.PARAMETER Disable
+Disable NTFS paths with length over 260 characters
+
+.EXAMPLE
+NTFSLongPaths -Enable
+
+.EXAMPLE
+NTFSLongPaths -Disable
+
+.NOTES
+Current user
+#>
 function NTFSLongPaths
 {
 	param
@@ -2630,7 +2701,25 @@ function NTFSLongPaths
 	}
 }
 
-# Updating of NTFS last access timestamps
+<#
+    .SYNOPSIS
+    Updating of NTFS last access timestamps settings
+
+    .PARAMETER Enable
+    Enable updating of NTFS last access timestamps
+
+    .PARAMETER Disable
+    Disable updating of NTFS last access timestamps
+
+    .EXAMPLE
+    NTFSLastAccess -Enable
+
+    .EXAMPLE
+    NTFSLastAccess -Disable
+
+    .NOTES
+    Current user
+#>
 function NTFSLastAccess
 {
 	param
@@ -2675,7 +2764,25 @@ function NTFSLastAccess
 	}
 }
 
-# Sleep start menu and keyboard button
+<#
+    .SYNOPSIS
+    Sleep start menu and keyboard button feature settings
+
+    .PARAMETER Enable
+    Enable the Sleep start menu and keyboard button
+
+    .PARAMETER Disable
+    Disable the Sleep start menu and keyboard button
+
+    .EXAMPLE
+    SleepButton -Enable
+
+    .EXAMPLE
+    SleepButton -Disable
+
+    .NOTES
+    Current user
+#>
 function SleepButton
 {
 	param
@@ -2724,7 +2831,25 @@ function SleepButton
 	}
 }
 
-# Display and sleep mode timeouts
+<#
+    .SYNOPSIS
+    Display and sleep mode timeouts
+
+    .PARAMETER Enable
+    Enable the display and sleep mode timeouts
+
+    .PARAMETER Disable
+    Disable the display and sleep mode timeouts
+
+    .EXAMPLE
+    SleepTimeout -Enable
+
+    .EXAMPLE
+    SleepTimeout -Disable
+
+    .NOTES
+    Current user
+#>
 function SleepTimeout
 {
 	param
@@ -2769,7 +2894,25 @@ function SleepTimeout
 	}
 }
 
-# Fast Startup
+<#
+    .SYNOPSIS
+    Fast Startup feature settings
+
+    .PARAMETER Enable
+    Enable the Fast Startup feature
+
+    .PARAMETER Disable
+    Disable the Fast Startup feature
+
+    .EXAMPLE
+    FastStartup -Enable
+
+    .EXAMPLE
+    FastStartup -Disable
+
+    .NOTES
+    Current user
+#>
 function FastStartup
 {
 	param
@@ -2808,7 +2951,25 @@ function FastStartup
 	}
 }
 
-# Automatic reboot on crash (BSOD)
+<#
+    .SYNOPSIS
+    Automatic reboot on crash (BSOD) settings
+
+    .PARAMETER Enable
+    Enable automatic reboot on crash
+
+    .PARAMETER Disable
+    Disable automatic reboot on crash
+
+    .EXAMPLE
+    AutoRebootOnCrash -Enable
+
+    .EXAMPLE
+    AutoRebootOnCrash -Disable
+
+    .NOTES
+    Current user
+#>
 function AutoRebootOnCrash
 {
 	param
@@ -3837,13 +3998,13 @@ function ActivityHistory
 
 <#
 	.SYNOPSIS
-	Controls sensor-related features, such as screen auto-rotation.
+	Controls sensor-related features, such as screen auto-rotation
 
 	.PARAMETER Disable
-	Disable sensor-related features, such as screen auto-rotation.
+	Disable sensor-related features, such as screen auto-rotation
 
 	.PARAMETER Enable
-	Enable sensor-related features, such as screen auto-rotation.
+	Enable sensor-related features, such as screen auto-rotation
 
 	.EXAMPLE
 	Sensors -Disable
@@ -3852,7 +4013,7 @@ function ActivityHistory
 	Sensors -Enable
 
 	.NOTES
-	Current user.
+	Current user
 #>
 function Sensors
 {
@@ -3900,10 +4061,10 @@ function Sensors
     Location feature settings and scripting
 
     .PARAMETER Enable
-    Enable the location feature for the current user.
+    Enable the location feature
 
     .PARAMETER Disable
-    Disable the location feature for the current user.
+    Disable the location feature
 
     .EXAMPLE
     LocationService -Enable
@@ -3912,7 +4073,7 @@ function Sensors
     LocationService -Disable
 
     .NOTES
-    Current user.
+    Current user
 #>
 function LocationService
 {
@@ -3962,10 +4123,10 @@ function LocationService
     Automatic Map Updates settings and scripting
 
     .PARAMETER Enable
-    Enable automatic map updates for the current user.
+    Enable automatic map updates
 
     .PARAMETER Disable
-    Disable automatic map updates for the current user.
+    Disable automatic map updates
 
     .EXAMPLE
     MapUpdates -Enable
@@ -3974,7 +4135,7 @@ function LocationService
     MapUpdates -Disable
 
     .NOTES
-    Applies to the current user.
+    Current user
 #>
 function MapUpdates
 {
@@ -4014,7 +4175,25 @@ function MapUpdates
 	}
 }
 
-# Let websites provide locally relevant content by accessing my language list
+<#
+    .SYNOPSIS
+    Location feature settings
+
+    .PARAMETER Enable
+    Enable the setting "Let websites provide locally relevant content by accessing my language list"
+
+    .PARAMETER Disable
+    Disable the setting "Let websites provide locally relevant content by accessing my language list"
+
+    .EXAMPLE
+    WebLangList -Enable
+
+    .EXAMPLE
+    WebLangList -Disable
+
+    .NOTES
+    Current user
+#>
 function WebLangList
 {
 	param
@@ -4038,17 +4217,43 @@ function WebLangList
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction SilentlyContinue
+			Write-Host "Enabling websites to show relevant content by accessing my language list - " -NoNewline
+			LogInfo "Enabling websites to show relevant content by accessing my language list"			
+			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1
+			Write-Host "Disabling websites to show relevant content by accessing my language list - " -NoNewline
+			LogInfo "Disabling websites to show relevant content by accessing my language list"		
+			Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to camera
-# Note: This disables access using standard Windows API. Direct access to device will still be allowed.
+<#
+    .SYNOPSIS
+    Access to camera
+
+    .DESCRIPTION
+    Note: This disables access using standard Windows API. Direct access to device will still be allowed.
+
+    .PARAMETER Enable
+    Enable access to camera
+
+    .PARAMETER Disable
+    Disable access to camera
+
+    .EXAMPLE
+    Camera -Enable
+
+    .EXAMPLE
+    Camera -Disable
+
+    .NOTES
+    Current user
+#>
 function Camera
 {
 	param
@@ -4072,20 +4277,46 @@ function Camera
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Access to use the camera - " -NoNewline
+			LogInfo "Enabling Access to use the camera"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Access to use the camera - " -NoNewline
+			LogInfo "Disabling Access to use the camera"	
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to microphone
-# Note: This disables access using standard Windows API. Direct access to device will still be allowed.
+<#
+    .SYNOPSIS
+    Access to microphone settings
+
+    .DESCRIPTION
+    Note: This disables access using standard Windows API. Direct access to device will still be allowed.
+
+    .PARAMETER Enable
+    Enable access to microphone
+
+    .PARAMETER Disable
+    Disable access to microphone
+
+    .EXAMPLE
+    Microphone -Enable
+
+    .EXAMPLE
+    Microphone -Disable
+
+    .NOTES
+    Current user
+#>
 function Microphone
 {
 	param
@@ -4109,20 +4340,46 @@ function Microphone
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Access to use the microphone - " -NoNewline
+			LogInfo "Enabling Access to use the microphone"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Access to use the microphone - " -NoNewline
+			LogInfo "Disabling Access to use the microphone"				
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Device Management Wireless Application Protocol (WAP) Push Service
-# Note: This service is needed for Microsoft Intune interoperability
+<#
+    .SYNOPSIS
+    Device Management Wireless Application Protocol (WAP) Push Service settings
+
+    .DESCRIPTION
+    Note: This service is needed for Microsoft Intune interoperability
+
+    .PARAMETER Enable
+    Enable the Device Management Wireless Application Protocol (WAP) Push Service
+
+    .PARAMETER Disable
+    Disable the Device Management Wireless Application Protocol (WAP) Push Service
+
+    .EXAMPLE
+    WAPPush -Enable
+
+    .EXAMPLE
+    WAPPush -Disable
+
+    .NOTES
+    Current user
+#>
 function WAPPush
 {
 	param
@@ -4146,14 +4403,20 @@ function WAPPush
 	{
 		"Enable"
 		{
-			Set-Service "dmwappushservice" -StartupType Automatic
-			Start-Service "dmwappushservice" -WarningAction SilentlyContinue
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1
+			Write-Host "Enabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
+			LogInfo "Enabling Device Management Wireless Application Protocol (WAP) Push Service"				
+			Set-Service "dmwappushservice" -StartupType Automatic | Out-Null
+			Start-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Stop-Service "dmwappushservice" -WarningAction SilentlyContinue
-			Set-Service "dmwappushservice" -StartupType Disabled
+			Write-Host "Disabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
+			LogInfo "Disabling Device Management Wireless Application Protocol (WAP) Push Service"				
+			Stop-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
+			Set-Service "dmwappushservice" -StartupType Disabled | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
