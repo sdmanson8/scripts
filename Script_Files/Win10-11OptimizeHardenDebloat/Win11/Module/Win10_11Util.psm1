@@ -2081,7 +2081,25 @@ function ScheduledTasks
 	Write-Host "success!" -ForegroundColor Green
 }
 
-# Offering of Malicious Software Removal Tool through Windows Update
+<#
+    .SYNOPSIS
+    Manage the offering of Malicious Software Removal Tool through Windows Update settings and scripting
+
+    .PARAMETER Enable
+    Enable the offering of Malicious Software Removal Tool through Windows Update for the current user.
+
+    .PARAMETER Disable
+    Disable the offering of Malicious Software Removal Tool through Windows Update for the current user.
+
+    .EXAMPLE
+    UpdateMSRT -Enable
+
+    .EXAMPLE
+    UpdateMSRT -Disable
+
+    .NOTES
+    Current user.
+#>
 function UpdateMSRT
 {
 	param
@@ -2123,9 +2141,34 @@ function UpdateMSRT
 	}
 }
 
-# Offering of drivers through Windows Update
-# Note: This doesn't work properly if you use a driver intended for another hardware model. E.g. Intel I219-V on WinServer works only with I219-LM driver.
-# Therefore Windows update will repeatedly try and fail to install I219-V driver indefinitely even if you use the tweak.
+<#
+    .SYNOPSIS
+    Offering of drivers through Windows Update settings and scripting
+
+    .DESCRIPTION
+    This script enables or disables the Offering of drivers through Windows Update for the current user.
+
+    IMPORTANT NOTE:
+    This does not work properly if you use a driver intended for another hardware model.
+    For example, Intel I219-V on Windows Server works only with the I219-LM driver.
+    Therefore, Windows Update will repeatedly try and fail to install the I219-V driver indefinitely,
+    even if you use this tweak.
+
+    .PARAMETER Enable
+    Enable the Offering of drivers through Windows Update for the current user.
+
+    .PARAMETER Disable
+    Disable the Offering of drivers through Windows Update for the current user.
+
+    .EXAMPLE
+    UpdateDriver -Enable
+
+    .EXAMPLE
+    UpdateDriver -Disable
+
+    .NOTES
+    Current user.
+#>
 function UpdateDriver
 {
 	param
@@ -2177,7 +2220,25 @@ function UpdateDriver
 	}
 }
 
-# Receive updates for other Microsoft products via Windows Update
+<#
+.SYNOPSIS
+Configure the setting to receive updates for other Microsoft products via Windows Update.
+
+.PARAMETER Enable
+Enable receiving updates for other Microsoft products via Windows Update for the current user.
+
+.PARAMETER Disable
+Disable receiving updates for other Microsoft products via Windows Update for the current user.
+
+.EXAMPLE
+UpdateMSProducts -Enable
+
+.EXAMPLE
+UpdateMSProducts -Disable
+
+.NOTES
+Current user.
+#>
 function UpdateMSProducts
 {
 	param
@@ -2218,7 +2279,25 @@ function UpdateMSProducts
 	}
 }
 
-# Windows Update automatic downloads
+<#
+    .SYNOPSIS
+    Windows Update automatic downloads settings and scripting
+
+    .PARAMETER Enable
+    Enable Windows Update automatic downloads for the current user.
+
+    .PARAMETER Disable
+    Disable Windows Update automatic downloads for the current user.
+
+    .EXAMPLE
+    UpdateAutoDownload -Enable
+
+    .EXAMPLE
+    UpdateAutoDownload -Disable
+
+    .NOTES
+    Current user.
+#>
 function UpdateAutoDownload
 {
 	param
@@ -2260,9 +2339,29 @@ function UpdateAutoDownload
 	}
 }
 
-# Automatic restart after Windows Update installation
-# The tweak is slightly experimental, as it registers a dummy debugger for MusNotification.exe
-# which blocks the restart prompt executable from running, thus never schedulling the restart
+<#
+    .SYNOPSIS
+    Automatic restart after Windows Update installation settings and scripting
+
+    .DESCRIPTION
+    IMPORTANT: This tweak is experimental and should be used with caution.
+    It works by registering a dummy debugger for MusNotification.exe, which effectively blocks the restart prompt executable from running. This prevents the system from scheduling the automatic restart after a Windows Update installation, potentially avoiding unwanted restarts.
+    
+    .PARAMETER Enable
+    Enable automatic restart after Windows Update installation for the current user.
+
+    .PARAMETER Disable
+    Disable automatic restart after Windows Update installation for the current user.
+
+    .EXAMPLE
+    UpdateRestart -Enable
+
+    .EXAMPLE
+    UpdateRestart -Disable
+
+    .NOTES
+    Current user.
+#>
 function UpdateRestart
 {
 	param
@@ -2304,7 +2403,25 @@ function UpdateRestart
 	}
 }
 
-# Nightly wake-up for Automatic Maintenance and Windows Updates
+<#
+    .SYNOPSIS
+    Nightly wake-up for Automatic Maintenance and Windows Updates
+
+    .PARAMETER Enable
+    Enable the nightly wake-up for automatic maintenance and Windows updates for the current user.
+
+    .PARAMETER Disable
+    Disable the nightly wake-up for automatic maintenance and Windows updates for the current user.
+
+    .EXAMPLE
+    MaintenanceWakeUp -Enable
+
+    .EXAMPLE
+    MaintenanceWakeUp -Disable
+
+    .NOTES
+    Current user.
+#>
 function MaintenanceWakeUp
 {
 	param
@@ -3525,10 +3642,10 @@ function StartAccountNotifications
 	Enable Wi-Fi Sense to allow automatic connection to open hotspots and sharing of Wi-Fi networks.
 
 	.EXAMPLE
-	WiFiSenseConfig -Disable
+	WiFiSense -Disable
 
 	.EXAMPLE
-	WiFiSenseConfig -Enable
+	WiFiSense -Enable
 
 	.NOTES
 	Current user
@@ -3603,10 +3720,10 @@ function WiFiSense
 	Enable Web Search in the Start Menu
 
 	.EXAMPLE
-	StartMenuWebSearch -Disable
+	WebSearch -Disable
 
 	.EXAMPLE
-	StartMenuWebSearch -Enable
+	WebSearch -Enable
 
 	.NOTES
 	Current user
@@ -3667,10 +3784,10 @@ function WebSearch
     Show Activity History-related notifications in Task View
 
     .EXAMPLE
-    TaskViewActivityHistory -Hide
+    ActivityHistory -Enable
 
     .EXAMPLE
-    TaskViewActivityHistory -Show
+    ActivityHistory -Disable
 
     .NOTES
     Current user
@@ -3729,10 +3846,10 @@ function ActivityHistory
 	Enable sensor-related features, such as screen auto-rotation.
 
 	.EXAMPLE
-	SensorFeatures -Disable
+	Sensors -Disable
 
 	.EXAMPLE
-	SensorFeatures -Enable
+	Sensors -Enable
 
 	.NOTES
 	Current user.
@@ -3789,10 +3906,10 @@ function Sensors
     Disable the location feature for the current user.
 
     .EXAMPLE
-    Set-LocationFeature -Enable
+    LocationService -Enable
 
     .EXAMPLE
-    Set-LocationFeature -Disable
+    LocationService -Disable
 
     .NOTES
     Current user.
@@ -3820,7 +3937,7 @@ function LocationService
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the location feature for the current user - " -NoNewline
+			Write-Host "Enabling location features - " -NoNewline
 			LogInfo "Enabling the location feature for the current user"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -ErrorAction SilentlyContinue | Out-Null
@@ -3828,7 +3945,7 @@ function LocationService
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the location feature for the current user - " -NoNewline
+			Write-Host "Disabling location features - " -NoNewline
 			LogInfo "Disabling the location feature for the current user"			
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
@@ -3840,7 +3957,25 @@ function LocationService
 	}
 }
 
-# automatic Maps updates
+<#
+    .SYNOPSIS
+    Automatic Map Updates settings and scripting
+
+    .PARAMETER Enable
+    Enable automatic map updates for the current user.
+
+    .PARAMETER Disable
+    Disable automatic map updates for the current user.
+
+    .EXAMPLE
+    MapUpdates -Enable
+
+    .EXAMPLE
+    MapUpdates -Disable
+
+    .NOTES
+    Applies to the current user.
+#>
 function MapUpdates
 {
 	param
@@ -3864,11 +3999,17 @@ function MapUpdates
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction SilentlyContinue
+			Write-Host "Enabling automatic map updates - " -NoNewline
+			LogInfo "Enabling automatic map updates for the current user"			
+			Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green			
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0
+			Write-Host "Disabling automatic map updates - " -NoNewline
+			LogInfo "Disabling automatic map updates for the current user"			
+			Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0 -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green			
 		}
 	}
 }
