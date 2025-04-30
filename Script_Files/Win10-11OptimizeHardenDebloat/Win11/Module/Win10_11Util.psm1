@@ -1390,7 +1390,7 @@ function Update-Protocols
         'TLS 1.2\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
         'TLS 1.2\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
     }
-    
+    Write-Host "success!" -ForegroundColor Green
     foreach ($protocol in $protocols.Keys) 
 	{
         foreach ($key in $protocols[$protocol].Keys) 
@@ -1405,7 +1405,6 @@ function Update-Protocols
                 Set-ItemProperty -Path $protocolPath -Name $key -Value $protocols[$protocol][$key] | Out-Null
 			}
         }
-		Write-Host "success!" -ForegroundColor Green
     }
 }
 
@@ -2017,6 +2016,7 @@ function ScheduledTasks
 			# Extract the localized "Enable" string from shell32.dll
 			$ButtonContent   = [WinAPI.GetStrings]::GetString(51472)
 			$ButtonAdd_Click = {EnableButton}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
@@ -2025,6 +2025,7 @@ function ScheduledTasks
 			$State           = "Ready"
 			$ButtonContent   = $Localization.Disable
 			$ButtonAdd_Click = {DisableButton}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 
@@ -2078,7 +2079,7 @@ function ScheduledTasks
 	# Force move the WPF form to the foreground
 	$Window.Add_Loaded({$Window.Activate()})
 	$Form.ShowDialog() | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+	
 }
 
 <#

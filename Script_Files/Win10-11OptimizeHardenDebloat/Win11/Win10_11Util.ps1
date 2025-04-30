@@ -363,7 +363,10 @@ WindowsWelcomeExperience -Hide
 # Показывать экран приветствия Windows после обновлений и иногда при входе, чтобы сообщить о новых функциях и предложениях (значение по умолчанию)
 # WindowsWelcomeExperience -Show
 
-DisableLockWidgets
+#Enable the Windows Web Experience Pack (used for widgets and lock screen features)
+#LockWidgets -Enable
+#disable the Windows Web Experience Pack (used for widgets and lock screen features)
+LockWidgets -Disable
 
 # Get tips and suggestions when I use Windows (default value)
 # Получать советы и предложения при использованию Windows (значение по умолчанию)
