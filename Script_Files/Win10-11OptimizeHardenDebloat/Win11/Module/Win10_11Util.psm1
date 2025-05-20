@@ -1013,7 +1013,7 @@ function Update-DesktopRegistry
     } 
 	catch 
 	{
-        LogError "Registry key not found or could not be removed: $namespaceKeyPath"
+        LogInfo "Registry key not found or could not be removed: $namespaceKeyPath"
     }
 
     # Ensure the HideDesktopIcons path exists and set the DWORD value
@@ -3267,15 +3267,15 @@ function WindowsWelcomeExperience
     Uninstall the Windows Web Experience Pack
 
     .EXAMPLE
-    DisableLockWidgets -Enable
+    LockWidgets -Enable
 
     .EXAMPLE
-    DisableLockWidgets -Disable
+    LockWidgets -Disable
 
     .NOTES
     Affects the current user
 #>
-function DisableLockWidgets {
+function LockWidgets {
     param (
         [Parameter(
             Mandatory = $true,
@@ -4422,8 +4422,28 @@ function WAPPush
 	}
 }
 
-# clearing of recent files on exit
-# Empties most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications during every logout.
+<#
+    .SYNOPSIS
+    Clearing of recent files on exit
+
+    .DESCRIPTION
+    Empties most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications during every logout
+
+    .PARAMETER Enable
+    Enable the clearing of recent files on exit
+
+    .PARAMETER Disable
+    Disable the clearing of recent files on exit
+
+    .EXAMPLE
+    ClearRecentFiles -Enable
+
+    .EXAMPLE
+    ClearRecentFiles -Disable
+
+    .NOTES
+    Current user
+#>
 function ClearRecentFiles
 {
 	param
@@ -4447,20 +4467,46 @@ function ClearRecentFiles
 	{
 		"Enable"
 		{
+			Write-Host "Enabling the clearing of recent files on exit - " -NoNewline
+			LogInfo "Enabling the clearing of recent files on exit"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction SilentlyContinue
+			Write-Host "Disabling the clearing of recent files on exit - " -NoNewline
+			LogInfo "Disabling the clearing of recent files on exit"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Recent files lists
-# Most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications.
+<#
+    .SYNOPSIS
+    Recent files lists settings
+
+    .DESCRIPTION
+    Most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications
+
+    .PARAMETER Enable
+    Enable the recent files lists
+
+    .PARAMETER Disable
+    Disable the recent files lists
+
+    .EXAMPLE
+    RecentFiles -Enable
+
+    .EXAMPLE
+    RecentFiles -Disable
+
+    .NOTES
+    Current user
+#>
 function RecentFiles
 {
 	param
@@ -4484,19 +4530,43 @@ function RecentFiles
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the recent files lists - " -NoNewline
+			LogInfo "Enabling the recent files lists"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling the recent files lists - " -NoNewline
+			LogInfo "Disabling the recent files lists"			
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to voice activation from UWP apps
+<#
+    .SYNOPSIS
+    Access to voice activation from UWP (Universal Windows Platform) apps
+
+    .PARAMETER Enable
+    Enable access to voice activation from UWP apps
+
+    .PARAMETER Disable
+    Disable access to voice activation from UWP apps
+
+    .EXAMPLE
+    UWPVoiceActivation -Enable
+
+    .EXAMPLE
+    UWPVoiceActivation -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPVoiceActivation
 {
 	param
@@ -4520,21 +4590,45 @@ function UWPVoiceActivation
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to voice activation from UWP apps - " -NoNewline
+			LogInfo "Enabling access to voice activation from UWP apps"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to voice activation from UWP apps - " -NoNewline
+			LogInfo "Disabling access to voice activation from UWP apps"	
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -Type DWord -Value 2
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -Type DWord -Value 2 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to notifications from UWP apps
+<#
+    .SYNOPSIS
+    Access to notifications from UWP (Universal Windows Platform) apps
+
+    .PARAMETER Enable
+    Enable access to notifications from UWP apps
+
+    .PARAMETER Disable
+    Disable access to notifications from UWP apps
+
+    .EXAMPLE
+    UWPNotifications -Enable
+
+    .EXAMPLE
+    UWPNotifications -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPNotifications
 {
 	param
@@ -4558,19 +4652,43 @@ function UWPNotifications
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to notifications from UWP apps - " -NoNewline
+			LogInfo "Enabling access to notifications from UWP apps"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to notifications from UWP apps - " -NoNewline
+			LogInfo "Disabling access to notifications from UWP apps"			
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to account info from UWP apps
+<#
+    .SYNOPSIS
+    Access to account info from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to account info from UWP apps
+
+    .PARAMETER Disable
+    Disable access to account info from UWP apps
+
+    .EXAMPLE
+    UWPAccountInfo -Enable
+
+    .EXAMPLE
+    UWPAccountInfo -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPAccountInfo
 {
 	param
@@ -4594,19 +4712,43 @@ function UWPAccountInfo
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to account info from UWP apps - " -NoNewline
+			LogInfo "Enabling access to account info from UWP apps"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to account info from UWP apps - " -NoNewline
+			LogInfo "Disabling access to account info from UWP apps"		
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to contacts from UWP apps
+<#
+    .SYNOPSIS
+    Access to contacts from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to contacts from UWP apps
+
+    .PARAMETER Disable
+    Disable access to contacts from UWP apps
+
+    .EXAMPLE
+    UWPContacts -Enable
+
+    .EXAMPLE
+    UWPContacts -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPContacts
 {
 	param
@@ -4630,19 +4772,43 @@ function UWPContacts
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to contacts from UWP apps - " -NoNewline
+			LogInfo "Enabling access to contacts from UWP apps"					
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to contacts from UWP apps - " -NoNewline
+			LogInfo "Disabling access to contacts from UWP apps"					
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to calendar from UWP apps
+<#
+    .SYNOPSIS
+    Access to calendar from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to calendar from UWP apps
+
+    .PARAMETER Disable
+    Disable access to calendar from UWP apps
+
+    .EXAMPLE
+    UWPCalendar -Enable
+
+    .EXAMPLE
+    UWPCalendar -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPCalendar
 {
 	param
@@ -4666,19 +4832,43 @@ function UWPCalendar
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to calendar from UWP apps - " -NoNewline
+			LogInfo "Enabling access to calendar from UWP apps"					
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to calendar from UWP apps - " -NoNewline
+			LogInfo "Disabling access to calendar from UWP apps"					
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to phone calls from UWP apps
+<#
+    .SYNOPSIS
+    Access to phone calls from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to phone calls from UWP apps
+
+    .PARAMETER Disable
+    Disable access to phone calls from UWP apps
+
+    .EXAMPLE
+    UWPPhoneCalls -Enable
+
+    .EXAMPLE
+    UWPPhoneCalls -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPPhoneCalls
 {
 	param
@@ -4702,14 +4892,20 @@ function UWPPhoneCalls
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to phone calls from UWP apps - " -NoNewline
+			LogInfo "Enabling access to phone calls from UWP apps"					
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to phone calls from UWP apps - " -NoNewline
+			LogInfo "Disabling access to phone calls from UWP apps"				
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
