@@ -6259,11 +6259,17 @@ function Thumbnails
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 0
+			Write-Host "Enabling 'Show thumbnails instead of icons' for file extensions" -NoNewline
+			LogInfo "Enabling 'Show thumbnails instead of icons' for file extensions"		
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1
+			Write-Host "Disabling thumbnails, showing icons for file extensions instead" -NoNewline
+			LogInfo "Disabling thumbnails, showing icons for file extensions instead"			
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -6310,11 +6316,17 @@ function ThumbnailCache
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the creation of thumbnail cache files" -NoNewline
+			LogInfo "Enabling the creation of thumbnail cache files"				
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -Type DWord -Value 1
+			Write-Host "Disabling the creation of thumbnail cache files" -NoNewline
+			LogInfo "Disabling the creation of thumbnail cache files"			
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -6361,11 +6373,17 @@ function ThumbsDBOnNetwork
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the creation of 'Thumbs.db' cache on network folders" -NoNewline
+			LogInfo "Enabling the creation of 'Thumbs.db' cache on network folders"			
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -Type DWord -Value 1
+			Write-Host "Disabling the creation of 'Thumbs.db' cache on network folders" -NoNewline
+			LogInfo "Disabling the creation of 'Thumbs.db' cache on network folders"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
