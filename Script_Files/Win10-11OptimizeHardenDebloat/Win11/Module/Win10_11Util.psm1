@@ -4910,7 +4910,25 @@ function UWPPhoneCalls
 	}
 }
 
-# Access to call history from UWP apps
+<#
+    .SYNOPSIS
+    Access to call history from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to call history from UWP apps
+
+    .PARAMETER Disable
+    Disable access to call history from UWP apps
+
+    .EXAMPLE
+    UWPCallHistory -Enable
+
+    .EXAMPLE
+    UWPCallHistory -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPCallHistory
 {
 	param
@@ -4934,19 +4952,43 @@ function UWPCallHistory
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to call history from UWP apps - " -NoNewline
+			LogInfo "Enabling access to call history from UWP apps"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to call history from UWP apps - " -NoNewline
+			LogInfo "Disabling access to call history from UWP apps"						
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to email from UWP apps
+<#
+    .SYNOPSIS
+    Access to email from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to email from UWP apps
+
+    .PARAMETER Disable
+    Disable access to email from UWP apps
+
+    .EXAMPLE
+    UWPEmail -Enable
+
+    .EXAMPLE
+    UWPEmail -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPEmail
 {
 	param
@@ -4970,19 +5012,43 @@ function UWPEmail
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to email from UWP apps - " -NoNewline
+			LogInfo "Enabling access to email from UWP apps"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to email from UWP apps - " -NoNewline
+			LogInfo "Disabling access to email from UWP apps"				
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to tasks from UWP apps
+<#
+    .SYNOPSIS
+    Access to tasks from UWP (Universal Windows Platform) apps
+
+    .PARAMETER Enable
+    Enable access to tasks from UWP apps
+
+    .PARAMETER Disable
+    Disable access to tasks from UWP apps
+
+    .EXAMPLE
+    UWPTasks -Enable
+
+    .EXAMPLE
+    UWPTasks -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPTasks
 {
 	param
@@ -5006,19 +5072,43 @@ function UWPTasks
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to tasks from UWP apps - " -NoNewline
+			LogInfo "Enabling access to tasks from UWP apps"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to tasks from UWP apps - " -NoNewline
+			LogInfo "Disabling access to tasks from UWP apps"				
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to messaging (SMS, MMS) from UWP apps
+<#
+    .SYNOPSIS
+    Access to messaging (SMS, MMS) from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to messaging (SMS, MMS) from UWP apps
+
+    .PARAMETER Disable
+    Disable access to messaging (SMS, MMS) from UWP apps
+
+    .EXAMPLE
+    UWPMessaging -Enable
+
+    .EXAMPLE
+    UWPMessaging -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPMessaging
 {
 	param
@@ -5042,19 +5132,43 @@ function UWPMessaging
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
+			LogInfo "Enabling access to messaging (SMS, MMS) from UWP apps"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
+			LogInfo "Disabling access to messaging (SMS, MMS) from UWP apps"					
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to radios (e.g. Bluetooth) from UWP apps
+<#
+    .SYNOPSIS
+    Access to radios (e.g. Bluetooth) from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to radios (e.g. Bluetooth) from UWP apps
+
+    .PARAMETER Disable
+    Disable access to radios (e.g. Bluetooth) from UWP apps
+
+    .EXAMPLE
+    UWPRadios -Enable
+
+    .EXAMPLE
+    UWPRadios -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPRadios
 {
 	param
@@ -5078,19 +5192,43 @@ function UWPRadios
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
+			LogInfo "Enabling access to radios (e.g. Bluetooth) from UWP apps"					
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
+			LogInfo "Disabling access to radios (e.g. Bluetooth) from UWP apps"				
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to other devices (unpaired, beacons, TVs etc.) from UWP apps
+<#
+    .SYNOPSIS
+    Access to other devices (unpaired, beacons, TVs etc.) from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to other devices (unpaired, beacons, TVs etc.) from UWP apps
+
+    .PARAMETER Disable
+    Disable access to other devices (unpaired, beacons, TVs etc.) from UWP apps
+
+    .EXAMPLE
+    UWPOtherDevices -Enable
+
+    .EXAMPLE
+    UWPOtherDevices -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPOtherDevices
 {
 	param
@@ -5114,19 +5252,43 @@ function UWPOtherDevices
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
+			LogInfo "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
+			LogInfo "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"					
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to diagnostic information from UWP apps
+<#
+    .SYNOPSIS
+    Access to diagnostic information from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to diagnostic information from UWP apps
+
+    .PARAMETER Disable
+    Disable access to diagnostic information from UWP apps
+
+    .EXAMPLE
+    UWPDiagInfo -Enable
+
+    .EXAMPLE
+    UWPDiagInfo -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPDiagInfo
 {
 	param
@@ -5150,19 +5312,43 @@ function UWPDiagInfo
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue
+			Write-Host "Enabling access to diagnostic information from UWP apps - " -NoNewline
+			LogInfo "Enabling access to diagnostic information from UWP apps"					
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling access to diagnostic information from UWP apps - " -NoNewline
+			LogInfo "Disabling access to diagnostic information from UWP apps"				
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Access to libraries and file system from UWP apps
+<#
+    .SYNOPSIS
+    Access to libraries and file system from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to libraries and file system from UWP apps
+
+    .PARAMETER Disable
+    Disable access to libraries and file system from UWP apps
+
+    .EXAMPLE
+    UWPFileSystem -Enable
+
+    .EXAMPLE
+    UWPFileSystem -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPFileSystem
 {
 	param
@@ -5186,23 +5372,50 @@ function UWPFileSystem
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Allow"
+			Write-Host "Enabling access to libraries and the file system from UWP apps - " -NoNewline
+			LogInfo "Enabling access to libraries and the file system from UWP apps"					
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Deny"
+			Write-Host "Disabling access to libraries and the file system from UWP apps - " -NoNewline
+			LogInfo "Disabling access to libraries and the file system from UWP apps"				
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# UWP apps swap file
-# This disables creation and use of swapfile.sys and frees 256 MB of disk space. Swapfile.sys is used only by UWP apps. The tweak has no effect on the real swap in pagefile.sys.
+<#
+    .SYNOPSIS
+    UWP apps swap file settings
+
+    .DESCRIPTION
+    This disables creation and use of swapfile.sys and frees 256 MB of disk space. Swapfile.sys is used only by UWP apps. 
+	IMPORTANT: The tweak has no effect on the real swap in pagefile.sys.
+
+    .PARAMETER Enable
+    Enable the UWP apps swap file
+
+    .PARAMETER Disable
+    Disable the UWP apps swap file
+
+    .EXAMPLE
+    UWPSwapFile -Enable
+
+    .EXAMPLE
+    UWPSwapFile -Disable
+
+    .NOTES
+    Current user
+#>
 function UWPSwapFile
 {
 	param
@@ -5226,11 +5439,17 @@ function UWPSwapFile
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the UWP apps swap file - " -NoNewline
+			LogInfo "Enabling the UWP apps swap file"				
+			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0
+			Write-Host "Disabling the UWP apps swap file - " -NoNewline
+			LogInfo "Disabling the UWP apps swap file"			
+			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -5239,6 +5458,25 @@ function UWPSwapFile
 
 #region UI & Personalization
 
+<#
+.SYNOPSIS
+Enable or disable displaying full path in Explorer window title
+
+.PARAMETER Enable
+Enable displaying full path in Explorer title
+
+.PARAMETER Disable
+Disable displaying full path in Explorer title
+
+.EXAMPLE
+ExplorerTitleFullPath -Enable
+
+.EXAMPLE
+ExplorerTitleFullPath -Disable
+
+.NOTES
+Current user
+#>
 function ExplorerTitleFullPath
 {
 	param
@@ -5262,19 +5500,43 @@ function ExplorerTitleFullPath
 	{
 		"Enable"
 		{
+			Write-Host "Enabling the display of full paths in Explorer title - " -NoNewline
+			LogInfo "Enabling the display of full paths in Explorer title"			
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -ErrorAction SilentlyContinue
+			Write-Host "Disabling the display of full paths in Explorer title - " -NoNewline
+			LogInfo "Disabling the display of full paths in Explorer title"				
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Folder merge conflicts
+<#
+.SYNOPSIS
+Enable or disable showing folder merge conflict notifications
+
+.PARAMETER Enable
+Enable showing folder merge conflict notifications
+
+.PARAMETER Disable
+Disable showing folder merge conflict notifications
+
+.EXAMPLE
+FolderMergeConflicts -Enable
+
+.EXAMPLE
+FolderMergeConflicts -Disable
+
+.NOTES
+Current user
+#>
 function FolderMergeConflicts
 {
 	param
@@ -5298,16 +5560,40 @@ function FolderMergeConflicts
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -Type DWord -Value 0
+			Write-Host "Enabling folder merge conflict notifications" -NoNewline
+			LogInfo "Enabling folder merge conflict notifications"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -ErrorAction SilentlyContinue
+			Write-Host "Disabling folder merge conflict notifications" -NoNewline
+			LogInfo "Disabling folder merge conflict notifications"			
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# All folders in Explorer navigation pane
+<#
+.SYNOPSIS
+Enable or disable showing all folders in Explorer navigation pane
+
+.PARAMETER Enable
+Enable showing all folders in navigation pane
+
+.PARAMETER Disable
+Disable showing all folders in navigation pane
+
+.EXAMPLE
+NavPaneAllFolders -Enable
+
+.EXAMPLE
+NavPaneAllFolders -Disable
+
+.NOTES
+Current user
+#>
 function NavPaneAllFolders
 {
 	param
@@ -5331,16 +5617,40 @@ function NavPaneAllFolders
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -Type DWord -Value 1
+			Write-Host "Enabling all folders in the Explorer navigation pane" -NoNewline
+			LogInfo "Enabling all folders in the Explorer navigation pane"					
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -ErrorAction SilentlyContinue
+			Write-Host "Disabling all folders in the Explorer navigation pane" -NoNewline
+			LogInfo "Disabling all folders in the Explorer navigation pane"						
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Libraries in Explorer navigation pane
+<#
+.SYNOPSIS
+Enable or disable showing Libraries in Explorer navigation pane
+
+.PARAMETER Enable
+Enable showing Libraries in navigation pane
+
+.PARAMETER Disable
+Disable showing Libraries in navigation pane
+
+.EXAMPLE
+NavPaneLibraries -Enable
+
+.EXAMPLE
+NavPaneLibraries -Disable
+
+.NOTES
+Current user
+#>
 function NavPaneLibraries
 {
 	param
@@ -5364,19 +5674,43 @@ function NavPaneLibraries
 	{
 		"Enable"
 		{
+			Write-Host "Enabling Libraries in the Explorer navigation pane" -NoNewline
+			LogInfo "Enabling Libraries in the Explorer navigation pane"				
 			If (!(Test-Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}")) {
 				New-Item -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -ErrorAction SilentlyContinue
+			Write-Host "Disabling Libraries in the Explorer navigation pane" -NoNewline
+			LogInfo "Disabling Libraries in the Explorer navigation pane"			
+			Remove-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Launch folder windows in a separate process
+<#
+.SYNOPSIS
+Enable or disable launching folder windows in a separate process
+
+.PARAMETER Enable
+Enable launching folder windows in a separate process
+
+.PARAMETER Disable
+Disable launching folder windows in a separate process
+
+.EXAMPLE
+FldrSeparateProcess -Enable
+
+.EXAMPLE
+FldrSeparateProcess -Disable
+
+.NOTES
+Current user
+#>
 function FldrSeparateProcess
 {
 	param
@@ -5400,16 +5734,40 @@ function FldrSeparateProcess
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 1
+			Write-Host "Enabling launching folder windows in a separate process" -NoNewline
+			LogInfo "Enabling launching folder windows in a separate process"			
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 0
+			Write-Host "Disabling launching folder windows in a separate process" -NoNewline
+			LogInfo "Disabling launching folder windows in a separate process"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Restore previous folder windows at logon
+<#
+.SYNOPSIS
+Enable or disable restoring previous folder windows at logon
+
+.PARAMETER Enable
+Enable restoring previous folder windows at logon
+
+.PARAMETER Disable
+Disable restoring previous folder windows at logon
+
+.EXAMPLE
+RestoreFldrWindows -Enable
+
+.EXAMPLE
+RestoreFldrWindows -Disable
+
+.NOTES
+Current user
+#>
 function RestoreFldrWindows
 {
 	param
@@ -5433,16 +5791,40 @@ function RestoreFldrWindows
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -Type DWord -Value 1
+			Write-Host "Enabling restoring previous folder windows at logon" -NoNewline
+			LogInfo "Enabling restoring previous folder windows at logon"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -ErrorAction SilentlyContinue
+			Write-Host "Disabling restoring previous folder windows at logon" -NoNewline
+			LogInfo "Disabling restoring previous folder windows at logon"				
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed)
+<#
+.SYNOPSIS
+Enable or disable coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed)
+
+.PARAMETER Enable
+Enable coloring of encrypted or compressed NTFS files
+
+.PARAMETER Disable
+Disable coloring of encrypted or compressed NTFS files
+
+.EXAMPLE
+EncCompFilesColor -Enable
+
+.EXAMPLE
+EncCompFilesColor -Disable
+
+.NOTES
+Current user
+#>
 function EncCompFilesColor
 {
 	param
@@ -5466,16 +5848,40 @@ function EncCompFilesColor
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -Type DWord -Value 1
+			Write-Host "Enabling coloring of encrypted or compressed NTFS files" -NoNewline
+			LogInfo "Enabling coloring of encrypted or compressed NTFS files"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -ErrorAction SilentlyContinue
+			Write-Host "Disabling coloring of encrypted or compressed NTFS files" -NoNewline
+			LogInfo "Disabling coloring of encrypted or compressed NTFS files"			
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Sharing Wizard
+<#
+.SYNOPSIS
+Enable or disable Sharing Wizard in Explorer
+
+.PARAMETER Enable
+Enable Sharing Wizard
+
+.PARAMETER Disable
+Disable Sharing Wizard
+
+.EXAMPLE
+SharingWizard -Enable
+
+.EXAMPLE
+SharingWizard -Disable
+
+.NOTES
+Current user
+#>
 function SharingWizard
 {
 	param
@@ -5499,16 +5905,40 @@ function SharingWizard
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the Sharing Wizard in Explorer" -NoNewline
+			LogInfo "Enabling the Sharing Wizard in Explorer"			
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -Type DWord -Value 0
+			Write-Host "Disabling the Sharing Wizard in Explorer" -NoNewline
+			LogInfo "Disabling the Sharing Wizard in Explorer"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Item selection checkboxes
+<#
+.SYNOPSIS
+Enable or disable item selection checkboxes in Explorer
+
+.PARAMETER Enable
+Enable item selection checkboxes
+
+.PARAMETER Disable
+Disable item selection checkboxes
+
+.EXAMPLE
+SelectCheckboxes -Enable
+
+.EXAMPLE
+SelectCheckboxes -Disable
+
+.NOTES
+Current user
+#>
 function SelectCheckboxes
 {
 	param
@@ -5532,16 +5962,40 @@ function SelectCheckboxes
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 1
+			Write-Host "Enabling item selection checkboxes in Explorer" -NoNewline
+			LogInfo "Enabling item selection checkboxes in Explorer"			
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 0
+			Write-Host "Disabling item selection checkboxes in Explorer" -NoNewline
+			LogInfo "Enabling item selection checkboxes in Explorer"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Sync provider notifications
+<#
+.SYNOPSIS
+Enable or disable sync provider notifications in Explorer
+
+.PARAMETER Enable
+Enable sync provider notifications
+
+.PARAMETER Disable
+Disable sync provider notifications
+
+.EXAMPLE
+SyncNotifications -Enable
+
+.EXAMPLE
+SyncNotifications -Disable
+
+.NOTES
+Current user
+#>
 function SyncNotifications
 {
 	param
@@ -5565,17 +6019,43 @@ function SyncNotifications
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 1
+			Write-Host "Enabling sync provider notifications in Explorer" -NoNewline
+			LogInfo "Enabling sync provider notifications in Explorer"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 0
+			Write-Host "Disabling sync provider notifications in Explorer" -NoNewline
+			LogInfo "Disabling sync provider notifications in Explorer"			
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# recently and frequently used item shortcuts in Explorer
-# Note: This is only UI tweak to hide the shortcuts. In order to stop creating most recently used (MRU) items lists everywhere, use privacy tweak 'DisableRecentFiles' instead.
+<#
+.SYNOPSIS
+Enable or disable recently and frequently used item shortcuts in Explorer
+
+.DESCRIPTION
+Note: This is only a UI tweak to hide the shortcuts. In order to stop creating most recently used (MRU) items lists everywhere, use privacy tweak 'DisableRecentFiles' instead.
+
+.PARAMETER Enable
+Enable hiding recently and frequently used item shortcuts
+
+.PARAMETER Disable
+Disable hiding recently and frequently used item shortcuts
+
+.EXAMPLE
+RecentShortcuts -Enable
+
+.EXAMPLE
+RecentShortcuts -Disable
+
+.NOTES
+Current user
+#>
 function RecentShortcuts
 {
 	param
@@ -5599,18 +6079,42 @@ function RecentShortcuts
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -ErrorAction SilentlyContinue
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -ErrorAction SilentlyContinue
+			Write-Host "Enabling recently and frequently used item shortcuts in Explorer" -NoNewline
+			LogInfo "Enabling recently and frequently used item shortcuts in Explorer"			
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -Type DWord -Value 0
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -Type DWord -Value 0
+			Write-Host "Disabling recently and frequently used item shortcuts in Explorer" -NoNewline
+			LogInfo "Disabling recently and frequently used item shortcuts in Explorer"				
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Windows build number and Windows edition (Home/Pro/Enterprise) from bottom right of desktop
+<#
+    .SYNOPSIS
+    Windows build number and edition display on desktop
+
+    .PARAMETER Enable
+    Enable the build number and edition display
+
+    .PARAMETER Disable
+    Disable the build number and edition display
+
+    .EXAMPLE
+    BuildNumberOnDesktop -Enable
+
+    .EXAMPLE
+    BuildNumberOnDesktop -Disable
+
+    .NOTES
+    Current user
+#>
 function BuildNumberOnDesktop
 {
 	param
@@ -5634,16 +6138,40 @@ function BuildNumberOnDesktop
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1
+			Write-Host "Enabling build number and edition display on the Desktop" -NoNewline
+			LogInfo "Enabling build number and edition display on the Desktop"			
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 0
+			Write-Host "Disabling build number and edition display on the Desktop" -NoNewline
+			LogInfo "Disabling build number and edition display on the Desktop"				
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# 'Share' context menu item. Applicable since 1709
+<#
+    .SYNOPSIS
+    Share context menu item
+
+    .PARAMETER Enable
+    Enable the Share context menu item
+
+    .PARAMETER Disable
+    Disable the Share context menu item
+
+    .EXAMPLE
+    ShareMenu -Enable
+
+    .EXAMPLE
+    ShareMenu -Disable
+
+    .NOTES
+    Current user
+#>
 function ShareMenu
 {
 	param
@@ -5670,20 +6198,44 @@ function ShareMenu
 			If (!(Test-Path "HKCR:")) {
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
+			Write-Host "Enabling the Share context menu item" -NoNewline
+			LogInfo "Enabling the Share context menu item"				
 			New-Item -Path "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -Name "(Default)" -Type String -Value "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}"
+			Set-ItemProperty -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -Name "(Default)" -Type String -Value "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			If (!(Test-Path "HKCR:")) {
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
-			Remove-Item -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue
+			Write-Host "Disabling the Share context menu item" -NoNewline
+			LogInfo "Disabling the Share context menu item"			
+			Remove-Item -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# thumbnails, show only file extension icons
+<#
+    .SYNOPSIS
+    Show thumbnails instead of file extension icons
+
+    .PARAMETER Enable
+    Show thumbnails for files
+
+    .PARAMETER Disable
+    Show only file extension icons
+
+    .EXAMPLE
+    Thumbnails -Enable
+
+    .EXAMPLE
+    Thumbnails -Disable
+
+    .NOTES
+    Current user
+#>
 function Thumbnails
 {
 	param
@@ -5716,7 +6268,25 @@ function Thumbnails
 	}
 }
 
-# creation of thumbnail cache files
+<#
+    .SYNOPSIS
+    Creation of thumbnail cache files
+
+    .PARAMETER Enable
+    Enable creation of thumbnail cache files
+
+    .PARAMETER Disable
+    Disable creation of thumbnail cache files
+
+    .EXAMPLE
+    ThumbnailCache -Enable
+
+    .EXAMPLE
+    ThumbnailCache -Disable
+
+    .NOTES
+    Current user
+#>
 function ThumbnailCache
 {
 	param
@@ -5749,7 +6319,25 @@ function ThumbnailCache
 	}
 }
 
-# creation of Thumbs.db thumbnail cache files on network folders
+<#
+    .SYNOPSIS
+    Creation of Thumbs.db thumbnail cache files on network folders
+
+    .PARAMETER Enable
+    Enable creation of Thumbs.db cache on network folders
+
+    .PARAMETER Disable
+    Disable creation of Thumbs.db cache on network folders
+
+    .EXAMPLE
+    ThumbsDBOnNetwork -Enable
+
+    .EXAMPLE
+    ThumbsDBOnNetwork -Disable
+
+    .NOTES
+    Current user
+#>
 function ThumbsDBOnNetwork
 {
 	param
