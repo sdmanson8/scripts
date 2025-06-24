@@ -714,6 +714,9 @@ OpenFileExplorerTo -ThisPC
 # Открывать проводник для "Быстрый доступ" (значение по умолчанию)
 # OpenFileExplorerTo -QuickAccess
 
+# Open File Explorer to Downloads
+# OpenFileExplorerTo -Downloads
+
 # Disable File Explorer compact mode (default value)
 # Отключить компактный вид проводника (значение по умолчанию)
 FileExplorerCompactMode -Disable
