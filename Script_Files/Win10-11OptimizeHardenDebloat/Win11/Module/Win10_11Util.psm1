@@ -5560,14 +5560,14 @@ function FolderMergeConflicts
 	{
 		"Enable"
 		{
-			Write-Host "Enabling folder merge conflict notifications -" -NoNewline
+			Write-Host "Enabling folder merge conflict notifications - " -NoNewline
 			LogInfo "Enabling folder merge conflict notifications"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling folder merge conflict notifications -" -NoNewline
+			Write-Host "Disabling folder merge conflict notifications - " -NoNewline
 			LogInfo "Disabling folder merge conflict notifications"			
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5617,14 +5617,14 @@ function NavPaneAllFolders
 	{
 		"Enable"
 		{
-			Write-Host "Enabling all folders in the Explorer navigation pane -" -NoNewline
+			Write-Host "Enabling all folders in the Explorer navigation pane - " -NoNewline
 			LogInfo "Enabling all folders in the Explorer navigation pane"					
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling all folders in the Explorer navigation pane -" -NoNewline
+			Write-Host "Disabling all folders in the Explorer navigation pane - " -NoNewline
 			LogInfo "Disabling all folders in the Explorer navigation pane"						
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5674,7 +5674,7 @@ function NavPaneLibraries
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Libraries in the Explorer navigation pane -" -NoNewline
+			Write-Host "Enabling Libraries in the Explorer navigation pane - " -NoNewline
 			LogInfo "Enabling Libraries in the Explorer navigation pane"				
 			If (!(Test-Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}")) {
 				New-Item -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Force | Out-Null
@@ -5684,7 +5684,7 @@ function NavPaneLibraries
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Libraries in the Explorer navigation pane -" -NoNewline
+			Write-Host "Disabling Libraries in the Explorer navigation pane - " -NoNewline
 			LogInfo "Disabling Libraries in the Explorer navigation pane"			
 			Remove-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5734,14 +5734,14 @@ function FldrSeparateProcess
 	{
 		"Enable"
 		{
-			Write-Host "Enabling launching folder windows in a separate process -" -NoNewline
+			Write-Host "Enabling launching folder windows in a separate process - " -NoNewline
 			LogInfo "Enabling launching folder windows in a separate process"			
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling launching folder windows in a separate process -" -NoNewline
+			Write-Host "Disabling launching folder windows in a separate process - " -NoNewline
 			LogInfo "Disabling launching folder windows in a separate process"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5791,14 +5791,14 @@ function RestoreFldrWindows
 	{
 		"Enable"
 		{
-			Write-Host "Enabling restoring previous folder windows at logon -" -NoNewline
+			Write-Host "Enabling restoring previous folder windows at logon - " -NoNewline
 			LogInfo "Enabling restoring previous folder windows at logon"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling restoring previous folder windows at logon -" -NoNewline
+			Write-Host "Disabling restoring previous folder windows at logon - " -NoNewline
 			LogInfo "Disabling restoring previous folder windows at logon"				
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5848,14 +5848,14 @@ function EncCompFilesColor
 	{
 		"Enable"
 		{
-			Write-Host "Enabling coloring of encrypted or compressed NTFS files -" -NoNewline
+			Write-Host "Enabling coloring of encrypted or compressed NTFS files - " -NoNewline
 			LogInfo "Enabling coloring of encrypted or compressed NTFS files"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling coloring of encrypted or compressed NTFS files -" -NoNewline
+			Write-Host "Disabling coloring of encrypted or compressed NTFS files - " -NoNewline
 			LogInfo "Disabling coloring of encrypted or compressed NTFS files"			
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5905,14 +5905,14 @@ function SharingWizard
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the Sharing Wizard in Explorer -" -NoNewline
+			Write-Host "Enabling the Sharing Wizard in Explorer - " -NoNewline
 			LogInfo "Enabling the Sharing Wizard in Explorer"			
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the Sharing Wizard in Explorer -" -NoNewline
+			Write-Host "Disabling the Sharing Wizard in Explorer - " -NoNewline
 			LogInfo "Disabling the Sharing Wizard in Explorer"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -5962,14 +5962,14 @@ function SelectCheckboxes
 	{
 		"Enable"
 		{
-			Write-Host "Enabling item selection checkboxes in Explorer -" -NoNewline
+			Write-Host "Enabling item selection checkboxes in Explorer - " -NoNewline
 			LogInfo "Enabling item selection checkboxes in Explorer"			
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling item selection checkboxes in Explorer -" -NoNewline
+			Write-Host "Disabling item selection checkboxes in Explorer - " -NoNewline
 			LogInfo "Enabling item selection checkboxes in Explorer"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6019,14 +6019,14 @@ function SyncNotifications
 	{
 		"Enable"
 		{
-			Write-Host "Enabling sync provider notifications in Explorer -" -NoNewline
+			Write-Host "Enabling sync provider notifications in Explorer - " -NoNewline
 			LogInfo "Enabling sync provider notifications in Explorer"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling sync provider notifications in Explorer -" -NoNewline
+			Write-Host "Disabling sync provider notifications in Explorer - " -NoNewline
 			LogInfo "Disabling sync provider notifications in Explorer"			
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6079,7 +6079,7 @@ function RecentShortcuts
 	{
 		"Enable"
 		{
-			Write-Host "Enabling recently and frequently used item shortcuts in Explorer -" -NoNewline
+			Write-Host "Enabling recently and frequently used item shortcuts in Explorer - " -NoNewline
 			LogInfo "Enabling recently and frequently used item shortcuts in Explorer"			
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -ErrorAction SilentlyContinue | Out-Null
@@ -6087,7 +6087,7 @@ function RecentShortcuts
 		}
 		"Disable"
 		{
-			Write-Host "Disabling recently and frequently used item shortcuts in Explorer -" -NoNewline
+			Write-Host "Disabling recently and frequently used item shortcuts in Explorer - " -NoNewline
 			LogInfo "Disabling recently and frequently used item shortcuts in Explorer"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -Type DWord -Value 0 | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -Type DWord -Value 0 | Out-Null
@@ -6138,14 +6138,14 @@ function BuildNumberOnDesktop
 	{
 		"Enable"
 		{
-			Write-Host "Enabling build number and edition display on the Desktop -" -NoNewline
+			Write-Host "Enabling build number and edition display on the Desktop - " -NoNewline
 			LogInfo "Enabling build number and edition display on the Desktop"			
 			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling build number and edition display on the Desktop -" -NoNewline
+			Write-Host "Disabling build number and edition display on the Desktop - " -NoNewline
 			LogInfo "Disabling build number and edition display on the Desktop"				
 			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6198,7 +6198,7 @@ function ShareMenu
 			If (!(Test-Path "HKCR:")) {
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
-			Write-Host "Enabling the Share context menu item -" -NoNewline
+			Write-Host "Enabling the Share context menu item - " -NoNewline
 			LogInfo "Enabling the Share context menu item"				
 			New-Item -Path "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -Name "(Default)" -Type String -Value "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}" | Out-Null
@@ -6209,7 +6209,7 @@ function ShareMenu
 			If (!(Test-Path "HKCR:")) {
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
-			Write-Host "Disabling the Share context menu item -" -NoNewline
+			Write-Host "Disabling the Share context menu item - " -NoNewline
 			LogInfo "Disabling the Share context menu item"			
 			Remove-Item -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6259,14 +6259,14 @@ function Thumbnails
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'Show thumbnails instead of icons' for file extensions -" -NoNewline
+			Write-Host "Enabling 'Show thumbnails instead of icons' for file extensions - " -NoNewline
 			LogInfo "Enabling 'Show thumbnails instead of icons' for file extensions"		
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling thumbnails, showing icons for file extensions instead -" -NoNewline
+			Write-Host "Disabling thumbnails, showing icons for file extensions instead - " -NoNewline
 			LogInfo "Disabling thumbnails, showing icons for file extensions instead"			
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6316,14 +6316,14 @@ function ThumbnailCache
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the creation of thumbnail cache files -" -NoNewline
+			Write-Host "Enabling the creation of thumbnail cache files - " -NoNewline
 			LogInfo "Enabling the creation of thumbnail cache files"				
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the creation of thumbnail cache files -" -NoNewline
+			Write-Host "Disabling the creation of thumbnail cache files - " -NoNewline
 			LogInfo "Disabling the creation of thumbnail cache files"			
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6373,14 +6373,14 @@ function ThumbsDBOnNetwork
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the creation of 'Thumbs.db' cache on network folders -" -NoNewline
+			Write-Host "Enabling the creation of 'Thumbs.db' cache on network folders - " -NoNewline
 			LogInfo "Enabling the creation of 'Thumbs.db' cache on network folders"			
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the creation of 'Thumbs.db' cache on network folders -" -NoNewline
+			Write-Host "Disabling the creation of 'Thumbs.db' cache on network folders - " -NoNewline
 			LogInfo "Disabling the creation of 'Thumbs.db' cache on network folders"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6430,7 +6430,7 @@ function ThisPC
 	{
 		"Show"
 		{
-			Write-Host "Enabling 'This PC' icon on Desktop -" -NoNewline
+			Write-Host "Enabling 'This PC' icon on Desktop - " -NoNewline
 			LogInfo "Enabling 'This PC' icon on Desktop"				
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel))
 			{
@@ -6441,7 +6441,7 @@ function ThisPC
 		}
 		"Hide"
 		{
-			Write-Host "Disabling 'This PC' icon on Desktop -" -NoNewline
+			Write-Host "Disabling 'This PC' icon on Desktop - " -NoNewline
 			LogInfo "Disabling 'This PC' icon on Desktop"			
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6491,14 +6491,14 @@ function CheckBoxes
 	{
 		"Enable"
 		{
-			Write-Host "Enabling item check boxes -" -NoNewline
+			Write-Host "Enabling item check boxes - " -NoNewline
 			LogInfo "Enabling item check boxes"			
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name AutoCheckSelect -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling item check boxes -" -NoNewline
+			Write-Host "Disabling item check boxes - " -NoNewline
 			LogInfo "Disabling item check boxes"			
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name AutoCheckSelect -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6548,14 +6548,14 @@ function HiddenItems
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Hidden files, folders, and drives -" -NoNewline
+			Write-Host "Enabling Hidden files, folders, and drives - " -NoNewline
 			LogInfo "Enabling Hidden files, folders, and drives"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Hidden -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Hidden files, folders, and drives -" -NoNewline
+			Write-Host "Disabling Hidden files, folders, and drives - " -NoNewline
 			LogInfo "Disabling Hidden files, folders, and drives"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Hidden -PropertyType DWord -Value 2 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6605,14 +6605,14 @@ function SuperHiddenFiles
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'Show protected operating system files' -" -NoNewline
+			Write-Host "Enabling 'Show protected operating system files' - " -NoNewline
 			LogInfo "Enabling 'Show protected operating system files'"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Write-Host "Disabling 'Show protected operating system files' -" -NoNewline
+			Write-Host "Disabling 'Show protected operating system files' - " -NoNewline
 			LogInfo "Disabling 'Show protected operating system files'"				
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6662,14 +6662,14 @@ function FileExtensions
 	{
 		"Show"
 		{
-			Write-Host "Enabling file name extensions -" -NoNewline
+			Write-Host "Enabling file name extensions - " -NoNewline
 			LogInfo "Enabling file name extensions"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideFileExt -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
-			Write-Host "Disabling file name extensions -" -NoNewline
+			Write-Host "Disabling file name extensions - " -NoNewline
 			LogInfo "Disabling file name extensions"					
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideFileExt -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6719,14 +6719,14 @@ function MergeConflicts
 	{
 		"Show"
 		{
-			Write-Host "Enabling folder merge conflicts -" -NoNewline
+			Write-Host "Enabling folder merge conflicts - " -NoNewline
 			LogInfo "Enabling folder merge conflicts"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideMergeConflicts -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
-			Write-Host "Disabling folder merge conflicts -" -NoNewline
+			Write-Host "Disabling folder merge conflicts - " -NoNewline
 			LogInfo "Disabling folder merge conflicts"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideMergeConflicts -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6789,21 +6789,21 @@ function OpenFileExplorerTo
 	{
 		"ThisPC"
 		{
-			Write-Host "Setting File Explorer to open to 'This PC' -" -NoNewline
+			Write-Host "Setting File Explorer to open to 'This PC' - " -NoNewline
 			LogInfo "Setting File Explorer to open to 'This PC'"			
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"QuickAccess"
 		{
-			Write-Host "Setting File Explorer to open to 'Quick Access' -" -NoNewline
+			Write-Host "Setting File Explorer to open to 'Quick Access' - " -NoNewline
 			LogInfo "Setting File Explorer to open to 'Quick Access'"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 2 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Downloads"
 		{
-			Write-Host "Setting File Explorer to open to 'Downloads' -" -NoNewline
+			Write-Host "Setting File Explorer to open to 'Downloads' - " -NoNewline
 			LogInfo "Setting File Explorer to open to 'Downloads'"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 3 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6853,14 +6853,14 @@ function FileExplorerCompactMode
 	{
 		"Disable"
 		{
-			Write-Host "Disabling File Explorer compact mode -" -NoNewline
+			Write-Host "Disabling File Explorer compact mode - " -NoNewline
 			LogInfo "Disabling File Explorer compact mode"			
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name UseCompactMode -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			Write-Host "Enabling File Explorer compact mode -" -NoNewline
+			Write-Host "Enabling File Explorer compact mode - " -NoNewline
 			LogInfo "Enabling File Explorer compact mode"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name UseCompactMode -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6911,14 +6911,14 @@ function OneDriveFileExplorerAd
 	{
 		"Hide"
 		{
-			Write-Host "Disabling sync provider notification within File Explorer -" -NoNewline
+			Write-Host "Disabling sync provider notification within File Explorer - " -NoNewline
 			LogInfo "Disabling sync provider notification within File Explorer"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Write-Host "Enabling sync provider notification within File Explorer -" -NoNewline
+			Write-Host "Enabling sync provider notification within File Explorer - " -NoNewline
 			LogInfo "Enabling sync provider notification within File Explorer"				
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6964,17 +6964,23 @@ function SnapAssist
 		$Enable
 	)
 
-	New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WindowArrangementActive -PropertyType String -Value 1 -Force
+	New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name WindowArrangementActive -PropertyType String -Value 1 -Force | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling 'show what I can snap next' When snapping windows - " -NoNewline
+			LogInfo "Disabling 'show what I can snap next' When snapping windows"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling 'show what I can snap next' When snapping windows - " -NoNewline
+			LogInfo "Enabling 'show what I can snap next' When snapping windows"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -7019,18 +7025,24 @@ function FileTransferDialog
 
 	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager))
 	{
-		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Force
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Force | Out-Null
 	}
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Detailed"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling detailed view for file transfer dialog boxes - " -NoNewline
+			LogInfo "Enabling detailed view for file transfer dialog boxes"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Compact"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 0 -Force
+			Write-Host "Enabling compact view for file transfer dialog boxes - " -NoNewline
+			LogInfo "Enabling compact view for file transfer dialog boxes"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -7074,9 +7086,9 @@ function RecycleBinDeleteConfirmation
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ConfirmFileDelete -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name ConfirmFileDelete -Type CLEAR
-	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name ConfirmFileDelete -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ConfirmFileDelete -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name ConfirmFileDelete -Type CLEAR | Out-Null
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name ConfirmFileDelete -Type CLEAR | Out-Null
 
 	$ShellState = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState
 
@@ -7084,13 +7096,19 @@ function RecycleBinDeleteConfirmation
 	{
 		"Enable"
 		{
+			Write-Host "Enabling the recycle bin files delete confirmation dialog - " -NoNewline
+			LogInfo "Enabling the recycle bin files delete confirmation dialog"			
 			$ShellState[4] = 51
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling the recycle bin files delete confirmation dialog - " -NoNewline
+			LogInfo "Disabling the recycle bin files delete confirmation dialog"				
 			$ShellState[4] = 55
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -7134,19 +7152,25 @@ function QuickAccessRecentFiles
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoRecentDocsHistory -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoRecentDocsHistory -Type CLEAR
-	Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoRecentDocsHistory -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer, HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoRecentDocsHistory -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoRecentDocsHistory -Type CLEAR | Out-Null
+	Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoRecentDocsHistory -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling recently used files in Quick access - " -NoNewline
+			LogInfo "Disabling recently used files in Quick access"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling recently used files in Quick access - " -NoNewline
+			LogInfo "Enabling recently used files in Quick access"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -7193,11 +7217,17 @@ function QuickAccessFrequentFolders
 	{
 		"Hide"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling frequently used folders in Quick access - " -NoNewline
+			LogInfo "Disabling frequently used folders in Quick access"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling frequently used folders in Quick access - " -NoNewline
+			LogInfo "Enabling frequently used folders in Quick access"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -7241,25 +7271,31 @@ function MeetNow
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Force -ErrorAction Ignore
-	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Type CLEAR
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
+			Write-Host "Disabling the Meet Now icon in the notification area - " -NoNewline
+			LogInfo "Disabling the Meet Now icon in the notification area"			
 			$Script:MeetNow = $false
 			$Settings = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -ErrorAction Ignore
 			$Settings[9] = 128
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -PropertyType Binary -Value $Settings -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -PropertyType Binary -Value $Settings -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
+			Write-Host "Enabling the Meet Now icon in the notification area - " -NoNewline
+			LogInfo "Enabling the Meet Now icon in the notification area"			
 			$Script:MeetNow = $true
 			$Settings = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -ErrorAction Ignore
 			$Settings[9] = 0
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -PropertyType Binary -Value $Settings -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -PropertyType Binary -Value $Settings -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -7306,27 +7342,21 @@ function NewsInterests
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name EnableFeeds -Force -ErrorAction Ignore
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\NewsAndInterests\AllowNewsAndInterests" -Name value -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name EnableFeeds -Force -ErrorAction SilentlyContinue | Out-Null
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\NewsAndInterests\AllowNewsAndInterests" -Name value -Force -ErrorAction SilentlyContinue | Out-Null
 
-	if (-not (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction Ignore))
+	if (-not (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction SilentlyContinue))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-		return
+		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# We have to use GetValue() due to "Set-StrictMode -Version Latest"
 	$MachineId = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient", "MachineId", $null)
 	if (-not $MachineId)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-		return
+		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# https://forums.mydigitallife.net/threads/taskbarda-widgets-registry-change-is-now-blocked.88547/#post-1849006
@@ -7342,16 +7372,18 @@ public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int ou
 	}
 	if (-not ("WinAPI.Signature" -as [type]))
 	{
-		Add-Type @Signature
+		Add-Type @Signature | Out-Null
 	}
 
 	# We cannot set a value to EnShellFeedsTaskbarViewMode, having called any of APIs, except of copying powershell.exe (or any other tricks) with a different name, due to a UCPD driver tracks all executables to block the access to the registry
-	Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force
+	Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
+			Write-Host "Disabling 'News and Interests' on the taskbar - " -NoNewline
+			LogInfo "Disabling 'News and Interests' on the taskbar"			
 			# Combine variables into a string
 			$Combined = $MachineId + '_' + 2
 			# Reverse the whole string
@@ -7364,12 +7396,18 @@ public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int ou
 			# Get value to save in EnShellFeedsTaskbarViewMode key
 			$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
 
-			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -PropertyType DWord -Value 2 -Force}
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 2 -Force -ErrorAction SilentlyContinue | Out-Null
+    		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -PropertyType DWord -Value 2 -Force} | Out-Null
 			# We need to use here an approach with "-Command & {}" as there's a variable inside
-			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name EnShellFeedsTaskbarViewMode -PropertyType DWord -Value $DWordData -Force}"
+			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name EnShellFeedsTaskbarViewMode -PropertyType DWord -Value $DWordData -Force}" | Out-Null
+			#Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
+			Write-Host "Enabling 'News and Interests' on the taskbar - " -NoNewline
+			LogInfo "Enabling 'News and Interests' on the taskbar"						
 			# Combine variables into a string
 			$Combined = $MachineId + '_' + 0
 			# Reverse the whole string
@@ -7382,13 +7420,17 @@ public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int ou
 			# Get value to save in EnShellFeedsTaskbarViewMode key
 			$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
 
-			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -PropertyType DWord -Value 0 -Force}
+    		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+    		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
+    	    Write-Host " Success!" -ForegroundColor Green			
+			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -PropertyType DWord -Value 0 -Force} | Out-Null
 			# We need to use here an approach with "-Command & {}" as there's a variable inside
-			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name EnShellFeedsTaskbarViewMode -PropertyType DWord -Value $DWordData -Force}"
+			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name EnShellFeedsTaskbarViewMode -PropertyType DWord -Value $DWordData -Force}" | Out-Null
+			#Write-Host "success!" -ForegroundColor Green
 		}
 	}
 
-	Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force
+	Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force | Out-Null
 }
 
 <#
