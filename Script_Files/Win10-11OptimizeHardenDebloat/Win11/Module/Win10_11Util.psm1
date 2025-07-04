@@ -7917,10 +7917,11 @@ function UnpinTaskbarShortcuts
 	# Extract the localized "Unpin from taskbar" string from shell32.dll
 	$LocalizedString = [WinAPI.GetStrings]::GetString(5387)
 
+	Write-Host "Unpin Microsoft Edge, Microsoft Store, and Outlook shortcuts from the taskbar - " -NoNewline
+	LogInfo "Unpin Microsoft Edge, Microsoft Store, and Outlook shortcuts from the taskbar"
+
 	foreach ($Shortcut in $Shortcuts)
 	{
-		Write-Host "Unpin Microsoft Edge, Microsoft Store, and Outlook shortcuts from the taskbar - " -NoNewline
-		LogInfo "Unpin Microsoft Edge, Microsoft Store, and Outlook shortcuts from the taskbar"
 		switch ($Shortcut)
 		{
 			Edge
@@ -7955,8 +7956,8 @@ function UnpinTaskbarShortcuts
 				}
 			}
 		}
-		Write-Host "success!" -ForegroundColor Green
 	}
+	Write-Host "success!" -ForegroundColor Green
 }
 
 <#
@@ -7999,18 +8000,24 @@ function TaskbarEndTask
 
 	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings))
 	{
-		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Force
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Force | Out-Null
 	}
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling 'End task in taskbar by right click' - " -NoNewline
+			LogInfo "Enabling 'End task in taskbar by right click'"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -Force -ErrorAction Ignore
+			Write-Host "Disabling 'End task in taskbar by right click' - " -NoNewline
+			LogInfo "Disabling 'End task in taskbar by right click'"				
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8067,30 +8074,39 @@ function ControlPanelView
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ForceClassicControlPanel -Force -ErrorAction Ignore
-	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ForceClassicControlPanel -Type CLEAR
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ForceClassicControlPanel -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name ForceClassicControlPanel -Type CLEAR | Out-Null
 
 	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel))
 	{
-		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Force
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Force | Out-Null
 	}
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Category"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 0 -Force
+			Write-Host "Setting Control Panel to be viewed by Category - " -NoNewline
+			LogInfo "Setting Control Panel to be viewed by Category"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"LargeIcons"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force
+			Write-Host "Setting Control Panel to be viewed by Large Icons - " -NoNewline
+			LogInfo "Setting Control Panel to be viewed by Large Icons"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"SmallIcons"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force
+			Write-Host "Setting Control Panel to be viewed by Small Icons - " -NoNewline
+			LogInfo "Setting Control Panel to be viewed by Small Icons"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8137,11 +8153,17 @@ function WindowsColorMode
 	{
 		"Dark"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 0 -Force
+			Write-Host "Setting Windows to use Dark Mode - " -NoNewline
+			LogInfo "Setting Windows to use Dark Mode"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Light"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 1 -Force
+			Write-Host "Setting Windows to use Light Mode - " -NoNewline
+			LogInfo "Setting Windows to use Light Mode"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8188,11 +8210,17 @@ function AppColorMode
 	{
 		"Dark"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 0 -Force
+			Write-Host "Setting Apps to use Dark Mode - " -NoNewline
+			LogInfo "Setting Apps to use Dark Mode"			
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Light"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 1 -Force
+			Write-Host "Setting Apps to use Light Mode - " -NoNewline
+			LogInfo "Setting Apps to use Light Mode"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8236,18 +8264,24 @@ function FirstLogonAnimation
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableFirstLogonAnimation -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableFirstLogonAnimation -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableFirstLogonAnimation -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableFirstLogonAnimation -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling the first sign-in animation after upgrade - " -NoNewline
+			LogInfo "Disabling the first sign-in animation after upgrade"				
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 0 -Force  | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling the first sign-in animation after upgrade - " -NoNewline
+			LogInfo "Enabling the first sign-in animation after upgrade"			
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
