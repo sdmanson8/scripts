@@ -8328,11 +8328,17 @@ function JPEGWallpapersQuality
 	{
 		"Max"
 		{
-			New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -PropertyType DWord -Value 100 -Force
+			Write-Host "Enabling the maximum quality factor of the JPEG desktop wallpapers - " -NoNewline
+			LogInfo "Enabling the maximum quality factor of the JPEG desktop wallpapers"				
+			New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -PropertyType DWord -Value 100 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
-			Remove-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -Force -ErrorAction Ignore
+			Write-Host "Disabling the maximum quality factor of the JPEG desktop wallpapers - " -NoNewline
+			LogInfo "Disabling the maximum quality factor of the JPEG desktop wallpapers"			
+			Remove-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8375,27 +8381,50 @@ function ShortcutsSuffix
 		$Enable
 	)
 
-	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name link -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name link -Force -ErrorAction Ignore | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
+			Write-Host "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts - " -NoNewline
+			LogInfo "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts"				
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates))
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Force
+				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -PropertyType String -Value "%s.lnk" -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -PropertyType String -Value "%s.lnk" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -Force -ErrorAction Ignore
+			Write-Host "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts - " -NoNewline
+			LogInfo "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts"				
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
+<#
+	.SYNOPSIS
+	Controls the display of shortcut arrow overlay on icons
 
-# Shortcut icon arrow
+	.PARAMETER Enable
+	Show shortcut arrow overlay on icons
+
+	.PARAMETER Disable
+	Remove shortcut arrow overlay on icons
+
+	.EXAMPLE
+	ShortcutArrow -Enable
+
+	.EXAMPLE
+	ShortcutArrow -Disable
+
+	.NOTES
+	Current user
+#>
 function ShortcutArrow
 {
 	param
@@ -8419,14 +8448,20 @@ function ShortcutArrow
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the display of shortcut arrow overlay on icons - " -NoNewline
+			LogInfo "Enabling the display of shortcut arrow overlay on icons"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling the display of shortcut arrow overlay on icons - " -NoNewline
+			LogInfo "Disabling the display of shortcut arrow overlay on icons"			
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -Type String -Value "%SystemRoot%\System32\imageres.dll,-1015"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -Type String -Value "%SystemRoot%\System32\imageres.dll,-1015" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8473,11 +8508,17 @@ function PrtScnSnippingTool
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling the Print screen button to open screen snipping - " -NoNewline
+			LogInfo "Enabling the Print screen button to open screen snipping"			
+			New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling the Print screen button to open screen snipping - " -NoNewline
+			LogInfo "Disabling the Print screen button to open screen snipping"				
+			New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8524,11 +8565,17 @@ function AppsLanguageSwitch
 	{
 		"Enable"
 		{
-			Set-WinLanguageBarOption -UseLegacySwitchMode
+			Write-Host "Enabling a different input method for each app window - " -NoNewline
+			LogInfo "Enabling a different input method for each app window"			
+			Set-WinLanguageBarOption -UseLegacySwitchMode | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-WinLanguageBarOption
+			Write-Host "Disabling a different input method for each app window - " -NoNewline
+			LogInfo "Disabling a different input method for each app window"				
+			Set-WinLanguageBarOption | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8572,19 +8619,25 @@ function AeroShaking
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\Software\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Force -ErrorAction Ignore
-	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Type CLEAR
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\Software\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoWindowMinimizingShortcuts -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 0 -Force
+			Write-Host "Enabling Title bar window shake - " -NoNewline
+			LogInfo "Enabling Title bar window shake"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 1 -Force
+			Write-Host "Disabling Title bar window shake - " -NoNewline
+			LogInfo "Disabling Title bar window shake"				
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8631,25 +8684,33 @@ function FolderGroupBy
 	{
 		"None"
 		{
+			Write-Host "Enabling grouping of files and folder in the Downloads folder - " -NoNewline
+			LogInfo "Enabling grouping of files and folder in the Downloads folder"	
 			# Clear any Common Dialog views
-			Get-ChildItem -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\*\Shell" -Recurse | Where-Object -FilterScript {$_.PSChildName -eq "{885A186E-A440-4ADA-812B-DB871B942259}"} | Remove-Item -Force
-
+			Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\*\Shell" -ErrorAction SilentlyContinue |
+    		Where-Object { $_.PSChildName -eq "{885A186E-A440-4ADA-812B-DB871B942259}" } |
+    		Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+			
 			# https://learn.microsoft.com/en-us/windows/win32/properties/props-system-null
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}"))
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Force | Out-Null
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name ColumnList -PropertyType String -Value "System.Null" -Force
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name GroupBy -PropertyType String -Value "System.Null" -Force
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name LogicalViewMode -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name Name -PropertyType String -Value NoName -Force
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name Order -PropertyType DWord -Value 0 -Force
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name PrimaryProperty -PropertyType String -Value "System.ItemNameDisplay" -Force
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name SortByList -PropertyType String -Value "prop:System.ItemNameDisplay" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name ColumnList -PropertyType String -Value "System.Null" -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name GroupBy -PropertyType String -Value "System.Null" -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name LogicalViewMode -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name Name -PropertyType String -Value NoName -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name Order -PropertyType DWord -Value 0 -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name PrimaryProperty -PropertyType String -Value "System.ItemNameDisplay" -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name SortByList -PropertyType String -Value "prop:System.ItemNameDisplay" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
-			Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}" -Recurse -Force -ErrorAction Ignore
+			Write-Host "Disabling grouping of files and folder in the Downloads folder - " -NoNewline
+			LogInfo "Disabling grouping of files and folder in the Downloads folder"	
+			Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}" -Recurse -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8696,11 +8757,17 @@ function NavigationPaneExpand
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling expand to open folder on navigation pane - " -NoNewline
+			LogInfo "Disabling expand to open folder on navigation pane"	
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling expand to open folder on navigation pane - " -NoNewline
+			LogInfo "Enabling expand to open folder on navigation pane"	
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8747,40 +8814,43 @@ function StartRecommendedSection
 	# Windows 11 Home not supported
 	if ((Get-ComputerInfo).WindowsProductName -match "Home")
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-		return
+		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
+			Write-Host "Disabling the Recommended section in the Start Menu - " -NoNewline
+			LogInfo "Disabling the Recommended section in the Start Menu"
 			if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
 			{
-				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force
+				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force | Out-Null
 			}
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education))
 			{
-				New-Item -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Force
+				New-Item -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -PropertyType DWord -Value 1 -Force | Out-Null
 
-			Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type DWORD -Value 1
+			Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type DWORD -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Start -Name HideRecommendedSection -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR
+			Write-Host "Enabling the Recommended section in the Start Menu - " -NoNewline
+			LogInfo "Enabling the Recommended section in the Start Menu"
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Force -ErrorAction Ignore | Out-Null
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -Force -ErrorAction Ignore | Out-Null
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Start -Name HideRecommendedSection -Force -ErrorAction Ignore | Out-Null
+			Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -8838,48 +8908,43 @@ function OneDrive
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Uninstall"
 		{
+			Write-Host "Uninstalling One Drive - " -NoNewline
+			LogInfo "Uninstalling One Drive"			
 			[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -ErrorAction Ignore | ForEach-Object -Process {$_.Meta.Attributes["UninstallString"]}
 			if (-not $UninstallString)
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-				return
+				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 
 			# Checking whether user is logged into OneDrive (Microsoft account)
 			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
 			if ($UserEmail)
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-				return
+				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message $Localization.OneDriveUninstalling -Verbose
+			LogInfo $Localization.OneDriveUninstalling
 
-			Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction Ignore
+			Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction Ignore | Out-Null
 
 			# Getting link to the OneDriveSetup.exe and its argument(s)
 			[string[]]$OneDriveSetup = ($UninstallString -replace("\s*/", ",/")).Split(",").Trim()
 			if ($OneDriveSetup.Count -eq 2)
 			{
-				Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..1] -Wait
+				Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..1] -Wait | Out-Null
 			}
 			else
 			{
-				Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..2] -Wait
+				Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..2] -Wait | Out-Null
 			}
 
 			# Get the OneDrive user folder path and remove it if it doesn't contain any user files
@@ -8887,7 +8952,7 @@ function OneDrive
 			{
 				if ((Get-ChildItem -Path $env:OneDrive -ErrorAction Ignore | Measure-Object).Count -eq 0)
 				{
-					Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction Ignore
+					Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction Ignore | Out-Null
 
 					# https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexa
 					# The system does not move the file until the operating system is restarted
@@ -8923,47 +8988,47 @@ public static bool MarkFileDelete (string sourcefile)
 
 						try
 						{
-							Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction Stop
+							Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction Stop | Out-Null
 						}
 						catch
 						{
 							# If files are in use remove them at the next boot
-							Get-ChildItem -Path $env:OneDrive -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)}
+							Get-ChildItem -Path $env:OneDrive -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)} | Out-Null
 						}
 					}
 				}
 				else
 				{
-					Start-Process -FilePath explorer -ArgumentList $env:OneDrive
+					Start-Process -FilePath explorer -ArgumentList $env:OneDrive | Out-Null
 				}
 			}
 
-			Remove-ItemProperty -Path HKCU:\Environment -Name OneDrive, OneDriveConsumer -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path HKCU:\Environment -Name OneDrive, OneDriveConsumer -Force -ErrorAction Ignore | Out-Null
 			$Path = @(
 				"HKCU:\Software\Microsoft\OneDrive",
 				"$env:ProgramData\Microsoft OneDrive",
 				"$env:SystemDrive\OneDriveTemp"
 			)
-			Remove-Item -Path $Path -Recurse -Force -ErrorAction Ignore
-			Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false -ErrorAction Ignore
+			Remove-Item -Path $Path -Recurse -Force -ErrorAction Ignore | Out-Null
+			Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false -ErrorAction Ignore | Out-Null
 
 			# Getting the OneDrive folder path and replacing quotes if exist
 			$OneDriveFolder = (Split-Path -Path (Split-Path -Path $OneDriveSetup[0] -Parent)) -replace '"', ""
 
 			# Do not restart File Explorer process automatically if it stops in order to unload libraries
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 0 -Force | Out-Null
 			# Kill all explorer instances in case "launch folder windows in a separate process" enabled
-			Get-Process -Name explorer | Stop-Process -Force
+			Get-Process -Name explorer | Stop-Process -Force | Out-Null
 			Start-Sleep -Seconds 3
 			# Restart File Explorer process automatically if it stops in order to unload libraries
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 1 -Force | Out-Null
 
 			# Attempt to unregister FileSyncShell64.dll and remove
-			$FileSyncShell64dlls = Get-ChildItem -Path "$OneDriveFolder\*\FileSyncShell64.dll" -Force
+			$FileSyncShell64dlls = Get-ChildItem -Path "$OneDriveFolder\*\FileSyncShell64.dll" -Force | Out-Null
 			foreach ($FileSyncShell64dll in $FileSyncShell64dlls.FullName)
 			{
-				Start-Process -FilePath regsvr32.exe -ArgumentList "/u /s $FileSyncShell64dll" -Wait
-				Remove-Item -Path $FileSyncShell64dll -Force -ErrorAction Ignore
+				Start-Process -FilePath regsvr32.exe -ArgumentList "/u /s $FileSyncShell64dll" -Wait | Out-Null
+				Remove-Item -Path $FileSyncShell64dll -Force -ErrorAction Ignore | Out-Null
 
 				if (Test-Path -Path $FileSyncShell64dll)
 				{
@@ -8973,12 +9038,12 @@ public static bool MarkFileDelete (string sourcefile)
 					}
 
 					# If files are in use remove them at the next boot
-					Get-ChildItem -Path $FileSyncShell64dll -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)}
+					Get-ChildItem -Path $FileSyncShell64dll -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)} | Out-Null
 				}
 			}
 
 			# We need to wait for a few seconds to let explore launch unless it will fail to do so
-			Start-Process -FilePath explorer
+			Start-Process -FilePath explorer | Out-Null
 			Start-Sleep -Seconds 3
 
 			$Path = @(
@@ -8987,33 +9052,32 @@ public static bool MarkFileDelete (string sourcefile)
 				"$env:LOCALAPPDATA\Microsoft\OneDrive",
 				"$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OneDrive.lnk"
 			)
-			Remove-Item -Path $Path -Recurse -Force -ErrorAction Ignore
+			Remove-Item -Path $Path -Recurse -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Install"
 		{
+			Write-Host "Installing One Drive - " -NoNewline
+			LogInfo "Installing One Drive"			
 			$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
 			if ($OneDrive)
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-				return
+				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 
 			if (Test-Path -Path $env:SystemRoot\System32\OneDriveSetup.exe)
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message $Localization.OneDriveInstalling -Verbose
+				LogInfo $Localization.OneDriveInstalling
 
 				if ($AllUsers)
 				{
 					# Install OneDrive for all users
-					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -ArgumentList "/allusers"
+					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -ArgumentList "/allusers" | Out-Null
 				}
 				else
 				{
-					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe
+					Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe | Out-Null
 				}
 			}
 			else
@@ -9021,9 +9085,8 @@ public static bool MarkFileDelete (string sourcefile)
 				try
 				{
 					# Downloading the latest OneDrive installer 64-bit
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message $Localization.OneDriveDownloading -Verbose
-
+				LogInfo $Localization.OneDriveDownloading
+				LogWarning $Localization.OneDriveDownloading
 					# Parse XML to get the URL
 					# https://go.microsoft.com/fwlink/p/?LinkID=844652
 					$Parameters = @{
@@ -9044,35 +9107,34 @@ public static bool MarkFileDelete (string sourcefile)
 						UseBasicParsing = $true
 						#Verbose         = $true
 					}
-					Invoke-WebRequest @Parameters
+					Invoke-WebRequest @Parameters | Out-Null
 
 					if ($AllUsers)
 					{
 						# Install OneDrive for all users to %ProgramFiles%
-						Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe -ArgumentList "/allusers"
+						Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe -ArgumentList "/allusers" | Out-Null
 					}
 					else
 					{
-						Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe
+						Start-Process -FilePath $env:SystemRoot\SysWOW64\OneDriveSetup.exe | Out-Null
 					}
 
-					Remove-Item -Path "$DownloadsFolder\OneDriveSetup.exe" -Force
+					Remove-Item -Path "$DownloadsFolder\OneDriveSetup.exe" -Force | Out-Null
 				}
 				catch [System.Net.WebException]
 				{
-					Write-Warning -Message ($Localization.NoResponse -f "https://oneclient.sfx.ms")
-					Write-Error -Message ($Localization.NoResponse -f "https://oneclient.sfx.ms") -ErrorAction SilentlyContinue
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-					return
+					LogInfo ($Localization.NoResponse -f "https://oneclient.sfx.ms")
+					LogWarning ($Localization.NoResponse -f "https://oneclient.sfx.ms")
+					LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 				}
 			}
 
 			# Save screenshots by pressing Win+PrtScr in the Pictures folder
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -Force -ErrorAction Ignore | Out-Null
 
-			Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
-			Get-ScheduledTask -TaskName "Onedrive* Update*" | Start-ScheduledTask
+			Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask | Out-Null
+			Get-ScheduledTask -TaskName "Onedrive* Update*" | Start-ScheduledTask | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
