@@ -9142,6 +9142,25 @@ public static bool MarkFileDelete (string sourcefile)
 
 #region System
 
+<#
+	.SYNOPSIS
+	Enable or disable the Windows lock screen
+
+	.PARAMETER Enable
+	Enable the Windows lock screen
+
+	.PARAMETER Disable
+	Disable the Windows lock screen
+
+	.EXAMPLE
+	LockScreen -Enable
+
+	.EXAMPLE
+	LockScreen -Disable
+
+	.NOTES
+	Current user
+#>
 function LockScreen
 {
 	param
@@ -9165,19 +9184,44 @@ function LockScreen
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the Windows lockscreen - " -NoNewline
+			LogInfo "Enabling the Windows lockscreen"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling the Windows lockscreen - " -NoNewline
+			LogInfo "Disabling the Windows lockscreen"			
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Lock screen - Anniversary Update workaround. The GPO used in DisableLockScreen has been broken in 1607 and fixed again in 1803
+<#
+	.SYNOPSIS
+	Enable or disable the Windows lock screen
+
+	.PARAMETER Enable
+	Enable the Windows lock screen
+
+	.PARAMETER Disable
+	Disable the Windows lock screen
+
+	.EXAMPLE
+	LockScreen -Enable
+
+	.EXAMPLE
+	LockScreen -Disable
+
+	.NOTES
+	Current user
+	Anniversary Update workaround. The GPO used in DisableLockScreen has been broken in 1607 and fixed again in 1803
+#>
 function LockScreenRS1
 {
 	param
@@ -9201,10 +9245,15 @@ function LockScreenRS1
 	{
 		"Enable"
 		{
-			Unregister-ScheduledTask -TaskName "Disable LockScreen" -Confirm:$false -ErrorAction SilentlyContinue
+			Write-Host "Enabling the Windows lockscreen - " -NoNewline
+			LogInfo "Enabling the Windows lockscreen"				
+			Unregister-ScheduledTask -TaskName "Disable LockScreen" -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling the Windows lockscreen - " -NoNewline
+			LogInfo "Disabling the Windows lockscreen"				
 			$service = New-Object -com Schedule.Service
 			$service.Connect()
 			$task = $service.NewTask(0)
@@ -9216,10 +9265,30 @@ function LockScreenRS1
 			$action.Path = "reg.exe"
 			$action.Arguments = "add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData /t REG_DWORD /v AllowLockScreen /d 0 /f"
 			$service.GetFolder("\").RegisterTaskDefinition("Disable LockScreen", $task, 6, "NT AUTHORITY\SYSTEM", $null, 4) | Out-Null
+			Write-Host "success!" -ForegroundColor Green			
 		}
 	}
 }
 
+<#
+	.SYNOPSIS
+	Show or hide network options on the lock screen
+
+	.PARAMETER Enable
+	Allow network selection from the lock screen
+
+	.PARAMETER Disable
+	Prevent network selection from the lock screen
+
+	.EXAMPLE
+	NetworkFromLockScreen -Enable
+
+	.EXAMPLE
+	NetworkFromLockScreen -Disable
+
+	.NOTES
+	Current user
+#>
 # Network options from Lock Screen
 function NetworkFromLockScreen
 {
@@ -9244,15 +9313,40 @@ function NetworkFromLockScreen
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue
+			Write-Host "Enabling the Network options on the lockscreen - " -NoNewline
+			LogInfo "Enabling the Network options on the lockscreen"				
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1
+			Write-Host "Disabling the Network options on the lockscreen - " -NoNewline
+			LogInfo "Disabling the Network options on the lockscreen"			
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
+<#
+	.SYNOPSIS
+	Shutdown option on the lock screen
+
+	.PARAMETER Enable
+	Allow shutdown from the lock screen
+
+	.PARAMETER Disable
+	Do not allow shutdown from the lock screen
+
+	.EXAMPLE
+	ShutdownFromLockScreen -Enable
+
+	.EXAMPLE
+	ShutdownFromLockScreen -Disable
+
+	.NOTES
+	Current user
+#>
 # Shutdown options from Lock Screen
 function ShutdownFromLockScreen
 {
@@ -9277,15 +9371,40 @@ function ShutdownFromLockScreen
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1
+			Write-Host "Enabling the shutdown options on the lockscreen - " -NoNewline
+			LogInfo "Enabling the shutdown options on the lockscreen"			
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0
+			Write-Host "Disabling the shutdown options on the lockscreen - " -NoNewline
+			LogInfo "Disabling the shutdown options on the lockscreen"			
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
+<#
+    .SYNOPSIS
+    Lock screen blur effect
+
+    .PARAMETER Enable
+    Enable lock screen blur effect
+
+    .PARAMETER Disable
+    Disable lock screen blur effect
+
+    .EXAMPLE
+    LockScreenBlur -Enable
+
+    .EXAMPLE
+    LockScreenBlur -Disable
+
+    .NOTES
+    Current user
+#>
 # Lock screen Blur - Applicable since 1903
 function LockScreenBlur
 {
@@ -9310,15 +9429,40 @@ function LockScreenBlur
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue
+			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
+			LogInfo "Enabling blurring of the lockscreen"			
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1
+			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
+			LogInfo "Enabling blurring of the lockscreen"			
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
+<#
+	.SYNOPSIS
+	Task Manager details view in Windows 10 and later
+
+	.PARAMETER Enable
+	Always show full details view in Task Manager
+
+	.PARAMETER Disable
+	Revert Task Manager to default summary view
+
+	.EXAMPLE
+	TaskManagerDetails -Enable
+
+	.EXAMPLE
+	TaskManagerDetails -Disable
+
+	.NOTES
+	Current user
+#>
 # Task Manager details - Applicable since 1607
 # Although this functionality exist even in earlier versions, the Task Manager's behavior is different there and is not compatible with this tweak
 function TaskManagerDetails
@@ -9344,6 +9488,8 @@ function TaskManagerDetails
 	{
 		"Enable"
 		{
+			Write-Host "Enabling Task Manager detailed view - " -NoNewline
+			LogInfo "Enabling Task Manager detailed view"			
 			$taskmgr = Start-Process -WindowStyle Hidden -FilePath taskmgr.exe -PassThru
 			$timeout = 30000
 			$sleep = 100
@@ -9352,18 +9498,22 @@ function TaskManagerDetails
 				$timeout -= $sleep
 				$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
 			} Until ($preferences -or $timeout -le 0)
-			Stop-Process $taskmgr
+			Stop-Process $taskmgr | Out-Null
 			If ($preferences) {
 				$preferences.Preferences[28] = 0
-				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 			}
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Task Manager detailed view - " -NoNewline
+			LogInfo "Disabling Task Manager detailed view"			
 			$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
 			If ($preferences) {
 				$preferences.Preferences[28] = 1
-				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 			}
 		}
 	}
