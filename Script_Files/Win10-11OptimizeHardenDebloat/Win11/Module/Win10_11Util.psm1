@@ -940,15 +940,39 @@ function CheckWinGet
     if (-not $wingetPath) 
 	{
         # Download and install winget manually
-		LogInfo "Winget not found, Installing Winget"
+		LogInfo "Winget not found, Preparing to Download and Install Winget:"
         Write-Host "Installing WinGet - " -NoNewline
-		powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy Bypass', '-Command `"Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile "$env:TEMP\winget.msixbundle"; Add-AppxPackage -Path "$env:TEMP\winget.msixbundle"`"' -Verb RunAs -Wait" 
+		LogInfo "Setting temp location"
+		Set-Location -Path $env:TEMP
+		LogInfo "Downloading NuGet"
+		Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.8.6 -Method Get -OutFile microsoft.ui.xaml.2.8.6.zip
+		Expand-Archive microsoft.ui.xaml.2.8.6.zip
+		LogInfo "Installing NuGet"
+		Add-AppxPackage -Path .\microsoft.ui.xaml.2.8.6\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.8.appx
+		LogInfo "Downloading C++ Runtime"
+		Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -Method Get -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
+		LogInfo "Installing C++ Runtime"
+		Add-AppxPackage -Path .\Microsoft.VCLibs.x64.14.00.Desktop.appx
+		LogInfo "Downloading WinGet"
+		# GitHub repo
+		$Repo = "microsoft/winget-cli"
+		$ApiUri = "https://api.github.com/repos/$Repo/releases/latest"
+		# Get latest release metadata
+		$Release = Invoke-RestMethod -Uri $ApiUri -UseBasicParsing
+		# Find required assets
+		$Msix = $Release.assets | Where-Object { $_.name -like "*.msixbundle" }
+		$License = $Release.assets | Where-Object { $_.name -like "*_License*.xml" }
+		# Download paths
+		$MsixPath = Join-Path $PWD $Msix.name
+		$LicensePath = Join-Path $PWD $License.name
+		# Download assets
+		Invoke-WebRequest -Uri $Msix.browser_download_url -OutFile $MsixPath -UseBasicParsing
+		Invoke-WebRequest -Uri $License.browser_download_url -OutFile $LicensePath -UseBasicParsing
+		LogInfo "Installing WinGet"
+		Add-AppxProvisionedPackage -Online `
+    		-PackagePath $MsixPath `
+    		-LicensePath $LicensePath
         Write-Host "success!" -ForegroundColor Green
-        Start-Sleep 10 
-		Write-Warning "Winget install success, Rerun script to continue"
-		Start-Sleep 10
-		exit
-		LogInfo "Winget install success, Rerun script to continue"
     } 
 	else 
 	{
