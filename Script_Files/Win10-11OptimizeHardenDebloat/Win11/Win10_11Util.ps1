@@ -1073,9 +1073,9 @@ StartupSound -Enable
 ChangingSoundScheme -Disable
 
 # Enable Verbose startup/shutdown status messages
-VerboseStatus -Enable
+# VerboseStatus -Enable
 # Disable Verbose startup/shutdown status messages
-# VerboseStatus -Disable
+VerboseStatus -Disable
 
 # Turn on Storage Sense
 # Включить Контроль памяти

@@ -511,7 +511,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	catch [Microsoft.PowerShell.Commands.ServiceCommandException]
 	{
 		#LogInfo -MessageData "" -InformationAction Continue
-		LogWarning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		#LogWarning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
 		#LogInfo -MessageData "" -InformationAction Continue	
 	}
 	$Script:DefenderServices = ($Services | Where-Object -FilterScript {$_.Status -ne "running"} | Measure-Object).Count -lt $Services.Count | Out-Null
@@ -525,7 +525,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	catch [Microsoft.Management.Infrastructure.CimException]
 	{
 		#LogInfo -MessageData "" -InformationAction Continue
-		LogWarning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		#LogWarning -Message ($Localization.WindowsComponentBroken -f "Microsoft Defender")
 		#LogInfo -MessageData "" -InformationAction Continue
 	}
 
@@ -585,7 +585,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		{
 			"1"
 			{
-				LogWarning -Message $Localization.ControlledFolderAccessDisabled
+				#LogWarning -Message $Localization.ControlledFolderAccessDisabled
 
 				# Turn off Controlled folder access to let the script proceed
 				LogInfo "Disabling Controlled folder access"
@@ -609,7 +609,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	if (-not (Test-Path -Path "$PSScriptRoot\..\Binaries\LGPO.exe"))
 	{
 		#LogInfo -MessageData "" -InformationAction Continue
-		LogWarning -Message ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\Binaries"))
+		#LogWarning -Message ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\Binaries"))
 		#LogInfo -MessageData "" -InformationAction Continue
 	
 	}
@@ -7372,7 +7372,7 @@ function NewsInterests
 	if (-not (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction SilentlyContinue))
 	{
 		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# We have to use GetValue() due to "Set-StrictMode -Version Latest"
@@ -7380,7 +7380,7 @@ function NewsInterests
 	if (-not $MachineId)
 	{
 		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# https://forums.mydigitallife.net/threads/taskbarda-widgets-registry-change-is-now-blocked.88547/#post-1849006
@@ -7555,7 +7555,7 @@ function TaskbarWidgets
 	if (-not (Get-AppxPackage -Name MicrosoftWindows.Client.WebExperience))
 	{
 		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
@@ -7742,7 +7742,7 @@ function SearchHighlights
 			if (($BingSearchEnabled -eq 1) -or ($DisableSearchBoxSuggestions -eq 1))
 			{
 				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 			else
 			{
@@ -8839,7 +8839,7 @@ function StartRecommendedSection
 	if ((Get-ComputerInfo).WindowsProductName -match "Home")
 	{
 		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 	}
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
@@ -8945,7 +8945,7 @@ function OneDrive
 			if (-not $UninstallString)
 			{
 				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 
 			# Checking whether user is logged into OneDrive (Microsoft account)
@@ -8953,7 +8953,7 @@ function OneDrive
 			if ($UserEmail)
 			{
 				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 
 			LogInfo $Localization.OneDriveUninstalling
@@ -9087,7 +9087,7 @@ public static bool MarkFileDelete (string sourcefile)
 			if ($OneDrive)
 			{
 				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 			}
 
 			if (Test-Path -Path $env:SystemRoot\System32\OneDriveSetup.exe)
@@ -9110,7 +9110,7 @@ public static bool MarkFileDelete (string sourcefile)
 				{
 					# Downloading the latest OneDrive installer 64-bit
 				LogInfo $Localization.OneDriveDownloading
-				LogWarning $Localization.OneDriveDownloading
+				#LogWarning $Localization.OneDriveDownloading
 					# Parse XML to get the URL
 					# https://go.microsoft.com/fwlink/p/?LinkID=844652
 					$Parameters = @{
@@ -9148,8 +9148,8 @@ public static bool MarkFileDelete (string sourcefile)
 				catch [System.Net.WebException]
 				{
 					LogInfo ($Localization.NoResponse -f "https://oneclient.sfx.ms")
-					LogWarning ($Localization.NoResponse -f "https://oneclient.sfx.ms")
-					LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+					#LogWarning ($Localization.NoResponse -f "https://oneclient.sfx.ms")
+					#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 				}
 			}
 
@@ -9543,7 +9543,25 @@ function TaskManagerDetails
 	}
 }
 
-# File operations details
+<#
+	.SYNOPSIS
+	File operation progress details in File Explorer
+
+	.PARAMETER Enable
+	Show detailed file operation progress information
+
+	.PARAMETER Disable
+	Hide detailed file operation progress information
+
+	.EXAMPLE
+	FileOperationsDetails -Enable
+
+	.EXAMPLE
+	FileOperationsDetails -Disable
+
+	.NOTES
+	Current user
+#>
 function FileOperationsDetails
 {
 	param
@@ -9567,19 +9585,43 @@ function FileOperationsDetails
 	{
 		"Enable"
 		{
+			Write-Host "Enabling detailed file progress information - " -NoNewline
+			LogInfo "Enabling detailed file progress information"
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" | Out-Null
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction SilentlyContinue
+			Write-Host "Disabling detailed file progress information - " -NoNewline
+			LogInfo "Disabling detailed file progress information"	
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# File delete confirmation dialog
+<#
+	.SYNOPSIS
+	File delete confirmation dialog in File Explorer
+
+	.PARAMETER Enable
+	Show confirmation dialog when deleting files
+
+	.PARAMETER Disable
+	Do not show confirmation dialog when deleting files
+
+	.EXAMPLE
+	FileDeleteConfirm -Enable
+
+	.EXAMPLE
+	FileDeleteConfirm -Disable
+
+	.NOTES
+	Current user
+#>
 function FileDeleteConfirm
 {
 	param
@@ -9603,19 +9645,43 @@ function FileDeleteConfirm
 	{
 		"Enable"
 		{
+			Write-Host "Enabling confirmation dialog when deleting files - " -NoNewline
+			LogInfo "Enabling confirmation dialog when deleting files"				
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction SilentlyContinue
+			Write-Host "Disabling confirmation dialog when deleting files - " -NoNewline
+			LogInfo "Disabling confirmation dialog when deleting files"				
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# All tray icons
+<#
+	.SYNOPSIS
+	Notification area tray icons visibility in Windows
+
+	.PARAMETER Enable
+	Always show all notification area tray icons
+
+	.PARAMETER Disable
+	Allow Windows to hide inactive notification area tray icons
+
+	.EXAMPLE
+	TrayIcons -Enable
+
+	.EXAMPLE
+	TrayIcons -Disable
+
+	.NOTES
+	Current user
+#>
 function TrayIcons
 {
 	param
@@ -9639,19 +9705,43 @@ function TrayIcons
 	{
 		"Enable"
 		{
+			Write-Host "Enabling all notification area tray icons - " -NoNewline
+			LogInfo "Enabling all notification area tray icons"
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction SilentlyContinue
+			Write-Host "Disabling all notification area tray icons - " -NoNewline
+			LogInfo "Disabling all notification area tray icons"			
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Search for app in store for unknown extensions
+<#
+	.SYNOPSIS
+	Search for apps in Microsoft Store from Open with dialog
+
+	.PARAMETER Enable
+	Allow searching for apps in Microsoft Store from Open with dialog
+
+	.PARAMETER Disable
+	Prevent searching for apps in Microsoft Store from Open with dialog
+
+	.EXAMPLE
+	SearchAppInStore -Enable
+
+	.EXAMPLE
+	SearchAppInStore -Disable
+
+	.NOTES
+	Current user
+#>
 function SearchAppInStore
 {
 	param
@@ -9675,19 +9765,43 @@ function SearchAppInStore
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -ErrorAction SilentlyContinue
+			Write-Host "Enabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
+			LogInfo "Enabling searching for apps in Microsoft Store from Open with dialog"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
+			LogInfo "Disabling searching for apps in Microsoft Store from Open with dialog"	
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# 'How do you want to open this file?' prompt
+<#
+	.SYNOPSIS
+	How do you want to open this file prompt in Windows
+
+	.PARAMETER Enable
+	Show How do you want to open this file prompt
+
+	.PARAMETER Disable
+	Do not show How do you want to open this file prompt
+
+	.EXAMPLE
+	NewAppPrompt -Enable
+
+	.EXAMPLE
+	NewAppPrompt -Disable
+
+	.NOTES
+	Current user
+#>
 function NewAppPrompt
 {
 	param
@@ -9711,19 +9825,43 @@ function NewAppPrompt
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -ErrorAction SilentlyContinue
+			Write-Host "Enabling 'How do you want to open this file?' prompt - " -NoNewline
+			LogInfo "Enabling 'How do you want to open this file?' prompt"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling 'How do you want to open this file?' prompt - " -NoNewline
+			LogInfo "Disabling 'How do you want to open this file?' prompt"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# 'Recently added' list from the Start Menu
+<#
+	.SYNOPSIS
+	Recently added apps list in Start Menu
+
+	.PARAMETER Enable
+	Show recently added apps list in Start Menu
+
+	.PARAMETER Disable
+	Hide recently added apps list in Start Menu
+
+	.EXAMPLE
+	RecentlyAddedApps -Enable
+
+	.EXAMPLE
+	RecentlyAddedApps -Disable
+
+	.NOTES
+	Current user
+#>
 function RecentlyAddedApps
 {
 	param
@@ -9747,19 +9885,43 @@ function RecentlyAddedApps
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -ErrorAction SilentlyContinue
+			Write-Host "Enabling recently added apps list in Start Menu - " -NoNewline
+			LogInfo "Enabling recently added apps list in Start Menu"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling recently added apps list in Start Menu - " -NoNewline
+			LogInfo "Disabling recently added apps list in Start Menu"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# 'Most used' apps list from the Start Menu - Applicable until 1703 (hidden by default since then)
+<#
+	.SYNOPSIS
+	Most used apps list in Start Menu
+
+	.PARAMETER Enable
+	Show most used apps list in Start Menu
+
+	.PARAMETER Disable
+	Hide most used apps list in Start Menu
+
+	.EXAMPLE
+	MostUsedApps -Enable
+
+	.EXAMPLE
+	MostUsedApps -Disable
+
+	.NOTES
+	Current user
+#>
 function MostUsedApps
 {
 	param
@@ -9783,19 +9945,43 @@ function MostUsedApps
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -ErrorAction SilentlyContinue
+			Write-Host "Enabling most used apps list in Start Menu - " -NoNewline
+			LogInfo "Enabling most used apps list in Start Menu"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling most used apps list in Start Menu - " -NoNewline
+			LogInfo "Disabling most used apps list in Start Menu"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Adjusts visual effects
+<#
+	.SYNOPSIS
+	Windows visual effects performance and appearance settings
+
+	.PARAMETER Performance
+	Adjust visual effects for best performance
+
+	.PARAMETER Appearance
+	Adjust visual effects for best appearance
+
+	.EXAMPLE
+	VisualFX -Performance
+
+	.EXAMPLE
+	VisualFX -Appearance
+
+	.NOTES
+	Current user
+#>
 function VisualFX
 {
 	param
@@ -9820,35 +10006,59 @@ function VisualFX
 		"Performance"
 		# Adjusts visual effects for performance - Disables animations, transparency etc. but leaves font smoothing and miniatures enabled
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 0
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 0
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](144,18,3,128,16,0,0,0))
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 0
-			Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 0
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0
+			Write-Host "Adjusting visual effects for performance - " -NoNewline
+			LogInfo "Adjusting visual effects for performance"
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](144,18,3,128,16,0,0,0)) | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Appearance"
 		# Adjusts visual effects for appearance
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 1
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 400
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](158,30,7,128,18,0,0,0))
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 1
-			Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 1
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 1
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 1
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 1
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 1
+			Write-Host "Adjusting visual effects for appearance - " -NoNewline
+			LogInfo "Adjusting visual effects for appearance"
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 400 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](158,30,7,128,18,0,0,0)) | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Window title bar color according to prevalent background color
+<#
+	.SYNOPSIS
+	Window title bar color adapts to the prevalent background color
+
+	.PARAMETER Enable
+	Enable title bar color to match prevalent background color
+
+	.PARAMETER Disable
+	Disable title bar color adaptation to background
+
+	.EXAMPLE
+	TitleBarColor -Enable
+
+	.EXAMPLE
+	TitleBarColor -Disable
+
+	.NOTES
+	Current user
+#>
 function TitleBarColor
 {
 	param
@@ -9872,18 +10082,40 @@ function TitleBarColor
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 1
+			Write-Host "Enabling title bar color adaptation to background - " -NoNewline
+			LogInfo "Enabling title bar color adaptation to background"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 0
+			Write-Host "Disabling title bar color adaptation to background - " -NoNewline
+			LogInfo "Disabling title bar color adaptation to background"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enhanced pointer precision (mouse acceleration) settings
 
+	.PARAMETER Enable
+	Enable enhanced pointer precision
 
-# Enhanced pointer precision
+	.PARAMETER Disable
+	Disable enhanced pointer precision
+
+	.EXAMPLE
+	EnhPointerPrecision -Enable
+
+	.EXAMPLE
+	EnhPointerPrecision -Disable
+
+	.NOTES
+	Current user
+#>
 function EnhPointerPrecision
 {
 	param
@@ -9907,20 +10139,44 @@ function EnhPointerPrecision
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "1"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "6"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "10"
+			Write-Host "Enabling enhanced pointer precision - " -NoNewline
+			LogInfo "Enabling enhanced pointer precision"
+			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "1" | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "6" | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "10" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "0"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "0"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "0"
+			Write-Host "Disabling enhanced pointer precision - " -NoNewline
+			LogInfo "Disabling enhanced pointer precision"
+			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "0" | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "0" | Out-Null
+			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "0" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Play Windows Startup sound
+<#
+	.SYNOPSIS
+	Play or disable Windows startup sound
+
+	.PARAMETER Enable
+	Play Windows startup sound
+
+	.PARAMETER Disable
+	Do not play Windows startup sound
+
+	.EXAMPLE
+	StartupSound -Enable
+
+	.EXAMPLE
+	StartupSound -Disable
+
+	.NOTES
+	Current user
+#>
 function StartupSound
 {
 	param
@@ -9944,16 +10200,40 @@ function StartupSound
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 0
+			Write-Host "Enabling Windows startup sound - " -NoNewline
+			LogInfo "Enabling Windows startup sound"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 1
+			Write-Host "Disabling Windows startup sound - " -NoNewline
+			LogInfo "Disabling Windows startup sound"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Change sound scheme
+<#
+	.SYNOPSIS
+	Allow or prevent changing Windows sound scheme
+
+	.PARAMETER Enable
+	Allow changing Windows sound scheme
+
+	.PARAMETER Disable
+	Prevent changing Windows sound scheme
+
+	.EXAMPLE
+	ChangingSoundScheme -Enable
+
+	.EXAMPLE
+	ChangingSoundScheme -Disable
+
+	.NOTES
+	Current user
+#>
 function ChangingSoundScheme
 {
 	param
@@ -9977,19 +10257,43 @@ function ChangingSoundScheme
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -ErrorAction SilentlyContinue
+			Write-Host "Enabling changing Windows sound scheme - " -NoNewline
+			LogInfo "Enabling changing Windows sound scheme"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling changing Windows sound scheme - " -NoNewline
+			LogInfo "Disabling changing Windows sound scheme"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Verbose startup/shutdown status messages
+<#
+	.SYNOPSIS
+	Verbose startup and shutdown status messages
+
+	.PARAMETER Enable
+	Show detailed status messages during startup and shutdown
+
+	.PARAMETER Disable
+	Hide detailed status messages during startup and shutdown
+
+	.EXAMPLE
+	VerboseStatus -Enable
+
+	.EXAMPLE
+	VerboseStatus -Disable
+
+	.NOTES
+	Current user
+#>
 function VerboseStatus
 {
 	param
@@ -10013,19 +10317,25 @@ function VerboseStatus
 	{
 		"Enable"
 		{
+			Write-Host "Enabling verbose Shutdown/Startup status messages - " -NoNewline
+			LogInfo "Enabling verbose Shutdown/Startup status messages"
 			If ((Get-CimInstance -Class "Win32_OperatingSystem").ProductType -eq 1) {
-				Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 1
+				Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 1 | Out-Null
 			} Else {
-				Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue
+				Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling verbose Shutdown/Startup status messages - " -NoNewline
+			LogInfo "Disabling verbose Shutdown/Startup status messages"
 			If ((Get-CimInstance -Class "Win32_OperatingSystem").ProductType -eq 1) {
-				Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue
+				Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
 			} Else {
-				Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 0
+				Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 0 | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10069,37 +10379,43 @@ function StorageSense
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\StorageSense -Name AllowStorageSenseGlobal -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\StorageSense -Name AllowStorageSenseGlobal -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\StorageSense -Name AllowStorageSenseGlobal -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\StorageSense -Name AllowStorageSenseGlobal -Type CLEAR | Out-Null
 
 	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy))
 	{
-		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -ItemType Directory -Force
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -ItemType Directory -Force | Out-Null
 	}
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
+			Write-Host "Enabling Storage Sense - " -NoNewline
+			LogInfo "Enabling Storage Sense"
 			# Turn on Storage Sense
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 1 -Force | Out-Null
 
 			# Turn on automatic cleaning up temporary system and app files
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force | Out-Null
 
 			# Run Storage Sense every month
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Storage Sense - " -NoNewline
+			LogInfo "Disabling Storage Sense"
 			# Turn off Storage Sense
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 0 -Force | Out-Null
 
 			# Turn off automatic cleaning up temporary system and app files
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force | Out-Null
 
 			# Run Storage Sense during low free disk space
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10149,11 +10465,17 @@ function Hibernation
 	{
 		"Disable"
 		{
-			POWERCFG /HIBERNATE OFF
+			Write-Host "Disabling Hibernation - " -NoNewline
+			LogInfo "Disabling Hibernation"
+			POWERCFG /HIBERNATE OFF | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			POWERCFG /HIBERNATE ON
+			Write-Host "Enabling Hibernation - " -NoNewline
+			LogInfo "Enabling Hibernation"
+			POWERCFG /HIBERNATE ON | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10200,11 +10522,17 @@ function Win32LongPathLimit
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 1 -Force
+			Write-Host "Disabling Windows 260 character path limit - " -NoNewline
+			LogInfo "Disabling Windows 260 character path limit"
+			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 0 -Force
+			Write-Host "Enabling Windows 260 character path limit - " -NoNewline
+			LogInfo "Enabling Windows 260 character path limit"
+			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10251,11 +10579,17 @@ function BSoDStopError
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling BSoD Stop Error - " -NoNewline
+			LogInfo "Enabling BSoD Stop Error"
+			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling BSoD Stop Error - " -NoNewline
+			LogInfo "Disabling BSoD Stop Error"
+			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10299,34 +10633,40 @@ function AdminApprovalMode
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorUser -PropertyType DWord -Value 3 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableInstallerDetection -PropertyType DWord -Value 1 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ValidateAdminCodeSignatures -PropertyType DWord -Value 0 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableSecureUIAPaths -PropertyType DWord -Value 1 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -PropertyType DWord -Value 1 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -PropertyType DWord -Value 1 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableVirtualization -PropertyType DWord -Value 1 -Force
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableUIADesktopToggle -PropertyType DWord -Value 1 -Force
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorUser -PropertyType DWord -Value 3 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableInstallerDetection -PropertyType DWord -Value 1 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ValidateAdminCodeSignatures -PropertyType DWord -Value 0 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableSecureUIAPaths -PropertyType DWord -Value 1 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -PropertyType DWord -Value 1 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -PropertyType DWord -Value 1 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableVirtualization -PropertyType DWord -Value 1 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableUIADesktopToggle -PropertyType DWord -Value 1 -Force | Out-Null
 
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name FilterAdministratorToken -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorUser -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableInstallerDetection -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ValidateAdminCodeSignatures -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableSecureUIAPaths -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableVirtualization -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableUIADesktopToggle -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name FilterAdministratorToken -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorUser -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableInstallerDetection -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ValidateAdminCodeSignatures -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableSecureUIAPaths -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name PromptOnSecureDesktop -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableVirtualization -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableUIADesktopToggle -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Never"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 0 -Force
+			Write-Host "Setting UAC to 'Never notify' - " -NoNewline
+			LogInfo "Setting UAC to 'Never notify'"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 5 -Force
+			Write-Host "Setting UAC to 'Notify me only when apps try to make changes to my computer' - " -NoNewline
+			LogInfo "Setting UAC to 'Notify me only when apps try to make changes to my computer'"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 5 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10370,19 +10710,25 @@ function DeliveryOptimization
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization -Name DODownloadMode -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization -Name DODownloadMode -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization -Name DODownloadMode -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization -Name DODownloadMode -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force
-			Delete-DeliveryOptimizationCache -Force
+			Write-Host "Disabling Delivery Optimization - " -NoNewline
+			LogInfo "Disabling Delivery Optimization"
+			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force | Out-Null
+			Delete-DeliveryOptimizationCache -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling Delivery Optimization - " -NoNewline
+			LogInfo "Enabling Delivery Optimization"
+			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10425,17 +10771,23 @@ function WindowsManageDefaultPrinter
 		$Enable
 	)
 
-	Set-Policy -Scope User -Path "Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -Type CLEAR
+	Set-Policy -Scope User -Path "Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 1 -Force
+			Write-Host "Disabling 'Let Windows manage my default printer' - " -NoNewline
+			LogInfo "Disabling 'Let Windows manage my default printer'"
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 0 -Force
+			Write-Host "Enabling 'Let Windows manage my default printer' - " -NoNewline
+			LogInfo "Enabling 'Let Windows manage my default printer'"
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10613,26 +10965,34 @@ function WindowsFeatures
 
 	function DisableButton
 	{
-		Write-Information -MessageData "" -InformationAction Continue
+		Write-Host "Disabling Windows features - " -NoNewline
+		LogInfo "Disabling Windows features"	
+		#Write-Information -MessageData "" -InformationAction Continue
 		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+		#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 		[void]$Window.Close()
 
-		$SelectedFeatures | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
-		$SelectedFeatures | Disable-WindowsOptionalFeature -Online -NoRestart
+		#$SelectedFeatures | ForEach-Object -Process {LogWarning -Message $_.DisplayName}
+	
+		$SelectedFeatures | Disable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
+		Write-Host "success!" -ForegroundColor Green
 	}
 
 	function EnableButton
 	{
-		Write-Information -MessageData "" -InformationAction Continue
+		Write-Host "Enabling Windows features - " -NoNewline
+		LogInfo "Enabling Windows features"	
+		#Write-Information -MessageData "" -InformationAction Continue
 		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+		#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 		[void]$Window.Close()
 
-		$SelectedFeatures | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
-		$SelectedFeatures | Enable-WindowsOptionalFeature -Online -NoRestart
+		#$SelectedFeatures | ForEach-Object -Process {LogWarning -Message $_.DisplayName}
+	
+		$SelectedFeatures | Enable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
+		Write-Host "success!" -ForegroundColor Green
 	}
 
 	function Add-FeatureControl
@@ -10695,9 +11055,9 @@ function WindowsFeatures
 		}
 	}
 
-	Write-Information -MessageData "" -InformationAction Continue
+	#Write-Information -MessageData "" -InformationAction Continue
 	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+	#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 	# Getting list of all optional features according to the conditions
 	$OFS = "|"
@@ -10708,19 +11068,20 @@ function WindowsFeatures
 
 	if (-not $Features)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.NoData -Verbose
-
+		#Write-Information -MessageData "" -InformationAction Continue
+		LogInfo "Windows Features:"
+		LogInfo -Message $Localization.NoData
+		Write-Host "All available Windows features already Installed/Uninstalled!"
 		return
 	}
 
-	Write-Information -MessageData "" -InformationAction Continue
-	Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
+	#Write-Information -MessageData "" -InformationAction Continue
+	#Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
 
 	#region Sendkey function
 	# Emulate the Backspace key sending to prevent the console window to freeze
 	Start-Sleep -Milliseconds 500
-
+ 
 	Add-Type -AssemblyName System.Windows.Forms
 
 	# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
@@ -10752,7 +11113,7 @@ function WindowsFeatures
 }
 
 <#
-	.SYNOPSIS
+.SYNOPSIS
 	Optional features
 
 	.PARAMETER Uninstall
@@ -10938,47 +11299,53 @@ function WindowsCapabilities
 
 	function UninstallButton
 	{
-		Write-Information -MessageData "" -InformationAction Continue
+		Write-Host "Uninstalling optional features - " -NoNewline
+		LogInfo "Uninstalling optional features"
+		#Write-Information -MessageData "" -InformationAction Continue
 		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+		#LogWarning -Message ([WinAPI.GetStrings]::GetString(12612))
 
 		[void]$Window.Close()
 
-		$SelectedCapabilities | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
-		$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in (Get-WindowsCapability -Online).Name} | Remove-WindowsCapability -Online
+		#$SelectedCapabilities | ForEach-Object -Process {LogWarning -Message $_.DisplayName}
+		$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in (Get-WindowsCapability -Online).Name} | Remove-WindowsCapability -Online | Out-Null
 
 		if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
 		{
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Warning -Message $Localization.RestartWarning
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Warning -Message $Localization.RestartWarning
 		}
+		Write-Host "success!" -ForegroundColor Green
 	}
 
 	function InstallButton
 	{
 		try
 		{
-			Write-Information -MessageData "" -InformationAction Continue
+			Write-Host "Installing optional features - " -NoNewline
+			LogInfo "Installing optional features"			
+			#Write-Information -MessageData "" -InformationAction Continue
 			# Extract the localized "Please wait..." string from shell32.dll
-			Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+			#LogWarning -Message ([WinAPI.GetStrings]::GetString(12612))
 
 			[void]$Window.Close()
 
-			$SelectedCapabilities | ForEach-Object -Process {Write-Verbose -Message $_.DisplayName -Verbose}
-			$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in ((Get-WindowsCapability -Online).Name)} | Add-WindowsCapability -Online
+			#$SelectedCapabilities | ForEach-Object -Process {LogWarning -Message $_.DisplayName}
+			$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in ((Get-WindowsCapability -Online).Name)} | Add-WindowsCapability -Online | Out-Null
 
 			if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Warning -Message $Localization.RestartWarning
+				#Write-Information -MessageData "" -InformationAction Continue
+				#Write-Warning -Message $Localization.RestartWarning
 			}
 		}
 		catch [System.Runtime.InteropServices.COMException]
 		{
-			Write-Warning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
-			Write-Error -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
-			Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+			#LogWarning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
+			#LogError -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
+			#LogError -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 		}
+		Write-Host "success!" -ForegroundColor Green
 	}
 
 	function Add-CapabilityControl
@@ -11035,9 +11402,9 @@ function WindowsCapabilities
 			}
 			catch [System.ComponentModel.Win32Exception]
 			{
-				Write-Warning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
-				Write-Error -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
-				Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+				#LogWarning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
+				#LogError -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
+				#LogError -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -11050,9 +11417,9 @@ function WindowsCapabilities
 		}
 	}
 
-	Write-Information -MessageData "" -InformationAction Continue
+	#Write-Information -MessageData "" -InformationAction Continue
 	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+	#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 	# Getting list of all capabilities according to the conditions
 	$OFS = "|"
@@ -11063,14 +11430,16 @@ function WindowsCapabilities
 
 	if (-not $Capabilities)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.NoData -Verbose
+		#Write-Information -MessageData "" -InformationAction Continue
+		LogInfo "Optional Features:"
+		LogInfo -Message $Localization.NoData
+		Write-Host "All available Optional features already Installed/Uninstalled!"
 
 		return
 	}
 
-	Write-Information -MessageData "" -InformationAction Continue
-	Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
+	#Write-Information -MessageData "" -InformationAction Continue
+	#LogWarning -Message $Localization.DialogBoxOpening
 
 	#region Sendkey function
 	# Emulate the Backspace key sending to prevent the console window to freeze
@@ -11106,7 +11475,25 @@ function WindowsCapabilities
 	$Form.ShowDialog() | Out-Null
 }
 
-# Set current network profile
+<#
+	.SYNOPSIS
+	Set current network profile category
+
+	.PARAMETER Private
+	Set current network profile to Private
+
+	.PARAMETER Public
+	Set current network profile to Public
+
+	.EXAMPLE
+	CurrentNetwork -Private
+
+	.EXAMPLE
+	CurrentNetwork -Public
+
+	.NOTES
+	Current user
+#>
 function CurrentNetwork
 {
 	param
@@ -11130,16 +11517,40 @@ function CurrentNetwork
 	{
 		"Private"
 		{
-			Set-NetConnectionProfile -NetworkCategory Private
+			Write-Host "Setting current network profile to Private - " -NoNewline
+			LogInfo "Setting current network profile to Private"
+			Set-NetConnectionProfile -NetworkCategory Private | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Public"
 		{
-			Set-NetConnectionProfile -NetworkCategory Public
+			Write-Host "Setting current network profile to Public - " -NoNewline
+			LogInfo "Setting current network profile to Public"
+			Set-NetConnectionProfile -NetworkCategory Public | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Set unknown networks profile
+<#
+	.SYNOPSIS
+	Set network category for unidentified networks
+
+	.PARAMETER Private
+	Set unidentified networks to Private profile
+
+	.PARAMETER Public
+	Set unidentified networks to Public profile
+
+	.EXAMPLE
+	UnknownNetworks -Private
+
+	.EXAMPLE
+	UnknownNetworks -Public
+
+	.NOTES
+	Current user
+#>
 function UnknownNetworks
 {
 	param
@@ -11163,19 +11574,43 @@ function UnknownNetworks
 	{
 		"Private"
 		{
+			Write-Host "Setting unidentified networks to Private profile - " -NoNewline
+			LogInfo "Setting unidentified networks to Private profile"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Name "Category" -Type DWord -Value 1	
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Name "Category" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Public"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Name "Category" -ErrorAction SilentlyContinue
+			Write-Host "Setting unidentified networks to Public profile - " -NoNewline
+			LogInfo "Setting unidentified networks to Public profile"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Name "Category" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Automatic installation of network devices
+<#
+	.SYNOPSIS
+	Automatic installation of network devices
+
+	.PARAMETER Enable
+	Allow automatic installation of network devices
+
+	.PARAMETER Disable
+	Prevent automatic installation of network devices
+
+	.EXAMPLE
+	NetDevicesAutoInst -Enable
+
+	.EXAMPLE
+	NetDevicesAutoInst -Disable
+
+	.NOTES
+	Current user
+#>
 function NetDevicesAutoInst
 {
 	param
@@ -11199,19 +11634,45 @@ function NetDevicesAutoInst
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -ErrorAction SilentlyContinue
+			Write-Host "Enabling automatic installation of network devices - " -NoNewline
+			LogInfo "Enabling automatic installation of network devices"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling automatic installation of network devices - " -NoNewline
+			LogInfo "Disabling automatic installation of network devices"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -Type DWord -Value 0
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Home Groups services - Not applicable since 1803. Not applicable to Server
+<#
+	.SYNOPSIS
+	HomeGroup services configuration
+
+	.PARAMETER Enable
+	Enable HomeGroup services
+
+	.PARAMETER Disable
+	Disable HomeGroup services
+
+	.EXAMPLE
+	HomeGroups -Enable
+
+	.EXAMPLE
+	HomeGroups -Disable
+
+	.NOTES
+	Current user
+	Not applicable since 1803
+	Not applicable to Server
+#>
 function HomeGroups
 {
 	param
@@ -11235,25 +11696,49 @@ function HomeGroups
 	{
 		"Enable"
 		{
-			Set-Service "HomeGroupListener" -StartupType Manual
-			Set-Service "HomeGroupProvider" -StartupType Manual
-			Start-Service "HomeGroupProvider" -WarningAction SilentlyContinue
+			Write-Host "Enabling HomeGroup services - " -NoNewline
+			LogInfo "Enabling HomeGroup services"
+			Set-Service "HomeGroupListener" -StartupType Manual | Out-Null
+			Set-Service "HomeGroupProvider" -StartupType Manual | Out-Null
+			Start-Service "HomeGroupProvider" -WarningAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling HomeGroup services - " -NoNewline
+			LogInfo "Disabling HomeGroup services"
 			If (Get-Service "HomeGroupListener" -ErrorAction SilentlyContinue) {
-				Stop-Service "HomeGroupListener" -WarningAction SilentlyContinue
-				Set-Service "HomeGroupListener" -StartupType Disabled
+				Stop-Service "HomeGroupListener" -WarningAction SilentlyContinue | Out-Null
+				Set-Service "HomeGroupListener" -StartupType Disabled | Out-Null
 			}
 			If (Get-Service "HomeGroupProvider" -ErrorAction SilentlyContinue) {
-				Stop-Service "HomeGroupProvider" -WarningAction SilentlyContinue
-				Set-Service "HomeGroupProvider" -StartupType Disabled
+				Stop-Service "HomeGroupProvider" -WarningAction SilentlyContinue | Out-Null
+				Set-Service "HomeGroupProvider" -StartupType Disabled | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Obsolete SMB 1.0 protocol - Disabled by default since 1709
+<#
+	.SYNOPSIS
+	SMB 1.0 protocol configuration
+
+	.PARAMETER Enable
+	Enable SMB 1.0 protocol
+
+	.PARAMETER Disable
+	Disable SMB 1.0 protocol
+
+	.EXAMPLE
+	SMB1 -Enable
+
+	.EXAMPLE
+	SMB1 -Disable
+
+	.NOTES
+	Current user
+#>
 function SMB1
 {
 	param
@@ -11277,17 +11762,42 @@ function SMB1
 	{
 		"Enable"
 		{
-			Set-SmbServerConfiguration -EnableSMB1Protocol $true -Force
+			Write-Host "Enabling SMB 1.0 protocol - " -NoNewline
+			LogInfo "Enabling SMB 1.0 protocol"
+			Set-SmbServerConfiguration -EnableSMB1Protocol $true -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
+			Write-Host "Disabling SMB 1.0 protocol - " -NoNewline
+			LogInfo "Disabling SMB 1.0 protocol"
+			Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# SMB Server - Completely disable / enable file and printer sharing, if disabled it leaves the system able to connect to another SMB server as a client
-# Note: Do not Disable if you plan to use Docker and Shared Drives (as it uses SMB internally), see https://github.com/Disassembler0/Win10-Initial-Setup-Script/issues/216
+<#
+	.SYNOPSIS
+	SMB Server file and printer sharing configuration
+
+	.PARAMETER Enable
+	Enable SMB Server file and printer sharing
+
+	.PARAMETER Disable
+	Disable SMB Server file and printer sharing
+
+	.EXAMPLE
+	SMBServer -Enable
+
+	.EXAMPLE
+	SMBServer -Disable
+
+	.NOTES
+	Current user
+	Disabling prevents file and printer sharing but allows client connections
+	Do not disable if using Docker with shared drives as it uses SMB internally
+#>
 function SMBServer
 {
 	param
@@ -11311,20 +11821,43 @@ function SMBServer
 	{
 		"Enable"
 		{
-			Write-Output "Enabling SMB Server..."
-			Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force
-			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_server"
+			Write-Host "Enabling SMB Server file and printer sharing - " -NoNewline
+			LogInfo "Enabling SMB Server file and printer sharing"
+			Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force | Out-Null
+			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_server" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
-			Set-SmbServerConfiguration -EnableSMB2Protocol $false -Force
-			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_server"
+			Write-Host "Disabling SMB Server file and printer sharing - " -NoNewline
+			LogInfo "Disabling SMB Server file and printer sharing"
+			Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force | Out-Null
+			Set-SmbServerConfiguration -EnableSMB2Protocol $false -Force | Out-Null
+			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_server" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# NetBIOS over TCP/IP on all currently installed network interfaces
+<#
+	.SYNOPSIS
+	NetBIOS over TCP/IP configuration on installed network interfaces
+
+	.PARAMETER Enable
+	Enable NetBIOS over TCP/IP on all installed network interfaces
+
+	.PARAMETER Disable
+	Disable NetBIOS over TCP/IP on all installed network interfaces
+
+	.EXAMPLE
+	NetBIOS -Enable
+
+	.EXAMPLE
+	NetBIOS -Disable
+
+	.NOTES
+	Current user
+#>
 function NetBIOS
 {
 	param
@@ -11348,16 +11881,40 @@ function NetBIOS
 	{
 		"Enable"
 		{
-			Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\NetBT\Parameters\Interfaces\Tcpip*" -Name "NetbiosOptions" -Type DWord -Value 0
+			Write-Host "Enabling NetBIOS over TCP/IP - " -NoNewline
+			LogInfo "Enabling NetBIOS over TCP/IP"
+			Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\NetBT\Parameters\Interfaces\Tcpip*" -Name "NetbiosOptions" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\NetBT\Parameters\Interfaces\Tcpip*" -Name "NetbiosOptions" -Type DWord -Value 2
+			Write-Host "Disabling NetBIOS over TCP/IP - " -NoNewline
+			LogInfo "Disabling NetBIOS over TCP/IP"
+			Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\NetBT\Parameters\Interfaces\Tcpip*" -Name "NetbiosOptions" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Link-Local Multicast Name Resolution (LLMNR) protocol
+<#
+	.SYNOPSIS
+	Link-Local Multicast Name Resolution (LLMNR) protocol configuration
+
+	.PARAMETER Enable
+	Enable LLMNR protocol
+
+	.PARAMETER Disable
+	Disable LLMNR protocol
+
+	.EXAMPLE
+	LLMNR -Enable
+
+	.EXAMPLE
+	LLMNR -Disable
+
+	.NOTES
+	Current user
+#>
 function LLMNR
 {
 	param
@@ -11381,19 +11938,44 @@ function LLMNR
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Link-Local Multicast Name Resolution (LLMNR) protocol - " -NoNewline
+			LogInfo "Enabling Link-Local Multicast Name Resolution (LLMNR) protocol"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Link-Local Multicast Name Resolution (LLMNR) protocol - " -NoNewline
+			LogInfo "Disabling Link-Local Multicast Name Resolution (LLMNR) protocol"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -Type DWord -Value 0
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Client for Microsoft Networks for all installed network interfaces
+<#
+	.SYNOPSIS
+	Client for Microsoft Networks configuration on all network interfaces
+
+	.PARAMETER Enable
+	Enable Client for Microsoft Networks on all installed network interfaces
+
+	.PARAMETER Disable
+	Disable Client for Microsoft Networks on all installed network interfaces
+
+	.EXAMPLE
+	MSNetClient -Enable
+
+	.EXAMPLE
+	MSNetClient -Disable
+
+	.NOTES
+	Current user
+#>
+`
 function MSNetClient
 {
 	param
@@ -11417,16 +11999,40 @@ function MSNetClient
 	{
 		"Enable"
 		{
-			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_msclient"
+			Write-Host "Enabling Microsoft Network clients on all installed network interfaces - " -NoNewline
+			LogInfo "Enabling Microsoft Network clients on all installed network interfaces"
+			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_msclient" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_msclient"
+			Write-Host "Disabling Microsoft Network clients on all installed network interfaces - " -NoNewline
+			LogInfo "Disabling Microsoft Network clients on all installed network interfaces"
+			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_msclient" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Quality of Service (QoS) packet scheduler for all installed network interfaces
+<#
+	.SYNOPSIS
+	Quality of Service (QoS) packet scheduler configuration on all network interfaces
+
+	.PARAMETER Enable
+	Enable QoS packet scheduler on all installed network interfaces
+
+	.PARAMETER Disable
+	Disable QoS packet scheduler on all installed network interfaces
+
+	.EXAMPLE
+	QoS -Enable
+
+	.EXAMPLE
+	QoS -Disable
+
+	.NOTES
+	Current user
+#>
 function QoS
 {
 	param
@@ -11450,18 +12056,42 @@ function QoS
 	{
 		"Enable"
 		{
-			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_pacer"
+			Write-Host "Enabling Quality of Service (QoS) - " -NoNewline
+			LogInfo "Enabling Quality of Service (QoS)"
+			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_pacer" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_pacer"
+			Write-Host "Disabling Quality of Service (QoS) - " -NoNewline
+			LogInfo "Disabling Quality of Service (QoS)"
+			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_pacer" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Network Connectivity Status Indicator active test
-# Note: This may reduce the ability of OS and other components to determine internet access, however protects against a specific type of zero-click attack.
-# See https://github.com/Disassembler0/Win10-Initial-Setup-Script/pull/111 for details
+<#
+	.SYNOPSIS
+	Network Connectivity Status Indicator (NCSI) active probe configuration
+
+	.PARAMETER Enable
+	Enable NCSI active probe
+
+	.PARAMETER Disable
+	Disable NCSI active probe to reduce certain zero-click attack exposure
+
+	.EXAMPLE
+	NCSIProbe -Enable
+
+	.EXAMPLE
+	NCSIProbe -Disable
+
+	.NOTES
+	Current user
+	Disabling may reduce OS ability to detect internet connectivity
+	See https://github.com/Disassembler0/Win10-Initial-Setup-Script/pull/111 for details
+#>
 function NCSIProbe
 {
 	param
@@ -11485,16 +12115,40 @@ function NCSIProbe
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" -Name "NoActiveProbe" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Network Connectivity Status Indicator (NCSI) active probe - " -NoNewline
+			LogInfo "Enabling Network Connectivity Status Indicator (NCSI) active probe"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" -Name "NoActiveProbe" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" -Name "NoActiveProbe" -Type DWord -Value 1
+			Write-Host "Disabling Network Connectivity Status Indicator (NCSI) active probe - " -NoNewline
+			LogInfo "Disabling Network Connectivity Status Indicator (NCSI) active probe"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" -Name "NoActiveProbe" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Internet Connection Sharing (e.g. mobile hotspot)
+<#
+	.SYNOPSIS
+	Internet Connection Sharing (ICS) configuration, e.g., mobile hotspot
+
+	.PARAMETER Enable
+	Allow Internet Connection Sharing
+
+	.PARAMETER Disable
+	Prevent Internet Connection Sharing
+
+	.EXAMPLE
+	ConnectionSharing -Enable
+
+	.EXAMPLE
+	ConnectionSharing -Disable
+
+	.NOTES
+	Current user
+#>
 function ConnectionSharing
 {
 	param
@@ -11518,11 +12172,17 @@ function ConnectionSharing
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections" -Name "NC_ShowSharedAccessUI" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Internet Connection Sharing (ICS) - " -NoNewline
+			LogInfo "Enabling Internet Connection Sharing (ICS)"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections" -Name "NC_ShowSharedAccessUI" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections" -Name "NC_ShowSharedAccessUI" -Type DWord -Value 0
+			Write-Host "Disabling Internet Connection Sharing (ICS) - " -NoNewline
+			LogInfo "Disabling Internet Connection Sharing (ICS)"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections" -Name "NC_ShowSharedAccessUI" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11566,18 +12226,24 @@ function UpdateMicrosoftProducts
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AllowMUUpdateService -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AllowMUUpdateService -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AllowMUUpdateService -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AllowMUUpdateService -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling receiving updates for other Microsoft products - " -NoNewline
+			LogInfo "Enabling receiving updates for other Microsoft products"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -Force -ErrorAction Ignore
+			Write-Host "Disabling receiving updates for other Microsoft products - " -NoNewline
+			LogInfo "Disabling receiving updates for other Microsoft products"
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11621,18 +12287,24 @@ function RestartNotification
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAutoRestartNotificationDisable -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAutoRestartNotificationDisable -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAutoRestartNotificationDisable -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAutoRestartNotificationDisable -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Show"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name RestartNotificationsAllowed2 -PropertyType DWord -Value 1 -Force
+			Write-Host "Showing notification when your PC requires a restart to finish updating - " -NoNewline
+			LogInfo "Showing notification when your PC requires a restart to finish updating"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name RestartNotificationsAllowed2 -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name RestartNotificationsAllowed2 -PropertyType DWord -Value 0 -Force
+			Write-Host "Hiding notification when your PC requires a restart to finish updating - " -NoNewline
+			LogInfo "Hiding notification when your PC requires a restart to finish updating"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name RestartNotificationsAllowed2 -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11676,20 +12348,26 @@ function RestartDeviceAfterUpdate
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd, ActiveHoursStart, SetActiveHours -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursStart -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetActiveHours -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd, ActiveHoursStart, SetActiveHours -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursStart -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetActiveHours -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling restart as soon as possible to finish updating - " -NoNewline
+			LogInfo "Enabling restart as soon as possible to finish updating"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling restart as soon as possible to finish updating - " -NoNewline
+			LogInfo "Disabling restart as soon as possible to finish updating"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11733,24 +12411,30 @@ function ActiveHours
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers, AlwaysAutoRebootAtScheduledTime -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AlwaysAutoRebootAtScheduledTime -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers, AlwaysAutoRebootAtScheduledTime -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name NoAutoRebootWithLoggedOnUsers -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name AlwaysAutoRebootAtScheduledTime -Type CLEAR | Out-Null
 
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd, ActiveHoursStart, SetActiveHours -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursStart -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetActiveHours -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd, ActiveHoursStart, SetActiveHours -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursEnd -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name ActiveHoursStart -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetActiveHours -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Automatically"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name SmartActiveHoursState -PropertyType DWord -Value 1 -Force
+			Write-Host "Automatically adjusting active hours for me based on daily usage - " -NoNewline
+			LogInfo "Automatically adjusting active hours for me based on daily usage"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name SmartActiveHoursState -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Manually"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name SmartActiveHoursState -PropertyType DWord -Value 0 -Force
+			Write-Host "Manually adjusting active hours for me based on daily usage - " -NoNewline
+			LogInfo "Manually adjusting active hours for me based on daily usage"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name SmartActiveHoursState -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11794,19 +12478,25 @@ function WindowsLatestUpdate
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name AllowOptionalContent, SetAllowOptionalContent -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name AllowOptionalContent -Type CLEAR
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAllowOptionalContent -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name AllowOptionalContent, SetAllowOptionalContent -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name AllowOptionalContent -Type CLEAR | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name SetAllowOptionalContent -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsContinuousInnovationOptedIn -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling getting the latest updates as soon as they're available - " -NoNewline
+			LogInfo "Disabling getting the latest updates as soon as they're available"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsContinuousInnovationOptedIn -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsContinuousInnovationOptedIn -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling getting the latest updates as soon as they're available - " -NoNewline
+			LogInfo "Enabling getting the latest updates as soon as they're available"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsContinuousInnovationOptedIn -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11853,18 +12543,24 @@ function PowerPlan
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings -Name ActivePowerScheme -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Power\PowerSettings -Name ActivePowerScheme -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Power\PowerSettings -Name ActivePowerScheme -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Power\PowerSettings -Name ActivePowerScheme -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"High"
 		{
-			POWERCFG /SETACTIVE SCHEME_MIN
+			Write-Host "Setting power plan to High performance - " -NoNewline
+			LogInfo "Setting power plan to High performance"
+			POWERCFG /SETACTIVE SCHEME_MIN | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Balanced"
 		{
-			POWERCFG /SETACTIVE SCHEME_BALANCED
+			Write-Host "Setting power plan to Balanced - " -NoNewline
+			LogInfo "Setting power plan to Balanced"
+			POWERCFG /SETACTIVE SCHEME_BALANCED | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -11910,17 +12606,17 @@ function NetworkAdaptersSavePower
 		$Enable
 	)
 
-	Write-Information -MessageData "" -InformationAction Continue
+	#Write-Information -MessageData "" -InformationAction Continue
 	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+	#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 	# Checking whether there's an adapter that has AllowComputerToTurnOffDevice property to manage
 	$Adapters = Get-NetAdapter -Physical | Where-Object -FilterScript {$_.MacAddress} | Get-NetAdapterPowerManagement | Where-Object -FilterScript {$_.AllowComputerToTurnOffDevice -ne "Unsupported"}
 	if (-not $Adapters)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -11940,18 +12636,24 @@ function NetworkAdaptersSavePower
 	{
 		"Disable"
 		{
+			Write-Host "Disabling 'allowing the computer to turn off the network adapters to save power' - " -NoNewline
+			LogInfo "Disabling 'allowing the computer to turn off the network adapters to save power'"
 			foreach ($Adapter in $Adapters)
 			{
 				$Adapter.AllowComputerToTurnOffDevice = "Disabled"
-				$Adapter | Set-NetAdapterPowerManagement
+				$Adapter | Set-NetAdapterPowerManagement | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
 		}
 		"Enable"
 		{
 			foreach ($Adapter in $Adapters)
 			{
+				Write-Host "Enabling 'allowing the computer to turn off the network adapters to save power' for adapter '$($Adapter.Name)' - " -NoNewline
+				LogInfo "Enabling 'allowing the computer to turn off the network adapters to save power' for adapter '$($Adapter.Name)'"
 				$Adapter.AllowComputerToTurnOffDevice = "Enabled"
-				$Adapter | Set-NetAdapterPowerManagement
+				$Adapter | Set-NetAdapterPowerManagement | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
 		}
 	}
@@ -11963,19 +12665,19 @@ function NetworkAdaptersSavePower
 		# If Wi-Fi network was used
 		if ($SSID)
 		{
-			Write-Verbose -Message $SSID -Verbose
+			#Write-Verbose -Message $SSID -Verbose
 			# Connect to it
-			netsh wlan connect name=$SSID
+			netsh wlan connect name=$SSID | Out-Null
 		}
 
 		while
 		(
-			Get-NetAdapter -Physical -Name $PhysicalAdaptersStatusUp.Name | Where-Object -FilterScript {($_.Status -eq "Disconnected") -and $_.MacAddress}
+			Get-NetAdapter -Physical -Name $PhysicalAdaptersStatusUp.Name | Where-Object -FilterScript {($_.Status -eq "Disconnected") -and $_.MacAddress} | Out-Null
 		)
 		{
-			Write-Information -MessageData "" -InformationAction Continue
+			#Write-Information -MessageData "" -InformationAction Continue
 			# Extract the localized "Please wait..." string from shell32.dll
-			Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+			#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 			Start-Sleep -Seconds 2
 		}
@@ -12024,11 +12726,17 @@ function InputMethod
 	{
 		"English"
 		{
-			Set-WinDefaultInputMethodOverride -InputTip "0409:00000409"
+			Write-Host "Setting override for default input method to English - " -NoNewline
+			LogInfo "Setting override for default input method to English"
+			Set-WinDefaultInputMethodOverride -InputTip "0409:00000409" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
-			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name InputMethodOverride -Force -ErrorAction Ignore
+			Write-Host "Setting override for default input method to use language list - " -NoNewline
+			LogInfo "Setting override for default input method to use language list"
+			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name InputMethodOverride -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -12231,23 +12939,23 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Creating a new folder if there is no one
 			if (-not (Test-Path -Path $FolderPath))
 			{
-				New-Item -Path $FolderPath -ItemType Directory -Force
+				New-Item -Path $FolderPath -ItemType Directory -Force | Out-Null
 			}
 
 			# Removing old desktop.ini
-			Remove-Item -Path "$CurrentUserFolderPath\desktop.ini" -Force -ErrorAction Ignore
+			Remove-Item -Path "$CurrentUserFolderPath\desktop.ini" -Force -ErrorAction SilentlyContinue | Out-Null
 
-			Set-KnownFolderPath -KnownFolder $UserFolder -Path $FolderPath
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name $UserShellFoldersGUIDs[$UserFolder] -PropertyType ExpandString -Value $FolderPath -Force
+			Set-KnownFolderPath -KnownFolder $UserFolder -Path $FolderPath | Out-Null
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name $UserShellFoldersGUIDs[$UserFolder] -PropertyType ExpandString -Value $FolderPath -Force | Out-Null
 
 			# Save desktop.ini in the UTF-16 LE encoding
-			Set-Content -Path "$FolderPath\desktop.ini" -Value $DesktopINI[$UserFolder] -Encoding Unicode -Force
+			Set-Content -Path "$FolderPath\desktop.ini" -Value $DesktopINI[$UserFolder] -Encoding Unicode -Force | Out-Null
 			(Get-Item -Path "$FolderPath\desktop.ini" -Force).Attributes = "Hidden", "System", "Archive"
 			(Get-Item -Path "$FolderPath\desktop.ini" -Force).Refresh()
 
-			if ((Get-ChildItem -Path $CurrentUserFolderPath -ErrorAction Ignore | Measure-Object).Count -ne 0)
+			if ((Get-ChildItem -Path $CurrentUserFolderPath -ErrorAction SilentlyContinue | Measure-Object).Count -ne 0)
 			{
-				Write-Error -Message ($Localization.UserShellFolderNotEmpty -f $CurrentUserFolderPath) -ErrorAction SilentlyContinue
+				#Write-Error -Message ($Localization.UserShellFolderNotEmpty -f $CurrentUserFolderPath) -ErrorAction SilentlyContinue
 			}
 		}
 	}
@@ -12256,22 +12964,24 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 	{
 		"Root"
 		{
+			Write-Host "Changing user folders location to the root of a drive"
+			LogInfo "Changing user folders location to the root of a drive"
 			# Store all fixed disks' letters except C (system drive) to use them within Show-Menu function
 			# https://learn.microsoft.com/en-us/dotnet/api/system.io.drivetype
 			$DriveLetters = @((Get-CimInstance -ClassName CIM_LogicalDisk | Where-Object -FilterScript {($_.DriveType -eq 3) -and ($_.Name -ne $env:SystemDrive)}).DeviceID | Sort-Object)
 
 			if (-not $DriveLetters)
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Warning -Message $Localization.UserFolderLocationMove
-				Write-Error -Message $Localization.UserFolderLocationMove -ErrorAction SilentlyContinue
+				#Write-Information -MessageData "" -InformationAction Continue
+				#Write-Warning -Message $Localization.UserFolderLocationMove
+				#Write-Error -Message $Localization.UserFolderLocationMove -ErrorAction SilentlyContinue
 
 				return
 			}
 
 			# Desktop
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21769)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21769)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21769), $CurrentUserFolderLocation) -Verbose
@@ -12285,13 +12995,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					{$DriveLetters -contains $Choice}
 					{
-						Set-UserShellFolder -UserFolder Desktop -FolderPath "$($Choice)\Desktop"
+						Set-UserShellFolder -UserFolder Desktop -FolderPath "$($Choice)\Desktop" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12299,8 +13009,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Documents
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21770)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21770)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Personal
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21770), $CurrentUserFolderLocation) -Verbose
@@ -12314,13 +13024,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					{$DriveLetters -contains $Choice}
 					{
-						Set-UserShellFolder -UserFolder Documents -FolderPath "$($Choice)\Documents"
+						Set-UserShellFolder -UserFolder Documents -FolderPath "$($Choice)\Documents" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12328,8 +13038,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Downloads
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21798)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21798)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21798), $CurrentUserFolderLocation) -Verbose
@@ -12343,13 +13053,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					{$DriveLetters -contains $Choice}
 					{
-						Set-UserShellFolder -UserFolder Downloads -FolderPath "$($Choice)\Downloads"
+						Set-UserShellFolder -UserFolder Downloads -FolderPath "$($Choice)\Downloads" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12357,8 +13067,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Music
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21790)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21790)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Music"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21790), $CurrentUserFolderLocation) -Verbose
@@ -12372,13 +13082,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					{$DriveLetters -contains $Choice}
 					{
-						Set-UserShellFolder -UserFolder Music -FolderPath "$($Choice)\Music"
+						Set-UserShellFolder -UserFolder Music -FolderPath "$($Choice)\Music" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12386,8 +13096,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Pictures
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21779)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21779)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Pictures"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21779), $CurrentUserFolderLocation) -Verbose
@@ -12401,13 +13111,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					{$DriveLetters -contains $Choice}
 					{
-						Set-UserShellFolder -UserFolder Pictures -FolderPath "$($Choice)\Pictures"
+						Set-UserShellFolder -UserFolder Pictures -FolderPath "$($Choice)\Pictures" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12415,8 +13125,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Videos
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21791)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.DriveSelect -f [WinAPI.GetStrings]::GetString(21791)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Video"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21791), $CurrentUserFolderLocation) -Verbose
@@ -12430,13 +13140,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					{$DriveLetters -contains $Choice}
 					{
-						Set-UserShellFolder -UserFolder Videos -FolderPath "$($Choice)\Videos"
+						Set-UserShellFolder -UserFolder Videos -FolderPath "$($Choice)\Videos" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12445,9 +13155,11 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 		}
 		"Custom"
 		{
+			Write-Host "Changing user folders location to the custom one selected"
+			LogInfo "Changing user folders location to the custom one selected"
 			# Desktop
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21769)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21769)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21769), $CurrentUserFolderLocation) -Verbose
@@ -12474,22 +13186,22 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 						{
 							if ($FolderBrowserDialog.SelectedPath -eq "C:\")
 							{
-								Write-Information -MessageData "" -InformationAction Continue
-								Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+								#Write-Information -MessageData "" -InformationAction Continue
+								#Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
 
 								continue
 							}
 							else
 							{
-								Set-UserShellFolder -UserFolder Desktop -FolderPath $FolderBrowserDialog.SelectedPath
+								Set-UserShellFolder -UserFolder Desktop -FolderPath $FolderBrowserDialog.SelectedPath | Out-Null
 							}
 						}
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12497,8 +13209,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Documents
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21770)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21770)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Personal
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21770), $CurrentUserFolderLocation) -Verbose
@@ -12525,22 +13237,22 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 						{
 							if ($FolderBrowserDialog.SelectedPath -eq "C:\")
 							{
-								Write-Information -MessageData "" -InformationAction Continue
-								Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+								#Write-Information -MessageData "" -InformationAction Continue
+								#Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
 
 								continue
 							}
 							else
 							{
-								Set-UserShellFolder -UserFolder Documents -FolderPath $FolderBrowserDialog.SelectedPath
+								Set-UserShellFolder -UserFolder Documents -FolderPath $FolderBrowserDialog.SelectedPath | Out-Null
 							}
 						}
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12548,8 +13260,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Downloads
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21798)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21798)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21798), $CurrentUserFolderLocation) -Verbose
@@ -12576,22 +13288,22 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 						{
 							if ($FolderBrowserDialog.SelectedPath -eq "C:\")
 							{
-								Write-Information -MessageData "" -InformationAction Continue
-								Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+								#Write-Information -MessageData "" -InformationAction Continue
+								#Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
 
 								continue
 							}
 							else
 							{
-								Set-UserShellFolder -UserFolder Downloads -FolderPath $FolderBrowserDialog.SelectedPath
+								Set-UserShellFolder -UserFolder Downloads -FolderPath $FolderBrowserDialog.SelectedPath | Out-Null
 							}
 						}
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12599,8 +13311,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Music
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21790)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21790)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Music"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21790), $CurrentUserFolderLocation) -Verbose
@@ -12627,22 +13339,22 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 						{
 							if ($FolderBrowserDialog.SelectedPath -eq "C:\")
 							{
-								Write-Information -MessageData "" -InformationAction Continue
-								Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+								#Write-Information -MessageData "" -InformationAction Continue
+								#Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
 
 								continue
 							}
 							else
 							{
-								Set-UserShellFolder -UserFolder Music -FolderPath $FolderBrowserDialog.SelectedPath
+								Set-UserShellFolder -UserFolder Music -FolderPath $FolderBrowserDialog.SelectedPath | Out-Null
 							}
 						}
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12650,8 +13362,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Pictures
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21779)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21779)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Pictures"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21779), $CurrentUserFolderLocation) -Verbose
@@ -12678,22 +13390,22 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 						{
 							if ($FolderBrowserDialog.SelectedPath -eq "C:\")
 							{
-								Write-Information -MessageData "" -InformationAction Continue
-								Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+								#Write-Information -MessageData "" -InformationAction Continue
+								#Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
 
 								continue
 							}
 							else
 							{
-								Set-UserShellFolder -UserFolder Pictures -FolderPath $FolderBrowserDialog.SelectedPath
+								Set-UserShellFolder -UserFolder Pictures -FolderPath $FolderBrowserDialog.SelectedPath | Out-Null
 							}
 						}
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12701,8 +13413,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Videos
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21791)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserFolderRequest -f [WinAPI.GetStrings]::GetString(21791)) -Verbose
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Video"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21791), $CurrentUserFolderLocation) -Verbose
@@ -12729,22 +13441,22 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 						{
 							if ($FolderBrowserDialog.SelectedPath -eq "C:\")
 							{
-								Write-Information -MessageData "" -InformationAction Continue
-								Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
+								#Write-Information -MessageData "" -InformationAction Continue
+								#Write-Verbose -Message $Localization.UserFolderLocationMove -Verbose
 
 								continue
 							}
 							else
 							{
-								Set-UserShellFolder -UserFolder Videos -FolderPath $FolderBrowserDialog.SelectedPath
+								Set-UserShellFolder -UserFolder Videos -FolderPath $FolderBrowserDialog.SelectedPath | Out-Null
 							}
 						}
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12753,9 +13465,11 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 		}
 		"Default"
 		{
+			Write-Host "Changing user folders location to the default one"
+			LogInfo "Changing user folders location to the default one"
 			# Desktop
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21769)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21769)) -Verbose
 
 			# Extract the localized "Desktop" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
@@ -12770,13 +13484,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					$Yes
 					{
-						Set-UserShellFolder -UserFolder Desktop -FolderPath "$env:USERPROFILE\Desktop"
+						Set-UserShellFolder -UserFolder Desktop -FolderPath "$env:USERPROFILE\Desktop" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12784,8 +13498,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Documents
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21770)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21770)) -Verbose
 
 			# Extract the localized "Documents" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Personal
@@ -12800,13 +13514,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					$Yes
 					{
-						Set-UserShellFolder -UserFolder Documents -FolderPath "$env:USERPROFILE\Documents"
+						Set-UserShellFolder -UserFolder Documents -FolderPath "$env:USERPROFILE\Documents" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12814,8 +13528,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Downloads
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21798)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21798)) -Verbose
 
 			# Extract the localized "Downloads" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
@@ -12830,13 +13544,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					$Yes
 					{
-						Set-UserShellFolder -UserFolder Downloads -FolderPath "$env:USERPROFILE\Downloads"
+						Set-UserShellFolder -UserFolder Downloads -FolderPath "$env:USERPROFILE\Downloads" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12844,8 +13558,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Music
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21790)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21790)) -Verbose
 
 			# Extract the localized "Music" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Music"
@@ -12860,13 +13574,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					$Yes
 					{
-						Set-UserShellFolder -UserFolder Music -FolderPath "$env:USERPROFILE\Music"
+						Set-UserShellFolder -UserFolder Music -FolderPath "$env:USERPROFILE\Music" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12874,8 +13588,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Pictures
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21779)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21779)) -Verbose
 
 			# Extract the localized "Pictures" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Pictures"
@@ -12890,13 +13604,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					$Yes
 					{
-						Set-UserShellFolder -UserFolder Pictures -FolderPath "$env:USERPROFILE\Pictures"
+						Set-UserShellFolder -UserFolder Pictures -FolderPath "$env:USERPROFILE\Pictures" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12904,8 +13618,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			until ($Choice -ne $KeyboardArrows)
 
 			# Videos
-			Write-Information -MessageData "" -InformationAction Continue
-			Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21791)) -Verbose
+			#Write-Information -MessageData "" -InformationAction Continue
+			#Write-Verbose -Message ($Localization.UserDefaultFolder -f [WinAPI.GetStrings]::GetString(21791)) -Verbose
 
 			# Extract the localized "Pictures" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Video"
@@ -12920,13 +13634,13 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 				{
 					$Yes
 					{
-						Set-UserShellFolder -UserFolder Videos -FolderPath "$env:USERPROFILE\Videos"
+						Set-UserShellFolder -UserFolder Videos -FolderPath "$env:USERPROFILE\Videos" | Out-Null
 					}
 					$Skip
 					{
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12938,7 +13652,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 <#
 	.SYNOPSIS
-	The the latest installed .NET runtime for all apps usage
+	Use the latest installed .NET runtime for all apps usage
 
 	.PARAMETER Enable
 	Use the latest installed .NET runtime for all apps
@@ -12978,13 +13692,19 @@ function LatestInstalled.NET
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\.NETFramework -Name OnlyUseLatestCLR -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework -Name OnlyUseLatestCLR -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling the use of the latest installed .NET runtime for all apps - " -NoNewline
+			LogInfo "Enabling the use of the latest installed .NET runtime for all apps"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\.NETFramework -Name OnlyUseLatestCLR -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework -Name OnlyUseLatestCLR -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\.NETFramework -Name OnlyUseLatestCLR -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework -Name OnlyUseLatestCLR -Force -ErrorAction Ignore
+			Write-Host "Disabling the use of the latest installed .NET runtime for all apps -" -NoNewline
+			LogInfo "Disabling the use of the latest installed .NET runtime for all apps"
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\.NETFramework -Name OnlyUseLatestCLR -Force -ErrorAction Ignore | Out-Null
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework -Name OnlyUseLatestCLR -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -13035,17 +13755,19 @@ function WinPrtScrFolder
 	{
 		"Desktop"
 		{
+			Write-Host "Setting the location to save screenshots by pressing Win+PrtScr to the Desktop - " -NoNewline
+			LogInfo "Setting the location to save screenshots by pressing Win+PrtScr to the Desktop"
 			# Checking whether user is logged into OneDrive (Microsoft account)
-			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
+			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction SilentlyContinue
 			if ($UserEmail)
 			{
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Warning -Message $Localization.OneDriveWarning
-				Write-Error -Message $Localization.OneDriveWarning -ErrorAction SilentlyContinue
+				#Write-Information -MessageData "" -InformationAction Continue
+				#Write-Warning -Message $Localization.OneDriveWarning
+				#Write-Error -Message $Localization.OneDriveWarning -ErrorAction SilentlyContinue
 
-				Write-Information -MessageData "" -InformationAction Continue
-				Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-				Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+				#Write-Information -MessageData "" -InformationAction Continue
+				#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+				#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -13067,16 +13789,16 @@ function WinPrtScrFolder
 					if (($PSCallStack -match "OneDrive -Uninstall") -or (-not $OneDriveInstalled))
 					{
 						$DesktopFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
-						New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force
+						New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force | Out-Null
 					}
 					else
 					{
-						Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-						Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
+						#Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 				}
 			}
@@ -13091,23 +13813,27 @@ function WinPrtScrFolder
 					if ($IsOneDriveToUninstall -or (-not $OneDriveInstalled) -or ($PSCallStack -match "OneDrive -Uninstall"))
 					{
 						$DesktopFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
-						New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force
+						New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -PropertyType ExpandString -Value $DesktopFolder -Force | Out-Null
 					}
 					else
 					{
-						Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-						Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
+						#Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
-						Write-Information -MessageData "" -InformationAction Continue
-						Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#Write-Information -MessageData "" -InformationAction Continue
+						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -Force -ErrorAction Ignore
+			Write-Host "Setting the location to save screenshots by pressing Win+PrtScr to the default one - " -NoNewline
+			LogInfo "Setting the location to save screenshots by pressing Win+PrtScr to the default one"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -13153,36 +13879,42 @@ function RecommendedTroubleshooting
 		$Default
 	)
 
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Force -ErrorAction Ignore
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -Force -ErrorAction Ignore
-	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Force -ErrorAction SilentlyContinue | Out-Null
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -Force -ErrorAction SilentlyContinue | Out-Null
+	Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -Force -ErrorAction SilentlyContinue | Out-Null
 
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Type CLEAR
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Type CLEAR | Out-Null
 
 	# Turn on Windows Error Reporting
-	Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Enable-ScheduledTask
-	Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Ignore
+	Get-ScheduledTask -TaskName QueueReporting -ErrorAction SilentlyContinue | Enable-ScheduledTask | Out-Null
+	Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction SilentlyContinue | Out-Null
 
-	Get-Service -Name WerSvc | Set-Service -StartupType Manual
-	Get-Service -Name WerSvc | Start-Service
+	Get-Service -Name WerSvc | Set-Service -StartupType Manual | Out-Null
+	Get-Service -Name WerSvc | Start-Service | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Automatically"
 		{
+			Write-Host "Setting troubleshooter preferences to automatically run - " -NoNewline
+			LogInfo "Setting troubleshooter preferences to automatically run"
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation))
 			{
-				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force
+				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force | Out-Null
 			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 3 -Force
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 3 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
+			Write-Host "Setting troubleshooter preferences to ask before running - " -NoNewline
+			LogInfo "Setting troubleshooter preferences to ask before running"
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation))
 			{
-				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force
+				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force | Out-Null
 			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 2 -Force
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 2 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
