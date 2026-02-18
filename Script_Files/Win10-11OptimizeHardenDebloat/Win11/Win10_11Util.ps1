@@ -125,11 +125,11 @@ InitialActions -Warning
 
 # Create a restore point
 # Создать точку восстановления
-CreateRestorePoint
+#CreateRestorePoint
 #endregion Protection
 
 # Check and Install WinGet
-CheckWinGet
+#CheckWinGet
 
 #Install Powershell 7
 Update-Powershell
@@ -1073,9 +1073,9 @@ StartupSound -Enable
 ChangingSoundScheme -Disable
 
 # Enable Verbose startup/shutdown status messages
-# VerboseStatus -Enable
+VerboseStatus -Enable
 # Disable Verbose startup/shutdown status messages
-VerboseStatus -Disable
+# VerboseStatus -Disable
 
 # Turn on Storage Sense
 # Включить Контроль памяти
@@ -1411,11 +1411,11 @@ Autoplay -Disable
 
 # Automatically saving my restartable apps and restart them when I sign back in
 # Автоматически сохранять мои перезапускаемые приложения из системы и перезапускать их при повторном входе
-SaveRestartableApps -Enable
+#SaveRestartableApps -Enable
 
 # Turn off automatically saving my restartable apps and restart them when I sign back in (default value)
 # Выключить автоматическое сохранение моих перезапускаемых приложений из системы и перезапускать их при повторном входе (значение по умолчанию)
-# SaveRestartableApps -Disable
+SaveRestartableApps -Disable
 
 # Enable "Network Discovery" and "File and Printers Sharing" for workgroup networks
 # Включить сетевое обнаружение и общий доступ к файлам и принтерам для рабочих групп
@@ -1463,16 +1463,6 @@ DefaultTerminalApp -WindowsTerminal
 # Install the latest .NET Desktop Runtime 8, 9 x64
 #Установить последнюю версию .NET Desktop Runtime 8, 9 x64
 # Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
-
-# Enable proxying only blocked sites from the unified registry of Roskomnadzor. The function is applicable for Russia only
-# Включить проксирование только заблокированных сайтов из единого реестра Роскомнадзора. Функция применима только для России
-# https://antizapret.prostovpn.org
-RKNBypass -Enable
-
-# Disable proxying only blocked sites from the unified registry of Roskomnadzor (default value)
-# Выключить проксирование только заблокированных сайтов из единого реестра Роскомнадзора (значение по умолчанию)
-# https://antizapret.prostovpn.org
-# RKNBypass -Disable
 
 # List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 # Перечислите каналы Microsoft Edge для предотвращения создания ярлыков на рабочем столе после его обновления
