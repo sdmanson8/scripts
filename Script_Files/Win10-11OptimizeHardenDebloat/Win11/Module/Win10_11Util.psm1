@@ -16496,7 +16496,7 @@ function Copilot
 			Write-Host "Uninstalling Microsoft Copilot - " -NoNewline
 			LogInfo "Uninstalling Microsoft Copilot"
 			Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like ‘Microsoft.Copilot’} | Remove-AppxPackage -AllUsers | Out-Null
-			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/zoicware/RemoveWindowsAI/main/RemoveWindowsAi.ps1"))) -nonInteractive -Options DisableRegKeys,RemoveAppxPackages,DisableCopilotPolicies 
+			& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -AllOptions 
 			Write-Host "success!" -ForegroundColor Green
 		}
 	}
