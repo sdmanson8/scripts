@@ -832,7 +832,7 @@ function Disable-Registry-Keys {
             sc.exe create WSAIFabricSvc binPath= "$env:windir\System32\svchost.exe -k WSAIFabricSvcGroup -p" *>$null
         }
         else {
-            Write-Status -msg "Path Not Found: $backupPath\$backupFileWSAI" -errorOutput 
+            #Write-Status -msg "Path Not Found: $backupPath\$backupFileWSAI" -errorOutput 
         }
         
     }
@@ -902,7 +902,7 @@ function Disable-Registry-Keys {
             sc.exe create AarSvc binPath= "$env:windir\system32\svchost.exe -k AarSvcGroup -p" *>$null
         }
         else {
-            Write-Status -msg "Path Not Found: $backupPath\$backupFileAAR" -errorOutput 
+            #Write-Status -msg "Path Not Found: $backupPath\$backupFileAAR" -errorOutput 
         }
     }
   
@@ -915,7 +915,7 @@ function Disable-Registry-Keys {
             Reg.exe import "$backupPath\HKCU_Copilot.reg" *>$null
         }
         else {
-            Write-Status -msg "Unable to Find HKCR_Copilot.reg or HKCU_Copilot.reg in [$backupPath]" -errorOutput 
+            #Write-Status -msg "Unable to Find HKCR_Copilot.reg or HKCU_Copilot.reg in [$backupPath]" -errorOutput 
         }
     }
     else {
@@ -952,7 +952,7 @@ function Disable-Registry-Keys {
             Move-Item "$backupPath\VoiceAccess.lnk" -Destination $startMenu -Force | Out-Null
         }
         else {
-            Write-Status -msg 'Voice Access Backup NOT Found!' -errorOutput 
+           # Write-Status -msg 'Voice Access Backup NOT Found!' -errorOutput 
         }
     }
     else {
@@ -1184,7 +1184,7 @@ function Install-NOAIPackage {
             Write-Host "success!" -ForegroundColor Green
         }
         else {
-            Write-Status 'Unable to Find Update Package - ' -errorOutput 
+            #Write-Status 'Unable to Find Update Package - ' -errorOutput 
         }
         
     }
@@ -1461,7 +1461,7 @@ function Remove-AI-Appx-Packages {
             Remove-Item "$appxBackup\*" -Recurse -Force -ErrorAction SilentlyContinue
         }
         else {
-            Write-Status -msg 'Unable to Find AppxBackup in User Directory!' -errorOutput 
+           # Write-Status -msg 'Unable to Find AppxBackup in User Directory!' -errorOutput 
         }
 
     }
@@ -1881,7 +1881,7 @@ function Remove-AI-Files {
             Write-Status -msg 'Files Restored -  You May Need to Repair the Apps Using the Microsoft Store'
         }
         else {
-            Write-Status -msg 'Unable to Find Backup Files!' -errorOutput 
+            #Write-Status -msg 'Unable to Find Backup Files!' -errorOutput 
         }
        
         <#
