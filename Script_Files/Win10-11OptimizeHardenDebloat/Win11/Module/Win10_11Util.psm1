@@ -16486,18 +16486,17 @@ function Copilot
 	{
 		"Install"
 		{
-			Write-Host "Installing Microsoft Copilot - " -NoNewline
+			Write-Host "Installing Microsoft Copilot: " -NoNewline
 			LogInfo "Installing Microsoft Copilot"
-			winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -revertMode -AllOptions
 		}
 		"Uninstall"
 		{
-			Write-Host "Uninstalling Microsoft Copilot - " -NoNewline
-			LogInfo "Uninstalling Microsoft Copilot"
+			Write-Host "Uninstalling Microsoft Copilot:"
+			LogInfo "Uninstalling Microsoft Copilot:"
 			Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like ‘Microsoft.Copilot’} | Remove-AppxPackage -AllUsers | Out-Null
-			& ([scriptblock]::Create((irm "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -AllOptions 
-			Write-Host "success!" -ForegroundColor Green
+			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -AllOptions 
+			
 		}
 	}
 }

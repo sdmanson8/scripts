@@ -21,7 +21,7 @@ param(
 
 if ($nonInteractive) {
     if (!($AllOptions) -and (!$Options -or $Options.Count -eq 0) -and !($InstallClassicApps)) {
-        throw 'Non-Interactive mode was supplied without any options... Please use -Options or -AllOptions when using Non-Interactive Mode'
+        throw 'Non-Interactive mode was supplied without any options -  Please use -Options or -AllOptions when using Non-Interactive Mode'
         exit
     }
 }
@@ -232,7 +232,7 @@ function Run-Trusted([String]$command, $psversion) {
     
     # trusted installer proc not found (128) or access denied (1)
     if ($LASTEXITCODE -eq 128 -or $LASTEXITCODE -eq 1) {
-       # Write-Status -msg 'Failed to stop TrustedInstaller.exe... Using fallback method!' -warningOutput
+       # Write-Status -msg 'Failed to stop TrustedInstaller.exe -  Using fallback method!' -warningOutput
         RunAsTI $psexe "-win hidden -encodedcommand $base64Command"
         Start-Sleep 1
         return 
@@ -345,12 +345,12 @@ function Create-RestorePoint {
     $vssService = Get-Service -Name 'VSS' -ErrorAction SilentlyContinue
     if ($vssService -and $vssService.StartType -eq 'Disabled') {
         try {
-            Write-Status -msg 'Enabling VSS Service...'
+            Write-Status -msg 'Enabling VSS Service - '
             Set-Service -Name 'VSS' -StartupType Manual -ErrorAction Stop
             Start-Service -Name 'VSS' -ErrorAction Stop
         }
         catch {
-            Write-Status -msg 'Unable to Start VSS Service... Can not create restore point!' -errorOutput
+            Write-Status -msg 'Unable to Start VSS Service -  Can not create restore point!' -errorOutput
             return
         }
         
@@ -358,7 +358,7 @@ function Create-RestorePoint {
     #enable system protection to allow restore points
     $restoreEnabled = Get-ComputerRestorePoint -ErrorAction SilentlyContinue
     if (!$restoreEnabled) {
-        Write-Status -msg 'Enabling Restore Points on System...'
+        Write-Status -msg 'Enabling Restore Points on System - '
         Enable-ComputerRestore -Drive "$env:SystemDrive\" 
     }
 
@@ -374,11 +374,11 @@ function Create-RestorePoint {
 
         $restorePointName = "RemoveWindowsAI-$(Get-Date -Format 'yyyy-MM-dd')"
         Write-Status -msg "Creating Restore Point: [$restorePointName]"
-        Write-Status -msg 'This may take a moment...please wait'
+        Write-Status -msg 'This may take a moment - please wait'
         Checkpoint-Computer -Description $restorePointName -RestorePointType 'MODIFY_SETTINGS' 
     }
     else {
-        Write-Status -msg 'Opening Restore Point Dialog...'
+        Write-Status -msg 'Opening Restore Point Dialog - '
         try {
             $proc = Start-Process 'SystemPropertiesProtection.exe' -ErrorAction Stop -PassThru
         }
@@ -642,7 +642,7 @@ function Disable-Registry-Keys {
                 Set-Content $config -Value $newContent -Encoding UTF8 -Force
             }
             catch {
-                Write-Status -msg 'Edge Browser has never been opened on this machine unable to set flags...' -errorOutput 
+                Write-Status -msg 'Edge Browser has never been opened on this machine unable to set flags - ' -errorOutput 
                 Write-Status -msg 'Open Edge once and run this tweak again' -errorOutput 
             }
         }
@@ -762,7 +762,7 @@ function Disable-Registry-Keys {
         $hiveloaded = $true
     }
     catch {
-        Write-Status -msg 'Unable to Load Default User Hive...' -errorOutput 
+        Write-Status -msg 'Unable to Load Default User Hive - ' -errorOutput 
         $hiveloaded = $false
     }
     Write-Host "success!" -ForegroundColor Green
@@ -838,7 +838,7 @@ function Disable-Registry-Keys {
     }
     else {
         if ($backup) {
-            Write-Status -msg 'Backing up WSAIFabricSvc...'
+            Write-Status -msg 'Backing up WSAIFabricSvc - '
             #export the service to a reg file before removing it 
             if (!(Test-Path $backupPath)) {
                 New-Item $backupPath -Force -ItemType Directory | Out-Null
@@ -865,7 +865,7 @@ function Disable-Registry-Keys {
 
         if ($aarSVCName) {
             if ($backup) {
-                Write-Status -msg 'Backing up Agent Activation Runtime Service...'
+                Write-Status -msg 'Backing up Agent Activation Runtime Service - '
                 #export the service to a reg file before removing it 
                 if (!(Test-Path $backupPath)) {
                     New-Item $backupPath -Force -ItemType Directory | Out-Null
@@ -895,7 +895,7 @@ function Disable-Registry-Keys {
         }
     }
     else {
-        Write-Status 'Restoring Agent Activation Runtime Service...'
+        Write-Status 'Restoring Agent Activation Runtime Service - '
 
         if (Test-Path "$backupPath\$backupFileAAR") {
             Reg.exe import "$backupPath\$backupFileAAR" *>$null
@@ -937,7 +937,7 @@ function Disable-Registry-Keys {
     $startMenu = "$env:appdata\Microsoft\Windows\Start Menu\Programs\Accessibility"
     $voiceExe = "$env:windir\System32\voiceaccess.exe"
     if ($backup) {
-        Write-Status -msg 'Backing up Voice Access...'
+        Write-Status -msg 'Backing up Voice Access - '
         if (!(Test-Path $backupPath)) {
             New-Item $backupPath -Force -ItemType Directory | Out-Null
         }
@@ -947,7 +947,7 @@ function Disable-Registry-Keys {
     
     if ($revert) {
         if ((Test-Path "$backupPath\VoiceAccess.exe") -and (Test-Path "$backupPath\VoiceAccess.lnk")) {
-            Write-Status -msg 'Restoring Voice Access...'
+            Write-Status -msg 'Restoring Voice Access - '
             Move-Item "$backupPath\VoiceAccess.exe" -Destination "$env:windir\System32" -Force | Out-Null
             Move-Item "$backupPath\VoiceAccess.lnk" -Destination $startMenu -Force | Out-Null
         }
@@ -972,7 +972,7 @@ function Disable-Registry-Keys {
         $keys = Get-ItemProperty "registry::$fxPath"
         foreach ($key in $keys) {
             if ($key | Get-Member -MemberType NoteProperty | Where-Object { $_.Name -like '{*},*' } | Where-Object { $_.Definition -like '*#VocaEffectPack*' }) {
-                Write-Status -msg "$(@('Disabling','Enabling')[$revert]) AI Voice Effects..."
+                Write-Status -msg "$(@('Disabling','Enabling')[$revert]) AI Voice Effects - "
                 $regPath = Convert-Path $key.PSPath
                 if ($revert) {
                     #enable
@@ -1082,7 +1082,7 @@ Windows Registry Editor Version 5.00
     
 
     #force policy changes
-    #Write-Status -msg 'Applying Registry Changes...'
+    #Write-Status -msg 'Applying Registry Changes - '
     gpupdate /force /wait:0 >$null
 
 
@@ -1106,9 +1106,9 @@ function Install-NOAIPackage {
 
             #check if script is being ran locally 
             if ((Test-Path "$PSScriptRoot\RemoveWindowsAIPackage\amd64") -and (Test-Path "$PSScriptRoot\RemoveWindowsAIPackage\arm64")) {
-                Write-Status -msg 'RemoveWindowsAI Packages Found Locally...'
+                Write-Status -msg 'RemoveWindowsAI Packages Found Locally - '
 
-                Write-Status -msg 'Installing RemoveWindowsAI Package...'
+                Write-Status -msg 'Installing RemoveWindowsAI Package - '
                 try {
                     Add-WindowsPackage -Online -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction Stop >$null
                 }
@@ -1119,7 +1119,7 @@ function Install-NOAIPackage {
            
             }
             else {
-                #Write-Status -msg 'Downloading RemoveWindowsAI Package From Github...'
+                #Write-Status -msg 'Downloading RemoveWindowsAI Package From Github - '
                 $ProgressPreference = 'SilentlyContinue'
                 try {
                     Invoke-WebRequest -Uri "https://github.com/zoicware/RemoveWindowsAI/raw/refs/heads/main/RemoveWindowsAIPackage/$arch/ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction Stop
@@ -1129,7 +1129,7 @@ function Install-NOAIPackage {
                     return
                 }
 
-                #Write-Status -msg 'Installing RemoveWindowsAI Package...'
+                #Write-Status -msg 'Installing RemoveWindowsAI Package - '
                 try {
                     Add-WindowsPackage -Online -PackagePath "$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction Stop >$null
                 }
@@ -1139,13 +1139,13 @@ function Install-NOAIPackage {
             }
         }
         else {
-            Write-Status -msg 'Update package already installed...'
+            Write-Status -msg 'Update package already installed - '
         }
         
-       # Write-Status -msg 'Checking update package install status...'
+       # Write-Status -msg 'Checking update package install status - '
         $package = Get-WindowsPackage -Online | Where-Object { $_.PackageName -like '*zoicware*' }
         if ($package.PackageState -eq 'InstallPending') {
-            #Write-Status -msg 'Package installed incorrectly... Uninstalling!' -errorOutput
+            #Write-Status -msg 'Package installed incorrectly -  Uninstalling!' -errorOutput
             try {
                 Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue
             }
@@ -1168,7 +1168,7 @@ function Install-NOAIPackage {
         if ($package) {
             Write-Status 'Removing Custom Windows Update Package - ' 
             try {
-                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue
+                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue | Out-Null
             }
             catch {
                 dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart
@@ -1184,7 +1184,7 @@ function Install-NOAIPackage {
             Write-Host "success!" -ForegroundColor Green
         }
         else {
-            Write-Status 'Unable to Find Update Package...' -errorOutput 
+            Write-Status 'Unable to Find Update Package - ' -errorOutput 
         }
         
     }
@@ -1198,7 +1198,7 @@ function Disable-Copilot-Policies {
     $JSONPath = "$env:windir\System32\IntegratedServicesRegionPolicySet.json"
     if (Test-Path $JSONPath) {
        # Write-Host "$(@('Disabling','Enabling')[$revert]) CoPilot Policies in " -NoNewline -ForegroundColor Cyan
-        Write-Host "[$JSONPath]" -ForegroundColor Yellow
+       # Write-Host "[$JSONPath]" -ForegroundColor Yellow
 
         #takeownership
         takeown /f $JSONPath *>$null
@@ -1226,7 +1226,7 @@ function Disable-Copilot-Policies {
             $newJSONContent = $jsonContent | ConvertTo-Json -Depth 100
             Set-Content $JSONPath -Value $newJSONContent -Force
             $total = ($copilotPolicies.count) + ($recallPolicies.count)
-            Write-Status -msg "$total CoPilot Policies $(@('Disabled','Enabled')[$revert])"
+            Write-Host -msg "$total CoPilot Policies $(@('Disabled','Enabled')[$revert])"
         }
         catch {
             Write-Status -msg 'CoPilot Not Found in IntegratedServicesRegionPolicySet' -errorOutput 
@@ -1391,7 +1391,7 @@ function Download-AppxPackage {
     $latestPackages | ForEach-Object {
         $url = $_.url
         $filename = $_.filename
-        # TODO: may need to include detection in the future of expired package download URLs..... in the case that downloads take over 10 minutes to complete
+        # TODO: may need to include detection in the future of expired package download URLs - .. in the case that downloads take over 10 minutes to complete
       
         $downloadFile = Join-Path $downloadFolder $filename
       
@@ -1448,11 +1448,11 @@ function Remove-AI-Appx-Packages {
         if (Test-Path $appxBackup) {
             $familyNames = Get-Content "$appxBackup\PackageFamilyNames.txt"
             foreach ($package in $familyNames) {
-                Write-Status -msg "Attempting to Download $package..."
+                Write-Status -msg "Attempting to Download $package - "
                 $downloadedFiles = Download-AppxPackage -PackageFamilyName $package -outputDir $appxBackup
                 $bundle = $downloadedFiles | Where-Object { $_ -match '\.appxbundle$' -or $_ -match '\.msixbundle$' } | Select-Object -First 1
                 if ($bundle) {
-                    Write-Status -msg "Installing $package..."
+                    Write-Status -msg "Installing $package - "
                     Add-AppPackage $bundle
                 }
             }
@@ -1717,13 +1717,13 @@ foreach ($choice in $aipackages) {
 
         if ($EnableLogging) {
             if ($attempts -ge 10) {
-                Write-Status -msg 'Packages Removal Failed...' -errorOutput 
+                Write-Status -msg 'Packages Removal Failed - ' -errorOutput 
                 $Global:logInfo.Line = 'Removing Appx Packages'
-                $Global:logInfo.Result = "Removal Failed, Reached Max Attempts (10)... Leftover Packages: $packages"
+                $Global:logInfo.Result = "Removal Failed, Reached Max Attempts (10) -  Leftover Packages: $packages"
                 Add-LogInfo -logPath $logPath -info $Global:logInfo
             }
             else {
-                #Write-Status -msg 'Packages Removed Sucessfully...'
+                #Write-Status -msg 'Packages Removed Sucessfully - '
                 $Global:logInfo.Line = 'Removing Appx Packages'
                 $Global:logInfo.Result = 'Removal Success'
                 Add-LogInfo -logPath $logPath -info $Global:logInfo
@@ -1731,11 +1731,11 @@ foreach ($choice in $aipackages) {
         }
         else {
             if ($attempts -ge 10) {
-                Write-Status -msg 'Packages Removal Failed...' -errorOutput 
-                Write-Status -msg 'Use the Enable Logging Switch to Get More Info...'
+                Write-Status -msg 'Packages Removal Failed - ' -errorOutput 
+                Write-Status -msg 'Use the Enable Logging Switch to Get More Info - '
             }
             else {
-                #Write-Status -msg 'Packages Removed Sucessfully...'
+                #Write-Status -msg 'Packages Removed Sucessfully - '
             }
         Write-Host "success!" -ForegroundColor Green
         }
@@ -1769,7 +1769,7 @@ function Remove-Recall-Optional-Feature {
             if ($state -and $state -ne 'DisabledWithPayloadRemoved') {
                 $ProgressPreference = 'SilentlyContinue'
                 try {
-                    Disable-WindowsOptionalFeature -Online -FeatureName 'Recall' -Remove -NoRestart -ErrorAction Stop *>$null
+                    Disable-WindowsOptionalFeature -Online -FeatureName 'Recall' -Remove -NoRestart -ErrorAction SilentlyContinue | Out-Null
                 }
                 catch {
                     #incase get-windowsoptionalfeature works but disable doesnt 
@@ -1811,8 +1811,8 @@ function Remove-AI-CBS-Packages {
                     Remove-Item "registry::$($_.Name)\Owners" -Force -ErrorAction SilentlyContinue
                     Remove-Item "registry::$($_.Name)\Updates" -Force -ErrorAction SilentlyContinue
                     try {
-                        Remove-WindowsPackage -Online -PackageName $_.PSChildName -NoRestart -ErrorAction Stop *>$null
-                        $paths = Get-ChildItem "$env:windir\servicing\Packages" -Filter "*$($_.PSChildName)*" -ErrorAction SilentlyContinue 
+                        Remove-WindowsPackage -Online -PackageName $_.PSChildName -NoRestart -ErrorAction SilentlyContinue | Out-Null
+                        $paths = Get-ChildItem "$env:windir\servicing\Packages" -Filter "*$($_.PSChildName)*" -ErrorAction SilentlyContinue | Out-Null
                         foreach ($path in $paths) {
                             if ($path) {
                                 Remove-Item $path.FullName -Force -ErrorAction SilentlyContinue
@@ -1846,7 +1846,7 @@ function Remove-AI-Files {
 
     if ($revert) {
         if (Test-Path "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles") {
-            Write-Status -msg 'Restoring Appx Package Files...'
+            Write-Status -msg 'Restoring Appx Package Files - '
             $paths = Get-Content "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\backupPaths.txt"
             foreach ($path in $paths) {
                 $fileName = Split-Path $path -Leaf
@@ -1862,7 +1862,7 @@ function Remove-AI-Files {
             }
 
             if (Test-Path "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\OfficeAI") {
-                Write-Status -msg 'Restoring Office AI Files...'
+                Write-Status -msg 'Restoring Office AI Files - '
                 Move-Item "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\OfficeAI\x64\AI" -Destination "$env:ProgramFiles\Microsoft Office\root\vfs\ProgramFilesCommonX64\Microsoft Shared\Office16" -Force 
                 Move-Item "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\OfficeAI\x86\AI" -Destination "$env:ProgramFiles\Microsoft Office\root\vfs\ProgramFilesCommonX64\Microsoft Shared\Office16" -Force 
                 Move-Item "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\OfficeAI\RootAI\AI" -Destination "$env:ProgramFiles\Microsoft Office\root\Office16" -Force 
@@ -1872,13 +1872,13 @@ function Remove-AI-Files {
                 }
             }
 
-            Write-Status -msg 'Restoring AI URIs...'
+            Write-Status -msg 'Restoring AI URIs - '
             $regs = Get-ChildItem "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\URIHandlers"
             foreach ($reg in $regs) {
                 Reg.exe import $reg.FullName *>$null
             }
            
-            Write-Status -msg 'Files Restored... You May Need to Repair the Apps Using the Microsoft Store'
+            Write-Status -msg 'Files Restored -  You May Need to Repair the Apps Using the Microsoft Store'
         }
         else {
             Write-Status -msg 'Unable to Find Backup Files!' -errorOutput 
@@ -2014,7 +2014,7 @@ function Remove-AI-Files {
 
     
         if ($backup) {
-            Write-Status -msg 'Backing Up AI Files...'
+            Write-Status -msg 'Backing Up AI Files - '
             $backupDir = "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles"
             if (!(Test-Path $backupDir)) {
                 New-Item $backupDir -Force -ItemType Directory | Out-Null
@@ -2152,7 +2152,7 @@ function Remove-AI-Files {
         foreach ($path in $aiPaths) {
             if (Test-Path $path -ErrorAction SilentlyContinue) {
                 if ($backup) {
-                    Write-Status -msg 'Backing Up Office AI Files...'
+                    Write-Status -msg 'Backing Up Office AI Files - '
                     $backupDir = "$env:USERPROFILE\RemoveWindowsAI\Backup\AIFiles\OfficeAI"
                     if (!(Test-Path $backupDir)) {
                         New-Item $backupDir -Force -ItemType Directory | Out-Null
@@ -2302,9 +2302,9 @@ function Remove-AI-Files {
                     Remove-Item "$path" -Force -ErrorAction SilentlyContinue
                 }
             }
-        Write-Host "success!" -ForegroundColor Green
+       
         }
-        
+        Write-Host "success!" -ForegroundColor Green
 
         Write-Status -msg 'Removing AI From Component Store (WinSxS) - '
        # Write-Status -msg 'This could take a while on some systems, please be patient!' -warningOutput
@@ -2392,7 +2392,7 @@ function Remove-AI-Files {
             $_.PSChildName -like '*userexperience-coreai*' } 
 
         if ($paths) {
-            Write-Status -msg 'Removing AI Components Found in Component Storage...'
+            Write-Status -msg 'Removing AI Components Found in Component Storage - '
             #backup by default for now
             $backupPath = "$env:USERPROFILE\RemoveWindowsAI\Backup\CompStorage"
             if (!(Test-Path $backupPath)) {
@@ -2421,7 +2421,7 @@ function Hide-AI-Components {
     $existingSettings = try { Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer' -Name 'SettingsPageVisibility' -ErrorAction SilentlyContinue }catch {}
     #early return if the user has already customized this with showonly rather than hide, in this event ill assume the user has knowledge of this key and aicomponents is likely not shown anyway
     if ($existingSettings -like '*showonly*') {
-        Write-Status 'SettingsPageVisibility contains "showonly"...Skipping!' -errorOutput
+        Write-Status 'SettingsPageVisibility contains "showonly" - Skipping!' -errorOutput
         return 
     }
     
@@ -2836,7 +2836,7 @@ function install-photoslegacy {
                     Add-AppPackage $package -DependencyPath $dependencies -ForceApplicationShutdown
                 }
                 catch {
-                    Write-status -msg "Can't install PhotosLegacy via appxbundle... make sure you have the appx service enabled" -errorOutput
+                    Write-status -msg "Can't install PhotosLegacy via appxbundle -  make sure you have the appx service enabled" -errorOutput
                 }
                 
             }
@@ -2864,7 +2864,7 @@ function install-classicapps {
         
         if (!(Test-Path "$($tempDir)ClassicApps")) {
             $ProgressPreference = 'SilentlyContinue'
-            Write-Status -msg 'Downloading Classic Apps Files from Github...'
+            Write-Status -msg 'Downloading Classic Apps Files from Github - '
             $url = 'https://github.com/zoicware/RemoveWindowsAI/archive/refs/heads/main.zip'
             try {
                 Invoke-WebRequest -Uri $url -OutFile "$($tempDir)main.zip" -ErrorAction Stop
@@ -2887,23 +2887,23 @@ function install-classicapps {
 
     switch ($app) {
         'photoviewer' {  
-            Write-Status -msg 'Installing Classic Photo Viewer...'
+            Write-Status -msg 'Installing Classic Photo Viewer - '
             install-photoviewer
         }
         'mspaint' {
-            Write-Status -msg 'Installing Classic Paint...'
+            Write-Status -msg 'Installing Classic Paint - '
             install-paint -path $classicApps
         }
         'snippingtool' {
-            Write-Status -msg 'Installing Classic Snipping Tool...'
+            Write-Status -msg 'Installing Classic Snipping Tool - '
             install-snipping -path $classicApps
         }
         'notepad' {
-            Write-Status -msg 'Installing Classic Notepad...'
+            Write-Status -msg 'Installing Classic Notepad - '
             install-notepad
         }
         'photoslegacy' {
-            Write-Status -msg 'Installing Photos Legacy...'
+            Write-Status -msg 'Installing Photos Legacy - '
             install-photoslegacy
         }
         Default {
@@ -3499,7 +3499,7 @@ else {
 
     $togglePanel2.Children.Add($backupInfoButton) | Out-Null
     $toggleGrid.Children.Add($togglePanel2) | Out-Null
-    # ensure that backup mode and revert mode arent both selected at the same time (cant believe i have to do this....)
+    # ensure that backup mode and revert mode arent both selected at the same time (cant believe i have to do this - .)
     $backupModeToggle.Add_Checked({ 
             $Global:backup = 1
             $revertModeToggle.IsChecked = $false
@@ -3692,7 +3692,7 @@ else {
 '@
     $applyButton.Template = [System.Windows.Markup.XamlReader]::Parse($applyTemplate)
     $applyButton.Add_Click({
-            Write-Status -msg 'Killing AI Processes...'
+            Write-Status -msg 'Killing AI Processes - '
             #kill ai processes to ensure script runs smoothly
             $aiProcesses = @(
                 'ai.exe'
@@ -3711,7 +3711,7 @@ else {
             }
     
             $progressWindow = New-Object System.Windows.Window
-            $progressWindow.Title = 'Processing...'
+            $progressWindow.Title = 'Processing - '
             $progressWindow.Width = 400
             $progressWindow.Height = 200
             $progressWindow.WindowStartupLocation = 'CenterOwner'
@@ -3724,7 +3724,7 @@ else {
             $progressWindow.Content = $progressGrid
     
             $progressText = New-Object System.Windows.Controls.TextBlock
-            $progressText.Text = 'Initializing...'
+            $progressText.Text = 'Initializing - '
             $progressText.FontSize = 14
             $progressText.Foreground = [System.Windows.Media.Brushes]::Cyan
             $progressText.HorizontalAlignment = 'Center'
