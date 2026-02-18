@@ -57,7 +57,7 @@ if ($psversion -ge 7) {
 
 If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
     #leave out the trailing " to add supplied params first 
-    $arglist = "-NoProfile -ExecutionPolicy Bypass -C `"& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/zoicware/RemoveWindowsAI/main/RemoveWindowsAi.ps1')))"
+    $arglist = "-NoProfile -ExecutionPolicy Bypass -C `"& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1')))"
     #pass the correct params if supplied
     if ($nonInteractive) {
         $arglist = $arglist + ' -nonInteractive'
@@ -212,9 +212,6 @@ function Run-Trusted([String]$command, $psversion) {
         # if ($rs -or $Ex) { exit }
     } 
     # lean & mean snippet by AveYo; refined by RapidOS [haslate]
-    # zoicware change log:
-    # changed start-process to wshell run to avoid the first powershell instance window from flashing
-
 
     $psexe = 'PowerShell.exe'
 
@@ -1045,11 +1042,11 @@ Windows Registry Editor Version 5.00
         }
        
         
-        New-Item "$($tempDir)DisableAIPhotos.reg" -Value $regContent -Force | Out-Null
-        regedit.exe /s "$($tempDir)DisableAIPhotos.reg"
+        New-Item "$($tempDir)DisableAIPhotos.reg" -Value $regContent -Force >$null
+        regedit.exe /s "$($tempDir)DisableAIPhotos.reg" >$null
         Start-Sleep 1
         reg unload HKU\TEMP >$null
-        Remove-Item "$($tempDir)DisableAIPhotos.reg" -Force -ErrorAction SilentlyContinue
+        Remove-Item "$($tempDir)DisableAIPhotos.reg" -Force -ErrorAction SilentlyContinue >$null
     }
 
     #disable app actions
@@ -1094,7 +1091,7 @@ Windows Registry Editor Version 5.00
 function Install-NOAIPackage {
     
     if (!$revert) {
-        $package = Get-WindowsPackage -Online | Where-Object { $_.PackageName -like '*zoicware*' }
+        $package = Get-WindowsPackage -Online | Where-Object { $_.PackageName -like '*SdManson8*' }
         if (!$package) {
             #check cpu arch
             $arm = ((Get-CimInstance -Class Win32_ComputerSystem).SystemType -match 'ARM64') -or ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64')
@@ -1102,28 +1099,27 @@ function Install-NOAIPackage {
             #add cert to registry
             $certRegPath = 'HKLM:\Software\Microsoft\SystemCertificates\ROOT\Certificates\8A334AA8052DD244A647306A76B8178FA215F344'
             if (!(Test-Path "$certRegPath")) {
-                New-Item -Path $certRegPath -Force | Out-Null
+                New-Item -Path $certRegPath -Force >$null
             }
 
             #check if script is being ran locally 
             if ((Test-Path "$PSScriptRoot\RemoveWindowsAIPackage\amd64") -and (Test-Path "$PSScriptRoot\RemoveWindowsAIPackage\arm64")) {
-                Write-Status -msg 'RemoveWindowsAI Packages Found Locally - '
+                #Write-Status -msg 'RemoveWindowsAI Packages Found Locally - '
 
-                Write-Status -msg 'Installing RemoveWindowsAI Package - '
+                #Write-Status -msg 'Installing RemoveWindowsAI Package - '
                 try {
-                    Add-WindowsPackage -Online -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                    Add-WindowsPackage -Online -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
                 }
                 catch {
                     #user is using powershell 7 use dism command as fallback
-                    dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" /NoRestart /IgnoreCheck >$null
+                    dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" /norestart | Out-Null
                 }
-           
             }
             else {
                 #Write-Status -msg 'Downloading RemoveWindowsAI Package From Github - '
                 $ProgressPreference = 'SilentlyContinue'
                 try {
-                    Invoke-WebRequest -Uri "https://github.com/zoicware/RemoveWindowsAI/raw/refs/heads/main/RemoveWindowsAIPackage/$arch/ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction Stop
+                    Invoke-WebRequest -Uri "https://github.com/zoicware/RemoveWindowsAI/raw/refs/heads/main/RemoveWindowsAIPackage/$arch/ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction Stop
                 }
                 catch {
                     Write-Status -msg "Unable to Download Package at: https://github.com/zoicware/RemoveWindowsAI/raw/refs/heads/main/RemoveWindowsAIPackage/$arch/ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -errorOutput
@@ -1132,23 +1128,23 @@ function Install-NOAIPackage {
 
                 #Write-Status -msg 'Installing RemoveWindowsAI Package - '
                 try {
-                    Add-WindowsPackage -Online -PackagePath "$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction Stop >$null
+                    Add-WindowsPackage -Online -PackagePath "$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
                 }
                 catch {
-                    dism.exe /Online /Add-Package /PackagePath:"$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" /NoRestart /IgnoreCheck >$null
+                    dism.exe /Online /Add-Package /PackagePath:"$($tempDir)ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" /norestart | Out-Null
                 }
             }
         }
         else {
             Write-Status -msg 'Update package already installed - '
         }
-        
+
        # Write-Status -msg 'Checking update package install status - '
         $package = Get-WindowsPackage -Online | Where-Object { $_.PackageName -like '*zoicware*' }
         if ($package.PackageState -eq 'InstallPending') {
             #Write-Status -msg 'Package installed incorrectly -  Uninstalling!' -errorOutput
             try {
-                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue
+                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue | Out-Null
             }
             catch {
                 dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart | Out-Null
@@ -1179,7 +1175,7 @@ function Install-NOAIPackage {
             Get-ChildItem $regPath | ForEach-Object {
                 $value = try { Get-ItemProperty "registry::$($_.Name)" -ErrorAction SilentlyContinue } catch { $null }
                 if ($value -and $value.PSPath -like '*zoicware*') {
-                    Remove-Item -Path $value.PSPath -Recurse -Force
+                    Remove-Item -Path $value.PSPath -Recurse -Force | Out-Null
                 }
             }
             Write-Host "success!" -ForegroundColor Green
@@ -1824,7 +1820,7 @@ function Remove-AI-CBS-Packages {
                     }
                     catch {
                         #fallback to dism when user is using powershell 7
-                        dism.exe /Online /Remove-Package /PackageName:$($_.PSChildName) /NoRestart /Quiet
+                        dism.exe /Online /Remove-Package /PackageName:$($_.PSChildName) /NoRestart >$null
                         $paths = Get-ChildItem "$env:windir\servicing\Packages" -Filter "*$($_.PSChildName)*" -ErrorAction SilentlyContinue 
                         foreach ($path in $paths) {
                             if ($path) {
@@ -3831,6 +3827,7 @@ else {
                 $progressWindow.Close()
                 [System.Windows.MessageBox]::Show("An error occurred: $($_.Exception.Message)", 'Error', [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Error)
             }
+            Write-Host "success!" -ForegroundColor Green
         })
 
 
