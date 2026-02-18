@@ -904,6 +904,7 @@ function Disable-Registry-Keys {
         else {
             #Write-Status -msg "Path Not Found: $backupPath\$backupFileAAR" -errorOutput 
         }
+        Write-Host "success!" -ForegroundColor Green
     }
   
 
@@ -1110,7 +1111,7 @@ function Install-NOAIPackage {
 
                 Write-Status -msg 'Installing RemoveWindowsAI Package - '
                 try {
-                    Add-WindowsPackage -Online -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction Stop >$null
+                    Add-WindowsPackage -Online -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\ZoicwareRemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
                 }
                 catch {
                     #user is using powershell 7 use dism command as fallback
@@ -1150,7 +1151,7 @@ function Install-NOAIPackage {
                 Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue
             }
             catch {
-                dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart
+                dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart | Out-Null
             }
             #remove reg install location 
             $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages'
@@ -1171,7 +1172,7 @@ function Install-NOAIPackage {
                 Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue | Out-Null
             }
             catch {
-                dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart
+                dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart | Out-Null
             }
             #remove reg install location 
             $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages'
@@ -1226,7 +1227,8 @@ function Disable-Copilot-Policies {
             $newJSONContent = $jsonContent | ConvertTo-Json -Depth 100
             Set-Content $JSONPath -Value $newJSONContent -Force
             $total = ($copilotPolicies.count) + ($recallPolicies.count)
-            Write-Host -msg "$total CoPilot Policies $(@('Disabled','Enabled')[$revert])"
+            Write-Status -msg "$total CoPilot Policies $(@('Disabled','Enabled')[$revert])"
+            Write-Host ""
         }
         catch {
             Write-Status -msg 'CoPilot Not Found in IntegratedServicesRegionPolicySet' -errorOutput 
