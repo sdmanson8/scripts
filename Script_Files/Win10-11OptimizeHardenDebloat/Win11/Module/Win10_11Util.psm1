@@ -763,7 +763,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	# Display a warning message about whether a user has customized the preset file
 	if ($Warning)
 	{
-		# Get the name of a preset (e.g Win10_11Util.ps1) regardless it was named
+		# Get the name of a preset (e.g Win10_11Util.ps1) regardless if it was named
 		# $_.File has no EndsWith() method
 		Write-Information -MessageData "" -InformationAction Continue
 		[string]$PresetName = ((Get-PSCallStack).Position | Where-Object -FilterScript {$_.File}).File | Where-Object -FilterScript {$_.EndsWith(".ps1")}
@@ -16486,20 +16486,21 @@ function Copilot
 	{
 		"Install"
 		{
-			Write-Host "Installing Microsoft Copilot: " -NoNewline
-			LogInfo "Installing Microsoft Copilot"
+			Write-Host "Installing Microsoft Copilot: "
+			LogInfo "Installing Microsoft Copilot:"
 			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -revertMode -AllOptions
+			#winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD | Out-Null
 		}
 		"Uninstall"
 		{
 			Write-Host "Uninstalling Microsoft Copilot:"
 			LogInfo "Uninstalling Microsoft Copilot:"
-			Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like ‘Microsoft.Copilot’} | Remove-AppxPackage -AllUsers | Out-Null
 			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -AllOptions 
-			
+			#Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like ‘Microsoft.Copilot’} | Remove-AppxPackage -AllUsers | Out-Null
 		}
 	}
 }
+
 
 <#
 	.SYNOPSIS
@@ -16528,7 +16529,8 @@ function UninstallUWPApps
 	)
 
 	Add-Type -AssemblyName PresentationCore, PresentationFramework
-
+	Write-Host "Uninstalling UWP apps - " -NoNewline
+	LogInfo "Uninstalling UWP apps:"
 	#region Variables
 	# The following UWP apps will have their checkboxes unchecked
 	$UncheckedAppxPackages = @(
@@ -16759,9 +16761,9 @@ function UninstallUWPApps
 			$AllUsers
 		)
 
-		Write-Information -MessageData "" -InformationAction Continue
+		#Write-Information -MessageData "" -InformationAction Continue
 		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+		#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 		$AppxPackages = @(Get-AppxPackage -PackageTypeFilter Bundle -AllUsers:$AllUsers | Where-Object -FilterScript {$_.Name -notin $ExcludedAppxPackages})
 
@@ -16864,9 +16866,9 @@ function UninstallUWPApps
 
 	function ButtonUninstallClick
 	{
-		Write-Information -MessageData "" -InformationAction Continue
+		#Write-Information -MessageData "" -InformationAction Continue
 		# Extract the localized "Please wait..." string from shell32.dll
-		Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+		#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
 		$Window.Close() | Out-Null
 
@@ -16877,7 +16879,22 @@ function UninstallUWPApps
 			Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn" -Wait
 		}
 
-		$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked -Verbose
+		$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked 		
+
+		if ($CheckBoxForAllUsers.IsChecked)
+			{
+				foreach ($Package in $PackagesToRemove)
+				{
+					LogInfo "Successfully removed $Package for all users"
+				}
+			}
+		else
+		{
+			foreach ($Package in $PackagesToRemove)
+			{
+			LogInfo "Successfully removed $Package for current user" 
+			}
+		}
 	}
 
 	function CheckBoxClick
@@ -16954,13 +16971,13 @@ function UninstallUWPApps
 
 	if ($AppxPackages.Count -eq 0)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.NoData -Verbose
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message $Localization.NoData -Verbose
 	}
 	else
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message $Localization.DialogBoxOpening -Verbose
 
 		#region Sendkey function
 		# Emulate the Backspace key sending to prevent the console window to freeze
@@ -16994,6 +17011,7 @@ function UninstallUWPApps
 		$Window.Add_Loaded({$Window.Activate()})
 		$Form.ShowDialog() | Out-Null
 	}
+	Write-Host "success!" -ForegroundColor Green
 }
 
 <#
