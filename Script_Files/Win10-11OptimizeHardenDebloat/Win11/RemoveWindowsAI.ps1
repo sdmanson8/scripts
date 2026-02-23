@@ -1980,9 +1980,8 @@ function Remove-AI-Files {
             LogInfo 'Files Restored -  You May Need to Repair the Apps Using the Microsoft Store'
         }
         else {
-            LogError -msg 'Unable to Find Backup Files!'
+            LogError 'Unable to Find Backup Files!'
         }
-            Write-Host "success!" -ForegroundColor Green
 
         <#
         if (Test-Path "$PSScriptRoot\RemoveWindowsAI\Backup\CompStorage"){

@@ -16458,7 +16458,8 @@ function Copilot
 			# store in environment for child processes
 			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
 			& "$PSScriptRoot\..\RemoveWindowsAI.ps1" -nonInteractive -revertMode -AllOptions
-			#winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD | Out-Null
+			Start-Sleep -Seconds 2
+			winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD | Out-Null
 		}
 		"Uninstall"
 		{
