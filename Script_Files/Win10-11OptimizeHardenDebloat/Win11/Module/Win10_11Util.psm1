@@ -16453,8 +16453,8 @@ function Copilot
 	{
 		"Install"
 		{
-			Write-Host "Installing Microsoft Copilot: "
-			LogInfo "Installing Microsoft Copilot:"
+			Write-Host "Installing Microsoft Copilot and other AI apps: "
+			LogInfo "Installing Microsoft Copilot and other AI apps:"
 			# store in environment for child processes
 			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
 			& "$PSScriptRoot\..\RemoveWindowsAI.ps1" -nonInteractive -revertMode -AllOptions
@@ -16462,11 +16462,11 @@ function Copilot
 		}
 		"Uninstall"
 		{
-			Write-Host "Uninstalling Microsoft Copilot:"
-			LogInfo "Uninstalling Microsoft Copilot:"
+			Write-Host "Uninstalling Microsoft Copilot and other AI apps:"
+			LogInfo "Uninstalling Microsoft Copilot and other AI apps:"
 			# store in environment for child processes
 			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
-			& "$PSScriptRoot\..\RemoveWindowsAI.ps1" -nonInteractive -AllOptions -backupMode
+			& "$PSScriptRoot\..\RemoveWindowsAI.ps1" -nonInteractive -AllOptions
 			#Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like ‘Microsoft.Copilot’} | Remove-AppxPackage -AllUsers | Out-Null
 		}
 	}
