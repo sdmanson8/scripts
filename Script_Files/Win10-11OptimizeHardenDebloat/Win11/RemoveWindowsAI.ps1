@@ -15,7 +15,8 @@ param(
     [switch]$revertMode,
     [switch]$backupMode,
     [ValidateSet('photoviewer', 'mspaint', 'snippingtool', 'notepad', 'photoslegacy')]
-    [array]$InstallClassicApps
+    [array]$InstallClassicApps,
+    [string]$LogFilePath
 )
 
 if ($nonInteractive) {
@@ -139,7 +140,12 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 
-function RunTrusted([String]$command, $psversion) {
+function RunTrusted {
+    param(
+        [String]$command, 
+        $psversion,
+        [string]$logFile
+        ) 
 
     function RunAsTI {
         param(
@@ -248,7 +254,22 @@ function RunTrusted([String]$command, $psversion) {
 
     $psexe = 'PowerShell.exe'
 
-    #convert command to base64 to avoid errors with spaces
+    # If log file not provided, use current
+    if (!$logFile -and (Get-LogFilePath)) {
+        $logFile = Get-LogFilePath
+    }
+    
+    # Pass log file to the new process
+    if ($logFile) {
+        $command = @"
+`$env:REMOVE_WINDOWS_AI_LOG = '$logFile'
+Import-Module '$scriptPath\Logging.psm1' -Force
+Set-LogFile -Path `$env:REMOVE_WINDOWS_AI_LOG
+$command
+"@
+    }
+    
+    # Convert to base64
     $bytes = [System.Text.Encoding]::Unicode.GetBytes($command)
     $base64Command = [Convert]::ToBase64String($bytes)
 
@@ -288,7 +309,6 @@ function RunTrusted([String]$command, $psversion) {
     catch {
         taskkill /im trustedinstaller.exe /f >$null
     }
-    
 }
 
 #setup script
@@ -310,43 +330,61 @@ function Write-Status {
         Write-Host "$msg" -NoNewline
     }
 }
-# Log file
-$logFile = Join-Path $env:TEMP "Remove Windows AI.txt"
 
-function LogInfo {
-    param ([string]$message, [switch]$addGap)
-    # Get the current date and time in "dd-MM-yyyy HH:mm" format
-    $timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
-    # Format the log message with timestamp
-    $logMessage = "$timestamp INFO: $message"
-    # Add an extra newline if $addGap is specified
-    if ($null -ne $addGap) 
-    {
-        $logMessage += "`n"
+#Log file
+# Import logging module
+Import-Module -Name "$PSScriptRoot\Module\Logging.psm1" -Force
+
+# Set up logging - priority: parameter > environment > global > default
+if ($LogFilePath) {
+    Set-LogFile -Path $LogFilePath
+    #LogInfo "Using log file from parameter: $LogFilePath"
+} elseif ($env:REMOVE_WINDOWS_AI_LOG) {
+    Set-LogFile -Path $env:REMOVE_WINDOWS_AI_LOG
+    #LogInfo "Using log file from environment: $env:REMOVE_WINDOWS_AI_LOG"
+} elseif ($global:LogFilePath) {
+    Set-LogFile -Path $global:LogFilePath
+    #LogInfo "Using log file from global: $global:LogFilePath"
+} else {
+    $defaultLog = Join-Path $env:TEMP "Remove Windows AI.txt"
+    Set-LogFile -Path $defaultLog
+    #LogInfo "Using default log file: $defaultLog"
+}
+
+#LogInfo "Child script started with PID: $pid"
+#LogInfo "Parameters: nonInteractive=$nonInteractive, revertMode=$revertMode, AllOptions=$AllOptions"
+
+# Helper function to get current log file path
+function Get-LogFilePath {
+    if ($global:LogFilePath) { return $global:LogFilePath }
+    if ($env:REMOVE_WINDOWS_AI_LOG) { return $env:REMOVE_WINDOWS_AI_LOG }
+    return $null
+}
+
+function Write-FileSafely {
+    param(
+        [string]$Path,
+        [string]$Value,
+        [switch]$Append
+    )
+    
+    $mutexName = "Global\RemoveWindowsAILogLock"
+    $mutex = New-Object System.Threading.Mutex($false, $mutexName)
+    
+    $acquired = $mutex.WaitOne(5000)
+    try {
+        if ($acquired) {
+            if ($Append) {
+                Add-Content -Path $Path -Value $Value -Encoding UTF8
+            } else {
+                Set-Content -Path $Path -Value $Value -Encoding UTF8
+            }
+        }
     }
-    # Log message to file while suppressing console output
-    Add-Content -Path $logFile -Value $logMessage
+    finally {
+        if ($acquired) { $mutex.ReleaseMutex() }
+    }
 }
-
-function LogError {
-    param ([string]$message)
-    # Get the current date and time in "dd-MM-yyyy HH:mm" format
-    $timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
-    # Format the log message with timestamp
-    $errorMessage = "$timestamp INFO: $message"
-    #Write-Error "$errorMessage"
-    Add-Content -Path $logFile -Value "INFO: $errorMessage"
-}
-function LogWarning {
-    param ([string]$message)
-	# Get the current date and time in "dd-MM-yyyy HH:mm" format
-	$timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
-	# Format the log message with timestamp
-	$warningMessage = "$timestamp INFO: $message"
-	#Write-Warning "$warningMessage"
-    Add-Content -Path $logFile -Value "INFO: $warningMessage"
-}
-
 
 if ($revertMode) {
     $Global:revert = 1
@@ -365,22 +403,6 @@ else {
 $Global:tempDir = ([System.IO.Path]::GetTempPath())
 
 #=====================================================================================
-
-function Add-LogInfo {
-    param(
-        [string]$logPath,
-        $info
-    )
-
-    $content = @"
-    ====================================
-    Line: $($info.Line)
-    Result: $($info.Result)
-"@
-
-    Add-Content $logPath -Value $content | Out-Null
-}
-
 
 function CreateRestorePoint {
     param(
@@ -996,7 +1018,7 @@ function Disable-Registry-Keys {
             Reg.exe import "$backupPath\HKCU_Copilot.reg" *>$null
         }
         else {
-            LogInfo -msg "Unable to Find HKCR_Copilot.reg or HKCU_Copilot.reg in [$backupPath]"  
+           # LogInfo -msg "Unable to Find HKCR_Copilot.reg or HKCU_Copilot.reg in [$backupPath]"  
         }
         Write-Host "success!" -ForegroundColor Green
     }
@@ -1033,7 +1055,7 @@ function Disable-Registry-Keys {
     if ($revert) {
         if ((Test-Path "$backupPath\VoiceAccess.exe") -and (Test-Path "$backupPath\VoiceAccess.lnk")) {
             Write-Status -msg 'Restoring Voice Access - '
-            LogInfo 'Restoring Voice Access'
+           LogInfo 'Restoring Voice Access'
             Move-Item "$backupPath\VoiceAccess.exe" -Destination "$env:windir\System32" -Force | Out-Null
             Move-Item "$backupPath\VoiceAccess.lnk" -Destination $startMenu -Force | Out-Null
             Write-Host "success!" -ForegroundColor Green
@@ -1047,7 +1069,7 @@ function Disable-Registry-Keys {
         Write-Status -msg 'Removing Voice Access - '
         LogInfo 'Removing Voice Access'
         $command = "Remove-item -path $env:windir\System32\voiceaccess.exe -force -ErrorAction SilentlyContinue -Recurse | Out-Null"
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
         Start-Sleep 1
         Remove-Item "$startMenu\VoiceAccess.lnk" -Force -ErrorAction SilentlyContinue
         Write-Host "success!" -ForegroundColor Green
@@ -1066,12 +1088,12 @@ function Disable-Registry-Keys {
                 if ($revert) {
                     #enable
                     $command = "Reg.exe delete '$regPath' /v '{1da5d803-d492-4edd-8c23-e0c0ffee7f0e},5' /f"
-                    RunTrusted -command $command -psversion $psversion
+                    RunTrusted -command $command -psversion $psversion -logFile $logFile
                 }
                 else {
                     #disable
                     $command = "Reg.exe add '$regPath' /v '{1da5d803-d492-4edd-8c23-e0c0ffee7f0e},5' /t REG_DWORD /d '1' /f"
-                    RunTrusted -command $command -psversion $psversion
+                    RunTrusted -command $command -psversion $psversion -logFile $logFile
                 }
             Write-Host "success!" -ForegroundColor Green    
             }
@@ -1083,13 +1105,13 @@ function Disable-Registry-Keys {
     #not sure this really does anything in my testing gaming copilot still appears 
     if ($revert) {
         $command = "reg delete 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Microsoft.Xbox.GamingAI.Companion.Host.GamingCompanionHostOptions' /f"
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
     }
     else {
         $command = "reg add 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Microsoft.Xbox.GamingAI.Companion.Host.GamingCompanionHostOptions' /v 'ActivationType' /t REG_DWORD /d 0 /f;
     reg add 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Microsoft.Xbox.GamingAI.Companion.Host.GamingCompanionHostOptions' /v 'Server' /t REG_SZ /d `" `" /f
     "
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
     }
     
 
@@ -1100,7 +1122,7 @@ function Disable-Registry-Keys {
     Reg delete 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\WellKnownContracts' /v 'Windows.AI.MachineLearning.MachineLearningContract' /f 
     Reg delete 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\WellKnownContracts' /v 'Windows.AI.MachineLearning.Preview.MachineLearningPreviewContract' /f
     "
-    RunTrusted -command $command -psversion $psversion
+    RunTrusted -command $command -psversion $psversion -logFile $logFile
 
     #disable ai setting in uwp photos app
     $uwpPhotosSettings = "$env:LOCALAPPDATA\Packages\Microsoft.Windows.Photos_8wekyb3d8bbwe\Settings\settings.dat"
@@ -1793,7 +1815,7 @@ foreach ($choice in $aipackages) {
         Write-Status -msg 'Removing AI Appx Packages - '
         LogInfo 'Removing AI Appx Packages'
         $command = "&`"$($tempDir)aiPackageRemoval.ps1`""
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
 
         #check packages removal
         #exit loop after 10 tries
@@ -1804,35 +1826,11 @@ foreach ($choice in $aipackages) {
             if ($packages) {
                 $attempts++
                 $command = "&`"$($tempDir)aiPackageRemoval.ps1`""
-                RunTrusted -command $command -psversion $psversion
+                RunTrusted -command $command -psversion $psversion -logFile $logFile
             }
     
         }while ($packages -and $attempts -lt 10)
 
-   <#     if ($EnableLogging) {
-            if ($attempts -ge 10) {
-                LogError 'Packages Removal Failed' 
-                $Global:logInfo.Line = 'Removing Appx Packages'
-                $Global:logInfo.Result = "Removal Failed, Reached Max Attempts (10) -  Leftover Packages: $packages"
-                Add-LogInfo -logPath $logPath -info $Global:logInfo
-            }
-            else {
-                #Write-Status -msg 'Packages Removed Sucessfully - '
-                $Global:logInfo.Line = 'Removing Appx Packages'
-                $Global:logInfo.Result = 'Removal Success'
-                Add-LogInfo -logPath $logPath -info $Global:logInfo
-            }
-        }
-        else {
-            if ($attempts -ge 10) {
-                LogError 'Packages Removal Failed'
-                Write-Status -msg 'Use the Enable Logging Switch to Get More Info - '
-            }
-            else {
-                #Write-Status -msg 'Packages Removed Sucessfully'
-            }
-        
-        }#>
         Write-Host "success!" -ForegroundColor Green
         #tell windows copilot pwa is already installed
         Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoInstalledPWAs' /v 'CopilotPWAPreinstallCompleted' /t REG_DWORD /d '1' /f *>$null
@@ -1953,7 +1951,7 @@ function Remove-AI-Files {
                 }
                 catch {
                     $command = "Move-Item -Path `"$PSScriptRoot\RemoveWindowsAI\Backup\AIFiles\$fileName`" -Destination `"$dest`" -Force"
-                    RunTrusted -command $command -psversion $psversion
+                    RunTrusted -command $command -psversion $psversion -logFile $logFile
                     Start-Sleep 1
                 }
             }
@@ -2131,7 +2129,7 @@ function Remove-AI-Files {
             #only remove dlls from photon to prevent startmenu from breaking
             # if ($path -like '*Photon*') {
             #     $command = "`$dlls = (Get-ChildItem -Path $Path -Filter *.dll).FullName; foreach(`$dll in `$dlls){Remove-item ""`$dll"" -force}"
-            #     RunTrusted -command $command -psversion $psversion
+            #     RunTrusted -command $command -psversion $psversion -logFile $logFile
             #     Start-Sleep 1
             # }
             # else {
@@ -2150,7 +2148,7 @@ function Remove-AI-Files {
                 }
             }
             $command = "Remove-item ""$Path"" -force -ErrorAction SilentlyContinue -Recurse | Out-Null"
-            RunTrusted -command $command -psversion $psversion
+            RunTrusted -command $command -psversion $psversion -logFile $logFile
             Start-Sleep 1
         
         }
@@ -2174,7 +2172,7 @@ function Remove-AI-Files {
                 catch {
                     #takeown didnt work remove file with system priv
                     $command = "Remove-Item -Path $path -Force -ErrorAction SilentlyContinue -Recurse | Out-Null"
-                    RunTrusted -command $command -psversion $psversion
+                    RunTrusted -command $command -psversion $psversion -logFile $logFile
                 }
             }
         }
@@ -2239,7 +2237,7 @@ function Remove-AI-Files {
             catch {
                 #takeown didnt work remove file with system priv
                 $command = "Remove-Item -Path $($installer.FullName) -Force -ErrorAction SilentlyContinue -Recurse | Out-Null"
-                RunTrusted -command $command -psversion $psversion
+                RunTrusted -command $command -psversion $psversion -logFile $logFile
             }
         
         }
@@ -2291,7 +2289,7 @@ function Remove-AI-Files {
                 }
                 catch {
                     $command = "Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue | Out-Null"
-                    RunTrusted -command $command -psversion $psversion
+                    RunTrusted -command $command -psversion $psversion -logFile $logFile
                     Start-Sleep 1
                 }
                 
@@ -2353,7 +2351,7 @@ function Remove-AI-Files {
                 if ($fullkey.Length -gt 1) {
                     foreach ($multikey in $fullkey) {
                         $command = "Remove-Item -Path `"registry::$multikey`" -Force -ErrorAction SilentlyContinue -Recurse | Out-Null"
-                        RunTrusted -command $command -psversion $psversion
+                        RunTrusted -command $command -psversion $psversion -logFile $logFile
                         Start-Sleep 1
                         #remove any regular admin that have trusted installer bug
                         Remove-Item -Path "registry::$multikey" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
@@ -2361,7 +2359,7 @@ function Remove-AI-Files {
                 }
                 else {
                     $command = "Remove-Item -Path `"registry::$fullKey`" -Force -ErrorAction SilentlyContinue -Recurse | Out-Null"
-                    RunTrusted -command $command -psversion $psversion
+                    RunTrusted -command $command -psversion $psversion -logFile $logFile
                     Start-Sleep 1
                     #remove any regular admin that have trusted installer bug
                     Remove-Item -Path "registry::$fullKey" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
@@ -2375,7 +2373,7 @@ function Remove-AI-Files {
 
         #remove ai app checks in updates (not sure if this does anything)
         $command = "Reg.exe delete 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell\Update\Packages\MicrosoftWindows.Client.CoreAI_cw5n1h2txyewy' /f"
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
         Reg.exe delete 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell\Update\Packages\Components' /v 'AIX' /f *>$null
         Reg.exe delete 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell\Update\Packages\Components' /v 'CopilotNudges' /f *>$null
         Reg.exe delete 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell\Update\Packages\Components' /v 'AIContext' /f *>$null
@@ -2477,7 +2475,7 @@ function Remove-AI-Files {
         
         
         $command = "Get-Content `"$($tempDir)PathsToDelete.txt`" | ForEach-Object {Remove-Item `$_ -Force -Recurse -EA 0}"
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
         Start-Sleep 1
         Write-Host "success!" -ForegroundColor Green
     }
@@ -2629,7 +2627,7 @@ Get-ScheduledTask -TaskName "*Office Actions Server*" -ErrorAction SilentlyConti
         Set-Content "$subScript" -Value $code -Force | Out-Null
 
         $command = "&`"$subScript`""
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
         Start-Sleep 1
         
         #when just running this option alone the tasks will be remade so we need to at least ensure they are disabled
@@ -2637,7 +2635,7 @@ Get-ScheduledTask -TaskName "*Office Actions Server*" -ErrorAction SilentlyConti
         Get-ScheduledTask -TaskName '*Office Actions Server*' -ErrorAction SilentlyContinue | Disable-ScheduledTask -ErrorAction SilentlyContinue
         Get-ScheduledTask -TaskPath '*WindowsAI*' | Disable-ScheduledTask -ErrorAction SilentlyContinue
         "
-        RunTrusted -command $command -psversion $psversion
+        RunTrusted -command $command -psversion $psversion -logFile $logFile
         Write-Host "success!" -ForegroundColor Green
     }
 }

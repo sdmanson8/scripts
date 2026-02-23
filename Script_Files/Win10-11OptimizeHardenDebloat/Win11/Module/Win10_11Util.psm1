@@ -25,46 +25,13 @@
 	3. https://github.com/farag2/Sophia-Script-for-Windows
 #>
 
+# Import logging module
+Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force
 
-# Log file
-$logFile = Join-Path $env:TEMP "WinUtil Script for Windows 10_11.txt"
+# Set up global log file
+$global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for Windows 10_11.txt"
+Set-LogFile -Path $global:LogFilePath
 
-# Clear the log file at the beginning of the script
-Set-Content -Path $logFile -Value ""
-
-function LogInfo {
-    param ([string]$message, [switch]$addGap)
-    # Get the current date and time in "dd-MM-yyyy HH:mm" format
-    $timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
-    # Format the log message with timestamp
-    $logMessage = "$timestamp INFO: $message"
-    # Add an extra newline if $addGap is specified
-    if ($addGap) 
-	{
-        $logMessage += "`n"
-    }
-    # Log message to file while suppressing console output
-    Add-Content -Path $logFile -Value $logMessage
-}
-
-function LogError {
-    param ([string]$message)
-	# Get the current date and time in "dd-MM-yyyy HH:mm" format
-	$timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
-	# Format the log message with timestamp
-	$errorMessage = "$timestamp INFO: $message"
-	Write-Error "$errorMessage"
-    Add-Content -Path $logFile -Value "INFO: $errorMessage"
-}
-function LogWarning {
-    param ([string]$message)
-	# Get the current date and time in "dd-MM-yyyy HH:mm" format
-	$timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
-	# Format the log message with timestamp
-	$warningMessage = "$timestamp INFO: $message"
-	Write-Warning "$warningMessage"
-    Add-Content -Path $logFile -Value "INFO: $warningMessage"
-}
 Function Restart-Script 
 { 
     param ([string]$scriptPath)
@@ -16488,14 +16455,18 @@ function Copilot
 		{
 			Write-Host "Installing Microsoft Copilot: "
 			LogInfo "Installing Microsoft Copilot:"
-			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -revertMode -AllOptions
+			# store in environment for child processes
+			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
+			& "$PSScriptRoot\..\RemoveWindowsAI.ps1" -nonInteractive -revertMode -AllOptions
 			#winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD | Out-Null
 		}
 		"Uninstall"
 		{
 			Write-Host "Uninstalling Microsoft Copilot:"
 			LogInfo "Uninstalling Microsoft Copilot:"
-			& ([scriptblock]::Create((Invoke-RestMethod "https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1"))) -nonInteractive -AllOptions 
+			# store in environment for child processes
+			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
+			& "$PSScriptRoot\..\RemoveWindowsAI.ps1" -nonInteractive -AllOptions -backupMode
 			#Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like ‘Microsoft.Copilot’} | Remove-AppxPackage -AllUsers | Out-Null
 		}
 	}
