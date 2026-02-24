@@ -45,7 +45,9 @@ if '%errorlevel%' NEQ '0' (
 cls
 
 :: Run Win10_11Util.ps1 in the foreground and keep batch script running in background
-del "%temp%\WinUtil Script for Windows 10_11.txt"
+if exist "%temp%\WinUtil Script for Windows 10_11.txt" (
+    del /f /q "%temp%\WinUtil Script for Windows 10_11.txt" >nul 2>&1
+)
 powershell -ExecutionPolicy Bypass -File ".\Win10_11Util.ps1"
 
 :: Once Win10_11Util.ps1 finishes, log the result and exit

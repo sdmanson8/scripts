@@ -989,7 +989,7 @@ Function Update-Powershell
 function Update-DesktopRegistry 
 {
 	Write-Host 'Removing "About this Picture" from Desktop - ' -NoNewline
-	LogInfo "Removing "About this Picture" from Desktop"
+	LogInfo 'Removing "About this Picture" from Desktop'
     # Define registry paths and key/value
     $namespaceKeyPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{2cc5ca98-6485-489a-920e-b3e88a6ccce3}"
     $hideIconsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel"
@@ -999,8 +999,7 @@ function Update-DesktopRegistry
     # Remove the specified namespace registry key
     try 
 	{
-        Remove-Item -Path $namespaceKeyPath -Force -ErrorAction Stop
-        #Write-Output "Successfully removed registry key: $namespaceKeyPath"
+        Remove-Item -Path $namespaceKeyPath -Force -ErrorAction SilentlyContinue | Out-Null
     } 
 	catch 
 	{
@@ -1513,7 +1512,7 @@ function DiagTrackService
 		{
 			# Connected User Experiences and Telemetry
 			# Disabling the "Connected User Experiences and Telemetry" service (DiagTrack) can cause you not being able to get Xbox achievements anymore and affects Feedback Hub
-			LogInfo "Disabling the "Connected User Experiences and Telemetry" service"
+			LogInfo 'Disabling the "Connected User Experiences and Telemetry" service'
 			Get-Service -Name DiagTrack -ErrorAction SilentlyContinue | Stop-Service -Force -ErrorAction SilentlyContinue | Out-Null
 			Get-Service -Name DiagTrack | Set-Service -StartupType Disabled | Out-Null
 
@@ -1523,7 +1522,7 @@ function DiagTrackService
 		"Enable"
 		{
 			# Connected User Experiences and Telemetry
-			LogInfo "Enabling the "Connected User Experiences and Telemetry" service"
+			LogInfo 'Enabling the "Connected User Experiences and Telemetry" service'
 			Get-Service -Name DiagTrack | Set-Service -StartupType Automatic | Out-Null
 			Get-Service -Name DiagTrack | Start-Service | Out-Null
 
@@ -7317,111 +7316,98 @@ function NewsInterests
 {
 	param
 	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
+		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
+		[switch]$Disable,
 
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
+		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
+		[switch]$Enable
 	)
 
-	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name EnableFeeds -Force -ErrorAction SilentlyContinue | Out-Null
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\NewsAndInterests\AllowNewsAndInterests" -Name value -Force -ErrorAction SilentlyContinue | Out-Null
+	# Remove old policies silently
+	$null = Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds" -Name EnableFeeds -Force -ErrorAction SilentlyContinue
+	$null = Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\NewsAndInterests\AllowNewsAndInterests" -Name value -Force -ErrorAction SilentlyContinue
 
+	# Skip if Edge is not installed
 	if (-not (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction SilentlyContinue))
 	{
 		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-		#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		return
 	}
 
-	# We have to use GetValue() due to "Set-StrictMode -Version Latest"
+	# Get MachineId
 	$MachineId = [Microsoft.Win32.Registry]::GetValue("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\SQMClient", "MachineId", $null)
 	if (-not $MachineId)
 	{
 		LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-		#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		return
 	}
 
-	# https://forums.mydigitallife.net/threads/taskbarda-widgets-registry-change-is-now-blocked.88547/#post-1849006
-	$Signature = @{
-		Namespace          = "WinAPI"
-		Name               = "Signature"
-		Language           = "CSharp"
-		CompilerParameters = $CompilerParameters
-		MemberDefinition   = @"
+	# Add C# HashData type if missing
+	if (-not ("WinAPI.Signature" -as [type]))
+	{
+		$Signature = @{
+			Namespace          = "WinAPI"
+			Name               = "Signature"
+			Language           = "CSharp"
+			CompilerParameters = $CompilerParameters
+			MemberDefinition   = @"
 [DllImport("Shlwapi.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
 public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int outputLen);
 "@
-	}
-	if (-not ("WinAPI.Signature" -as [type]))
-	{
+		}
 		Add-Type @Signature | Out-Null
 	}
-
-	# We cannot set a value to EnShellFeedsTaskbarViewMode, having called any of APIs, except of copying powershell.exe (or any other tricks) with a different name, due to a UCPD driver tracks all executables to block the access to the registry
-	#Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
 			Write-Host "Disabling 'News and Interests' on the taskbar - " -NoNewline
-			LogInfo "Disabling 'News and Interests' on the taskbar"			
-			# Combine variables into a string
-			$Combined = $MachineId + '_' + 2
-			# Reverse the whole string
-			$CharArray = $Combined.ToCharArray()
-			[array]::Reverse($CharArray)
-			$Reverse = -join $CharArray
-			$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
-			$bytesOut = [byte[]]::new(4)
-			[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
-			# Get value to save in EnShellFeedsTaskbarViewMode key
-			$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
+			LogInfo "Disabling 'News and Interests' on the taskbar"
 
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 2 -Force -ErrorAction SilentlyContinue | Out-Null
-    		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
+			$null = {
+				$Combined = $MachineId + '_' + 2
+				$CharArray = $Combined.ToCharArray()
+				[array]::Reverse($CharArray)
+				$Reverse = -join $CharArray
+				$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
+				$bytesOut = [byte[]]::new(4)
+				[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
+				$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
+
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 2 -Force -ErrorAction SilentlyContinue | Out-Null
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
+			}.Invoke()
+
 			Write-Host "success!" -ForegroundColor Green
-			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -PropertyType DWord -Value 2 -Force} | Out-Null
-			# We need to use here an approach with "-Command & {}" as there's a variable inside
-			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name EnShellFeedsTaskbarViewMode -PropertyType DWord -Value $DWordData -Force}" | Out-Null
-			#Write-Host "success!" -ForegroundColor Green
 		}
+
 		"Enable"
 		{
 			Write-Host "Enabling 'News and Interests' on the taskbar - " -NoNewline
-			LogInfo "Enabling 'News and Interests' on the taskbar"						
-			# Combine variables into a string
-			$Combined = $MachineId + '_' + 0
-			# Reverse the whole string
-			$CharArray = $Combined.ToCharArray()
-			[array]::Reverse($CharArray)
-			$Reverse = -join $CharArray
-			$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
-			$bytesOut = [byte[]]::new(4)
-			[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
-			# Get value to save in EnShellFeedsTaskbarViewMode key
-			$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
+			LogInfo "Enabling 'News and Interests' on the taskbar"
 
-    		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-    		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
-    	    Write-Host " Success!" -ForegroundColor Green			
-			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -PropertyType DWord -Value 0 -Force} | Out-Null
-			# We need to use here an approach with "-Command & {}" as there's a variable inside
-			#& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name EnShellFeedsTaskbarViewMode -PropertyType DWord -Value $DWordData -Force}" | Out-Null
-			#Write-Host "success!" -ForegroundColor Green
+			$null = {
+				$Combined = $MachineId + '_' + 0
+				$CharArray = $Combined.ToCharArray()
+				[array]::Reverse($CharArray)
+				$Reverse = -join $CharArray
+				$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
+				$bytesOut = [byte[]]::new(4)
+				[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
+				$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
+
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
+			}.Invoke()
+
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
-
-	#Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force | Out-Null
 }
 
 <#
@@ -7714,8 +7700,9 @@ function SearchHighlights
 			else
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings -Name IsDynamicSearchBoxEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
@@ -8906,146 +8893,63 @@ function OneDrive
 	{
 		"Uninstall"
 		{
-			Write-Host "Uninstalling One Drive - " -NoNewline
-			LogInfo "Uninstalling One Drive"			
-			[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -ErrorAction Ignore | ForEach-Object -Process {$_.Meta.Attributes["UninstallString"]}
-			if (-not $UninstallString)
-			{
-				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-				#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
-			}
+		Write-Host "Uninstalling One Drive - " -NoNewline
+		LogInfo "Uninstalling One Drive"			
+		# Ensure UninstallString exists
+		[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -ErrorAction Ignore |
+   		ForEach-Object { $_.Meta.Attributes["UninstallString"] }
 
-			# Checking whether user is logged into OneDrive (Microsoft account)
-			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
-			if ($UserEmail)
-			{
-				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-				#LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
-			}
-
-			LogInfo $Localization.OneDriveUninstalling
-
-			Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction Ignore | Out-Null
-
-			# Getting link to the OneDriveSetup.exe and its argument(s)
-			[string[]]$OneDriveSetup = ($UninstallString -replace("\s*/", ",/")).Split(",").Trim()
-			if ($OneDriveSetup.Count -eq 2)
-			{
-				Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..1] -Wait | Out-Null
-			}
-			else
-			{
-				Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $OneDriveSetup[1..2] -Wait | Out-Null
-			}
-
-			# Get the OneDrive user folder path and remove it if it doesn't contain any user files
-			if (Test-Path -Path $env:OneDrive)
-			{
-				if ((Get-ChildItem -Path $env:OneDrive -ErrorAction Ignore | Measure-Object).Count -eq 0)
-				{
-					Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction Ignore | Out-Null
-
-					# https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexa
-					# The system does not move the file until the operating system is restarted
-					# The system moves the file immediately after AUTOCHK is executed, but before creating any paging files
-					$Script:Signature = @{
-						Namespace          = "WinAPI"
-						Name               = "DeleteFiles"
-						Language           = "CSharp"
-						CompilerParameters = $CompilerParameters
-						MemberDefinition   = @"
-public enum MoveFileFlags
-{
-	MOVEFILE_DELAY_UNTIL_REBOOT = 0x00000004
-}
-
-[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, MoveFileFlags dwFlags);
-
-public static bool MarkFileDelete (string sourcefile)
-{
-	return MoveFileEx(sourcefile, null, MoveFileFlags.MOVEFILE_DELAY_UNTIL_REBOOT);
-}
-"@
-					}
-
-					# If there are some files or folders left in %OneDrive%
-					if ((Get-ChildItem -Path $env:OneDrive -Force -ErrorAction Ignore | Measure-Object).Count -ne 0)
-					{
-						if (-not ("WinAPI.DeleteFiles" -as [type]))
-						{
-							Add-Type @Signature
-						}
-
-						try
-						{
-							Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction Stop | Out-Null
-						}
-						catch
-						{
-							# If files are in use remove them at the next boot
-							Get-ChildItem -Path $env:OneDrive -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)} | Out-Null
-						}
-					}
-				}
-				else
-				{
-					Start-Process -FilePath explorer -ArgumentList $env:OneDrive | Out-Null
-				}
-			}
-
-			Remove-ItemProperty -Path HKCU:\Environment -Name OneDrive, OneDriveConsumer -Force -ErrorAction Ignore | Out-Null
-			$Path = @(
-				"HKCU:\Software\Microsoft\OneDrive",
-				"$env:ProgramData\Microsoft OneDrive",
-				"$env:SystemDrive\OneDriveTemp"
-			)
-			Remove-Item -Path $Path -Recurse -Force -ErrorAction Ignore | Out-Null
-			Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false -ErrorAction Ignore | Out-Null
-
-			# Getting the OneDrive folder path and replacing quotes if exist
-			$OneDriveFolder = (Split-Path -Path (Split-Path -Path $OneDriveSetup[0] -Parent)) -replace '"', ""
-
-			# Do not restart File Explorer process automatically if it stops in order to unload libraries
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 0 -Force | Out-Null
-			# Kill all explorer instances in case "launch folder windows in a separate process" enabled
-			Get-Process -Name explorer | Stop-Process -Force | Out-Null
-			Start-Sleep -Seconds 3
-			# Restart File Explorer process automatically if it stops in order to unload libraries
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name AutoRestartShell -PropertyType DWord -Value 1 -Force | Out-Null
-
-			# Attempt to unregister FileSyncShell64.dll and remove
-			$FileSyncShell64dlls = Get-ChildItem -Path "$OneDriveFolder\*\FileSyncShell64.dll" -Force | Out-Null
-			foreach ($FileSyncShell64dll in $FileSyncShell64dlls.FullName)
-			{
-				Start-Process -FilePath regsvr32.exe -ArgumentList "/u /s $FileSyncShell64dll" -Wait | Out-Null
-				Remove-Item -Path $FileSyncShell64dll -Force -ErrorAction Ignore | Out-Null
-
-				if (Test-Path -Path $FileSyncShell64dll)
-				{
-					if (-not ("WinAPI.DeleteFiles" -as [type]))
-					{
-						Add-Type @Signature
-					}
-
-					# If files are in use remove them at the next boot
-					Get-ChildItem -Path $FileSyncShell64dll -Recurse -Force | ForEach-Object -Process {[WinAPI.DeleteFiles]::MarkFileDelete($_.FullName)} | Out-Null
-				}
-			}
-
-			# We need to wait for a few seconds to let explore launch unless it will fail to do so
-			Start-Process -FilePath explorer | Out-Null
-			Start-Sleep -Seconds 3
-
-			$Path = @(
-				$OneDriveFolder,
-				"$env:LOCALAPPDATA\OneDrive",
-				"$env:LOCALAPPDATA\Microsoft\OneDrive",
-				"$env:APPDATA\Microsoft\Windows\Start Menu\Programs\OneDrive.lnk"
-			)
-			Remove-Item -Path $Path -Recurse -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+		if (-not $UninstallString) {
+    	LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+   		 return
 		}
+
+		# Check user login
+		$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction Ignore
+		if ($UserEmail) {
+    	LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
+    	return
+		}
+
+		LogInfo $Localization.OneDriveUninstalling
+
+		# Kill OneDrive processes safely
+		Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction SilentlyContinue | Out-Null
+
+		# Split uninstall string safely
+		if ($UninstallString) {
+   		[string[]]$OneDriveSetup = ($UninstallString -replace("\s*/", ",/")).Split(",") | ForEach-Object { $_.Trim() }
+    	if ($OneDriveSetup -and $OneDriveSetup[0]) {
+        	$Arguments = if ($OneDriveSetup.Count -gt 1) { $OneDriveSetup[1..($OneDriveSetup.Count-1)] } else { @() }
+        	try {
+          	  Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $Arguments -Wait -ErrorAction SilentlyContinue | Out-Null
+        	} catch {
+          	  LogInfo "Skipping Start-Process because OneDriveSetup path is invalid."
+       	 	}
+    	}
+
+		# Safely remove OneDrive user folder if exists
+		if ($env:OneDrive -and (Test-Path -Path $env:OneDrive)) {
+  	    if ((Get-ChildItem -Path $env:OneDrive -ErrorAction Ignore | Measure-Object).Count -eq 0) {
+        Remove-Item -Path $env:OneDrive -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+    	} else {
+           Start-Process -FilePath explorer -ArgumentList $env:OneDrive -ErrorAction SilentlyContinue | Out-Null
+    	}
+	}
+
+	# Clean registry and leftover paths safely
+	$PathsToRemove = @(
+    "HKCU:\Software\Microsoft\OneDrive",
+    "$env:ProgramData\Microsoft OneDrive",
+    "$env:SystemDrive\OneDriveTemp"
+	)
+	Remove-Item -Path $PathsToRemove -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+	Remove-ItemProperty -Path HKCU:\Environment -Name OneDrive, OneDriveConsumer -Force -ErrorAction SilentlyContinue | Out-Null
+	Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
+
+	Write-Host "success!" -ForegroundColor Green
+		}
+	}
 		"Install"
 		{
 			Write-Host "Installing One Drive - " -NoNewline
@@ -10687,7 +10591,7 @@ function DeliveryOptimization
 			Write-Host "Disabling Delivery Optimization - " -NoNewline
 			LogInfo "Disabling Delivery Optimization"
 			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force | Out-Null
-			Delete-DeliveryOptimizationCache -Force | Out-Null
+			$null = & { Delete-DeliveryOptimizationCache -Force -ErrorAction SilentlyContinue }
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
@@ -11280,7 +11184,7 @@ function WindowsCapabilities
 		if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
 		{
 			#Write-Information -MessageData "" -InformationAction Continue
-			#Write-Warning -Message $Localization.RestartWarning
+			#LogWarning $Localization.RestartWarning
 		}
 		Write-Host "success!" -ForegroundColor Green
 	}
@@ -11303,14 +11207,14 @@ function WindowsCapabilities
 			if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
 			{
 				#Write-Information -MessageData "" -InformationAction Continue
-				#Write-Warning -Message $Localization.RestartWarning
+				#LogWarning $Localization.RestartWarning
 			}
 		}
 		catch [System.Runtime.InteropServices.COMException]
 		{
 			#LogWarning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
-			#LogError -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
-			#LogError -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+			LogError -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
+			LogError -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 		}
 		Write-Host "success!" -ForegroundColor Green
 	}
@@ -11370,8 +11274,8 @@ function WindowsCapabilities
 			catch [System.ComponentModel.Win32Exception]
 			{
 				#LogWarning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
-				#LogError -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
-				#LogError -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+				LogError -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice") -ErrorAction SilentlyContinue
+				LogError -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -12583,7 +12487,7 @@ function NetworkAdaptersSavePower
 	{
 		#Write-Information -MessageData "" -InformationAction Continue
 		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -12922,7 +12826,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			if ((Get-ChildItem -Path $CurrentUserFolderPath -ErrorAction SilentlyContinue | Measure-Object).Count -ne 0)
 			{
-				#Write-Error -Message ($Localization.UserShellFolderNotEmpty -f $CurrentUserFolderPath) -ErrorAction SilentlyContinue
+				LogError ($Localization.UserShellFolderNotEmpty -f $CurrentUserFolderPath) -ErrorAction SilentlyContinue
 			}
 		}
 	}
@@ -12940,8 +12844,8 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			if (-not $DriveLetters)
 			{
 				#Write-Information -MessageData "" -InformationAction Continue
-				#Write-Warning -Message $Localization.UserFolderLocationMove
-				#Write-Error -Message $Localization.UserFolderLocationMove -ErrorAction SilentlyContinue
+				#LogWarning $Localization.UserFolderLocationMove
+				LogError $Localization.UserFolderLocationMove -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -12952,7 +12856,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21769), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -12968,7 +12872,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -12981,7 +12885,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Personal
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21770), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -12997,7 +12901,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13010,7 +12914,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21798), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13026,7 +12930,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13039,7 +12943,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Music"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21790), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13055,7 +12959,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13068,7 +12972,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Pictures"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21779), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13084,7 +12988,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13097,7 +13001,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Video"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21791), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13113,7 +13017,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13130,7 +13034,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21769), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13168,7 +13072,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13181,7 +13085,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Personal
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21770), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13219,7 +13123,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13232,7 +13136,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21798), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13270,7 +13174,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13283,7 +13187,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Music"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21790), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13321,7 +13225,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13334,7 +13238,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Pictures"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21779), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13372,7 +13276,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13385,7 +13289,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Video"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21791), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13423,7 +13327,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13441,7 +13345,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Extract the localized "Desktop" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Desktop
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21769), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13457,7 +13361,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13471,7 +13375,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Extract the localized "Documents" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name Personal
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21770), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13487,7 +13391,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13501,7 +13405,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Extract the localized "Downloads" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21798), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13517,7 +13421,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13531,7 +13435,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Extract the localized "Music" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Music"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21790), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13547,7 +13451,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13561,7 +13465,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Extract the localized "Pictures" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Pictures"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21779), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13577,7 +13481,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13591,7 +13495,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 			# Extract the localized "Pictures" string from shell32.dll
 			$CurrentUserFolderLocation = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "My Video"
 			Write-Verbose -Message ($Localization.CurrentUserFolderLocation -f [WinAPI.GetStrings]::GetString(21791), $CurrentUserFolderLocation) -Verbose
-			Write-Warning -Message $Localization.FilesWontBeMoved
+			LogWarning $Localization.FilesWontBeMoved
 
 			do
 			{
@@ -13607,7 +13511,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					{
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 					$KeyboardArrows {}
 				}
@@ -13729,12 +13633,12 @@ function WinPrtScrFolder
 			if ($UserEmail)
 			{
 				#Write-Information -MessageData "" -InformationAction Continue
-				#Write-Warning -Message $Localization.OneDriveWarning
-				#Write-Error -Message $Localization.OneDriveWarning -ErrorAction SilentlyContinue
+				#LogWarning $Localization.OneDriveWarning
+				LogError $Localization.OneDriveWarning -ErrorAction SilentlyContinue
 
 				#Write-Information -MessageData "" -InformationAction Continue
 				#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-				#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+				LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 				return
 			}
@@ -13760,12 +13664,12 @@ function WinPrtScrFolder
 					}
 					else
 					{
-						#Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-						#Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#LogWarning ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
+						LogError ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 				}
 			}
@@ -13784,12 +13688,12 @@ function WinPrtScrFolder
 					}
 					else
 					{
-						#Write-Warning -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-						#Write-Error -Message ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#LogWarning ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
+						LogError ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 						#Write-Information -MessageData "" -InformationAction Continue
 						#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-						#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 					}
 				}
 			}
@@ -13937,8 +13841,8 @@ function ReservedStorage
 			}
 			catch [System.Runtime.InteropServices.COMException]
 			{
-				#Write-Warning -Message ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim())
-				#Write-Error -Message ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+				#LogWarning ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim())
+				LogError ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 			}
 		}
 		"Enable"
@@ -14449,11 +14353,11 @@ function Set-Association
 			# We cannot call here $MyInvocation.Line.Trim() to print function with error
 			if ($Icon)
 			{
-				#Write-Error -Message ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension $Extension -Icon `"$Icon`"") -ErrorAction SilentlyContinue
+				LogError ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension $Extension -Icon `"$Icon`"") -ErrorAction SilentlyContinue
 			}
 			else
 			{
-				#Write-Error -Message ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension $Extension") -ErrorAction SilentlyContinue
+				LogError ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension $Extension") -ErrorAction SilentlyContinue
 			}
 
 			return
@@ -14467,11 +14371,11 @@ function Set-Association
 			# We cannot call here $MyInvocation.Line.Trim() to print function with error
 			if ($Icon)
 			{
-				#Write-Error -Message ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension `"$Extension`" -Icon `"$Icon`"") -ErrorAction SilentlyContinue
+				LogError ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension `"$Extension`" -Icon `"$Icon`"") -ErrorAction SilentlyContinue
 			}
 			else
 			{
-				#Write-Error -Message ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension `"$Extension`"") -ErrorAction SilentlyContinue
+				LogError ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension `"$Extension`"") -ErrorAction SilentlyContinue
 			}
 
 			return
@@ -15513,8 +15417,8 @@ function Import-Associations
 		}
 		catch [System.Exception]
 		{
-			#Write-Warning -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-			#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+			#LogWarning ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+			LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 			return
 		}
@@ -15722,9 +15626,9 @@ function Install-VCRedist
 					}
 					catch [System.Net.WebException]
 					{
-						#Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-						#Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
-						#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#LogWarning ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+						LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 						return
 					}
@@ -15733,7 +15637,7 @@ function Install-VCRedist
 				{
 					#Write-Information -MessageData "" -InformationAction Continue
 					#Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
-					#Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
 				}
 				Write-Host "success!" -ForegroundColor Green
 			}
@@ -15754,9 +15658,9 @@ function Install-VCRedist
 					}
 					catch [System.Net.WebException]
 					{
-						#Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-						#Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
-						#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#LogWarning ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+						LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 						return
 					}
@@ -15781,7 +15685,7 @@ function Install-VCRedist
 				{
 					#Write-Information -MessageData "" -InformationAction Continue
 					#Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
-					#Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
 				}
 				Write-Host "success!" -ForegroundColor Green
 			}
@@ -15843,9 +15747,9 @@ function Install-DotNetRuntimes
 				}
 				catch [System.Net.WebException]
 				{
-					#Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-					#Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
-					#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					#LogWarning ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -15878,9 +15782,9 @@ function Install-DotNetRuntimes
 					}
 					catch [System.Net.WebException]
 					{
-						#Write-Warning -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
-						#Write-Error -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com") -ErrorAction SilentlyContinue
-						#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#LogWarning ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
+						LogError ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com") -ErrorAction SilentlyContinue
+						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 						return
 					}
@@ -15905,7 +15809,7 @@ function Install-DotNetRuntimes
 				{
 					#Write-Information -MessageData "" -InformationAction Continue
 					#Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
-					#Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
 				}
 				Write-Host "success!" -ForegroundColor Green
 			}
@@ -15924,9 +15828,9 @@ function Install-DotNetRuntimes
 				}
 				catch [System.Net.WebException]
 				{
-					#Write-Warning -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-					#Write-Error -Message ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
-					#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					#LogWarning ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com") -ErrorAction SilentlyContinue
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -15959,9 +15863,9 @@ function Install-DotNetRuntimes
 					}
 					catch [System.Net.WebException]
 					{
-						#Write-Warning -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
-						#Write-Error -Message ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com") -ErrorAction SilentlyContinue
-						#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+						#LogWarning ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
+						LogError ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com") -ErrorAction SilentlyContinue
+						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 						return
 					}
@@ -15986,7 +15890,7 @@ function Install-DotNetRuntimes
 				{
 					#Write-Information -MessageData "" -InformationAction Continue
 					#Write-Verbose -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -Verbose
-					#Write-Error -Message ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
+					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) -ErrorAction SilentlyContinue
 				}
 				Write-Host "success!" -ForegroundColor Green
 			}
@@ -16038,7 +15942,7 @@ function PreventEdgeShortcutCreation
 	{
 		#Write-Information -MessageData "" -InformationAction Continue
 		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		#Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -16214,9 +16118,9 @@ function Install-WSL
 	}
 	catch [System.Net.WebException]
 	{
-		#Write-Warning -Message ($Localization.NoResponse -f "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json")
-		#Write-Error -Message ($Localization.NoResponse -f "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json") -ErrorAction SilentlyContinue
-		#Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#LogWarning ($Localization.NoResponse -f "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json")
+		LogError ($Localization.NoResponse -f "https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json") -ErrorAction SilentlyContinue
+		LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -16286,7 +16190,7 @@ function Install-WSL
 
 	function ButtonInstallClicked
 	{
-		#Write-Warning -Message $Script:CommandTag
+		#LogWarning $Script:CommandTag
 		Write-Host "Installing $Script:CommandTag distribution - " -NoNewline
 		LogInfo "Installing $Script:CommandTag distribution"
 		Start-Process -FilePath wsl.exe -ArgumentList "--install --distribution $Script:CommandTag" -Wait
@@ -17026,27 +16930,33 @@ function CortanaAutostart
 
 	if (-not (Get-AppxPackage -Name Microsoft.549981C3F5F10))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
 	if (-not (Test-Path -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId"))
 	{
-		New-Item -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Force
+		New-Item -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Force | Out-Null
 	}
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 1 -Force
+			Write-Host "Disabling Cortana autostarting - " -NoNewline
+			LogInfo "Disabling Cortana autostarting"
+			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 2 -Force
+			Write-Host "Enabling Cortana autostarting - " -NoNewline
+			LogInfo "Enabling Cortana autostarting"
+			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 2 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -17098,13 +17008,19 @@ function XboxGameBar
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force
-			New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling Xbox Game Bar - " -NoNewline
+			LogInfo "Disabling Xbox Game Bar"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling Xbox Game Bar - " -NoNewline
+			LogInfo "Enabling Xbox Game Bar"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -17149,9 +17065,9 @@ function XboxGameTips
 
 	if (-not (Get-AppxPackage -Name Microsoft.GamingApp))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -17160,11 +17076,17 @@ function XboxGameTips
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force
+			Write-Host "Disabling Xbox Game Bar tips - " -NoNewline
+			LogInfo "Disabling Xbox Game Bar tips"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force
+			Write-Host "Enabling Xbox Game Bar tips - " -NoNewline
+			LogInfo "Enabling Xbox Game Bar tips"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -17186,9 +17108,11 @@ function Set-AppGraphicsPerformance
 {
 	if (Get-CimInstance -ClassName Win32_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)})
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message $Localization.GraphicsPerformanceTitle -Verbose
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message $Localization.GraphicsPerformanceTitle -Verbose
 
+		Write-Host "Selecting an app to set the 'High performance' graphics performance - " -NoNewline
+		LogInfo "Selecting an app to set the 'High performance' graphics performance"
 		do
 		{
 			$Choice = Show-Menu -Menu $Browse -Default 1 -AddSkip
@@ -17211,21 +17135,22 @@ function Set-AppGraphicsPerformance
 					{
 						if (-not (Test-Path -Path HKCU:\Software\Microsoft\DirectX\UserGpuPreferences))
 						{
-							New-Item -Path HKCU:\Software\Microsoft\DirectX\UserGpuPreferences -Force
+							New-Item -Path HKCU:\Software\Microsoft\DirectX\UserGpuPreferences -Force | Out-Null
 						}
-						New-ItemProperty -Path HKCU:\Software\Microsoft\DirectX\UserGpuPreferences -Name $OpenFileDialog.FileName -PropertyType String -Value "GpuPreference=2;" -Force
+						New-ItemProperty -Path HKCU:\Software\Microsoft\DirectX\UserGpuPreferences -Name $OpenFileDialog.FileName -PropertyType String -Value "GpuPreference=2;" -Force | Out-Null
 					}
 				}
 				$Skip
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-					Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+					LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 				}
 				$KeyboardArrows {}
 			}
 		}
 		until ($Choice -ne $KeyboardArrows)
+		Write-Host "success!" -ForegroundColor Green
 	}
 }
 
@@ -17274,6 +17199,8 @@ function GPUScheduling
 	{
 		"Enable"
 		{
+			Write-Host "Enabling hardware-accelerated GPU scheduling - " -NoNewline
+			LogInfo "Enabling hardware-accelerated GPU scheduling"
 			# Determining whether PC has an external graphics card
 			$AdapterDACType = Get-CimInstance -ClassName CIM_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)}
 			# Determining whether an OS is not installed on a virtual machine
@@ -17283,12 +17210,16 @@ function GPUScheduling
 
 			if ($AdapterDACType -and ($ComputerSystemModel -notmatch "Virtual") -and ($WddmVersion_Min -ge 2700))
 			{
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 2 -Force
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 2 -Force | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 1 -Force
+			Write-Host "Disabling hardware-accelerated GPU scheduling - " -NoNewline
+			LogInfo "Disabling hardware-accelerated GPU scheduling"
+			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -17343,37 +17274,39 @@ function CleanupTask
 	{
 		"Register"
 		{
+			Write-Host "Registering the 'Windows Cleanup' scheduled task for cleaning up Windows unused files and updates - " -NoNewline
+			LogInfo "Registering the 'Windows Cleanup' scheduled task for cleaning up Windows unused files and updates"
 			# Enable notifications in Action Center
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
 
 			# Remove registry keys if Windows Script Host is disabled
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore | Out-Null
 
 			# Enable notifications
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore | Out-Null
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
 
 			# Checking whether VBS engine is enabled
 			if ((Get-WindowsCapability -Online -Name VBSCRIPT*).State -ne "Installed")
 			{
 				try
 				{
-					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online
+					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online | Out-Null
 				}
 				catch
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Warning -Message ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
-					Write-Information -MessageData "" -InformationAction Continue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#LogWarning ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
+					#Write-Information -MessageData "" -InformationAction Continue
 					exit
 				}
 			}
 
 			# Checking if we're trying to create the task when it was already created as another user
-			if (Get-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName "Windows Cleanup" -ErrorAction Ignore)
+			if (Get-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName "Windows Cleanup" -ErrorAction SilentlyContinue | Out-Null)
 			{
 				# Also we can parse "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows Cleanup" to сheck whether the task was created
 				$ScheduleService = New-Object -ComObject Schedule.Service
@@ -17388,9 +17321,9 @@ function CleanupTask
 
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Warning -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
-					Write-Error -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#LogWarning ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
+					LogError ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -17399,7 +17332,7 @@ function CleanupTask
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
 			Get-ScheduledTask -TaskPath "\Win10_11Util Script\" -ErrorAction Ignore | ForEach-Object -Process {
-				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore | Out-Null
 			}
 
 			# Remove folders in Task Scheduler. We cannot remove all old folders explicitly and not get errors if any of folders do not exist
@@ -17411,7 +17344,7 @@ function CleanupTask
 			}
 	
 			Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches | ForEach-Object -Process {
-				Remove-ItemProperty -Path $_.PsPath -Name StateFlags1337 -Force -ErrorAction Ignore
+				Remove-ItemProperty -Path $_.PsPath -Name StateFlags1337 -Force -ErrorAction Ignore | Out-Null
 			}
 
 			$VolumeCaches = @(
@@ -17435,38 +17368,38 @@ function CleanupTask
 			{
 				if (-not (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\$VolumeCache"))
 				{
-					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\$VolumeCache" -Force
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\$VolumeCache" -Force | Out-Null
 				}
-				New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\$VolumeCache" -Name StateFlags1337 -PropertyType DWord -Value 2 -Force
+				New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\$VolumeCache" -Name StateFlags1337 -PropertyType DWord -Value 2 -Force | Out-Null
 			}
 
 			# Persist Win10_11Util notifications to prevent to immediately disappear from Action Center
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util))
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Force
+				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Name ShowInActionCenter -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Name ShowInActionCenter -PropertyType DWord -Value 1 -Force | Out-Null
 
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Force | Out-Null
 			}
 			# Register app
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name DisplayName -Value Win10_11Util -PropertyType String -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name DisplayName -Value Win10_11Util -PropertyType String -Force | Out-Null
 			# Determines whether the app can be seen in Settings where the user can turn notifications on or off
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name ShowInSettings -Value 0 -PropertyType DWord -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name ShowInSettings -Value 0 -PropertyType DWord -Force | Out-Null
 
 			# Register the "WindowsCleanup" protocol to be able to run the scheduled task by clicking the "Run" button in a toast
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup\shell\open\command))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup\shell\open\command -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup\shell\open\command -Force | Out-Null
 			}
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Name "(default)" -PropertyType String -Value "URL:WindowsCleanup" -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Name "URL Protocol" -PropertyType String -Value "" -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Name EditFlags -PropertyType DWord -Value 2162688 -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Name "(default)" -PropertyType String -Value "URL:WindowsCleanup" -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Name "URL Protocol" -PropertyType String -Value "" -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Name EditFlags -PropertyType DWord -Value 2162688 -Force | Out-Null
 
 			# Start the "Windows Cleanup" task if the "Run" button clicked
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup\shell\open\command -Name "(default)" -PropertyType String -Value 'powershell.exe -Command "& {Start-ScheduledTask -TaskPath ''\Win10_11Util\'' -TaskName ''Windows Cleanup''}"' -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup\shell\open\command -Name "(default)" -PropertyType String -Value 'powershell.exe -Command "& {Start-ScheduledTask -TaskPath ''\Win10_11Util\'' -TaskName ''Windows Cleanup''}"' -Force | Out-Null
 
 			$CleanupTaskPS = @"
 
@@ -17498,10 +17431,10 @@ Start-Sleep -Seconds 3
 			# Save script to be able to call them from VBS file
 			if (-not (Test-Path -Path $env:SystemRoot\System32\Tasks\Win10_11Util))
 			{
-				New-Item -Path $env:SystemRoot\System32\Tasks\Win10_11Util -ItemType Directory -Force
+				New-Item -Path $env:SystemRoot\System32\Tasks\Win10_11Util -ItemType Directory -Force | Out-Null
 			}
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup.ps1" -Value $CleanupTaskPS -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup.ps1" -Value $CleanupTaskPS -Encoding UTF8 -Force | Out-Null
 
 			# Create vbs script that will help us calling Windows_Cleanup.ps1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
 			$CleanupTaskVBS = @"
@@ -17509,7 +17442,7 @@ Start-Sleep -Seconds 3
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Win10_11Util\Windows_Cleanup.ps1", 0
 "@
 			# Save in UTF8 without BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup.vbs" -Value $CleanupTaskVBS -Encoding Default -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup.vbs" -Value $CleanupTaskVBS -Encoding Default -Force | Out-Null
 
 			# Create "Windows Cleanup" task
 			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
@@ -17525,12 +17458,12 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Description = $Localization.CleanupTaskDescription -f $env:USERNAME
 				Settings    = $Settings
 			}
-			Register-ScheduledTask @Parameters -Force
+			Register-ScheduledTask @Parameters -Force | Out-Null
 
 			# Set author for scheduled task
 			$Task = Get-ScheduledTask -TaskName "Windows Cleanup"
 			$Task.Author = "sdmanson8"
-			$Task | Set-ScheduledTask
+			$Task | Set-ScheduledTask | Out-Null
 
 			# We have to call PowerShell script via another VBS script silently because VBS has appropriate feature to suppress console appearing (none of other workarounds work)
 			# powershell.exe process wakes up system anyway even from turned on Focus Assist mode (not a notification toast)
@@ -17652,9 +17585,9 @@ while ([WinAPI.Focus]::GetFocusAssistState() -ne "OFF")
 "@
 
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1" -Value $ToastNotificationPS -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1" -Value $ToastNotificationPS -Encoding UTF8 -Force | Out-Null
 			# Replace here-string double quotes with single ones
-			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1" -Encoding UTF8 -Force
+			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1" -Encoding UTF8 -Force | Out-Null
 
 			# Create vbs script that will help us calling Windows_Cleanup_Notification.ps1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
 			$ToastNotificationVBS = @"
@@ -17662,7 +17595,7 @@ while ([WinAPI.Focus]::GetFocusAssistState() -ne "OFF")
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.ps1", 0
 "@
 			# Save in UTF8 without BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.vbs" -Value $ToastNotificationVBS -Encoding Default -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.vbs" -Value $ToastNotificationVBS -Encoding Default -Force | Out-Null
 
 			# Create the "Windows Cleanup Notification" task
 			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
@@ -17680,18 +17613,21 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Trigger     = $Trigger
 				Description = $Localization.CleanupNotificationTaskDescription -f $env:USERNAME
 			}
-			Register-ScheduledTask @Parameters -Force
+			Register-ScheduledTask @Parameters -Force | Out-Null
 
 			# Set author for scheduled task
 			$Task = Get-ScheduledTask -TaskName "Windows Cleanup Notification"
 			$Task.Author = "sdmanson8"
-			$Task | Set-ScheduledTask
+			$Task | Set-ScheduledTask | Out-Null
 
 			# Start Task Scheduler in the end if any scheduled task was created
-			$Script:ScheduledTasks = $true
+			$Script:ScheduledTasks = $true | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Delete"
 		{
+			Write-Host "Deleting the 'Windows Cleanup' and 'Windows Cleanup Notification' scheduled tasks for cleanup - " -NoNewline
+			LogInfo "Deleting the 'Windows Cleanup' and 'Windows Cleanup Notification' scheduled tasks for cleanup"
 			# Remove files first unless we cannot remove folder if there's no more tasks there
 			$Paths = @(
 				"$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup_Notification.vbs",
@@ -17699,12 +17635,12 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				"$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup.ps1",
 				"$env:SystemRoot\System32\Tasks\Win10_11Util\Windows_Cleanup.vbs"
 			)
-			Remove-Item -Path $Paths -Force -ErrorAction Ignore
+			Remove-Item -Path $Paths -Force -ErrorAction Ignore | Out-Null
 
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
 			Get-ScheduledTask -TaskPath "\Win10_11Util Script\" -ErrorAction Ignore | ForEach-Object -Process {
-				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore | Out-Null
 			}
 
 			# Remove folder in Task Scheduler if there is no tasks left there. We cannot remove all old folders explicitly and not get errors if any of folders do not exist
@@ -17716,12 +17652,12 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			}
 			
 			# Removing current task
-			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName "Windows Cleanup", "Windows Cleanup Notification" -Confirm:$false -ErrorAction Ignore
+			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName "Windows Cleanup", "Windows Cleanup Notification" -Confirm:$false -ErrorAction Ignore | Out-Null
 
 			Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches | ForEach-Object -Process {
-				Remove-ItemProperty -Path $_.PsPath -Name StateFlags1337 -Force -ErrorAction Ignore
+				Remove-ItemProperty -Path $_.PsPath -Name StateFlags1337 -Force -ErrorAction Ignore | Out-Null
 			}
-			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Recurse -Force -ErrorAction Ignore
+			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\WindowsCleanup -Recurse -Force -ErrorAction Ignore | Out-Null
 
 			# Remove folder in Task Scheduler if there is no tasks left there
 			if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Win10_11Util")
@@ -17731,6 +17667,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 					$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util", $null)
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -17783,37 +17720,39 @@ function SoftwareDistributionTask
 	{
 		"Register"
 		{
+			Write-Host "Registering the 'SoftwareDistribution' scheduled task for cleanup - " -NoNewline
+			LogInfo "Registering the 'SoftwareDistribution' scheduled task for cleanup"
 			# Enable notifications in Action Center
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
 
 			# Remove registry keys if Windows Script Host is disabled
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction SilentlyContinue | Out-Null
 
 			# Enable notifications
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
 
 			# Checking whether VBS engine is enabled
 			if ((Get-WindowsCapability -Online -Name VBSCRIPT*).State -ne "Installed")
 			{
 				try
 				{
-					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online
+					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online | Out-Null
 				}
 				catch
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Warning -Message ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
-					Write-Information -MessageData "" -InformationAction Continue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#LogWarning ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
+					#Write-Information -MessageData "" -InformationAction Continue
 					exit
 				}
 			}
 
 			# Checking if we're trying to create the task when it was already created as another user
-			if (Get-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName SoftwareDistribution -ErrorAction Ignore)
+			if (Get-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName SoftwareDistribution -ErrorAction Ignore | Out-Null)
 			{
 				# Also we can parse $env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistribution to сheck whether the task was created
 				$ScheduleService = New-Object -ComObject Schedule.Service
@@ -17828,9 +17767,9 @@ function SoftwareDistributionTask
 
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Warning -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
-					Write-Error -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#LogWarning ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
+					LogError ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -17839,7 +17778,7 @@ function SoftwareDistributionTask
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
 			Get-ScheduledTask -TaskPath "\Win10_11Util Script\" -ErrorAction Ignore | ForEach-Object -Process {
-				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore | Out-Null
 			}
 
 			# Remove folders in Task Scheduler. We cannot remove all old folders explicitly and not get errors if any of folders do not exist
@@ -17853,18 +17792,18 @@ function SoftwareDistributionTask
 			# Persist Win10_11Util notifications to prevent to immediately disappear from Action Center
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util))
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Force
+				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Name ShowInActionCenter -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Name ShowInActionCenter -PropertyType DWord -Value 1 -Force | Out-Null
 
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Force | Out-Null
 			}
 			# Register app
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name DisplayName -Value Win10_11Util -PropertyType String -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name DisplayName -Value Win10_11Util -PropertyType String -Force | Out-Null
 			# Determines whether the app can be seen in Settings where the user can turn notifications on or off
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name ShowInSettings -Value 0 -PropertyType DWord -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name ShowInSettings -Value 0 -PropertyType DWord -Force | Out-Null
 
 			# We have to call PowerShell script via another VBS script silently because VBS has appropriate feature to suppress console appearing (none of other workarounds work)
 			# powershell.exe process wakes up system anyway even from turned on Focus Assist mode (not a notification toast)
@@ -17983,12 +17922,12 @@ Get-ChildItem -Path `$env:SystemRoot\SoftwareDistribution\Download -Recurse -For
 			# Save script to be able to call them from VBS file
 			if (-not (Test-Path -Path $env:SystemRoot\System32\Tasks\Win10_11Util))
 			{
-				New-Item -Path $env:SystemRoot\System32\Tasks\Win10_11Util -ItemType Directory -Force
+				New-Item -Path $env:SystemRoot\System32\Tasks\Win10_11Util -ItemType Directory -Force | Out-Null
 			}
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Value $SoftwareDistributionTaskPS -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Value $SoftwareDistributionTaskPS -Encoding UTF8 -Force | Out-Null
 			# Replace here-string double quotes with single ones
-			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Encoding UTF8 -Force
+			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Encoding UTF8 -Force | Out-Null
 
 			# Create vbs script that will help us calling PS1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
 			$SoftwareDistributionTaskVBS = @"
@@ -17996,7 +17935,7 @@ Get-ChildItem -Path `$env:SystemRoot\SoftwareDistribution\Download -Recurse -For
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1", 0
 "@
 			# Save in UTF8 without BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.vbs" -Value $SoftwareDistributionTaskVBS -Encoding Default -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.vbs" -Value $SoftwareDistributionTaskVBS -Encoding Default -Force | Out-Null
 
 			# Create the "SoftwareDistribution" task
 			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
@@ -18014,24 +17953,27 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Trigger     = $Trigger
 				Description = $Localization.FolderTaskDescription -f "%SystemRoot%\SoftwareDistribution\Download", $env:USERNAME
 			}
-			Register-ScheduledTask @Parameters -Force
+			Register-ScheduledTask @Parameters -Force | Out-Null
 
 			# Set author for scheduled task
 			$Task = Get-ScheduledTask -TaskName "SoftwareDistribution"
 			$Task.Author = "sdmanson8"
-			$Task | Set-ScheduledTask
+			$Task | Set-ScheduledTask | Out-Null
 
 			$Script:ScheduledTasks = $true
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Delete"
 		{
+			Write-Host "Deleting the 'SoftwareDistribution' scheduled task for cleanup - " -NoNewline
+			LogInfo "Deleting the 'SoftwareDistribution' scheduled task for cleanup"
 			# Remove files first unless we cannot remove folder if there's no more tasks there
-			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.vbs", "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Force -ErrorAction Ignore
+			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.vbs", "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Force -ErrorAction SilentlyContinue | Out-Null
 
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
 			Get-ScheduledTask -TaskPath "\Win10_11Util Script\" -ErrorAction Ignore | ForEach-Object -Process {
-				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore | Out-Null
 			}
 
 			# Remove folder in Task Scheduler if there is no tasks left there. We cannot remove all old folders explicitly and not get errors if any of folders do not exist
@@ -18043,7 +17985,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			}
 
 			# Removing current task
-			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName SoftwareDistribution -Confirm:$false -ErrorAction Ignore
+			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName SoftwareDistribution -Confirm:$false -ErrorAction Ignore | Out-Null
 
 			# Remove folder in Task Scheduler if there is no tasks left there
 			if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Win10_11Util")
@@ -18053,6 +17995,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 					$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util", $null)
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18105,37 +18048,39 @@ function TempTask
 	{
 		"Register"
 		{
+			Write-Host "Registering the 'Temp' scheduled task for cleaning up the %TEMP% folder - " -NoNewline
+			LogInfo "Registering the 'Temp' scheduled task for cleaning up the %TEMP% folder"
 			# Enable notifications in Action Center
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
 
 			# Remove registry keys if Windows Script Host is disabled
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings", "HKLM:\SOFTWARE\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction SilentlyContinue | Out-Null
 
 			# Enable notifications
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications -Name ToastEnabled -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CurrentVersion\PushNotifications -Name NoToastApplicationNotification -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Type CLEAR | Out-Null
 
 			# Checking whether VBS engine is enabled
 			if ((Get-WindowsCapability -Online -Name VBSCRIPT*).State -ne "Installed")
 			{
 				try
 				{
-					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online
+					Get-WindowsCapability -Online -Name VBSCRIPT* | Add-WindowsCapability -Online | Out-Null
 				}
 				catch
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Warning -Message ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
-					Write-Information -MessageData "" -InformationAction Continue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#LogWarning ($Localization.WindowsComponentBroken -f (Get-WindowsCapability -Online -Name VBSCRIPT*).DisplayName)
+					#Write-Information -MessageData "" -InformationAction Continue
 					exit
 				}
 			}
 
 			# Checking if we're trying to create the task when it was already created as another user
-			if (Get-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName Temp -ErrorAction Ignore)
+			if (Get-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName Temp -ErrorAction Ignore | Out-Null)
 			{
 				# Also we can parse $env:SystemRoot\System32\Tasks\Win10_11Util\Temp to сheck whether the task was created
 				$ScheduleService = New-Object -ComObject Schedule.Service
@@ -18150,9 +18095,9 @@ function TempTask
 
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Warning -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
-					Write-Error -Message ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#LogWarning ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
+					LogError ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount) -ErrorAction SilentlyContinue
 
 					return
 				}
@@ -18161,7 +18106,7 @@ function TempTask
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
 			Get-ScheduledTask -TaskPath "\Win10_11Util Script\" -ErrorAction Ignore | ForEach-Object -Process {
-				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore | Out-Null
 			}
 
 			# Remove folders in Task Scheduler. We cannot remove all old folders explicitly and not get errors if any of folders do not exist
@@ -18175,18 +18120,18 @@ function TempTask
 			# Persist Win10_11Util notifications to prevent to immediately disappear from Action Center
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util))
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Force
+				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Name ShowInActionCenter -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings\Win10_11Util -Name ShowInActionCenter -PropertyType DWord -Value 1 -Force | Out-Null
 
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Force | Out-Null
 			}
 			# Register app
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name DisplayName -Value Win10_11Util -PropertyType String -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name DisplayName -Value Win10_11Util -PropertyType String -Force | Out-Null
 			# Determines whether the app can be seen in Settings where the user can turn notifications on or off
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name ShowInSettings -Value 0 -PropertyType DWord -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\AppUserModelId\Win10_11Util -Name ShowInSettings -Value 0 -PropertyType DWord -Force | Out-Null
 
 			# We have to call PowerShell script via another VBS script silently because VBS has appropriate feature to suppress console appearing (none of other workarounds work)
 			# powershell.exe process wakes up system anyway even from turned on Focus Assist mode (not a notification toast)
@@ -18319,12 +18264,12 @@ Remove-Item -Path `$Paths -Recurse -Force
 			# Save script to be able to call them from VBS file
 			if (-not (Test-Path -Path $env:SystemRoot\System32\Tasks\Win10_11Util))
 			{
-				New-Item -Path $env:SystemRoot\System32\Tasks\Win10_11Util -ItemType Directory -Force
+				New-Item -Path $env:SystemRoot\System32\Tasks\Win10_11Util -ItemType Directory -Force | Out-Null
 			}
 			# Save in UTF8 with BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Value $TempTaskPS -Encoding UTF8 -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Value $TempTaskPS -Encoding UTF8 -Force | Out-Null
 			# Replace here-string double quotes with single ones
-			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Encoding UTF8 -Force
+			(Get-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Encoding UTF8).Replace('@""', '@"').Replace('""@', '"@') | Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Encoding UTF8 -Force | Out-Null
 
 			# Create vbs script that will help us calling PS1 script silently, without interrupting system from Focus Assist mode turned on, when a powershell.exe console pops up
 			$TempTaskVBS = @"
@@ -18332,7 +18277,7 @@ Remove-Item -Path `$Paths -Recurse -Force
 CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoProfile -NoLogo -WindowStyle Hidden -File %SystemRoot%\System32\Tasks\Win10_11Util\TempTask.ps1", 0
 "@
 			# Save in UTF8 without BOM
-			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.vbs" -Value $TempTaskVBS -Encoding Default -Force
+			Set-Content -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.vbs" -Value $TempTaskVBS -Encoding Default -Force | Out-Null
 
 			# Create the "Temp" task
 			# We cannot create a schedule task if %COMPUTERNAME% is equal to %USERNAME%, so we have to use a "$env:COMPUTERNAME\$env:USERNAME" method
@@ -18350,24 +18295,27 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 				Trigger     = $Trigger
 				Description = $Localization.FolderTaskDescription -f "%TEMP%", $env:USERNAME
 			}
-			Register-ScheduledTask @Parameters -Force
+			Register-ScheduledTask @Parameters -Force | Out-Null
 
 			# Set author for scheduled task
 			$Task = Get-ScheduledTask -TaskName "Temp"
 			$Task.Author = "sdmanson8"
-			$Task | Set-ScheduledTask
+			$Task | Set-ScheduledTask | Out-Null
 
 			$Script:ScheduledTasks = $true
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Delete"
 		{
+			Write-Host "Deleting the 'Temp' scheduled task for cleaning up the %TEMP% folder - " -NoNewline
+			LogInfo "Deleting the 'Temp' scheduled task for cleaning up the %TEMP% folder"
 			# Remove files first unless we cannot remove folder if there's no more tasks there
-			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.vbs", "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Force -ErrorAction Ignore
+			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.vbs", "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Force -ErrorAction SilentlyContinue | Out-Null
 
 			# Remove all old tasks
 			# We have to use -ErrorAction Ignore in both cases, unless we get an error
 			Get-ScheduledTask -TaskPath "\Win10_11Util Script\" -ErrorAction Ignore | ForEach-Object -Process {
-				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore
+				Unregister-ScheduledTask -TaskName $_.TaskName -Confirm:$false -ErrorAction Ignore | Out-Null
 			}
 
 			# Remove folder in Task Scheduler if there is no tasks left there. We cannot remove all old folders explicitly and not get errors if any of folders do not exist
@@ -18379,7 +18327,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			}
 	
 			# Removing current task
-			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName Temp -Confirm:$false -ErrorAction Ignore
+			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName Temp -Confirm:$false -ErrorAction Ignore | Out-Null
 
 			# Remove folder in Task Scheduler if there is no tasks left there
 			if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\Win10_11Util")
@@ -18389,6 +18337,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 					$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util", $null)
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18435,9 +18384,9 @@ function NetworkProtection
 
 	if (-not $Script:DefenderEnabled)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -18446,11 +18395,17 @@ function NetworkProtection
 	{
 		"Enable"
 		{
-			Set-MpPreference -EnableNetworkProtection Enabled
+			Write-Host "Enabling Microsoft Defender Exploit Guard network protection - " -NoNewline
+			Loginfo "Enabling Microsoft Defender Exploit Guard network protection"
+			Set-MpPreference -EnableNetworkProtection Enabled | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-MpPreference -EnableNetworkProtection Disabled
+			Write-Host "Disabling Microsoft Defender Exploit Guard network protection - " -NoNewline
+			Loginfo "Disabling Microsoft Defender Exploit Guard network protection"
+			Set-MpPreference -EnableNetworkProtection Disabled | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18495,9 +18450,9 @@ function PUAppsDetection
 
 	if (-not $Script:DefenderEnabled)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -18506,11 +18461,17 @@ function PUAppsDetection
 	{
 		"Enable"
 		{
-			Set-MpPreference -PUAProtection Enabled
+			Write-Host "Enabling detection for potentially unwanted applications and blocking them - " -NoNewline
+			Loginfo "Enabling detection for potentially unwanted applications and blocking them"
+			Set-MpPreference -PUAProtection Enabled | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Set-MpPreference -PUAProtection Disabled
+			Write-Host "Disabling detection for potentially unwanted applications and blocking them - " -NoNewline
+			Loginfo "Disabling detection for potentially unwanted applications and blocking them"
+			Set-MpPreference -PUAProtection Disabled | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18555,9 +18516,9 @@ function DefenderSandbox
 
 	if (-not $Script:DefenderEnabled)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -18566,11 +18527,17 @@ function DefenderSandbox
 	{
 		"Enable"
 		{
-			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 1
+			Write-Host "Enabling sandboxing for Microsoft Defender - " -NoNewline
+			Loginfo "Enabling sandboxing for Microsoft Defender"
+			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 0
+			Write-Host "Disabling sandboxing for Microsoft Defender - " -NoNewline
+			Loginfo "Disabling sandboxing for Microsoft Defender"
+			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18580,14 +18547,17 @@ function DismissMSAccount
 {
 	if (-not $Script:DefenderEnabled)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
-	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AccountProtection_MicrosoftAccount_Disconnected -PropertyType DWord -Value 1 -Force
+	Write-Host "Dismissing Microsoft Defender offer in the Windows Security about signing in Microsoft account - " -NoNewline
+	Loginfo "Dismissing Microsoft Defender offer in the Windows Security about signing in Microsoft account"
+	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AccountProtection_MicrosoftAccount_Disconnected -PropertyType DWord -Value 1 -Force | Out-Null
+	Write-Host "success!" -ForegroundColor Green
 }
 
 # Dismiss Microsoft Defender offer in the Windows Security about turning on the SmartScreen filter for Microsoft Edge
@@ -18595,14 +18565,17 @@ function DismissSmartScreenFilter
 {
 	if (-not $Script:DefenderEnabled)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
-	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AppAndBrowser_EdgeSmartScreenOff -PropertyType DWord -Value 0 -Force
+	Write-Host "Disabling the SmartScreen filter for Microsoft Edge - " -NoNewline
+	Loginfo "Disabling the SmartScreen filter for Microsoft Edge"
+	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AppAndBrowser_EdgeSmartScreenOff -PropertyType DWord -Value 0 -Force | Out-Null
+	Write-Host "success!" -ForegroundColor Green
 }
 
 <#
@@ -18650,13 +18623,15 @@ function EventViewerCustomView
 	{
 		"Enable"
 		{
+			Write-Host "Creating the 'Process Creation' сustom view in the Event Viewer to log executed processes and their arguments - " -NoNewline
+			Loginfo "Creating the 'Process Creation' сustom view in the Event Viewer to log executed processes and their arguments"
 			# Enable events auditing generated when a process is created (starts)
-			auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable
+			auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable | Out-Null
 
 			# Include command line in process creation events
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -PropertyType DWord -Value 1 -Force | Out-Null
 
-			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type DWORD -Value 1
+			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type DWORD -Value 1 | Out-Null
 
 			$XML = @"
 <ViewerConfig>
@@ -18679,17 +18654,21 @@ function EventViewerCustomView
 
 			if (-not (Test-Path -Path "$env:ProgramData\Microsoft\Event Viewer\Views"))
 			{
-				New-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views" -ItemType Directory -Force
+				New-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views" -ItemType Directory -Force | Out-Null
 			}
 
 			# Save ProcessCreation.xml in the UTF-8 without BOM encoding
-			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Encoding Default -NoNewline -Force
+			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Encoding Default -NoNewline -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Force -ErrorAction Ignore
-			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type CLEAR
-			Remove-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Force -ErrorAction Ignore
+			Write-Host "Removing the 'Process Creation' custom view in the Event Viewer - " -NoNewline
+			Loginfo "Removing the 'Process Creation' custom view in the Event Viewer"
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type CLEAR | Out-Null
+			Remove-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18736,22 +18715,28 @@ function PowerShellModulesLogging
 	{
 		"Enable"
 		{
+			Write-Host "Enabling logging for all Windows PowerShell modules - " -NoNewline
+			Loginfo "Enabling logging for all Windows PowerShell modules"
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames))
 			{
-				New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Force
+				New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Force | Out-Null
 			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -PropertyType DWord -Value 1 -Force
-			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -PropertyType String -Value * -Force
+			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -PropertyType String -Value * -Force | Out-Null
 
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type DWORD -Value 1
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Type SZ -Value *
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type DWORD -Value 1 | Out-Null
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Type SZ -Value * | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Force -ErrorAction Ignore
+			Write-Host "Disabling logging for all Windows PowerShell modules - " -NoNewline
+			Loginfo "Disabling logging for all Windows PowerShell modules"
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Force -ErrorAction SilentlyContinue | Out-Null
 
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type CLEAR
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type CLEAR | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18798,18 +18783,24 @@ function PowerShellScriptsLogging
 	{
 		"Enable"
 		{
+			Write-Host "Enabling logging for all PowerShell scripts input to the Windows PowerShell event log - " -NoNewline
+			Loginfo "Enabling logging for all PowerShell scripts input to the Windows PowerShell event log"
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging))
 			{
-				New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Force
+				New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Force | Out-Null
 			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -PropertyType DWord -Value 1 -Force | Out-Null
 
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type DWORD -Value 1
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type DWORD -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Force -ErrorAction Ignore
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type CLEAR
+			Write-Host "Disabling logging for all PowerShell scripts input to the Windows PowerShell event log - " -NoNewline
+			Loginfo "Disabling logging for all PowerShell scripts input to the Windows PowerShell event log"
+			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type CLEAR | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18854,9 +18845,9 @@ function AppsSmartScreen
 
 	if (-not $Script:DefenderEnabled)
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -18865,11 +18856,17 @@ function AppsSmartScreen
 	{
 		"Disable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Off -Force
+			Write-Host "Disabling apps and files checking within Microsoft Defender SmartScreen - " -NoNewline
+			Loginfo "Disabling apps and files checking within Microsoft Defender SmartScreen"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Off -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Warn -Force
+			Write-Host "Enabling apps and files checking within Microsoft Defender SmartScreen - " -NoNewline
+			Loginfo "Enabling apps and files checking within Microsoft Defender SmartScreen"
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Warn -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18913,25 +18910,31 @@ function SaveZoneInformation
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Disable"
 		{
+			Write-Host "Disabling marking downloaded files from the Internet as unsafe - " -NoNewline
+			Loginfo "Disabling marking downloaded files from the Internet as unsafe"
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments))
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Force
+				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -PropertyType DWord -Value 1 -Force | Out-Null
 
-			Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type DWORD -Value 1
+			Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type DWORD -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR
+			Write-Host "Enabling marking downloaded files from the Internet as unsafe - " -NoNewline
+			Loginfo "Enabling marking downloaded files from the Internet as unsafe"
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -18981,14 +18984,16 @@ function WindowsScriptHost
 	{
 		"Disable"
 		{
+			Write-Host "Disabling Windows Script Host - " -NoNewline
+			Loginfo "Disabling Windows Script Host"
 			# Checking whether any scheduled tasks were created before, because they rely on Windows Host running vbs files
-			Get-ScheduledTask -TaskName SoftwareDistribution, Temp, "Windows Cleanup", "Windows Cleanup Notification" -ErrorAction Ignore | ForEach-Object -Process {
+			Get-ScheduledTask -TaskName SoftwareDistribution, Temp, "Windows Cleanup", "Windows Cleanup Notification" -ErrorAction SilentlyContinue | ForEach-Object -Process {
 				# Skip if a scheduled task exists
 				if ($_.State -eq "Ready")
 				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-					Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					#Write-Information -MessageData "" -InformationAction Continue
+					#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+					LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 					break
 				}
@@ -18996,13 +19001,17 @@ function WindowsScriptHost
 
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings"))
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Force | Out-Null
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -PropertyType DWord -Value 0 -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction Ignore
+			Write-Host "Enabling Windows Script Host - " -NoNewline
+			Loginfo "Enabling Windows Script Host"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -19048,9 +19057,9 @@ function WindowsSandbox
 	$WINDOWS_LONG = [WinAPI.Winbrand]::BrandingFormatString("%WINDOWS_LONG%")
 	if (($WINDOWS_LONG -notmatch "Pro") -and ($WINDOWS_LONG -notmatch "Enterprise") -and ($WINDOWS_LONG -notmatch "Education"))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
@@ -19059,10 +19068,14 @@ function WindowsSandbox
 	{
 		"Disable"
 		{
+			Write-Host "Disabling Windows Sandbox - " -NoNewline
+			Loginfo "Disabling Windows Sandbox"
 			# Checking whether x86 virtualization is enabled in the firmware
 			if ((Get-CimInstance -ClassName CIM_Processor).VirtualizationFirmwareEnabled)
 			{
-				Disable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online -NoRestart
+				Write-Host "Disabling Windows Sandbox - " -NoNewline
+				Loginfo "Disabling Windows Sandbox"
+				Disable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online -NoRestart -ErrorAction SilentlyContinue | Out-Null
 			}
 			else
 			{
@@ -19076,17 +19089,20 @@ function WindowsSandbox
 				}
 				catch [System.Exception]
 				{
-					Write-Error -Message $Localization.EnableHardwareVT -ErrorAction SilentlyContinue
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					LogError $Localization.EnableHardwareVT 
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) 
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
+			Write-Host "Enabling Windows Sandbox - " -NoNewline
+			Loginfo "Enabling Windows Sandbox"
 			# Checking whether x86 virtualization is enabled in the firmware
 			if ((Get-CimInstance -ClassName CIM_Processor).VirtualizationFirmwareEnabled)
 			{
-				Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart
+				Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart -ErrorAction SilentlyContinue | Out-Null
 			}
 			else
 			{
@@ -19095,15 +19111,16 @@ function WindowsSandbox
 					# Determining whether Hyper-V is enabled
 					if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 					{
-						Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart
+						Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart -ErrorAction SilentlyContinue | Out-Null
 					}
 				}
 				catch [System.Exception]
 				{
-					Write-Error -Message $Localization.EnableHardwareVT -ErrorAction SilentlyContinue
-					Write-Error -Message ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+					LogError $Localization.EnableHardwareVT 
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -19120,9 +19137,6 @@ function WindowsSandbox
 
 	.EXAMPLE
 	DNSoverHTTPS -Enable -PrimaryDNS 1.0.0.1 -SecondaryDNS 1.1.1.1
-
-	.EXAMPLE Enable DNS-over-HTTPS via Comss.one DNS server. Applicable for Russia only
-	DNSoverHTTPS -ComssOneDNS
 
 	.EXAMPLE
 	DNSoverHTTPS -Disable
@@ -19167,14 +19181,6 @@ function DNSoverHTTPS
 		[string]
 		$SecondaryDNS,
 
-		# https://www.comss.ru/page.php?id=7315
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "ComssOneDNS"
-		)]
-		[switch]
-		$ComssOneDNS,
-
 		[Parameter(
 			Mandatory = $true,
 			ParameterSetName = "Disable"
@@ -19198,90 +19204,55 @@ function DNSoverHTTPS
 	{
 		"Enable"
 		{
+			Write-Host "Enabling DNS-over-HTTPS for IPv4 - " -NoNewline
+			Loginfo "Enabling DNS-over-HTTPS for IPv4"
 			# Set a primary and secondary DNS servers
 			if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 			{
-				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS
+				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS | Out-Null
 			}
 			else
 			{
-				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS
+				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses $PrimaryDNS, $SecondaryDNS | Out-Null
 			}
 
 			foreach ($InterfaceGuid in $InterfaceGuids)
 			{
 				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$PrimaryDNS"))
 				{
-					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$PrimaryDNS" -Force
+					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$PrimaryDNS" -Force | Out-Null
 				}
 				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$SecondaryDNS"))
 				{
-					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$SecondaryDNS" -Force
+					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$SecondaryDNS" -Force | Out-Null
 				}
 				# Encrypted preffered, unencrypted allowed
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$PrimaryDNS" -Name DohFlags -PropertyType QWord -Value 5 -Force
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$SecondaryDNS" -Name DohFlags -PropertyType QWord -Value 5 -Force
+				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$PrimaryDNS" -Name DohFlags -PropertyType QWord -Value 5 -Force | Out-Null
+				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\$SecondaryDNS" -Name DohFlags -PropertyType QWord -Value 5 -Force | Out-Null
 			}
-		}
-		"ComssOneDNS"
-		{
-			switch ((Get-WinHomeLocation).GeoId)
-			{
-				{($_ -ne 203) -and ($_ -ne 29)}
-				{
-					Write-Information -MessageData "" -InformationAction Continue
-					Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-					Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
-
-					return
-				}
-			}
-
-			# Set a primary and secondary DNS servers
-			# https://www.comss.ru/page.php?id=7315
-			if (-not (Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
-			{
-				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses 83.220.169.155, 195.133.25.16
-			}
-			else
-			{
-				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ServerAddresses 83.220.169.155, 195.133.25.16
-			}
-
-			foreach ($InterfaceGuid in $InterfaceGuids)
-			{
-				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155"))
-				{
-					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155" -Force
-				}
-				if (-not (Test-Path -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16"))
-				{
-					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16" -Force
-				}
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155" -Name DohFlags -PropertyType QWord -Value 2 -Force
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\83.220.169.155" -Name DohTemplate -PropertyType String -Value https://dns.comss.one/dns-query -Force
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16" -Name DohFlags -PropertyType QWord -Value 2 -Force
-				New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh\195.133.25.16" -Name DohTemplate -PropertyType String -Value https://dns.comss.one/dns-query -Force
-			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling DNS-over-HTTPS for IPv4 - " -NoNewline
+			Loginfo "Disabling DNS-over-HTTPS for IPv4"
 			# Determining whether Hyper-V is enabled
 			if (-not (Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 			{
 				# Configure DNS servers automatically
-				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ResetServerAddresses
+				Get-NetAdapter -Physical | Get-NetIPInterface -AddressFamily IPv4 | Set-DnsClientServerAddress -ResetServerAddresses | Out-Null
 			}
 			else
 			{
 				# Configure DNS servers automatically
-				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ResetServerAddresses
+				Get-NetRoute | Where-Object -FilterScript {$_.DestinationPrefix -eq "0.0.0.0/0"} | Get-NetAdapter | Set-DnsClientServerAddress -ResetServerAddresses | Out-Null
 			}
 
 			foreach ($InterfaceGuid in $InterfaceGuids)
 			{
-				Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh" -Recurse -Force -ErrorAction Ignore
+				Remove-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$InterfaceGuid\DohInterfaceSettings\Doh" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 
@@ -19331,18 +19302,20 @@ function LocalSecurityAuthority
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\System -Name RunAsPPL -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\System -Name RunAsPPL -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\System -Name RunAsPPL -Force -ErrorAction SilentlyContinue | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\System -Name RunAsPPL -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
+			Write-Host "Enabling Local Security Authority protection to prevent code injection without UEFI lock - " -NoNewline
+			Loginfo "Enabling Local Security Authority protection to prevent code injection without UEFI lock"
 			# Checking whether x86 virtualization is enabled in the firmware
 			if ((Get-CimInstance -ClassName CIM_Processor).VirtualizationFirmwareEnabled)
 			{
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force | Out-Null
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force | Out-Null
 			}
 			else
 			{
@@ -19351,25 +19324,47 @@ function LocalSecurityAuthority
 					# Determining whether Hyper-V is enabled
 					if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 					{
-						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force
-						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force
+						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force | Out-Null
+						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force | Out-Null
 					}
 				}
 				catch [System.Exception]
 				{
-					Write-Error -Message $Localization.EnableHardwareVT -ErrorAction SilentlyContinue
+					LogError $Localization.EnableHardwareVT -ErrorAction SilentlyContinue
 				}
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL, RunAsPPLBoot -Force -ErrorAction Ignore
+			Write-Host "Disabling Local Security Authority protection - " -NoNewline
+			Loginfo "Disabling Local Security Authority protection"
+			Remove-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL, RunAsPPLBoot -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
 
-# Sharing mapped drives between users
+<#
+	.SYNOPSIS
+	Sharing mapped drives between elevated and standard user sessions
+
+	.PARAMETER Enable
+	Enable sharing mapped drives between users
+
+	.PARAMETER Disable
+	Disable sharing mapped drives between users
+
+	.EXAMPLE
+	SharingMappedDrives -Enable
+
+	.EXAMPLE
+	SharingMappedDrives -Disable
+
+	.NOTES
+	Current user
+#>
 function SharingMappedDrives
 {
 	param
@@ -19393,16 +19388,40 @@ function SharingMappedDrives
 	{
 		"Enable"
 		{
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -Type DWord -Value 1
+			Write-Host "Enabling sharing mapped drives between users - " -NoNewline
+			Loginfo "Enabling sharing mapped drives between users"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -ErrorAction SilentlyContinue
+			Write-Host "Disabling sharing mapped drives between users - " -NoNewline
+			Loginfo "Disabling sharing mapped drives between users"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Firewall
+<#
+	.SYNOPSIS
+	Windows Firewall configuration
+
+	.PARAMETER Enable
+	Enable Windows Firewall
+
+	.PARAMETER Disable
+	Disable Windows Firewall
+
+	.EXAMPLE
+	Firewall -Enable
+
+	.EXAMPLE
+	Firewall -Disable
+
+	.NOTES
+	Current user
+#>
 function Firewall
 {
 	param
@@ -19426,19 +19445,43 @@ function Firewall
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Windows Firewall - " -NoNewline
+			Loginfo "Enabling Windows Firewall"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Windows Firewall - " -NoNewline
+			Loginfo "Disabling Windows Firewall"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -Type DWord -Value 0
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Windows Defender SysTray icon
+<#
+	.SYNOPSIS
+	Windows Defender notification area (system tray) icon configuration
+
+	.PARAMETER Enable
+	Show Windows Defender (Windows Security) system tray icon
+
+	.PARAMETER Disable
+	Hide Windows Defender (Windows Security) system tray icon
+
+	.EXAMPLE
+	DefenderTrayIcon -Enable
+
+	.EXAMPLE
+	DefenderTrayIcon -Disable
+
+	.NOTES
+	Current User
+#>
 function DefenderTrayIcon
 {
 	param
@@ -19462,31 +19505,55 @@ function DefenderTrayIcon
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" -Name "HideSystray" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Windows Defender SysTray icon - " -NoNewline
+			Loginfo "Enabling Windows Defender SysTray icon"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" -Name "HideSystray" -ErrorAction SilentlyContinue | Out-Null
 			If ([System.Environment]::OSVersion.Version.Build -eq 14393) {
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsDefender" -Type ExpandString -Value "`"%ProgramFiles%\Windows Defender\MSASCuiL.exe`""
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsDefender" -Type ExpandString -Value "`"%ProgramFiles%\Windows Defender\MSASCuiL.exe`"" | Out-Null
 			} ElseIf ([System.Environment]::OSVersion.Version.Build -ge 15063 -And [System.Environment]::OSVersion.Version.Build -le 17134) {
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "SecurityHealth" -Type ExpandString -Value "%ProgramFiles%\Windows Defender\MSASCuiL.exe"
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "SecurityHealth" -Type ExpandString -Value "%ProgramFiles%\Windows Defender\MSASCuiL.exe" | Out-Null
 			} ElseIf ([System.Environment]::OSVersion.Version.Build -ge 17763) {
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "SecurityHealth" -Type ExpandString -Value "%windir%\system32\SecurityHealthSystray.exe"
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "SecurityHealth" -Type ExpandString -Value "%windir%\system32\SecurityHealthSystray.exe" | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Windows Defender SysTray icon - " -NoNewline
+			Loginfo "Disabling Windows Defender SysTray icon"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" -Name "HideSystray" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender Security Center\Systray" -Name "HideSystray" -Type DWord -Value 1 | Out-Null
 			If ([System.Environment]::OSVersion.Version.Build -eq 14393) {
-				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsDefender" -ErrorAction SilentlyContinue
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsDefender" -ErrorAction SilentlyContinue | Out-Null
 			} ElseIf ([System.Environment]::OSVersion.Version.Build -ge 15063) {
-				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "SecurityHealth" -ErrorAction SilentlyContinue
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "SecurityHealth" -ErrorAction SilentlyContinue | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Windows Defender Cloud
+<#
+	.SYNOPSIS
+	Windows Defender Cloud-delivered protection configuration
+
+	.PARAMETER Enable
+	Enable Windows Defender cloud protection (MAPS reporting and automatic sample submission default behavior)
+
+	.PARAMETER Disable
+	Disable Windows Defender cloud protection (disable MAPS reporting and prevent automatic sample submission)
+
+	.EXAMPLE
+	DefenderCloud -Enable
+
+	.EXAMPLE
+	DefenderCloud -Disable
+
+	.NOTES
+	Current user
+#>
 function DefenderCloud
 {
 	param
@@ -19510,23 +19577,47 @@ function DefenderCloud
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -ErrorAction SilentlyContinue
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -ErrorAction SilentlyContinue
+			Write-Host "Enabling Windows Defender Cloud - " -NoNewline
+			Loginfo "Enabling Windows Defender Cloud"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -ErrorAction SilentlyContinue	| Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Windows Defender Cloud - " -NoNewline
+			Loginfo "Disabling Windows Defender Cloud"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -Type DWord -Value 0
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Type DWord -Value 2
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Core Isolation Memory Integrity - Part of Windows Defender System Guard virtualization-based security - Applicable since 1803
-# Warning: This may cause old applications and drivers to crash or even cause BSOD
-# Problems were confirmed with old video drivers (Intel HD Graphics for 2nd gen., Radeon HD 6850), and old antivirus software (Kaspersky Endpoint Security 10.2, 11.2)
+<#
+	.SYNOPSIS
+	Core Isolation Memory Integrity (Hypervisor-Enforced Code Integrity)
+
+	.PARAMETER Enable
+	Enable Memory Integrity (HVCI)
+
+	.PARAMETER Disable
+	Disable Memory Integrity (HVCI)
+
+	.EXAMPLE
+	CIMemoryIntegrity -Enable
+
+	.EXAMPLE
+	CIMemoryIntegrity -Disable
+
+	.NOTES
+	Current User
+	Applicable since Windows 10 version 1803.
+	May cause compatibility issues with old drivers and antivirus software.
+#>
 function CIMemoryIntegrity
 {
 	param
@@ -19550,20 +19641,48 @@ function CIMemoryIntegrity
 	{
 		"Enable"
 		{
+			Write-Host "Enabling Core Isolation Memory Integrity (HVCI) - " -NoNewline
+			Loginfo "Enabling Core Isolation Memory Integrity (HVCI)"
 			If (!(Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity")) {
 				New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Force | Out-Null
 			}
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -ErrorAction SilentlyContinue
+			Write-Host "Disabling Core Isolation Memory Integrity (HVCI) - " -NoNewline
+			Loginfo "Disabling Core Isolation Memory Integrity (HVCI)"
+			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Windows Defender Application Guard - Applicable since 1709 Enterprise and 1803 Pro. Not applicable to Server
-# Not supported on VMs and VDI environment. Check requirements on https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-guard/reqs-wd-app-guard
+<#
+	.SYNOPSIS
+	Windows Defender Application Guard configuration
+
+	.PARAMETER Enable
+	Enable Windows Defender Application Guard optional feature
+
+	.PARAMETER Disable
+	Disable Windows Defender Application Guard optional feature
+
+	.EXAMPLE
+	DefenderAppGuard -Enable
+
+	.EXAMPLE
+	DefenderAppGuard -Disable
+
+	.NOTES
+	Current User
+	Applicable since:
+	- Windows 10 1709 (Enterprise)
+	- Windows 10 1803 (Pro)
+	Not applicable to Windows Server.
+	Not supported on VMs or VDI environments.
+#>
 function DefenderAppGuard
 {
 	param
@@ -19587,16 +19706,54 @@ function DefenderAppGuard
 	{
 		"Enable"
 		{
-			Enable-WindowsOptionalFeature -online -FeatureName "Windows-Defender-ApplicationGuard" -NoRestart -WarningAction SilentlyContinue | Out-Null
+			Write-Host "Enabling Windows Defender Application Guard - " -NoNewline
+			LogInfo "Enabling Windows Defender Application Guard"
+
+			$feature = Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -eq "Windows-Defender-ApplicationGuard" }
+			if ($feature) {
+				Enable-WindowsOptionalFeature -Online -FeatureName "Windows-Defender-ApplicationGuard" -NoRestart -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+			} else {
+				#Write-Host "feature not available on this system." -ForegroundColor Yellow
+				LogInfo "WDAG feature not available on this system."
+			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
-			Disable-WindowsOptionalFeature -online -FeatureName "Windows-Defender-ApplicationGuard" -NoRestart -WarningAction SilentlyContinue | Out-Null
+			Write-Host "Disabling Windows Defender Application Guard - " -NoNewline
+			LogInfo "Disabling Windows Defender Application Guard"
+
+			$feature = Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -eq "Windows-Defender-ApplicationGuard" }
+			if ($feature) {
+				Disable-WindowsOptionalFeature -Online -FeatureName "Windows-Defender-ApplicationGuard" -NoRestart -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+			} else {
+				#Write-Host "feature not available on this system." -ForegroundColor Yellow
+				LogInfo "WDAG feature not available on this system."
+			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Account Protection warning in Defender about not using a Microsoft account
+<#
+	.SYNOPSIS
+	Accounts protection warning configuration
+
+	.PARAMETER Enable
+	Enable account protection warning for Microsoft accounts
+
+	.PARAMETER Disable
+	Disable account protection warning for Microsoft accounts
+
+	.EXAMPLE
+	AccountProtectionWarn -Enable
+
+	.EXAMPLE
+	AccountProtectionWarn -Disable
+
+	.NOTES
+	Current user
+#>
 function AccountProtectionWarn
 {
 	param
@@ -19620,19 +19777,43 @@ function AccountProtectionWarn
 	{
 		"Enable"
 		{
-			Remove-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -ErrorAction SilentlyContinue
+			Write-Host "Enabling account protection warning for Microsoft accounts - " -NoNewline
+			Loginfo "Enabling account protection warning for Microsoft accounts"
+			Remove-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling account protection warning for Microsoft accounts - " -NoNewline
+			Loginfo "Disabling account protection warning for Microsoft accounts"
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows Security Health\State")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Force | Out-Null
 			}
-			Set-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -Type DWord -Value 1
+			Set-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Blocking of downloaded files (i.e. storing zone information - no need to do File\Properties\Unblock)
+<#
+	.SYNOPSIS
+	Blocks or allows file downloads from the internet
+
+	.PARAMETER Enable
+	Enable blocking of file downloads
+
+	.PARAMETER Disable
+	Disable blocking of file downloads
+
+	.EXAMPLE
+	DownloadBlocking -Enable
+
+	.EXAMPLE
+	DownloadBlocking -Disable
+
+	.NOTES
+	Current user
+#>
 function DownloadBlocking
 {
 	param
@@ -19656,19 +19837,43 @@ function DownloadBlocking
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -ErrorAction SilentlyContinue
+			Write-Host "Enabling blocking of file downloads from the internet - " -NoNewline
+			Loginfo "Enabling blocking of file downloads from the internet"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling blocking of file downloads from the internet - " -NoNewline
+			Loginfo "Disabling blocking of file downloads from the internet"
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" | Out-Null
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -Type DWord -Value 1
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# F8 boot menu options
+<#
+	.SYNOPSIS
+	Enables or disables the F8 boot menu on startup
+
+	.PARAMETER Enable
+	Enable the legacy F8 boot menu
+
+	.PARAMETER Disable
+	Disable the legacy F8 boot menu
+
+	.EXAMPLE
+	F8BootMenu -Enable
+
+	.EXAMPLE
+	F8BootMenu -Disable
+
+	.NOTES
+	Current user
+#>
 function F8BootMenu
 {
 	param
@@ -19692,18 +19897,40 @@ function F8BootMenu
 	{
 		"Enable"
 		{
+			Write-Host "Enabling legacy F8 boot menu - " -NoNewline
+			Loginfo "Enabling legacy F8 boot menu"
 			bcdedit /set `{current`} BootMenuPolicy Legacy | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling legacy F8 boot menu - " -NoNewline
+			Loginfo "Disabling legacy F8 boot menu"	
 			bcdedit /set `{current`} BootMenuPolicy Standard | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Automatic recovery mode during boot
-# This causes boot process to always ignore startup errors and attempt to boot normally
-# It is still possible to interrupt the boot and enter recovery mode manually. In order to disable even that, apply also DisableRecoveryAndReset tweak
+<#
+	.SYNOPSIS
+	Enables or disables automatic recovery mode during boot
+
+	.PARAMETER Enable
+	Enable automatic recovery mode on startup errors
+
+	.PARAMETER Disable
+	Disable automatic recovery mode on startup errors
+
+	.EXAMPLE
+	BootRecovery -Enable
+
+	.EXAMPLE
+	BootRecovery -Disable
+
+	.NOTES
+	Current user
+#>
 function BootRecovery
 {
 	param
@@ -19727,17 +19954,41 @@ function BootRecovery
 	{
 		"Enable"
 		{
+			Write-Host "Enabling automatic recovery mode on startup errors - " -NoNewline
+			Loginfo "Enabling automatic recovery mode on startup errors"
 			# This allows the boot process to automatically enter recovery mode when it detects startup errors (default behavior)
 			bcdedit /deletevalue `{current`} BootStatusPolicy | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling automatic recovery mode on startup errors - " -NoNewline
+			Loginfo "Disabling automatic recovery mode on startup errors"
 			bcdedit /set `{current`} BootStatusPolicy IgnoreAllFailures | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
 
-# Set Data Execution Prevention (DEP) policy
+<#
+	.SYNOPSIS
+	Enables or disables Data Execution Prevention (DEP) policy
+
+	.PARAMETER Enable
+	Sets DEP to OptIn (default for most apps)
+
+	.PARAMETER Disable
+	Sets DEP to OptOut (allows all apps without DEP)
+
+	.EXAMPLE
+	DEPOptOut -Enable
+
+	.EXAMPLE
+	DEPOptOut -Disable
+
+	.NOTES
+	Current user
+#>
 function DEPOptOut
 {
 	param
@@ -19761,13 +20012,19 @@ function DEPOptOut
 	{
 		"Enable"
 		{
+			Write-Host "Disabling Data Execution Prevention (DEP) policy to OptIn - " -NoNewline
+			Loginfo "Disabling Data Execution Prevention (DEP) policy to OptIn"
 			# Setting Data Execution Prevention (DEP) policy to OptIn...
 			bcdedit /set `{current`} nx OptIn | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling Data Execution Prevention (DEP) policy to OptOut - " -NoNewline
+			Loginfo "Disabling Data Execution Prevention (DEP) policy to OptOut"
 			# Setting Data Execution Prevention (DEP) policy to OptOut...
 			bcdedit /set `{current`} nx OptOut | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -19817,18 +20074,24 @@ function MSIExtractContext
 	{
 		"Show"
 		{
+			Write-Host "Showing 'Extract all' item in the Windows Installer (.msi) context menu - " -NoNewline
+			Loginfo "Showing 'Extract all' item in the Windows Installer (.msi) context menu"
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Force | Out-Null
 			}
 			$Value = "msiexec.exe /a `"%1`" /qb TARGETDIR=`"%1 extracted`""
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Name "(default)" -PropertyType String -Value $Value -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name MUIVerb -PropertyType String -Value "@shell32.dll,-37514" -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name Icon -PropertyType String -Value "shell32.dll,-16817" -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Name "(default)" -PropertyType String -Value $Value -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name MUIVerb -PropertyType String -Value "@shell32.dll,-37514" -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name Icon -PropertyType String -Value "shell32.dll,-16817" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
-			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Recurse -Force -ErrorAction Ignore
+			Write-Host "Hiding 'Extract all' item from the Windows Installer (.msi) context menu - " -NoNewline
+			Loginfo "Hiding 'Extract all' item from the Windows Installer (.msi) context menu"
+			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -19875,18 +20138,24 @@ function CABInstallContext
 	{
 		"Show"
 		{
+			Write-Host "Showing 'Install' item in the Cabinet (.cab) filenames extensions context menu - " -NoNewline
+			Loginfo "Showing 'Install' item in the Cabinet (.cab) filenames extensions context menu"
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Force | Out-Null
 			}
 			$Value = "cmd /c DISM.exe /Online /Add-Package /PackagePath:`"%1`" /NoRestart & pause"
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Name "(default)" -PropertyType String -Value $Value -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name MUIVerb -PropertyType String -Value "@shell32.dll,-10210" -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name HasLUAShield -PropertyType String -Value "" -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Name "(default)" -PropertyType String -Value $Value -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name MUIVerb -PropertyType String -Value "@shell32.dll,-10210" -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name HasLUAShield -PropertyType String -Value "" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
-			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Recurse -Force -ErrorAction Ignore
+			Write-Host "Hiding 'Install' item from the Cabinet (.cab) filenames extensions context menu - " -NoNewline
+			Loginfo "Hiding 'Install' item from the Cabinet (.cab) filenames extensions context menu"
+			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -19931,28 +20200,34 @@ function EditWithClipchampContext
 
 	if (-not (Get-AppxPackage -Name Clipchamp.Clipchamp))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction SilentlyContinue | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
+			Write-Host "Hiding 'Edit with Clipchamp' item from the media files context menu - " -NoNewline
+			Loginfo "Hiding 'Edit with Clipchamp' item from the media files context menu"
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force | Out-Null
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -PropertyType String -Value "" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -PropertyType String -Value "" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction Ignore
+			Write-Host "Showing 'Edit with Clipchamp' item in the media files context menu - " -NoNewline
+			Loginfo "Showing 'Edit with Clipchamp' item in the media files context menu"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction SilentlyContinue | Out-Null	
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -19997,28 +20272,34 @@ function EditWithPhotosContext
 
 	if (-not (Get-AppxPackage -Name Microsoft.Windows.Photos))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction SilentlyContinue | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
+			Write-Host "Hiding 'Edit with Photos' item from the media files context menu - " -NoNewline
+			Loginfo "Hiding 'Edit with Photos' item from the media files context menu"
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force | Out-Null
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -PropertyType String -Value "" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -PropertyType String -Value "" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction Ignore
+			Write-Host "Showing 'Edit with Photos' item in the media files context menu - " -NoNewline
+			Loginfo "Showing 'Edit with Photos' item in the media files context menu"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20063,28 +20344,34 @@ function EditWithPaintContext
 
 	if (-not (Get-AppxPackage -Name Microsoft.Paint))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction SilentlyContinue | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
+			Write-Host "Hiding 'Edit with Paint' item from the media files context menu - " -NoNewline
+			Loginfo "Hiding 'Edit with Paint' item from the media files context menu"
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force | Out-Null
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -PropertyType String -Value "" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -PropertyType String -Value "" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction Ignore
+			Write-Host "Showing 'Edit with Paint' item in the media files context menu - " -NoNewline
+			Loginfo "Showing 'Edit with Paint' item in the media files context menu"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction SilentlyContinue | Out-Null	
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20131,13 +20418,19 @@ function PrintCMDContext
 	{
 		"Hide"
 		{
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\batfile\shell\print -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force
+			Write-Host "Hiding 'Print' item from the .bat and .cmd context menu - " -NoNewline
+			Loginfo "Hiding 'Print' item from the .bat and .cmd context menu"
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\batfile\shell\print -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\batfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction Ignore
-			Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction Ignore
+			Write-Host "Showing 'Print' item in the .bat and .cmd context menu - " -NoNewline
+			Loginfo "Showing 'Print' item in the .bat and .cmd context menu"
+			Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\batfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20184,16 +20477,22 @@ function CompressedFolderNewContext
 	{
 		"Hide"
 		{
-			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Force -ErrorAction Ignore
+			Write-Host "Hiding 'Compressed (zipped) Folder' item from the 'New' context menu - " -NoNewline
+			LogInfo "Hiding 'Compressed (zipped) Folder' item from the 'New' context menu"
+			Remove-Item -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
+			Write-Host "Showing 'Compressed (zipped) Folder' item in the 'New' context menu - " -NoNewline
+			LogInfo "Showing 'Compressed (zipped) Folder' item in the 'New' context menu"
 			if (-not (Test-Path -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew))
 			{
-				New-Item -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Force
+				New-Item -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Force | Out-Null
 			}
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Name Data -PropertyType Binary -Value ([byte[]](80,75,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)) -Force
-			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Name ItemName -PropertyType ExpandString -Value "@%SystemRoot%\System32\zipfldr.dll,-10194" -Force
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Name Data -PropertyType Binary -Value ([byte[]](80,75,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)) -Force | Out-Null
+			New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Name ItemName -PropertyType ExpandString -Value "@%SystemRoot%\System32\zipfldr.dll,-10194" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20240,11 +20539,17 @@ function MultipleInvokeContext
 	{
 		"Enable"
 		{
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name MultipleInvokePromptMinimum -PropertyType DWord -Value 300 -Force
+			Write-Host "Enabling 'Open', 'Print', and 'Edit' items if more than 15 files selected - " -NoNewline
+			LogInfo "Enabling 'Open', 'Print', and 'Edit' items if more than 15 files selected"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name MultipleInvokePromptMinimum -PropertyType DWord -Value 300 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling 'Open', 'Print', and 'Edit' items if more than 15 files selected - " -NoNewline
+			LogInfo "Disabling 'Open', 'Print', and 'Edit' items if more than 15 files selected"
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name MultipleInvokePromptMinimum -Force -ErrorAction Ignore
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20288,25 +20593,31 @@ function UseStoreOpenWith
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Force -ErrorAction Ignore
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type CLEAR
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Force -ErrorAction SilentlyContinue
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type CLEAR | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Hide"
 		{
+			Write-Host "Hiding 'Look for an app in the Microsoft Store' item in the 'Open with' dialog - " -NoNewline
+			LogInfo "Hiding 'Look for an app in the Microsoft Store' item in the 'Open with' dialog"
 			if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
 			{
-				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force
+				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force | Out-Null
 			}
-			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -PropertyType DWord -Value 1 -Force
+			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -PropertyType DWord -Value 1 -Force | Out-Null
 
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type DWORD -Value 1
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type DWORD -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Force -ErrorAction Ignore
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type CLEAR
+			Write-Host "Showing 'Look for an app in the Microsoft Store' item in the 'Open with' dialog - " -NoNewline
+			LogInfo "Showing 'Look for an app in the Microsoft Store' item in the 'Open with' dialog"
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type CLEAR | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20351,28 +20662,34 @@ function OpenWindowsTerminalContext
 
 	if (-not (Get-AppxPackage -Name Microsoft.WindowsTerminal))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
-	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction Ignore
+	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction SilentlyContinue | Out-Null
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Show"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction Ignore
+			Write-Host "Showing 'Open in Windows Terminal' item in the folders context menu - " -NoNewline
+			LogInfo "Showing 'Open in Windows Terminal' item in the folders context menu"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
+			Write-Host "Hiding 'Open in Windows Terminal' item from the folders context menu - " -NoNewline
+			LogInfo "Hiding 'Open in Windows Terminal' item from the folders context menu"
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked"))
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force
+				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force | Out-Null
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -PropertyType String -Value "" -Force
+			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -PropertyType String -Value "" -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -20417,18 +20734,18 @@ function OpenWindowsTerminalAdminContext
 
 	if (-not (Get-AppxPackage -Name Microsoft.WindowsTerminal))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
 
 		return
 	}
 
 	if (-not (Test-Path -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"))
 	{
-		Start-Process -FilePath wt -PassThru
+		Start-Process -FilePath wt -PassThru | Out-Null
 		Start-Sleep -Seconds 2
-		Stop-Process -Name WindowsTerminal -Force -PassThru
+		Stop-Process -Name WindowsTerminal -Force -PassThru | Out-Null
 	}
 
 	try
@@ -20437,14 +20754,14 @@ function OpenWindowsTerminalAdminContext
 	}
 	catch [System.ArgumentException]
 	{
-		Write-Warning -Message (($Global:Error.Exception.Message | Select-Object -First 1))
-		Write-Error -Message (($Global:Error.Exception.Message | Select-Object -First 1)) -ErrorAction SilentlyContinue
+		LogWarning (($Global:Error.Exception.Message | Select-Object -First 1))
+		LogError (($Global:Error.Exception.Message | Select-Object -First 1))
 
 		Invoke-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState"
 
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -20453,8 +20770,10 @@ function OpenWindowsTerminalAdminContext
 	{
 		"Enable"
 		{
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction Ignore
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction Ignore
+			Write-Host "Enabling opening Windows Terminal in context menu as administrator by default - " -NoNewline
+			LogInfo "Enabling opening Windows Terminal in context menu as administrator by default"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -ErrorAction SilentlyContinue | Out-Null
 
 			if ($Terminal.profiles.defaults.elevate)
 			{
@@ -20462,24 +20781,28 @@ function OpenWindowsTerminalAdminContext
 			}
 			else
 			{
-				$Terminal.profiles.defaults | Add-Member -MemberType NoteProperty -Name elevate -Value $true -Force
+				$Terminal.profiles.defaults | Add-Member -MemberType NoteProperty -Name elevate -Value $true -Force | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
+			Write-Host "Disabling opening Windows Terminal in context menu as administrator by default - " -NoNewline
+			LogInfo "Disabling opening Windows Terminal in context menu as administrator by default"
 			if ($Terminal.profiles.defaults.elevate)
 			{
 				$Terminal.profiles.defaults.elevate = $false
 			}
 			else
 			{
-				$Terminal.profiles.defaults | Add-Member -MemberType NoteProperty -Name elevate -Value $false -Force
+				$Terminal.profiles.defaults | Add-Member -MemberType NoteProperty -Name elevate -Value $false -Force | Out-Null
 			}
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 
 	# Save in UTF-8 with BOM despite JSON must not has the BOM: https://datatracker.ietf.org/doc/html/rfc8259#section-8.1. Unless Terminal profile names which contains non-Latin characters will have "?" instead of titles
-	ConvertTo-Json -InputObject $Terminal -Depth 4 | Set-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Encoding UTF8 -Force
+	ConvertTo-Json -InputObject $Terminal -Depth 4 | Set-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" -Encoding UTF8 -Force | Out-Null
 }
 #endregion Context menu
 
@@ -20503,26 +20826,26 @@ function UpdateLGPEPolicies
 {
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
 	{
-		Write-Information -MessageData "" -InformationAction Continue
-		Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
-		Write-Error -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -ErrorAction SilentlyContinue
+		#Write-Information -MessageData "" -InformationAction Continue
+		#Write-Verbose -Message ($Localization.Skipped -f $MyInvocation.Line.Trim()) -Verbose
+		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
 
 	Get-Partition | Where-Object -FilterScript {$_.DriveLetter -eq $([System.Environment]::ExpandEnvironmentVariables($env:SystemDrive).Replace(":", ""))} | Get-Disk | Get-PhysicalDisk | ForEach-Object -Process {
-		Write-Verbose -Message ([string]($_.FriendlyName, '|', $_.MediaType, '|', $_.BusType)) -Verbose
+		#Write-Verbose -Message ([string]($_.FriendlyName, '|', $_.MediaType, '|', $_.BusType)) -Verbose
 	}
 
-	Write-Information -MessageData "" -InformationAction Continue
+	#Write-Information -MessageData "" -InformationAction Continue
 	# Extract the localized "Please wait..." string from shell32.dll
-	Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
+	#Write-Verbose -Message ([WinAPI.GetStrings]::GetString(12612)) -Verbose
 
-	Write-Verbose -Message $Localization.GPOUpdate -Verbose
+	#Write-Verbose -Message $Localization.GPOUpdate -Verbose
 
-	Write-Information -MessageData "" -InformationAction Continue
-	Write-Verbose -Message HKLM -Verbose
-	Write-Information -MessageData "" -InformationAction Continue
+	#Write-Information -MessageData "" -InformationAction Continue
+	#Write-Verbose -Message HKLM -Verbose
+	#Write-Information -MessageData "" -InformationAction Continue
 
 	# Local Machine policies paths to scan recursively
 	$LM_Paths = @(
@@ -20546,7 +20869,7 @@ function UpdateLGPEPolicies
 
 					if ($config.SelectSingleNode("//*[local-name()='policy' and @key='$($SplitPath.ToLower())' and (@valueName='$($Item.ToLower())' or @Name='$($Item.ToLower())' or .//*[local-name()='enum' and @valueName='$($Item.ToLower())'])]"))
 					{
-						Write-Verbose -Message ([string]($SplitPath, "|", $Item.Replace("{}", ""), "|", $(Get-ItemPropertyValue -Path $Path.PSPath -Name $Item))) -Verbose
+						#Write-Verbose -Message ([string]($SplitPath, "|", $Item.Replace("{}", ""), "|", $(Get-ItemPropertyValue -Path $Path.PSPath -Name $Item))) -Verbose
 
 						$Type = switch ((Get-Item -Path $Path.PSPath).GetValueKind($Item))
 						{
@@ -20579,9 +20902,9 @@ function UpdateLGPEPolicies
 		}
 	}
 
-	Write-Information -MessageData "" -InformationAction Continue
-	Write-Verbose -Message HKCU -Verbose
-	Write-Information -MessageData "" -InformationAction Continue
+	#Write-Information -MessageData "" -InformationAction Continue
+	#Write-Verbose -Message HKCU -Verbose
+	#Write-Information -MessageData "" -InformationAction Continue
 
 	# Current User policies paths to scan recursively
 	$CU_Paths = @(
@@ -20605,7 +20928,7 @@ function UpdateLGPEPolicies
 
 					if ($config.SelectSingleNode("//*[local-name()='policy' and @key='$($SplitPath.ToLower())' and (@valueName='$($Item.ToLower())' or @Name='$($Item.ToLower())' or .//*[local-name()='enum' and @valueName='$($Item.ToLower())'])]"))
 					{
-						Write-Verbose -Message ([string]($SplitPath, "|", $Item.Replace("{}", ""), "|", $(Get-ItemPropertyValue -Path $Path.PSPath -Name $Item))) -Verbose
+						#Write-Verbose -Message ([string]($SplitPath, "|", $Item.Replace("{}", ""), "|", $(Get-ItemPropertyValue -Path $Path.PSPath -Name $Item))) -Verbose
 
 						$Type = switch ((Get-Item -Path $Path.PSPath).GetValueKind($Item))
 						{
@@ -20638,13 +20961,16 @@ function UpdateLGPEPolicies
 		}
 	}
 
-	gpupdate.exe /force
+	# Run gpupdate silently
+	cmd /c "gpupdate /force > NUL 2>&1"
 }
 #endregion Update Policies
 
 #region Post Actions
 function PostActions
 {
+	Write-Host "Performing post actions - " -NoNewline
+	LogInfo "Performing post actions"
 	#region Refresh Environment
 	$Signature = @{
 		Namespace          = "WinAPI"
@@ -20704,31 +21030,41 @@ public static void PostMessage()
 	[WinAPI.UpdateEnvironment]::Refresh()
 
 	# Restart Start menu
-	Stop-Process -Name StartMenuExperienceHost -Force -ErrorAction Ignore
+	Stop-Process -Name StartMenuExperienceHost -Force -ErrorAction SilentlyContinue | Out-Null
 	#endregion Refresh Environment
 
 	#region Other actions
 	# Apply policies found in registry to re-build database database because gpedit.msc relies in its own database
 	if ((Test-Path -Path "$env:TEMP\Computer.txt") -or (Test-Path -Path "$env:TEMP\User.txt"))
 	{
-		if (Test-Path -Path "$env:TEMP\Computer.txt")
-		{
-			& "$PSScriptRoot\..\Binaries\LGPO.exe" /t "$env:TEMP\Computer.txt"
-		}
-		if (Test-Path -Path "$env:TEMP\User.txt")
-		{
-			& "$PSScriptRoot\..\Binaries\LGPO.exe" /t "$env:TEMP\User.txt"
+		if (Test-Path -Path "$env:TEMP\Computer.txt") {
+    		Start-Process -FilePath "$PSScriptRoot\..\Binaries\LGPO.exe" `
+                  -ArgumentList "/t `"$env:TEMP\Computer.txt`"" `
+                  -WindowStyle Hidden `
+                  -Wait `
+                  -RedirectStandardOutput "$env:TEMP\LGPOOutput.txt" `
+                  -RedirectStandardError "$env:TEMP\LGPOError.txt"
 		}
 
-		gpupdate /force
+		if (Test-Path -Path "$env:TEMP\User.txt") {
+    		Start-Process -FilePath "$PSScriptRoot\..\Binaries\LGPO.exe" `
+                  -ArgumentList "/t `"$env:TEMP\User.txt`"" `
+                  -WindowStyle Hidden `
+                  -Wait `
+                  -RedirectStandardOutput "$env:TEMP\LGPOOutput.txt" `
+                  -RedirectStandardError "$env:TEMP\LGPOError.txt"
+		}
+
+	# Run gpupdate silently
+	cmd /c "gpupdate /force > NUL 2>&1"
 	}
 
 	# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
 	# https://github.com/PowerShell/PowerShell/issues/21070
-	Get-ChildItem -Path "$env:TEMP\Computer.txt", "$env:TEMP\User.txt" -Force -ErrorAction Ignore | Remove-Item -Force -ErrorAction Ignore
+	Get-ChildItem -Path "$env:TEMP\Computer.txt", "$env:TEMP\User.txt" -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
 
 	# Kill all explorer instances in case "launch folder windows in a separate process" enabled
-	Get-Process -Name explorer | Stop-Process -Force
+	Get-Process -Name explorer | Stop-Process -Force -ErrorAction SilentlyContinue | Out-Null
 	Start-Sleep -Seconds 3
 
 	# Restoring closed folders
@@ -20738,13 +21074,13 @@ public static void PostMessage()
 		{
 			if (Test-Path -Path $Script:OpenedFolder)
 			{
-				Start-Process -FilePath explorer -ArgumentList $Script:OpenedFolder
+				Start-Process -FilePath explorer -ArgumentList $Script:OpenedFolder | Out-Null
 			}
 		}
 	}
 
 	# Open Startup page
-	Start-Process -FilePath "ms-settings:startupapps"
+	Start-Process -FilePath "ms-settings:startupapps" | Out-Null
 <#
 	# Checking whether any of scheduled tasks were created. Unless open Task Scheduler
 	if ($Script:ScheduledTasks)
@@ -20788,6 +21124,22 @@ public static void PostMessage()
 	}
 	Pause
 #>
+
+	#Fix Guest Auth
+	New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
+                 -Name "AllowInsecureGuestAuth" `
+                 -PropertyType DWord `
+                 -Value 1 `
+                 -Force `
+                 -ErrorAction SilentlyContinue | Out-Null
+				 
+	#Reinstall Print Management Console
+	$null = Start-Process -FilePath "DISM.exe" `
+                      -ArgumentList "/online /add-capability /CapabilityName:Print.Management.Console~~~~0.0.1.0 /quiet /norestart" `
+                      -Wait `
+                      -NoNewWindow `
+                      -PassThru
+	Write-Host "success!" -ForegroundColor Green
 }
 
 #endregion Post Actions
@@ -20795,28 +21147,30 @@ public static void PostMessage()
 #region Errors
 function Errors
 {
-	if ($Global:Error)
-	{
-		($Global:Error | ForEach-Object -Process {
-			# Some errors may have the Windows nature and don't have a path to any of the module's files
-			$ErrorInFile = if ($_.InvocationInfo.PSCommandPath)
-			{
-				Split-Path -Path $_.InvocationInfo.PSCommandPath -Leaf
-			}
+    if ($Global:Error)
+    {
+        # Filter out expected "Property does not exist" or "Path does not exist" errors
+        $FilteredErrors = $Global:Error | Where-Object {
+            # Keep only real errors
+            $_.Exception.Message -notmatch 'Property .* does not exist|Cannot find path'
+        }
 
-			[PSCustomObject]@{
-				$Localization.ErrorsLine                  = $_.InvocationInfo.ScriptLineNumber
-				# Extract the localized "File" string from shell32.dll
-				"$([WinAPI.GetStrings]::GetString(4130))" = $ErrorInFile
-				$Localization.ErrorsMessage               = $_.Exception.Message
-			}
-		} | Sort-Object -Property $Localization.ErrorsLine | Format-Table -AutoSize -Wrap | Out-String).Trim()
-	}
+        ($FilteredErrors | ForEach-Object -Process {
+            # Some errors may have the Windows nature and don't have a path to any of the module's files
+            $ErrorInFile = if ($_.InvocationInfo.PSCommandPath) {
+                Split-Path -Path $_.InvocationInfo.PSCommandPath -Leaf
+            }
 
-	Write-Information -MessageData "" -InformationAction Continue
-	Write-Warning -Message $Localization.RestartWarning
-	
-	Write-Host "Script is finished, log file can be found here 'C:\Users\Sheldon\AppData\Local\Temp\WinUtil Script for Windows 10_11.txt'" -ForegroundColor DarkYellow	
-	Pause
+            [PSCustomObject]@{
+                $Localization.ErrorsLine = $_.InvocationInfo.ScriptLineNumber
+                "$([WinAPI.GetStrings]::GetString(4130))" = $ErrorInFile
+                $Localization.ErrorsMessage = $_.Exception.Message
+            }
+        } | Sort-Object -Property $Localization.ErrorsLine | Format-Table -AutoSize -Wrap | Out-String).Trim()
+    }
+	Clear-Host
+	LogInfo "Script is finished"
+    Write-Host "Script is finished, log file can be found here 'C:\Users\Sheldon\AppData\Local\Temp\WinUtil Script for Windows 10_11.txt'" -ForegroundColor DarkYellow
+    Pause
 }
 #endregion Errors

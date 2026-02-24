@@ -1227,7 +1227,7 @@ function Install-NOAIPackage {
                 }
                 catch {
                     #user is using powershell 7 use dism command as fallback
-                    dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" /norestart | Out-Null
+                    dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
                 }
             }
             else {
@@ -1263,10 +1263,10 @@ function Install-NOAIPackage {
         if ($package.PackageState -eq 'InstallPending') {
             LogError 'Package installed incorrectly -  Uninstalling!'
             try {
-                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue | Out-Null
+                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
             }
             catch {
-                dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart | Out-Null
+                dism.exe /Online /remove-package /PackageName:$($package.PackageName) -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
             }
             #remove reg install location 
             $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages'
@@ -1285,10 +1285,10 @@ function Install-NOAIPackage {
             Write-Status 'Removing Custom Windows Update Package - ' 
             LogInfo 'Removing Custom Windows Update Package'
             try {
-                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -ErrorAction SilentlyContinue | Out-Null
+                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
             }
             catch {
-                dism.exe /Online /remove-package /PackageName:$($package.PackageName) /NoRestart | Out-Null
+                dism.exe /Online /remove-package /PackageName:$($package.PackageName) -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
             }
             #remove reg install location 
             $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages'
@@ -2226,12 +2226,12 @@ function Remove-AI-Files {
     
         #remove additional installers
         $inboxapps = 'C:\Windows\InboxApps'
-        $installers = Get-ChildItem -Path $inboxapps -Filter '*Copilot*'
+        $installers = Get-ChildItem -Path $inboxapps -Filter '*Copilot*' -ErrorAction SilentlyContinue | Out-Null
         foreach ($installer in $installers) {
             takeown /f $installer.FullName *>$null
             icacls $installer.FullName /grant *S-1-5-32-544:F /t *>$null
             try {
-                Remove-Item -Path $installer.FullName -Force -ErrorAction SilentlyContinue 3>$null
+                Remove-Item -Path $installer.FullName -Force -ErrorAction SilentlyContinue | Out-Null
             }
             catch {
                 #takeown didnt work remove file with system priv
