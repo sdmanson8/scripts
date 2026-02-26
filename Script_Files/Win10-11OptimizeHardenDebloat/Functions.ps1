@@ -2,8 +2,9 @@
 	.SYNOPSIS
 	The TAB completion for functions and their arguments
 
-	Version: 1.0.0
-	Date: 03.10.2021
+	Version: 2.0.0
+	Date: 03.10.2021 - initial version
+	      24.02.2026 - updated to v2.0.0 with new functions and improvements
 
 	Copyright (c) 2021 - 2026 sdmanson8
 

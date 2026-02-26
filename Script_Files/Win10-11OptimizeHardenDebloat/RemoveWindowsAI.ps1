@@ -1223,7 +1223,13 @@ function Install-NOAIPackage {
                 LogInfo "Installing RemoveWindowsAI Package"
 
                 try {
-                    Add-WindowsPackage -Online -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                    Add-WindowsPackage `
+                         -Online `
+                         -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" `
+                         -NoRestart `
+                         -IgnoreCheck `
+                         -ErrorAction SilentlyContinue `
+                         *> $null
                 }
                 catch {
                     #user is using powershell 7 use dism command as fallback
@@ -1236,20 +1242,26 @@ function Install-NOAIPackage {
 
                 $ProgressPreference = 'SilentlyContinue'
                 try {
-                    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/tree/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+                    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/tree/main/Script_Files/Win10-11OptimizeHardenDebloat/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
                 }
                 catch {
-                    LogError "Unable to Download Package at: https://github.com/sdmanson8/scripts/tree/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" 
+                    LogError "Unable to Download Package at: https://github.com/sdmanson8/scripts/tree/main/Script_Files/Win10-11OptimizeHardenDebloat/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" 
                     return
                 }
 
                 #Write-Status -msg 'Installing RemoveWindowsAI Package'
                 LogInfo "Installing RemoveWindowsAI Package"
                 try {
-                    Add-WindowsPackage -Online -PackagePath "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                    Add-WindowsPackage `
+                         -Online `
+                         -PackagePath "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" `
+                         -NoRestart `
+                         -IgnoreCheck `
+                         -ErrorAction SilentlyContinue `
+                         *> $null
                 }
                 catch {
-                    dism.exe /Online /Add-Package /PackagePath:"$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" /norestart | Out-Null
+                    dism.exe /Online /Add-Package /PackagePath:"$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -IgnoreCheck -ErrorAction SilentlyContinue >$null
                 }
             }
         }
@@ -1273,7 +1285,7 @@ function Install-NOAIPackage {
             Get-ChildItem $regPath | ForEach-Object {
                 $value = try { Get-ItemProperty "registry::$($_.Name)" -ErrorAction SilentlyContinue } catch { $null }
                 if ($value -and $value.PSPath -like '*SdManson8*') {
-                    Remove-Item -Path $value.PSPath -Recurse -Force | Out-Null
+                    Remove-Item -Path $value.PSPath -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
                 }
             }
         }
@@ -1295,7 +1307,7 @@ function Install-NOAIPackage {
             Get-ChildItem $regPath | ForEach-Object {
                 $value = try { Get-ItemProperty "registry::$($_.Name)" -ErrorAction SilentlyContinue } catch { $null }
                 if ($value -and $value.PSPath -like '*SdManson8*') {
-                    Remove-Item -Path $value.PSPath -Recurse -Force | Out-Null
+                    Remove-Item -Path $value.PSPath -Recurse -Force -ErrorAction SilentlyContinue| Out-Null
                 }
             }
             Write-Host "success!" -ForegroundColor Green
@@ -1306,9 +1318,7 @@ function Install-NOAIPackage {
         
     }
 
-}
-
-    
+}  
     
 function Disable-Copilot-Policies {
     #disable copilot policies in region policy json

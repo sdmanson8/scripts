@@ -3,10 +3,11 @@
 	This Script is a PowerShell module for Windows 10 & Windows 11 fine-tuning and automating the routine tasks
 
 	.VERSION
-	1.0.0
+	2.0.0
 
 	.DATE
-	03.10.2021
+	03.10.2021 - initial version
+	24.02.2026 - updated to v2.0.0 with new functions and improvements
 
 	.AUTHOR
 	sdmanson8
@@ -23,6 +24,10 @@
 	.\Win10_11Util.ps1 -Functions "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal", UninstallUWPApps
 
 	.NOTES
+	Supported Windows 10 versions
+	Version: 1607+
+	Editions: Home/Pro/Enterprise
+
 	Supported Windows 11 versions
 	Version: 23H2+
 	Editions: Home/Pro/Enterprise
@@ -30,6 +35,13 @@
 	.NOTES
 	To use the TAB completion for functions and their arguments dot source the Functions.ps1 script first:
 		. .\Function.ps1 (with a dot at the beginning)
+
+	.NOTES
+	The below sources were used, and edited for my purposes:
+	https://github.com/Disassembler0/Win10-Initial-Setup-Script
+	https://gist.github.com/ricardojba/ecdfe30dadbdab6c514a530bc5d51ef6
+	https://github.com/farag2/Sophia-Script-for-Windows
+	https://github.com/zoicware/RemoveWindowsAI/tree/main
 #>
 
 #Requires -RunAsAdministrator
@@ -127,7 +139,7 @@ InitialActions -Warning
 #endregion Protection
 
 # Check and Install WinGet
-#CheckWinGet
+CheckWinGet
 
 #Install Powershell 7
 Update-Powershell
@@ -767,9 +779,9 @@ TaskbarCombine -Always
 # Combine taskbar buttons and never hide labels
 # TaskbarCombine -Never
 
-# Unpin Microsoft Edge, Microsoft Store, and Outlook shortcuts from the taskbar
+# Unpin Microsoft Edge, Microsoft Store, Mail, and Outlook shortcuts from the taskbar
 # Microsoft Edge, Microsoft Store Outlook 
-UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook
+UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook, Mail
 
 # Enable end task in taskbar by right click
 TaskbarEndTask -Enable
@@ -1217,10 +1229,10 @@ StickyShift -Disable
 # StickyShift -Enable
 
 # Don't use AutoPlay for all media and devices
-Autoplay -Disable
+#Autoplay -Disable
 
 # Use AutoPlay for all media and devices (default value)
-# Autoplay -Enable
+Autoplay -Enable
 
 # Automatically saving my restartable apps and restart them when I sign back in
 #SaveRestartableApps -Enable
@@ -1595,12 +1607,59 @@ OpenWindowsTerminalAdminContext -Enable
 # OpenWindowsTerminalAdminContext -Disable
 #endregion Context menu
 
+# Show seconds on the taskbar clock
+# SecondsInSystemClock -Show
+
+# Hide seconds on the taskbar clock (default value)
+SecondsInSystemClock -Hide
+
+# Show time in Notification Center
+ClockInNotificationCenter -Show
+
+# Hide time in Notification Center (default value)
+# ClockInNotificationCenter -Hide
+
+# Download and install free dark "Windows 11 Cursors Concept" cursors from Jepri Creations. Internet connection required
+# https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
+# Install-Cursors -Dark
+
+# Download and install free light "Windows 11 Cursors Concept" cursors from Jepri Creations. Internet connection required
+# https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
+# Install-Cursors -Light
+
+# Set default cursors
+Install-Cursors -Default
+
+# Hide recently added apps in Start
+RecentlyAddedStartApps -Hide
+
+# Show recently added apps in Start (default value)
+# RecentlyAddedStartApps -Show
+
+# Hide most used apps in Start (default value)
+MostUsedStartApps -Hide
+
+# Show most used Apps in Start
+# MostUsedStartApps -Show
+
+# Show default Start layout (default value)
+# StartLayout -Default
+
+# Do not restore previous folder windows at logon (default value)
+RestorePreviousFolders -Disable
+
+# Restore previous folder windows at logon
+# RestorePreviousFolders -Enable
+
 #region Update Policies
 <#
 	Display all policy registry keys (even manually created ones) in the Local Group Policy Editor snap-in (gpedit.msc)
 	This can take up to 30 minutes, depending on the number of policies created in the registry and your system resources
 #>
 # UpdateLGPEPolicies
+
+# Scan the Windows registry and display applied registry policies in the Local Group Policy Editor snap-in (gpedit.msc)
+# ScanRegistryPolicies
 #endregion Update Policies
 
 # Environment refresh and other neccessary post actions
