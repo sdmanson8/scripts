@@ -57,7 +57,22 @@ param
 
 Clear-Host
 
-$Host.UI.RawUI.WindowTitle = "WinUtil Script for Windows 10/11"
+	# Get the OS version
+	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+
+	# Determine if it's Windows 10 or 11
+	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
+
+	if ($productName -match "Windows 11") 
+	{
+    $osName = "Windows 11"
+	} 
+	else 
+	{
+    $osName = "Windows 10"
+	}
+
+$Host.UI.RawUI.WindowTitle = "WinUtil Script for $osName"
 
 # Checking whether all files were expanded before running
 $ScriptFiles = @(

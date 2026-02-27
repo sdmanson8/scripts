@@ -29,8 +29,23 @@
 # Import logging module
 Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force
 
+	# Get the OS version
+	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+
+	# Determine if it's Windows 10 or 11
+	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
+
+	if ($productName -match "Windows 11") 
+	{
+    $osName = "Windows 11"
+	} 
+	else 
+	{
+    $osName = "Windows 10"
+	}
+	
 # Set up global log file
-$global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for Windows 10_11.txt"
+$global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for $osName.txt"
 Set-LogFile -Path $global:LogFilePath
 
 Function Restart-Script 
@@ -66,16 +81,19 @@ function InitialActions
 	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 
 	# Determine if it's Windows 10 or 11
-	if ($osVersion -eq "2009" -or $osVersion -eq "21H2" -or $osVersion -eq "22H2") 
+	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
+
+	if ($productName -match "Windows 11") 
 	{
-    	$osName = "Windows 11"
+    $osName = "Windows 11"
 	} 
 	else 
 	{
-    	$osName = "Windows 10"
+    $osName = "Windows 10"
 	}
+
 	LogInfo "Starting WinUtil Script for $osName" -addGap
-	LogInfo "Beginning Initial Checks:" -addGap
+	LogInfo "Beginning Initial Checks:" 
 
 	Clear-Host
 	Write-Host "Please Wait...."
@@ -865,50 +883,69 @@ $($Type):$($Value)`n
 
 function CheckWinGet 
 {
-    # Check if winget is installed
-    $wingetPath = (Get-Command winget -ErrorAction SilentlyContinue).Source
+	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 
-    if (-not $wingetPath) 
+	# Determine if it's Windows 10 or 11
+	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
+
+	if ($productName -match "Windows 10") 
 	{
-        # Download and install winget manually
-		LogInfo "Winget not found, Preparing to Download and Install Winget:"
-        Write-Host "Installing WinGet - " -NoNewline
-		LogInfo "Setting temp location"
-		Set-Location -Path $env:TEMP
-		LogInfo "Downloading NuGet"
-		Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.8.6 -Method Get -OutFile microsoft.ui.xaml.2.8.6.zip
-		Expand-Archive microsoft.ui.xaml.2.8.6.zip
-		LogInfo "Installing NuGet"
-		Add-AppxPackage -Path .\microsoft.ui.xaml.2.8.6\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.8.appx
-		LogInfo "Downloading C++ Runtime"
-		Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -Method Get -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
-		LogInfo "Installing C++ Runtime"
-		Add-AppxPackage -Path .\Microsoft.VCLibs.x64.14.00.Desktop.appx
-		LogInfo "Downloading WinGet"
-		# GitHub repo
-		$Repo = "microsoft/winget-cli"
-		$ApiUri = "https://api.github.com/repos/$Repo/releases/latest"
-		# Get latest release metadata
-		$Release = Invoke-RestMethod -Uri $ApiUri -UseBasicParsing
-		# Find required assets
-		$Msix = $Release.assets | Where-Object { $_.name -like "*.msixbundle" }
-		$License = $Release.assets | Where-Object { $_.name -like "*_License*.xml" }
-		# Download paths
-		$MsixPath = Join-Path $PWD $Msix.name
-		$LicensePath = Join-Path $PWD $License.name
-		# Download assets
-		Invoke-WebRequest -Uri $Msix.browser_download_url -OutFile $MsixPath -UseBasicParsing
-		Invoke-WebRequest -Uri $License.browser_download_url -OutFile $LicensePath -UseBasicParsing
-		LogInfo "Installing WinGet"
-		Add-AppxProvisionedPackage -Online `
-    		-PackagePath $MsixPath `
-    		-LicensePath $LicensePath
-        Write-Host "success!" -ForegroundColor Green
-    } 
+		$osName = "Windows 10"
+		# Check if winget is installed
+		Write-Host "Checking WinGet - " -NoNewline
+		$wingetPath = (Get-Command winget -ErrorAction SilentlyContinue).Source
+		
+		if ($wingetPath) 
+		{
+			LogInfo "Winget is already installed, skipping"
+			Write-Host "success!" -ForegroundColor Green
+		}
+		else 
+		{
+			# Download and install winget manually
+			LogInfo "Winget not found, Preparing to Download and Install Winget:"
+			Write-Host "Installing WinGet - " -NoNewline
+			LogInfo "Setting temp location"
+			Set-Location -Path $env:TEMP
+			LogInfo "Downloading NuGet"
+			Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.8.6 -Method Get -OutFile microsoft.ui.xaml.2.8.6.zip
+			Expand-Archive microsoft.ui.xaml.2.8.6.zip
+			LogInfo "Installing NuGet"
+			Add-AppxPackage -Path .\microsoft.ui.xaml.2.8.6\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.8.appx
+			LogInfo "Downloading C++ Runtime"
+			Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -Method Get -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
+			LogInfo "Installing C++ Runtime"
+			Add-AppxPackage -Path .\Microsoft.VCLibs.x64.14.00.Desktop.appx
+			LogInfo "Downloading WinGet"
+			# GitHub repo
+			$Repo = "microsoft/winget-cli"
+			$ApiUri = "https://api.github.com/repos/$Repo/releases/latest"
+			# Get latest release metadata
+			$Release = Invoke-RestMethod -Uri $ApiUri -UseBasicParsing
+			# Find required assets
+			$Msix = $Release.assets | Where-Object { $_.name -like "*.msixbundle" }
+			$License = $Release.assets | Where-Object { $_.name -like "*_License*.xml" }
+			# Download paths
+			$MsixPath = Join-Path $PWD $Msix.name
+			$LicensePath = Join-Path $PWD $License.name
+			# Download assets
+			Invoke-WebRequest -Uri $Msix.browser_download_url -OutFile $MsixPath -UseBasicParsing | Out-Null
+			Invoke-WebRequest -Uri $License.browser_download_url -OutFile $LicensePath -UseBasicParsing | Out-Null
+			LogInfo "Installing WinGet"
+			$null = Add-AppxProvisionedPackage -Online `
+				-PackagePath $MsixPath `
+				-LicensePath $LicensePath `
+				-NoRestart `
+				-ErrorAction SilentlyContinue `
+				-WarningAction SilentlyContinue
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
 	else 
 	{
-        LogInfo "WinGet is already installed."
-    }
+		# Skip on Windows 11
+		LogInfo "Winget is already installed, skipping"
+	}
 }
 
 # Update to Powershell 7.x.x
@@ -7531,7 +7568,7 @@ function TaskbarSearch
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Search\DisableSearch -Name value -PropertyType DWord -Value 0 -Force | Out-Null
+	New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Search\DisableSearch -Name value -PropertyType DWord -Value 0 -Force -ErrorAction Ignore | Out-Null
 	Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name DisableSearch, SearchOnTaskbarMode -Force -ErrorAction Ignore | Out-Null
 	Set-Policy -Scope Computer -Path "SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name DisableSearch -Type CLEAR | Out-Null
 	Set-Policy -Scope Computer -Path "SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name SearchOnTaskbarMode -Type CLEAR | Out-Null
@@ -7564,7 +7601,7 @@ function TaskbarSearch
 			Write-Host "Enabling the search box on the taskbar - " -NoNewline
 			LogInfo "Enabling the search box on the taskbar"			
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 2 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green00
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -10523,7 +10560,15 @@ function DeliveryOptimization
 			Write-Host "Disabling Delivery Optimization - " -NoNewline
 			LogInfo "Disabling Delivery Optimization"
 			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force | Out-Null
-			Delete-DeliveryOptimizationCache -Force *> $null
+			& {
+    			$temp = [Console]::Out
+    			[Console]::SetOut([System.IO.StreamWriter]::Null)
+    			try {
+        				Delete-DeliveryOptimizationCache -Force
+    				} finally {
+        		[Console]::SetOut($temp)
+    			}			
+} *>$null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
@@ -15238,7 +15283,7 @@ function DefaultTerminalApp
 				{
 					if (-not (Test-Path -Path "HKCU:\Console\%%Startup"))
 					{
-						New-Item -Path "HKCU:\Console\%%Startup" -Force | Out-Null
+						New-Item -Path "HKCU:\Console\%%Startup" -Force -ErrorAction SilentlyContinue | Out-Null
 					}
 
 					# Find the current GUID of Windows Terminal
@@ -15246,12 +15291,12 @@ function DefaultTerminalApp
 					Get-ChildItem -Path "HKLM:\SOFTWARE\Classes\PackagedCom\Package\$PackageFullName\Class" | ForEach-Object -Process {
 						if ((Get-ItemPropertyValue -Path $_.PSPath -Name ServerId) -eq 0)
 						{
-							New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value $_.PSChildName -Force | Out-Null
+							New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value $_.PSChildName -Force -ErrorAction SilentlyContinue | Out-Null
 						}
 
 						if ((Get-ItemPropertyValue -Path $_.PSPath -Name ServerId) -eq 1)
 						{
-							New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value $_.PSChildName -Force | Out-Null
+							New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value $_.PSChildName -Force -ErrorAction SilentlyContinue | Out-Null
 						}
 					}
 				}
@@ -15262,8 +15307,8 @@ function DefaultTerminalApp
 		{
 			Write-Host "Setting Windows Console Host as default terminal app - " -NoNewline
 			LogInfo "Setting Windows Console Host as default terminal app"
-			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force | Out-Null
-			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force | Out-Null
+			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force -ErrorAction SilentlyContinue | Out-Null
+			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 	}
@@ -15401,7 +15446,7 @@ function Install-VCRedist
 						return
 					}
 
-					Write-Host "Installing Visual C++ Redistributable (2015 - 2022)x64 - " -NoNewline
+					Write-Host "Installing Visual C++ Redistributable (2015 - 2022) x64 - " -NoNewline
 					LogInfo "Installing Visual C++ Redistributable (2015 - 2022) x64"
 
 					Start-Process -FilePath "$DownloadsFolder\VC_redist.x64.exe" -ArgumentList "/install /passive /norestart" -Wait
@@ -15519,7 +15564,7 @@ function Install-DotNetRuntimes
 						return
 					}
 
-					Write-Host "Installing .NET $NET8Version x64- " -NoNewline
+					Write-Host "Installing .NET $NET8Version x64 - " -NoNewline
 					LogInfo "Installing .NET $NET8Version x64"
 
 					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$NET8Version-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
@@ -19379,7 +19424,6 @@ function DefenderAppGuard
 			}
 			else {
 				LogInfo "WDAG feature not available on this system or already enabled."
-				Write-Host "success!" -ForegroundColor Green
 			}
 		}
 		"Disable"
@@ -19399,7 +19443,6 @@ function DefenderAppGuard
 			}
 			else {
 				LogInfo "WDAG feature not available on this system or already disabled."
-				Write-Host "success!" -ForegroundColor Green
 			}	
 		}
 	}
@@ -21382,7 +21425,7 @@ public static void PostMessage()
 	}
 
 	# Open Startup page
-	Start-Process -FilePath "ms-settings:startupapps" | Out-Null
+	[System.Diagnostics.Process]::Start("ms-settings:startupapps")
 
 <#
 	# Checking whether any of scheduled tasks were created. Unless open Task Scheduler
