@@ -35,21 +35,21 @@ Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force
 	# Determine if it's Windows 10 or 11
 	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
 
-	if ($productName -match "Windows 11") 
+	if ($productName -match "Windows 11")
 	{
     $osName = "Windows 11"
-	} 
-	else 
+	}
+	else
 	{
     $osName = "Windows 10"
 	}
-	
+
 # Set up global log file
 $global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for $osName.txt"
 Set-LogFile -Path $global:LogFilePath
 
-Function Restart-Script 
-{ 
+Function Restart-Script
+{
     param ([string]$scriptPath)
 
     if ($PSVersionTable.PSVersion.Major -ge 7) {
@@ -83,17 +83,17 @@ function InitialActions
 	# Determine if it's Windows 10 or 11
 	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
 
-	if ($productName -match "Windows 11") 
+	if ($productName -match "Windows 11")
 	{
     $osName = "Windows 11"
-	} 
-	else 
+	}
+	else
 	{
     $osName = "Windows 10"
 	}
 
 	LogInfo "Starting WinUtil Script for $osName" -addGap
-	LogInfo "Beginning Initial Checks:" 
+	LogInfo "Beginning Initial Checks:"
 
 	Clear-Host
 	Write-Host "Please Wait...."
@@ -248,7 +248,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 			if ($Tweakers[$Tweaker] -eq "HKCU:\Software\Win 10 Tweaker")
 			{
 				LogWarning $Localization.Win10TweakerWarning
-		
+
 			}
 			LogWarning ($Localization.TweakerWarning -f $Tweaker)
 		}
@@ -370,14 +370,14 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 			$hosts | ForEach-Object -Process {
 				if (($_ -ne "") -and (-not $_.StartsWith("#")) -and ($IPArray -split "`r?`n" | Select-String -Pattern $_.Trim()))
 				{
-					$hostsData = $_ 
+					$hostsData = $_
 					$hosts = $hosts | Where-Object -FilterScript {$_ -notmatch $hostsData}
 				}
 			}
 			# Save in UTF8 without BOM
 			LogInfo "Checking whether hosts contains any of string from $IPArray array"
 			$hosts | Set-Content -Path "$env:SystemRoot\System32\drivers\etc\hosts" -Encoding Default -Force | Out-Null
-			
+
 			Start-Process -FilePath notepad.exe "$env:SystemRoot\System32\drivers\etc\hosts" | Out-Null
 		}
 	}
@@ -392,7 +392,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	if (-not (Get-AppxPackage -Name MicrosoftWindows.Client.CBS))
 	{
 		LogWarning ($Localization.WindowsComponentBroken -f "Windows Feature Experience Pack")
-	
+
 	}
 
 	# Checking whether EventLog service is running
@@ -400,7 +400,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	if ((Get-Service -Name EventLog).Status -eq "Stopped")
 	{
 		LogWarning ($Localization.WindowsComponentBroken -f $([WinAPI.GetStrings]::GetString(22029)))
-	
+
 	}
 
 	# Checking whether the Microsoft Store being an important system component was removed
@@ -408,7 +408,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	if (-not (Get-AppxPackage -Name Microsoft.WindowsStore))
 	{
 		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Store")
-	
+
 	}
 
 	#region Defender checks
@@ -424,7 +424,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		if (-not (Test-Path -Path $File))
 		{
 			LogWarning ($Localization.WindowsComponentBroken -f $File)
-		
+
 		}
 	}
 
@@ -435,7 +435,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		#LogInfo -MessageData "" -InformationAction Continue
 		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
 		#LogInfo -MessageData "" -InformationAction Continue
-	
+
 	}
 
 	# Checking whether WMI is corrupted
@@ -449,7 +449,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		# Provider Load Failure exception
 		LogWarning ($Global:Error.Exception.Message | Select-Object -First 1)
 		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
-	
+
 	}
 
 	# Check Microsoft Defender state
@@ -467,7 +467,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	}
 	catch [Microsoft.PowerShell.Commands.ServiceCommandException]
 	{
-		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")	
+		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
 	}
 	$Script:DefenderServices = ($Services | Where-Object -FilterScript {$_.Status -ne "running"} | Measure-Object).Count -lt $Services.Count | Out-Null
 
@@ -561,7 +561,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	LogInfo "Checking whether LGPO.exe exists in the bin folder"
 	if (-not (Test-Path -Path "$PSScriptRoot\..\Binaries\LGPO.exe"))
 	{
-		LogWarning ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\Binaries"))	
+		LogWarning ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\Binaries"))
 	}
 
 	# Enable back the SysMain service if it was disabled by harmful tweakers
@@ -631,7 +631,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 		Write-Information -MessageData "" -InformationAction Continue
 
-		# Add "Please use the arrow keys ðŸ • and ðŸ — on your keyboard to select your answer" to menu
+		# Add "Please use the arrow keys ðŸ • and ðŸ — on your keyboard to select your answer" to menu
 		$Menu += $Localization.KeyboardArrows -f [System.Char]::ConvertFromUtf32(0x2191), [System.Char]::ConvertFromUtf32(0x2193)
 
 		if ($AddSkip)
@@ -881,26 +881,26 @@ $($Type):$($Value)`n
 }
 #endregion Additional function
 
-function CheckWinGet 
+function CheckWinGet
 {
 	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 
 	# Determine if it's Windows 10 or 11
 	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
 
-	if ($productName -match "Windows 10") 
+	if ($productName -match "Windows 10")
 	{
 		$osName = "Windows 10"
 		# Check if winget is installed
 		Write-Host "Checking WinGet - " -NoNewline
 		$wingetPath = (Get-Command winget -ErrorAction SilentlyContinue).Source
-		
-		if ($wingetPath) 
+
+		if ($wingetPath)
 		{
 			LogInfo "Winget is already installed, skipping"
 			Write-Host "success!" -ForegroundColor Green
 		}
-		else 
+		else
 		{
 			# Download and install winget manually
 			LogInfo "Winget not found, Preparing to Download and Install Winget:"
@@ -941,7 +941,7 @@ function CheckWinGet
 			Write-Host "success!" -ForegroundColor Green
 		}
 	}
-	else 
+	else
 	{
 		# Skip on Windows 11
 		LogInfo "Winget is already installed, skipping"
@@ -949,11 +949,11 @@ function CheckWinGet
 }
 
 # Update to Powershell 7.x.x
-Function Update-Powershell 
+Function Update-Powershell
 {
     # Check if PowerShell 7 is installed
     $psVersion = $PSVersionTable.PSVersion
-    if ($psVersion.Major -lt 7) 
+    if ($psVersion.Major -lt 7)
 	{
 		# Get the latest version of PowerShell 7 from winget
 		$latestVersion = (winget show --id Microsoft.PowerShell --accept-source-agreements | Select-String -Pattern "Version:" | ForEach-Object { $_.ToString().Split()[-1] }).Trim()
@@ -961,31 +961,31 @@ Function Update-Powershell
 		if (-not $latestVersion) {
 			LogError "Failed to retrieve the latest PowerShell version."
 		}
-		
+
 		Write-Host "Installing PowerShell $latestVersion - " -NoNewline
 		LogInfo "Installing PowerShell $latestVersion"
 		# Run winget command as administrator to install PowerShell
-		powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy Bypass', '-Command winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements' -Verb RunAs -Wait"           
+		powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy Bypass', '-Command winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements' -Verb RunAs -Wait"
 		Write-Host "success!" -ForegroundColor Green
 
         # Check if the installation was successful
-        if ($LASTEXITCODE -eq 0) 
+        if ($LASTEXITCODE -eq 0)
 		{
             #
-        } 
-		else 
+        }
+		else
 		{
             LogError "Failed to install PowerShell $latestVersion. Please check the logs and try again." -ForegroundColor Red
         }
-    } 
-	else 
+    }
+	else
 	{
         LogWarning "PowerShell 7 $latestVersion is already installed (Version: $($psVersion.ToString()))."
 	}
 }
 
 # Hide "About this Picture" on Desktop
-function Update-DesktopRegistry 
+function Update-DesktopRegistry
 {
 	Write-Host 'Removing "About this Picture" from Desktop - ' -NoNewline
 	LogInfo 'Removing "About this Picture" from Desktop'
@@ -996,33 +996,33 @@ function Update-DesktopRegistry
     $valueData = 1
 
     # Remove the specified namespace registry key
-    try 
+    try
 	{
         Remove-Item -Path $namespaceKeyPath -Force -ErrorAction SilentlyContinue | Out-Null
-    } 
-	catch 
+    }
+	catch
 	{
         LogError "Registry key not found or could not be removed: $namespaceKeyPath"
     }
 
     # Ensure the HideDesktopIcons path exists and set the DWORD value
-    try 
+    try
 	{
-        if (-not (Test-Path -Path $hideIconsPath)) 
+        if (-not (Test-Path -Path $hideIconsPath))
 		{
             New-Item -Path $hideIconsPath -Force | Out-Null
         }
         Set-ItemProperty -Path $hideIconsPath -Name $valueName -Value $valueData -Type DWord | Out-Null
 		Write-Host "success!" -ForegroundColor Green
     }
-	catch 
+	catch
 	{
         LogError "Failed to set registry value: $valueName"
     }
 }
 
 # Function to kill foreground applications
-function Stop-Foreground 
+function Stop-Foreground
 {
     Stop-Process -Name "explorer" -Force | Out-Null
 }
@@ -1032,14 +1032,14 @@ function Disable-RemoteCommands {
     Write-Host "Disable Remote Commands - " -NoNewline
 	LogInfo "Disabling Remote Commands"
     Set-ItemProperty -Path "HKLM:\Software\Microsoft\OLE" -Name "EnableDCOM" -Value "N" | Out-Null
-    
+
     # Ensure the registry key exists before trying to remove the value
-    if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms") 
+    if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms")
 	{
         Remove-ItemProperty -Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms" -Name "default" -Force | Out-Null
     }
 
-    if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms") 
+    if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms")
 	{
         Remove-ItemProperty -Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms" -Name "default" -Force | Out-Null
     }
@@ -1047,7 +1047,7 @@ function Disable-RemoteCommands {
 }
 
 # Function to prevent local Windows wireless exploitation
-function Suspend-AirstrikeAttack 
+function Suspend-AirstrikeAttack
 {
     Write-Host "Restrict local Windows wireless exploitation - " -NoNewline
 	LogInfo "Restricting local Windows wireless exploitation"
@@ -1056,7 +1056,7 @@ function Suspend-AirstrikeAttack
 }
 
 # Function to disable SMBv3 compression (workaround for CVE-2020-0796)
-function Disable-SMBv3Compression 
+function Disable-SMBv3Compression
 {
     Write-Host "Disable SMB version 3 Compression - " -NoNewline
 	LogInfo "Disabling SMB version 3 Compression"
@@ -1065,25 +1065,25 @@ function Disable-SMBv3Compression
 }
 
 # Function to harden MS Office security
-function Protect-MSOffice 
+function Protect-MSOffice
 {
     Write-Host "Configure Office to be Hardened - " -NoNewline
 	LogInfo "Configuring Office to be Hardened"
     $officeVersions = @("12.0", "14.0", "15.0", "16.0")
-    
-    foreach ($version in $officeVersions) 
+
+    foreach ($version in $officeVersions)
 	{
         $wordPath = "HKCU:\Software\Policies\Microsoft\Office\$version\Word\Security"
         $publisherPath = "HKCU:\Software\Policies\Microsoft\Office\$version\Publisher\Security"
-        
+
         # Check if the Word registry path exists before setting vbawarnings
-        if (Test-Path $wordPath) 
+        if (Test-Path $wordPath)
 		{
             Set-ItemProperty -Path $wordPath -Name "vbawarnings" -Value 4 | Out-Null
         }
-        
+
         # Check if the Publisher registry path exists before setting vbawarnings
-        if (Test-Path $publisherPath) 
+        if (Test-Path $publisherPath)
 		{
             Set-ItemProperty -Path $publisherPath -Name "vbawarnings" -Value 4 | Out-Null
         }
@@ -1093,12 +1093,12 @@ function Protect-MSOffice
     $word15Path = "HKCU:\Software\Policies\Microsoft\Office\15.0\Word\Security"
     $word16Path = "HKCU:\Software\Policies\Microsoft\Office\16.0\Word\Security"
 
-    if (Test-Path $word15Path) 
+    if (Test-Path $word15Path)
 	{
         Set-ItemProperty -Path $word15Path -Name "blockcontentexecutionfrominternet" -Value 1 | Out-Null
     }
 
-    if (Test-Path $word16Path) 
+    if (Test-Path $word16Path)
 	{
         Set-ItemProperty -Path $word16Path -Name "blockcontentexecutionfrominternet" -Value 1 | Out-Null
     }
@@ -1106,34 +1106,34 @@ function Protect-MSOffice
 }
 
 # Function to perform general OS hardening
-function Protect-OS 
+function Protect-OS
 {
     Write-Host "Configure OS to be Hardened - " -NoNewline
 	LogInfo "Configuring OS to be Hardened"
     # Check if the WDigest registry path exists before setting the value
     $wdigestPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest"
-    if (Test-Path $wdigestPath) 
+    if (Test-Path $wdigestPath)
 	{
         Set-ItemProperty -Path $wdigestPath -Name "UseLogonCredential" -Value 0 | Out-Null
     }
 
     # Check if the Kerberos Parameters registry path exists before setting the value
     $kerberosPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters"
-    if (Test-Path $kerberosPath) 
+    if (Test-Path $kerberosPath)
 	{
         Set-ItemProperty -Path $kerberosPath -Name "SupportedEncryptionTypes" -Value 2147483640 | Out-Null
     }
 
     # Check if the Tcpip Parameters registry path exists before setting the value
     $tcpipPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
-    if (Test-Path $tcpipPath) 
+    if (Test-Path $tcpipPath)
 	{
         Set-ItemProperty -Path $tcpipPath -Name "DisableIPSourceRouting" -Value 2 | Out-Null
     }
 
     # Check if the System registry path exists before setting EnableLUA
     $systemPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
-    if (Test-Path $systemPath) 
+    if (Test-Path $systemPath)
 	{
         Set-ItemProperty -Path $systemPath -Name "EnableLUA" -Value 1 | Out-Null
         Set-ItemProperty -Path $systemPath -Name "EnableVirtualization" -Value 1 | Out-Null
@@ -1143,7 +1143,7 @@ function Protect-OS
 }
 
 # Prevent Remote DLL Hijacking
-function Set-DLLHijackingPrevention 
+function Set-DLLHijackingPrevention
 {
     Write-Host "Configure DLL Hijacking Prevention - " -NoNewline
 	LogInfo "Configuring DLL Hijacking Prevention"
@@ -1154,7 +1154,7 @@ function Set-DLLHijackingPrevention
 }
 
 # Disable IPv6
-function Disable-IPv6 
+function Disable-IPv6
 {
     Write-Host "Disable IPv6 - " -NoNewline
 	LogInfo "Disabling IPv6"
@@ -1163,7 +1163,7 @@ function Disable-IPv6
 }
 
 # Disable TCP Timestamps
-function Disable-TCPTimestamps 
+function Disable-TCPTimestamps
 {
     Write-Host "Disable TCP Timestamps - " -NoNewline
 	LogInfo "Disabling TCP Timestamps"
@@ -1172,20 +1172,20 @@ function Disable-TCPTimestamps
 }
 
 # Enable Biometrics Anti-Spoofing
-function Enable-BiometricsAntiSpoofing 
+function Enable-BiometricsAntiSpoofing
 {
     Write-Host "Enable Biometrics Anti-Spoofing - " -NoNewline
     LogInfo "Enabling Biometrics Anti-Spoofing"
     $path = "SOFTWARE\Policies\Microsoft\Biometrics\FacialFeatures"
-    
+
     # Ensure the path exists, creating it if necessary
-    if (-not (Test-Path -Path "HKLM:\$path")) 
+    if (-not (Test-Path -Path "HKLM:\$path"))
 	{
-        try 
+        try
 		{
             New-Item -Path "HKLM:\$path" -Force | Out-Null
-        } 
-		catch 
+        }
+		catch
 		{
             LogError "Failed to create registry path: $path"
         }
@@ -1196,26 +1196,26 @@ function Enable-BiometricsAntiSpoofing
 }
 
 # Function to ensure registry path exists before setting properties
-function Update-RegistryPaths 
+function Update-RegistryPaths
 {
     param (
         [string]$path
     )
-    
+
     # Ensure $path is not empty before proceeding
-    if ([string]::IsNullOrWhiteSpace($path)) 
+    if ([string]::IsNullOrWhiteSpace($path))
 	{
         LogError "Invalid path: Path is empty or null." | Out-Null
         return
     }
 
-    if (-not (Test-Path -Path $path)) 
+    if (-not (Test-Path -Path $path))
 	{
-        try 
+        try
 		{
             New-Item -Path $path -Force | Out-Null
-        } 
-		catch 
+        }
+		catch
 		{
            LogError "Failed to create registry path: $path"
         }
@@ -1223,7 +1223,7 @@ function Update-RegistryPaths
 }
 
 # Disable AutoRun function
-function Disable-AutoRun 
+function Disable-AutoRun
 {
     Write-Host "Disable AutoRun - " -NoNewline
     LogInfo "Disabling Autorun"
@@ -1234,9 +1234,9 @@ function Disable-AutoRun
     )
 
     # Create missing paths and set registry values
-    foreach ($path in $paths) 
+    foreach ($path in $paths)
 	{
-        if (-not (Test-Path -Path $path)) 
+        if (-not (Test-Path -Path $path))
 		{
             New-Item -Path $path -Force | Out-Null
         }
@@ -1247,80 +1247,80 @@ function Disable-AutoRun
 }
 
 # Function to disable AES ciphers
-function Disable-AESCiphers 
+function Disable-AESCiphers
 {
     Write-Host "Disable AES Ciphers - " -NoNewline
 	LogInfo "Disabling AES Ciphers"
     $ciphers = @(
         'AES 128/128', 'AES 256/256', 'DES 56/56', 'RC2 128/128', 'RC4 128/128'
     )
-    foreach ($cipher in $ciphers) 
+    foreach ($cipher in $ciphers)
 	{
         $cipherPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\$cipher"
-        
-        if (-not (Test-Path $cipherPath)) 
+
+        if (-not (Test-Path $cipherPath))
 		{
             New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers" -Name $cipher -Force | Out-Null
         }
-        
+
         Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 | Out-Null
     }
 	Write-Host "success!" -ForegroundColor Green
 }
 
 # Function to disable RC2 and RC4 ciphers
-function Disable-RC2RC4Ciphers 
+function Disable-RC2RC4Ciphers
 {
     Write-Host "Disable RC2 and RC4 Ciphers - " -NoNewline
 	LogInfo "Disabling RC2 and RC4 Ciphers"
     $rcCiphers = @("RC2 128/128", "RC2 40/128", "RC2 56/128", "RC4 128/128", "RC4 40/128", "RC4 56/128", "RC4 64/128")
-    foreach ($cipher in $rcCiphers) 
+    foreach ($cipher in $rcCiphers)
 	{
         $cipherPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\$cipher"
-        
-        if (-not (Test-Path $cipherPath)) 
+
+        if (-not (Test-Path $cipherPath))
 		{
             New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers" -Name $cipher -Force | Out-Null
         }
-        
+
         Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 | Out-Null
     }
-	Write-Host "success!" -ForegroundColor Green	
+	Write-Host "success!" -ForegroundColor Green
 }
 
 # Function to disable Triple DES cipher
-function Disable-TripleDESCipher 
+function Disable-TripleDESCipher
 {
     Write-Host "Disable Triple DES Ciphers - " -NoNewline
 	LogInfo "Disabling Triple DES Ciphers"
     $cipherPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\Triple DES 168'
-    
-    if (-not (Test-Path $cipherPath)) 
+
+    if (-not (Test-Path $cipherPath))
 	{
         New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers' -Name 'Triple DES 168' -Force | Out-Null
     }
-    
+
     Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 | Out-Null
 	Write-Host "success!" -ForegroundColor Green
 }
 
 # Function to disable specified hash algorithms
-function Disable-HashAlgorithms 
+function Disable-HashAlgorithms
 {
     Write-Host "Disable Hash Algorithms - " -NoNewline
 	LogInfo "Disabling Hash Algorithms"
     $hashes = @('MD5', 'SHA', 'SHA256', 'SHA384', 'SHA512')
-    
-    foreach ($hash in $hashes) 
+
+    foreach ($hash in $hashes)
 	{
         $hashPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\$hash"
-        
+
         # Check if the registry key exists, if not, create it
-        if (-not (Test-Path $hashPath)) 
+        if (-not (Test-Path $hashPath))
 		{
             New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes" -Name $hash -Force | Out-Null
         }
-        
+
         # Set the 'Enabled' value to 0xffffffff
         Set-ItemProperty -Path $hashPath -Name 'Enabled' -Value 0xffffffff | Out-Null
     }
@@ -1328,19 +1328,19 @@ function Disable-HashAlgorithms
 }
 
 # Function to configure Key Exchange Algorithms
-function Update-KeyExchanges 
+function Update-KeyExchanges
 {
     Write-Host "Configure Key Exchanges - " -NoNewline
 	LogInfo "Configuring Key Exchanges"
     $keyPaths = @(
         'Diffie-Hellman', 'ECDH', 'PKCS'
     )
-    
-    foreach ($keyPath in $keyPaths) 
+
+    foreach ($keyPath in $keyPaths)
 	{
         $fullPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\$keyPath"
-        
-        if (-not (Test-Path $fullPath)) 
+
+        if (-not (Test-Path $fullPath))
 		{
             New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms" -Name $keyPath -Force | Out-Null
         }
@@ -1351,7 +1351,7 @@ function Update-KeyExchanges
 }
 
 # Function to configure SSL/TLS protocols
-function Update-Protocols 
+function Update-Protocols
 {
     Write-Host "Configure SSL/TLS Protocols - " -NoNewline
 	LogInfo "Configuring SSL/TLS Protocols"
@@ -1372,14 +1372,14 @@ function Update-Protocols
         'TLS 1.2\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
     }
     Write-Host "success!" -ForegroundColor Green
-    foreach ($protocol in $protocols.Keys) 
+    foreach ($protocol in $protocols.Keys)
 	{
-        foreach ($key in $protocols[$protocol].Keys) 
+        foreach ($key in $protocols[$protocol].Keys)
 		{
             $protocolPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\$protocol"
-            
+
             # Ensure the registry path exists before setting properties
-            if (Update-RegistryPaths -path $protocolPath) 
+            if (Update-RegistryPaths -path $protocolPath)
 			{
 				Write-Host "Updating SSL/TLS Registry Paths - " -NoNewline
 				LogInfo "Updating SSL/TLS Registry Paths"
@@ -1390,7 +1390,7 @@ function Update-Protocols
 }
 
 # Function to configure cipher suites
-function Update-CipherSuites 
+function Update-CipherSuites
 {
     Write-Host "Configure Cipher Suites - " -NoNewline
 	LogInfo "Configuring Cipher Suites"
@@ -1400,7 +1400,7 @@ function Update-CipherSuites
 }
 
 # Function to configure strong .NET authentication
-function Update-DotNetStrongAuth 
+function Update-DotNetStrongAuth
 {
     Write-Host "Use Strong .Net Authentication - " -NoNewline
 	LogInfo "Using Strong .Net Authentication"
@@ -1409,33 +1409,33 @@ function Update-DotNetStrongAuth
 }
 
 # Function to configure Event Log sizes
-function Update-EventLogSize 
+function Update-EventLogSize
 {
     Write-Host "Configure Event Log Sizes - " -NoNewline
 	LogInfo "Configuring Event Log Sizes"
-    try 
+    try
 	{
         wevtutil sl Security /ms:1024000 | Out-Null
 		Write-Host "success!" -ForegroundColor Green
     }
-    catch 
+    catch
 	{
         LogError "Wevtutil cmdlet not available, skipping."
     }
 }
 
 # Function to configure Adobe Reader security
-function Update-AdobereaderDCSTIG 
+function Update-AdobereaderDCSTIG
 {
     Write-Host "Configure Adobe Reader Security - " -NoNewline
 	LogInfo "Configuring Adobe Reader Security"
     # Check if the Adobe Reader registry path exists
     $adobePath = "Software\Policies\Adobe\Acrobat Reader\DC\Privileged"
-    if (Test-Path -Path "HKCU:\$adobePath") 
+    if (Test-Path -Path "HKCU:\$adobePath")
 	{
         Set-ItemProperty -Path "HKCU:\$adobePath" -Name "bProtectedMode" -Value 0 -ErrorAction SilentlyContinue | Out-Null
     }
-    else 
+    else
 	{
         LogInfo "Adobe Reader is not installed or the registry path does not exist. Skipping configuration."
     }
@@ -1491,7 +1491,7 @@ function DiagTrackService
 		# $_.File has no EndsWith() method
 		$PresetName = Split-Path -Path (((Get-PSCallStack).Position | Where-Object -FilterScript {$_.File}).File | Where-Object -FilterScript {$_.EndsWith(".ps1")}) -Leaf
 
-		LogError ($Localization.InitialActionsCheckFailed -f $PresetName)	
+		LogError ($Localization.InitialActionsCheckFailed -f $PresetName)
 	}
 
 	switch ($PSCmdlet.ParameterSetName)
@@ -2035,7 +2035,7 @@ function ScheduledTasks
 	# Force move the WPF form to the foreground
 	$Window.Add_Loaded({$Window.Activate()})
 	$Form.ShowDialog() | Out-Null
-	
+
 }
 
 <#
@@ -2303,7 +2303,7 @@ function UpdateAutoDownload
     .DESCRIPTION
     IMPORTANT: This tweak is experimental and should be used with caution
     It works by registering a dummy debugger for MusNotification.exe, which effectively blocks the restart prompt executable from running. This prevents the system from scheduling the automatic restart after a Windows Update installation, potentially avoiding unwanted restarts.
-    
+
     .PARAMETER Enable
     Enable automatic restart after Windows Update installation
 
@@ -3012,7 +3012,7 @@ function SigninInfo
 		"Disable"
 		{
 			Write-Host "Disabling sign-in info to automatically finish setting up device after an update - " -NoNewline
-			LogInfo "Disabling sign-in info to automatically finish setting up device after an update"			
+			LogInfo "Disabling sign-in info to automatically finish setting up device after an update"
 			$SID = (Get-CimInstance -ClassName Win32_UserAccount | Where-Object -FilterScript {$_.Name -eq $env:USERNAME}).SID
 			if (-not (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID"))
 			{
@@ -3024,7 +3024,7 @@ function SigninInfo
 		"Enable"
 		{
 			Write-Host "Enabling sign-in info to automatically finish setting up device after an update - " -NoNewline
-			LogInfo "Enabling sign-in info to automatically finish setting up device after an update"			
+			LogInfo "Enabling sign-in info to automatically finish setting up device after an update"
 			$SID = (Get-CimInstance -ClassName Win32_UserAccount | Where-Object -FilterScript {$_.Name -eq $env:USERNAME}).SID
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Name OptOut -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -3082,7 +3082,7 @@ function LanguageListAccess
 		"Enable"
 		{
 			Write-Host "Enabling websites to show locally relevant content by accessing language list - " -NoNewline
-			LogInfo "Enabling websites to show locally relevant content by accessing language list"			
+			LogInfo "Enabling websites to show locally relevant content by accessing language list"
 			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name HttpAcceptLanguageOptOut -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -3205,7 +3205,7 @@ function WindowsWelcomeExperience
 		"Hide"
 		{
 			Write-Host "Disabling Windows welcome experience - " -NoNewline
-			LogInfo "Disabling Windows welcome experience"			
+			LogInfo "Disabling Windows welcome experience"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -3319,7 +3319,7 @@ function WindowsTips
 		"Disable"
 		{
 			Write-Host "Disabling tip and suggestions when I use Windows - " -NoNewline
-			LogInfo "Disabling tip and suggestions when I use Windows"			
+			LogInfo "Disabling tip and suggestions when I use Windows"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -3369,7 +3369,7 @@ function SettingsSuggestedContent
 		"Hide"
 		{
 			Write-Host "Disabling suggested content in the Settings app - " -NoNewline
-			LogInfo "Disabling suggested content in the Settings app"	
+			LogInfo "Disabling suggested content in the Settings app"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 0 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 0 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 0 -Force | Out-Null
@@ -3378,7 +3378,7 @@ function SettingsSuggestedContent
 		"Show"
 		{
 			Write-Host "Enabling suggested content in the Settings app - " -NoNewline
-			LogInfo "Enabling suggested content in the Settings app"	
+			LogInfo "Enabling suggested content in the Settings app"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 1 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 1 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 1 -Force | Out-Null
@@ -3627,7 +3627,7 @@ function BingSearch
 		"Enable"
 		{
 			Write-Host "Enabling Bing search in Start Menu - " -NoNewline
-			LogInfo "Enabling Bing search in Start Menu"			
+			LogInfo "Enabling Bing search in Start Menu"
 			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Ignore | Out-Null
 			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type CLEAR | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -3679,7 +3679,7 @@ function StartRecommendationsTips
 		{
 			Write-Host "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
 			LogInfo "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force | Out-Null 
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
@@ -3808,7 +3808,7 @@ function WiFiSense
 		"Disable"
 		{
 			Write-Host "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks - " -NoNewline
-			LogInfo "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks"			
+			LogInfo "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Force | Out-Null
 			}
@@ -3935,7 +3935,7 @@ function ActivityHistory
 		"Enable"
 		{
 			Write-Host "Enabling Activity History related notifications in Task View - " -NoNewline
-			LogInfo "Enabling Activity History-related notifications in Task View"		
+			LogInfo "Enabling Activity History-related notifications in Task View"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction SilentlyContinue | Out-Null
@@ -3944,7 +3944,7 @@ function ActivityHistory
 		"Disable"
 		{
 			Write-Host "Disabling Activity History related notifications in Task View - " -NoNewline
-			LogInfo "Disabling Activity History-related notifications in Task View"				
+			LogInfo "Disabling Activity History-related notifications in Task View"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 | Out-Null
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 | Out-Null
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 | Out-Null
@@ -3996,14 +3996,14 @@ function Sensors
 		"Enable"
 		{
 			Write-Host "Enabling sensor-related features, such as screen auto-rotation - " -NoNewline
-			LogInfo "Enabling sensor-related features, such as screen auto-rotation"	
+			LogInfo "Enabling sensor-related features, such as screen auto-rotation"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling sensor-related features, such as screen auto-rotation - " -NoNewline
-			LogInfo "Disabling sensor-related features, such as screen auto-rotation"			
+			LogInfo "Disabling sensor-related features, such as screen auto-rotation"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
 			}
@@ -4064,7 +4064,7 @@ function LocationService
 		"Disable"
 		{
 			Write-Host "Disabling location features - " -NoNewline
-			LogInfo "Disabling the location feature for the current user"			
+			LogInfo "Disabling the location feature for the current user"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
 			}
@@ -4118,16 +4118,16 @@ function MapUpdates
 		"Enable"
 		{
 			Write-Host "Enabling automatic map updates - " -NoNewline
-			LogInfo "Enabling automatic map updates for the current user"			
+			LogInfo "Enabling automatic map updates for the current user"
 			Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green			
+			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling automatic map updates - " -NoNewline
-			LogInfo "Disabling automatic map updates for the current user"			
+			LogInfo "Disabling automatic map updates for the current user"
 			Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0 -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green			
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -4175,14 +4175,14 @@ function WebLangList
 		"Enable"
 		{
 			Write-Host "Enabling websites to show relevant content by accessing my language list - " -NoNewline
-			LogInfo "Enabling websites to show relevant content by accessing my language list"			
+			LogInfo "Enabling websites to show relevant content by accessing my language list"
 			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling websites to show relevant content by accessing my language list - " -NoNewline
-			LogInfo "Disabling websites to show relevant content by accessing my language list"		
+			LogInfo "Disabling websites to show relevant content by accessing my language list"
 			Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -4235,14 +4235,14 @@ function Camera
 		"Enable"
 		{
 			Write-Host "Enabling Access to use the camera - " -NoNewline
-			LogInfo "Enabling Access to use the camera"			
+			LogInfo "Enabling Access to use the camera"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Access to use the camera - " -NoNewline
-			LogInfo "Disabling Access to use the camera"	
+			LogInfo "Disabling Access to use the camera"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4298,14 +4298,14 @@ function Microphone
 		"Enable"
 		{
 			Write-Host "Enabling Access to use the microphone - " -NoNewline
-			LogInfo "Enabling Access to use the microphone"				
+			LogInfo "Enabling Access to use the microphone"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Access to use the microphone - " -NoNewline
-			LogInfo "Disabling Access to use the microphone"				
+			LogInfo "Disabling Access to use the microphone"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4361,7 +4361,7 @@ function WAPPush
 		"Enable"
 		{
 			Write-Host "Enabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
-			LogInfo "Enabling Device Management Wireless Application Protocol (WAP) Push Service"				
+			LogInfo "Enabling Device Management Wireless Application Protocol (WAP) Push Service"
 			Set-Service "dmwappushservice" -StartupType Automatic | Out-Null
 			Start-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1 | Out-Null
@@ -4370,7 +4370,7 @@ function WAPPush
 		"Disable"
 		{
 			Write-Host "Disabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
-			LogInfo "Disabling Device Management Wireless Application Protocol (WAP) Push Service"				
+			LogInfo "Disabling Device Management Wireless Application Protocol (WAP) Push Service"
 			Stop-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
 			Set-Service "dmwappushservice" -StartupType Disabled | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -4434,7 +4434,7 @@ function ClearRecentFiles
 		"Disable"
 		{
 			Write-Host "Disabling the clearing of recent files on exit - " -NoNewline
-			LogInfo "Disabling the clearing of recent files on exit"			
+			LogInfo "Disabling the clearing of recent files on exit"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -4494,7 +4494,7 @@ function RecentFiles
 		"Disable"
 		{
 			Write-Host "Disabling the recent files lists - " -NoNewline
-			LogInfo "Disabling the recent files lists"			
+			LogInfo "Disabling the recent files lists"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
@@ -4547,7 +4547,7 @@ function UWPVoiceActivation
 		"Enable"
 		{
 			Write-Host "Enabling access to voice activation from UWP apps - " -NoNewline
-			LogInfo "Enabling access to voice activation from UWP apps"			
+			LogInfo "Enabling access to voice activation from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -4555,7 +4555,7 @@ function UWPVoiceActivation
 		"Disable"
 		{
 			Write-Host "Disabling access to voice activation from UWP apps - " -NoNewline
-			LogInfo "Disabling access to voice activation from UWP apps"	
+			LogInfo "Disabling access to voice activation from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4609,14 +4609,14 @@ function UWPNotifications
 		"Enable"
 		{
 			Write-Host "Enabling access to notifications from UWP apps - " -NoNewline
-			LogInfo "Enabling access to notifications from UWP apps"				
+			LogInfo "Enabling access to notifications from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to notifications from UWP apps - " -NoNewline
-			LogInfo "Disabling access to notifications from UWP apps"			
+			LogInfo "Disabling access to notifications from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4669,14 +4669,14 @@ function UWPAccountInfo
 		"Enable"
 		{
 			Write-Host "Enabling access to account info from UWP apps - " -NoNewline
-			LogInfo "Enabling access to account info from UWP apps"				
+			LogInfo "Enabling access to account info from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to account info from UWP apps - " -NoNewline
-			LogInfo "Disabling access to account info from UWP apps"		
+			LogInfo "Disabling access to account info from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4729,14 +4729,14 @@ function UWPContacts
 		"Enable"
 		{
 			Write-Host "Enabling access to contacts from UWP apps - " -NoNewline
-			LogInfo "Enabling access to contacts from UWP apps"					
+			LogInfo "Enabling access to contacts from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to contacts from UWP apps - " -NoNewline
-			LogInfo "Disabling access to contacts from UWP apps"					
+			LogInfo "Disabling access to contacts from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4789,14 +4789,14 @@ function UWPCalendar
 		"Enable"
 		{
 			Write-Host "Enabling access to calendar from UWP apps - " -NoNewline
-			LogInfo "Enabling access to calendar from UWP apps"					
+			LogInfo "Enabling access to calendar from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to calendar from UWP apps - " -NoNewline
-			LogInfo "Disabling access to calendar from UWP apps"					
+			LogInfo "Disabling access to calendar from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4849,14 +4849,14 @@ function UWPPhoneCalls
 		"Enable"
 		{
 			Write-Host "Enabling access to phone calls from UWP apps - " -NoNewline
-			LogInfo "Enabling access to phone calls from UWP apps"					
+			LogInfo "Enabling access to phone calls from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to phone calls from UWP apps - " -NoNewline
-			LogInfo "Disabling access to phone calls from UWP apps"				
+			LogInfo "Disabling access to phone calls from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4909,14 +4909,14 @@ function UWPCallHistory
 		"Enable"
 		{
 			Write-Host "Enabling access to call history from UWP apps - " -NoNewline
-			LogInfo "Enabling access to call history from UWP apps"			
+			LogInfo "Enabling access to call history from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to call history from UWP apps - " -NoNewline
-			LogInfo "Disabling access to call history from UWP apps"						
+			LogInfo "Disabling access to call history from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -4969,14 +4969,14 @@ function UWPEmail
 		"Enable"
 		{
 			Write-Host "Enabling access to email from UWP apps - " -NoNewline
-			LogInfo "Enabling access to email from UWP apps"			
+			LogInfo "Enabling access to email from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to email from UWP apps - " -NoNewline
-			LogInfo "Disabling access to email from UWP apps"				
+			LogInfo "Disabling access to email from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -5029,14 +5029,14 @@ function UWPTasks
 		"Enable"
 		{
 			Write-Host "Enabling access to tasks from UWP apps - " -NoNewline
-			LogInfo "Enabling access to tasks from UWP apps"				
+			LogInfo "Enabling access to tasks from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to tasks from UWP apps - " -NoNewline
-			LogInfo "Disabling access to tasks from UWP apps"				
+			LogInfo "Disabling access to tasks from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -5089,14 +5089,14 @@ function UWPMessaging
 		"Enable"
 		{
 			Write-Host "Enabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
-			LogInfo "Enabling access to messaging (SMS, MMS) from UWP apps"				
+			LogInfo "Enabling access to messaging (SMS, MMS) from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
-			LogInfo "Disabling access to messaging (SMS, MMS) from UWP apps"					
+			LogInfo "Disabling access to messaging (SMS, MMS) from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -5149,14 +5149,14 @@ function UWPRadios
 		"Enable"
 		{
 			Write-Host "Enabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
-			LogInfo "Enabling access to radios (e.g. Bluetooth) from UWP apps"					
+			LogInfo "Enabling access to radios (e.g. Bluetooth) from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
-			LogInfo "Disabling access to radios (e.g. Bluetooth) from UWP apps"				
+			LogInfo "Disabling access to radios (e.g. Bluetooth) from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -5209,14 +5209,14 @@ function UWPOtherDevices
 		"Enable"
 		{
 			Write-Host "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
-			LogInfo "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"				
+			LogInfo "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
-			LogInfo "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"					
+			LogInfo "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -5269,14 +5269,14 @@ function UWPDiagInfo
 		"Enable"
 		{
 			Write-Host "Enabling access to diagnostic information from UWP apps - " -NoNewline
-			LogInfo "Enabling access to diagnostic information from UWP apps"					
+			LogInfo "Enabling access to diagnostic information from UWP apps"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to diagnostic information from UWP apps - " -NoNewline
-			LogInfo "Disabling access to diagnostic information from UWP apps"				
+			LogInfo "Disabling access to diagnostic information from UWP apps"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
 			}
@@ -5329,7 +5329,7 @@ function UWPFileSystem
 		"Enable"
 		{
 			Write-Host "Enabling access to libraries and the file system from UWP apps - " -NoNewline
-			LogInfo "Enabling access to libraries and the file system from UWP apps"					
+			LogInfo "Enabling access to libraries and the file system from UWP apps"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
@@ -5339,7 +5339,7 @@ function UWPFileSystem
 		"Disable"
 		{
 			Write-Host "Disabling access to libraries and the file system from UWP apps - " -NoNewline
-			LogInfo "Disabling access to libraries and the file system from UWP apps"				
+			LogInfo "Disabling access to libraries and the file system from UWP apps"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
@@ -5354,7 +5354,7 @@ function UWPFileSystem
     UWP apps swap file settings
 
     .DESCRIPTION
-    This disables creation and use of swapfile.sys and frees 256 MB of disk space. Swapfile.sys is used only by UWP apps. 
+    This disables creation and use of swapfile.sys and frees 256 MB of disk space. Swapfile.sys is used only by UWP apps.
 	IMPORTANT: The tweak has no effect on the real swap in pagefile.sys.
 
     .PARAMETER Enable
@@ -5396,14 +5396,14 @@ function UWPSwapFile
 		"Enable"
 		{
 			Write-Host "Enabling the UWP apps swap file - " -NoNewline
-			LogInfo "Enabling the UWP apps swap file"				
+			LogInfo "Enabling the UWP apps swap file"
 			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the UWP apps swap file - " -NoNewline
-			LogInfo "Disabling the UWP apps swap file"			
+			LogInfo "Disabling the UWP apps swap file"
 			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5457,7 +5457,7 @@ function ExplorerTitleFullPath
 		"Enable"
 		{
 			Write-Host "Enabling the display of full paths in Explorer title - " -NoNewline
-			LogInfo "Enabling the display of full paths in Explorer title"			
+			LogInfo "Enabling the display of full paths in Explorer title"
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Force | Out-Null
 			}
@@ -5467,7 +5467,7 @@ function ExplorerTitleFullPath
 		"Disable"
 		{
 			Write-Host "Disabling the display of full paths in Explorer title - " -NoNewline
-			LogInfo "Disabling the display of full paths in Explorer title"				
+			LogInfo "Disabling the display of full paths in Explorer title"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5524,7 +5524,7 @@ function FolderMergeConflicts
 		"Disable"
 		{
 			Write-Host "Disabling folder merge conflict notifications - " -NoNewline
-			LogInfo "Disabling folder merge conflict notifications"			
+			LogInfo "Disabling folder merge conflict notifications"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5574,14 +5574,14 @@ function NavPaneAllFolders
 		"Enable"
 		{
 			Write-Host "Enabling all folders in the Explorer navigation pane - " -NoNewline
-			LogInfo "Enabling all folders in the Explorer navigation pane"					
+			LogInfo "Enabling all folders in the Explorer navigation pane"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling all folders in the Explorer navigation pane - " -NoNewline
-			LogInfo "Disabling all folders in the Explorer navigation pane"						
+			LogInfo "Disabling all folders in the Explorer navigation pane"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5631,7 +5631,7 @@ function NavPaneLibraries
 		"Enable"
 		{
 			Write-Host "Enabling Libraries in the Explorer navigation pane - " -NoNewline
-			LogInfo "Enabling Libraries in the Explorer navigation pane"				
+			LogInfo "Enabling Libraries in the Explorer navigation pane"
 			If (!(Test-Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}")) {
 				New-Item -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Force | Out-Null
 			}
@@ -5641,7 +5641,7 @@ function NavPaneLibraries
 		"Disable"
 		{
 			Write-Host "Disabling Libraries in the Explorer navigation pane - " -NoNewline
-			LogInfo "Disabling Libraries in the Explorer navigation pane"			
+			LogInfo "Disabling Libraries in the Explorer navigation pane"
 			Remove-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5691,14 +5691,14 @@ function FldrSeparateProcess
 		"Enable"
 		{
 			Write-Host "Enabling launching folder windows in a separate process - " -NoNewline
-			LogInfo "Enabling launching folder windows in a separate process"			
+			LogInfo "Enabling launching folder windows in a separate process"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling launching folder windows in a separate process - " -NoNewline
-			LogInfo "Disabling launching folder windows in a separate process"				
+			LogInfo "Disabling launching folder windows in a separate process"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5748,14 +5748,14 @@ function RestoreFldrWindows
 		"Enable"
 		{
 			Write-Host "Enabling restoring previous folder windows at logon - " -NoNewline
-			LogInfo "Enabling restoring previous folder windows at logon"				
+			LogInfo "Enabling restoring previous folder windows at logon"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling restoring previous folder windows at logon - " -NoNewline
-			LogInfo "Disabling restoring previous folder windows at logon"				
+			LogInfo "Disabling restoring previous folder windows at logon"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5805,14 +5805,14 @@ function EncCompFilesColor
 		"Enable"
 		{
 			Write-Host "Enabling coloring of encrypted or compressed NTFS files - " -NoNewline
-			LogInfo "Enabling coloring of encrypted or compressed NTFS files"				
+			LogInfo "Enabling coloring of encrypted or compressed NTFS files"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling coloring of encrypted or compressed NTFS files - " -NoNewline
-			LogInfo "Disabling coloring of encrypted or compressed NTFS files"			
+			LogInfo "Disabling coloring of encrypted or compressed NTFS files"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5862,14 +5862,14 @@ function SharingWizard
 		"Enable"
 		{
 			Write-Host "Enabling the Sharing Wizard in Explorer - " -NoNewline
-			LogInfo "Enabling the Sharing Wizard in Explorer"			
+			LogInfo "Enabling the Sharing Wizard in Explorer"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the Sharing Wizard in Explorer - " -NoNewline
-			LogInfo "Disabling the Sharing Wizard in Explorer"				
+			LogInfo "Disabling the Sharing Wizard in Explorer"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5919,14 +5919,14 @@ function SelectCheckboxes
 		"Enable"
 		{
 			Write-Host "Enabling item selection checkboxes in Explorer - " -NoNewline
-			LogInfo "Enabling item selection checkboxes in Explorer"			
+			LogInfo "Enabling item selection checkboxes in Explorer"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling item selection checkboxes in Explorer - " -NoNewline
-			LogInfo "Enabling item selection checkboxes in Explorer"				
+			LogInfo "Enabling item selection checkboxes in Explorer"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -5983,7 +5983,7 @@ function SyncNotifications
 		"Disable"
 		{
 			Write-Host "Disabling sync provider notifications in Explorer - " -NoNewline
-			LogInfo "Disabling sync provider notifications in Explorer"			
+			LogInfo "Disabling sync provider notifications in Explorer"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6036,7 +6036,7 @@ function RecentShortcuts
 		"Enable"
 		{
 			Write-Host "Enabling recently and frequently used item shortcuts in Explorer - " -NoNewline
-			LogInfo "Enabling recently and frequently used item shortcuts in Explorer"			
+			LogInfo "Enabling recently and frequently used item shortcuts in Explorer"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6044,7 +6044,7 @@ function RecentShortcuts
 		"Disable"
 		{
 			Write-Host "Disabling recently and frequently used item shortcuts in Explorer - " -NoNewline
-			LogInfo "Disabling recently and frequently used item shortcuts in Explorer"				
+			LogInfo "Disabling recently and frequently used item shortcuts in Explorer"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -Type DWord -Value 0 | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6095,14 +6095,14 @@ function BuildNumberOnDesktop
 		"Enable"
 		{
 			Write-Host "Enabling build number and edition display on the Desktop - " -NoNewline
-			LogInfo "Enabling build number and edition display on the Desktop"			
+			LogInfo "Enabling build number and edition display on the Desktop"
 			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling build number and edition display on the Desktop - " -NoNewline
-			LogInfo "Disabling build number and edition display on the Desktop"				
+			LogInfo "Disabling build number and edition display on the Desktop"
 			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6155,7 +6155,7 @@ function ShareMenu
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
 			Write-Host "Enabling the Share context menu item - " -NoNewline
-			LogInfo "Enabling the Share context menu item"				
+			LogInfo "Enabling the Share context menu item"
 			New-Item -Path "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -Name "(Default)" -Type String -Value "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}" | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -6166,7 +6166,7 @@ function ShareMenu
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
 			Write-Host "Disabling the Share context menu item - " -NoNewline
-			LogInfo "Disabling the Share context menu item"			
+			LogInfo "Disabling the Share context menu item"
 			Remove-Item -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6216,14 +6216,14 @@ function Thumbnails
 		"Enable"
 		{
 			Write-Host "Enabling 'Show thumbnails instead of icons' for file extensions - " -NoNewline
-			LogInfo "Enabling 'Show thumbnails instead of icons' for file extensions"		
+			LogInfo "Enabling 'Show thumbnails instead of icons' for file extensions"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling thumbnails, showing icons for file extensions instead - " -NoNewline
-			LogInfo "Disabling thumbnails, showing icons for file extensions instead"			
+			LogInfo "Disabling thumbnails, showing icons for file extensions instead"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6273,14 +6273,14 @@ function ThumbnailCache
 		"Enable"
 		{
 			Write-Host "Enabling the creation of thumbnail cache files - " -NoNewline
-			LogInfo "Enabling the creation of thumbnail cache files"				
+			LogInfo "Enabling the creation of thumbnail cache files"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the creation of thumbnail cache files - " -NoNewline
-			LogInfo "Disabling the creation of thumbnail cache files"			
+			LogInfo "Disabling the creation of thumbnail cache files"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6330,14 +6330,14 @@ function ThumbsDBOnNetwork
 		"Enable"
 		{
 			Write-Host "Enabling the creation of 'Thumbs.db' cache on network folders - " -NoNewline
-			LogInfo "Enabling the creation of 'Thumbs.db' cache on network folders"			
+			LogInfo "Enabling the creation of 'Thumbs.db' cache on network folders"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the creation of 'Thumbs.db' cache on network folders - " -NoNewline
-			LogInfo "Disabling the creation of 'Thumbs.db' cache on network folders"				
+			LogInfo "Disabling the creation of 'Thumbs.db' cache on network folders"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6387,7 +6387,7 @@ function ThisPC
 		"Show"
 		{
 			Write-Host "Enabling 'This PC' icon on Desktop - " -NoNewline
-			LogInfo "Enabling 'This PC' icon on Desktop"				
+			LogInfo "Enabling 'This PC' icon on Desktop"
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel))
 			{
 				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Force | Out-Null
@@ -6398,7 +6398,7 @@ function ThisPC
 		"Hide"
 		{
 			Write-Host "Disabling 'This PC' icon on Desktop - " -NoNewline
-			LogInfo "Disabling 'This PC' icon on Desktop"			
+			LogInfo "Disabling 'This PC' icon on Desktop"
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6448,14 +6448,14 @@ function CheckBoxes
 		"Enable"
 		{
 			Write-Host "Enabling item check boxes - " -NoNewline
-			LogInfo "Enabling item check boxes"			
+			LogInfo "Enabling item check boxes"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name AutoCheckSelect -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling item check boxes - " -NoNewline
-			LogInfo "Disabling item check boxes"			
+			LogInfo "Disabling item check boxes"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name AutoCheckSelect -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6505,14 +6505,14 @@ function HiddenItems
 		"Enable"
 		{
 			Write-Host "Enabling Hidden files, folders, and drives - " -NoNewline
-			LogInfo "Enabling Hidden files, folders, and drives"				
+			LogInfo "Enabling Hidden files, folders, and drives"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Hidden -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Hidden files, folders, and drives - " -NoNewline
-			LogInfo "Disabling Hidden files, folders, and drives"				
+			LogInfo "Disabling Hidden files, folders, and drives"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Hidden -PropertyType DWord -Value 2 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6562,14 +6562,14 @@ function SuperHiddenFiles
 		"Enable"
 		{
 			Write-Host "Enabling 'Show protected operating system files' - " -NoNewline
-			LogInfo "Enabling 'Show protected operating system files'"				
+			LogInfo "Enabling 'Show protected operating system files'"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling 'Show protected operating system files' - " -NoNewline
-			LogInfo "Disabling 'Show protected operating system files'"				
+			LogInfo "Disabling 'Show protected operating system files'"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6619,14 +6619,14 @@ function FileExtensions
 		"Show"
 		{
 			Write-Host "Enabling file name extensions - " -NoNewline
-			LogInfo "Enabling file name extensions"				
+			LogInfo "Enabling file name extensions"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideFileExt -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
 			Write-Host "Disabling file name extensions - " -NoNewline
-			LogInfo "Disabling file name extensions"					
+			LogInfo "Disabling file name extensions"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideFileExt -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6676,14 +6676,14 @@ function MergeConflicts
 		"Show"
 		{
 			Write-Host "Enabling folder merge conflicts - " -NoNewline
-			LogInfo "Enabling folder merge conflicts"				
+			LogInfo "Enabling folder merge conflicts"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideMergeConflicts -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Hide"
 		{
 			Write-Host "Disabling folder merge conflicts - " -NoNewline
-			LogInfo "Disabling folder merge conflicts"				
+			LogInfo "Disabling folder merge conflicts"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideMergeConflicts -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6738,7 +6738,7 @@ function OpenFileExplorerTo
 			ParameterSetName = "Downloads"
 		)]
 		[switch]
-		$Downloads		
+		$Downloads
 	)
 
 	switch ($PSCmdlet.ParameterSetName)
@@ -6746,24 +6746,24 @@ function OpenFileExplorerTo
 		"ThisPC"
 		{
 			Write-Host "Setting File Explorer to open to 'This PC' - " -NoNewline
-			LogInfo "Setting File Explorer to open to 'This PC'"			
+			LogInfo "Setting File Explorer to open to 'This PC'"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"QuickAccess"
 		{
 			Write-Host "Setting File Explorer to open to 'Quick Access' - " -NoNewline
-			LogInfo "Setting File Explorer to open to 'Quick Access'"				
+			LogInfo "Setting File Explorer to open to 'Quick Access'"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 2 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Downloads"
 		{
 			Write-Host "Setting File Explorer to open to 'Downloads' - " -NoNewline
-			LogInfo "Setting File Explorer to open to 'Downloads'"				
+			LogInfo "Setting File Explorer to open to 'Downloads'"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 3 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
-		}		
+		}
 	}
 }
 
@@ -6810,14 +6810,14 @@ function FileExplorerCompactMode
 		"Disable"
 		{
 			Write-Host "Disabling File Explorer compact mode - " -NoNewline
-			LogInfo "Disabling File Explorer compact mode"			
+			LogInfo "Disabling File Explorer compact mode"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name UseCompactMode -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
 			Write-Host "Enabling File Explorer compact mode - " -NoNewline
-			LogInfo "Enabling File Explorer compact mode"				
+			LogInfo "Enabling File Explorer compact mode"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name UseCompactMode -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6868,14 +6868,14 @@ function OneDriveFileExplorerAd
 		"Hide"
 		{
 			Write-Host "Disabling sync provider notification within File Explorer - " -NoNewline
-			LogInfo "Disabling sync provider notification within File Explorer"				
+			LogInfo "Disabling sync provider notification within File Explorer"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
 			Write-Host "Enabling sync provider notification within File Explorer - " -NoNewline
-			LogInfo "Enabling sync provider notification within File Explorer"				
+			LogInfo "Enabling sync provider notification within File Explorer"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6927,14 +6927,14 @@ function SnapAssist
 		"Disable"
 		{
 			Write-Host "Disabling 'show what I can snap next' When snapping windows - " -NoNewline
-			LogInfo "Disabling 'show what I can snap next' When snapping windows"				
+			LogInfo "Disabling 'show what I can snap next' When snapping windows"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
 			Write-Host "Enabling 'show what I can snap next' When snapping windows - " -NoNewline
-			LogInfo "Enabling 'show what I can snap next' When snapping windows"				
+			LogInfo "Enabling 'show what I can snap next' When snapping windows"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -6989,14 +6989,14 @@ function FileTransferDialog
 		"Detailed"
 		{
 			Write-Host "Enabling detailed view for file transfer dialog boxes - " -NoNewline
-			LogInfo "Enabling detailed view for file transfer dialog boxes"			
+			LogInfo "Enabling detailed view for file transfer dialog boxes"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Compact"
 		{
 			Write-Host "Enabling compact view for file transfer dialog boxes - " -NoNewline
-			LogInfo "Enabling compact view for file transfer dialog boxes"				
+			LogInfo "Enabling compact view for file transfer dialog boxes"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7053,7 +7053,7 @@ function RecycleBinDeleteConfirmation
 		"Enable"
 		{
 			Write-Host "Enabling the recycle bin files delete confirmation dialog - " -NoNewline
-			LogInfo "Enabling the recycle bin files delete confirmation dialog"			
+			LogInfo "Enabling the recycle bin files delete confirmation dialog"
 			$ShellState[4] = 51
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -7061,7 +7061,7 @@ function RecycleBinDeleteConfirmation
 		"Disable"
 		{
 			Write-Host "Disabling the recycle bin files delete confirmation dialog - " -NoNewline
-			LogInfo "Disabling the recycle bin files delete confirmation dialog"				
+			LogInfo "Disabling the recycle bin files delete confirmation dialog"
 			$ShellState[4] = 55
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -7117,14 +7117,14 @@ function QuickAccessRecentFiles
 		"Hide"
 		{
 			Write-Host "Disabling recently used files in Quick access - " -NoNewline
-			LogInfo "Disabling recently used files in Quick access"			
+			LogInfo "Disabling recently used files in Quick access"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
 			Write-Host "Enabling recently used files in Quick access - " -NoNewline
-			LogInfo "Enabling recently used files in Quick access"				
+			LogInfo "Enabling recently used files in Quick access"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7174,14 +7174,14 @@ function QuickAccessFrequentFolders
 		"Hide"
 		{
 			Write-Host "Disabling frequently used folders in Quick access - " -NoNewline
-			LogInfo "Disabling frequently used folders in Quick access"			
+			LogInfo "Disabling frequently used folders in Quick access"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
 			Write-Host "Enabling frequently used folders in Quick access - " -NoNewline
-			LogInfo "Enabling frequently used folders in Quick access"			
+			LogInfo "Enabling frequently used folders in Quick access"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7236,7 +7236,7 @@ function MeetNow
 		"Hide"
 		{
 			Write-Host "Disabling the Meet Now icon in the notification area - " -NoNewline
-			LogInfo "Disabling the Meet Now icon in the notification area"			
+			LogInfo "Disabling the Meet Now icon in the notification area"
 			$Script:MeetNow = $false
 			$Settings = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -ErrorAction Ignore
 			$Settings[9] = 128
@@ -7246,7 +7246,7 @@ function MeetNow
 		"Show"
 		{
 			Write-Host "Enabling the Meet Now icon in the notification area - " -NoNewline
-			LogInfo "Enabling the Meet Now icon in the notification area"			
+			LogInfo "Enabling the Meet Now icon in the notification area"
 			$Script:MeetNow = $true
 			$Settings = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -ErrorAction Ignore
 			$Settings[9] = 0
@@ -7419,14 +7419,14 @@ function TaskbarAlignment
 		"Center"
 		{
 			Write-Host "Setting the taskbar alignment to the Center - " -NoNewline
-			LogInfo "Setting the taskbar alignment to the Center"			
+			LogInfo "Setting the taskbar alignment to the Center"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarAl -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Left"
 		{
 			Write-Host "Setting the taskbar alignment to the Left - " -NoNewline
-			LogInfo "Setting the taskbar alignment to the Left"				
+			LogInfo "Setting the taskbar alignment to the Left"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarAl -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7490,14 +7490,14 @@ function TaskbarWidgets
 		"Hide"
 		{
 			Write-Host "Disabling the widgets icon on the taskbar - " -NoNewline
-			LogInfo "Disabling the widgets icon on the taskbar"				
+			LogInfo "Disabling the widgets icon on the taskbar"
 			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 0 -Force} | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
 			Write-Host "Enabling the widgets icon on the taskbar - " -NoNewline
-			LogInfo "Enabling the widgets icon on the taskbar"				
+			LogInfo "Enabling the widgets icon on the taskbar"
 			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 1 -Force} | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7578,28 +7578,28 @@ function TaskbarSearch
 		"Hide"
 		{
 			Write-Host "Disabling the search on the taskbar - " -NoNewline
-			LogInfo "Disabling the search on the taskbar"				
+			LogInfo "Disabling the search on the taskbar"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"SearchIcon"
 		{
 			Write-Host "Enabling the search icon on the taskbar - " -NoNewline
-			LogInfo "Enabling the search icon on the taskbar"						
+			LogInfo "Enabling the search icon on the taskbar"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"SearchIconLabel"
 		{
 			Write-Host "Enabling the search icon label on the taskbar - " -NoNewline
-			LogInfo "Enabling the search icon label on the taskbar"			
+			LogInfo "Enabling the search icon label on the taskbar"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 3 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"SearchBox"
 		{
 			Write-Host "Enabling the search box on the taskbar - " -NoNewline
-			LogInfo "Enabling the search box on the taskbar"			
+			LogInfo "Enabling the search box on the taskbar"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 2 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7665,7 +7665,7 @@ function SearchHighlights
 			else
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings -Name IsDynamicSearchBoxEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-				
+
 			}
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7730,14 +7730,14 @@ function TaskViewButton
 		"Hide"
 		{
 			Write-Host "Disabling the Task view button on the taskbar - " -NoNewline
-			LogInfo "Disabling the Task view button on the taskbar"			
+			LogInfo "Disabling the Task view button on the taskbar"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowTaskViewButton -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Show"
 		{
 			Write-Host "Enabling the Task view button on the taskbar - " -NoNewline
-			LogInfo "Enabling the Task view button on the taskbar"				
+			LogInfo "Enabling the Task view button on the taskbar"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowTaskViewButton -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7805,21 +7805,21 @@ function TaskbarCombine
 		"Always"
 		{
 			Write-Host "Combine taskbar buttons and always hide labels - " -NoNewline
-			LogInfo "Combine taskbar buttons and always hide labels"				
+			LogInfo "Combine taskbar buttons and always hide labels"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Full"
 		{
 			Write-Host "Combine taskbar buttons and hide labels when taskbar is full - " -NoNewline
-			LogInfo "Combine taskbar buttons and hide labels when taskbar is full"			
+			LogInfo "Combine taskbar buttons and hide labels when taskbar is full"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Never"
 		{
 			Write-Host "Combine taskbar buttons and never hide labels - " -NoNewline
-			LogInfo "Combine taskbar buttons and never hide labels"			
+			LogInfo "Combine taskbar buttons and never hide labels"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 2 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -7966,14 +7966,14 @@ function TaskbarEndTask
 		"Enable"
 		{
 			Write-Host "Enabling 'End task in taskbar by right click' - " -NoNewline
-			LogInfo "Enabling 'End task in taskbar by right click'"			
+			LogInfo "Enabling 'End task in taskbar by right click'"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling 'End task in taskbar by right click' - " -NoNewline
-			LogInfo "Disabling 'End task in taskbar by right click'"				
+			LogInfo "Disabling 'End task in taskbar by right click'"
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8045,7 +8045,7 @@ function ControlPanelView
 		"Category"
 		{
 			Write-Host "Setting Control Panel to be viewed by Category - " -NoNewline
-			LogInfo "Setting Control Panel to be viewed by Category"				
+			LogInfo "Setting Control Panel to be viewed by Category"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -8053,7 +8053,7 @@ function ControlPanelView
 		"LargeIcons"
 		{
 			Write-Host "Setting Control Panel to be viewed by Large Icons - " -NoNewline
-			LogInfo "Setting Control Panel to be viewed by Large Icons"			
+			LogInfo "Setting Control Panel to be viewed by Large Icons"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -8061,7 +8061,7 @@ function ControlPanelView
 		"SmallIcons"
 		{
 			Write-Host "Setting Control Panel to be viewed by Small Icons - " -NoNewline
-			LogInfo "Setting Control Panel to be viewed by Small Icons"				
+			LogInfo "Setting Control Panel to be viewed by Small Icons"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 1 -Force | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -8112,14 +8112,14 @@ function WindowsColorMode
 		"Dark"
 		{
 			Write-Host "Setting Windows to use Dark Mode - " -NoNewline
-			LogInfo "Setting Windows to use Dark Mode"			
+			LogInfo "Setting Windows to use Dark Mode"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Light"
 		{
 			Write-Host "Setting Windows to use Light Mode - " -NoNewline
-			LogInfo "Setting Windows to use Light Mode"				
+			LogInfo "Setting Windows to use Light Mode"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8169,14 +8169,14 @@ function AppColorMode
 		"Dark"
 		{
 			Write-Host "Setting Apps to use Dark Mode - " -NoNewline
-			LogInfo "Setting Apps to use Dark Mode"			
+			LogInfo "Setting Apps to use Dark Mode"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Light"
 		{
 			Write-Host "Setting Apps to use Light Mode - " -NoNewline
-			LogInfo "Setting Apps to use Light Mode"				
+			LogInfo "Setting Apps to use Light Mode"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8230,14 +8230,14 @@ function FirstLogonAnimation
 		"Disable"
 		{
 			Write-Host "Disabling the first sign-in animation after upgrade - " -NoNewline
-			LogInfo "Disabling the first sign-in animation after upgrade"				
+			LogInfo "Disabling the first sign-in animation after upgrade"
 			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 0 -Force  | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
 			Write-Host "Enabling the first sign-in animation after upgrade - " -NoNewline
-			LogInfo "Enabling the first sign-in animation after upgrade"			
+			LogInfo "Enabling the first sign-in animation after upgrade"
 			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8287,14 +8287,14 @@ function JPEGWallpapersQuality
 		"Max"
 		{
 			Write-Host "Enabling the maximum quality factor of the JPEG desktop wallpapers - " -NoNewline
-			LogInfo "Enabling the maximum quality factor of the JPEG desktop wallpapers"				
+			LogInfo "Enabling the maximum quality factor of the JPEG desktop wallpapers"
 			New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -PropertyType DWord -Value 100 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Default"
 		{
 			Write-Host "Disabling the maximum quality factor of the JPEG desktop wallpapers - " -NoNewline
-			LogInfo "Disabling the maximum quality factor of the JPEG desktop wallpapers"			
+			LogInfo "Disabling the maximum quality factor of the JPEG desktop wallpapers"
 			Remove-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8346,7 +8346,7 @@ function ShortcutsSuffix
 		"Disable"
 		{
 			Write-Host "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts - " -NoNewline
-			LogInfo "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts"				
+			LogInfo "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts"
 			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates))
 			{
 				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Force | Out-Null
@@ -8357,7 +8357,7 @@ function ShortcutsSuffix
 		"Enable"
 		{
 			Write-Host "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts - " -NoNewline
-			LogInfo "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts"				
+			LogInfo "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts"
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8407,14 +8407,14 @@ function ShortcutArrow
 		"Enable"
 		{
 			Write-Host "Enabling the display of shortcut arrow overlay on icons - " -NoNewline
-			LogInfo "Enabling the display of shortcut arrow overlay on icons"				
+			LogInfo "Enabling the display of shortcut arrow overlay on icons"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the display of shortcut arrow overlay on icons - " -NoNewline
-			LogInfo "Disabling the display of shortcut arrow overlay on icons"			
+			LogInfo "Disabling the display of shortcut arrow overlay on icons"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" | Out-Null
 			}
@@ -8467,14 +8467,14 @@ function PrtScnSnippingTool
 		"Enable"
 		{
 			Write-Host "Enabling the Print screen button to open screen snipping - " -NoNewline
-			LogInfo "Enabling the Print screen button to open screen snipping"			
+			LogInfo "Enabling the Print screen button to open screen snipping"
 			New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the Print screen button to open screen snipping - " -NoNewline
-			LogInfo "Disabling the Print screen button to open screen snipping"				
+			LogInfo "Disabling the Print screen button to open screen snipping"
 			New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8524,14 +8524,14 @@ function AppsLanguageSwitch
 		"Enable"
 		{
 			Write-Host "Enabling a different input method for each app window - " -NoNewline
-			LogInfo "Enabling a different input method for each app window"			
+			LogInfo "Enabling a different input method for each app window"
 			Set-WinLanguageBarOption -UseLegacySwitchMode | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling a different input method for each app window - " -NoNewline
-			LogInfo "Disabling a different input method for each app window"				
+			LogInfo "Disabling a different input method for each app window"
 			Set-WinLanguageBarOption | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8586,14 +8586,14 @@ function AeroShaking
 		"Enable"
 		{
 			Write-Host "Enabling Title bar window shake - " -NoNewline
-			LogInfo "Enabling Title bar window shake"				
+			LogInfo "Enabling Title bar window shake"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Title bar window shake - " -NoNewline
-			LogInfo "Disabling Title bar window shake"				
+			LogInfo "Disabling Title bar window shake"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8643,12 +8643,12 @@ function FolderGroupBy
 		"None"
 		{
 			Write-Host "Enabling grouping of files and folder in the Downloads folder - " -NoNewline
-			LogInfo "Enabling grouping of files and folder in the Downloads folder"	
+			LogInfo "Enabling grouping of files and folder in the Downloads folder"
 			# Clear any Common Dialog views
 			Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\*\Shell" -ErrorAction SilentlyContinue |
     		Where-Object { $_.PSChildName -eq "{885A186E-A440-4ADA-812B-DB871B942259}" } |
     		Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
-			
+
 			# https://learn.microsoft.com/en-us/windows/win32/properties/props-system-null
 			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}"))
 			{
@@ -8666,7 +8666,7 @@ function FolderGroupBy
 		"Default"
 		{
 			Write-Host "Disabling grouping of files and folder in the Downloads folder - " -NoNewline
-			LogInfo "Disabling grouping of files and folder in the Downloads folder"	
+			LogInfo "Disabling grouping of files and folder in the Downloads folder"
 			Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}" -Recurse -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8716,14 +8716,14 @@ function NavigationPaneExpand
 		"Disable"
 		{
 			Write-Host "Disabling expand to open folder on navigation pane - " -NoNewline
-			LogInfo "Disabling expand to open folder on navigation pane"	
+			LogInfo "Disabling expand to open folder on navigation pane"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 0 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
 			Write-Host "Enabling expand to open folder on navigation pane - " -NoNewline
-			LogInfo "Enabling expand to open folder on navigation pane"	
+			LogInfo "Enabling expand to open folder on navigation pane"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 1 -Force | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -8873,7 +8873,7 @@ function OneDrive
 		"Uninstall"
 		{
 		Write-Host "Uninstalling One Drive - " -NoNewline
-		LogInfo "Uninstalling One Drive"			
+		LogInfo "Uninstalling One Drive"
 		# Ensure UninstallString exists
 		[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -ErrorAction Ignore |
    		ForEach-Object { $_.Meta.Attributes["UninstallString"] }
@@ -8916,7 +8916,7 @@ function OneDrive
            Start-Process -FilePath explorer -ArgumentList $env:OneDrive -ErrorAction SilentlyContinue | Out-Null
     	}
 	}
-	
+
 	# Clean registry and leftover paths safely
 	$PathsToRemove = @(
     "HKCU:\Software\Microsoft\OneDrive",
@@ -8931,7 +8931,7 @@ function OneDrive
 		"Install"
 		{
 			Write-Host "Installing One Drive - " -NoNewline
-			LogInfo "Installing One Drive"			
+			LogInfo "Installing One Drive"
 			$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
 			if ($OneDrive)
 			{
@@ -8958,12 +8958,12 @@ function OneDrive
 				{
 		       # Direct download URL for OneDrive
         		$OneDriveURL = "https://go.microsoft.com/fwlink/?linkid=844652"
-        
+
         		$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}" -ErrorAction SilentlyContinue
         		if (-not $DownloadsFolder) {
            	 	$DownloadsFolder = "$env:USERPROFILE\Downloads"
         		}
-        
+
         		$Parameters = @{
             		Uri             = $OneDriveURL
             		OutFile         = "$DownloadsFolder\OneDriveSetup.exe"
@@ -9050,14 +9050,14 @@ function LockScreen
 		"Enable"
 		{
 			Write-Host "Enabling the Windows lockscreen - " -NoNewline
-			LogInfo "Enabling the Windows lockscreen"			
+			LogInfo "Enabling the Windows lockscreen"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the Windows lockscreen - " -NoNewline
-			LogInfo "Disabling the Windows lockscreen"			
+			LogInfo "Disabling the Windows lockscreen"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" | Out-Null
 			}
@@ -9111,14 +9111,14 @@ function LockScreenRS1
 		"Enable"
 		{
 			Write-Host "Enabling the Windows lockscreen - " -NoNewline
-			LogInfo "Enabling the Windows lockscreen"				
+			LogInfo "Enabling the Windows lockscreen"
 			Unregister-ScheduledTask -TaskName "Disable LockScreen" -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the Windows lockscreen - " -NoNewline
-			LogInfo "Disabling the Windows lockscreen"				
+			LogInfo "Disabling the Windows lockscreen"
 			$service = New-Object -com Schedule.Service
 			$service.Connect()
 			$task = $service.NewTask(0)
@@ -9130,7 +9130,7 @@ function LockScreenRS1
 			$action.Path = "reg.exe"
 			$action.Arguments = "add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData /t REG_DWORD /v AllowLockScreen /d 0 /f"
 			$service.GetFolder("\").RegisterTaskDefinition("Disable LockScreen", $task, 6, "NT AUTHORITY\SYSTEM", $null, 4) | Out-Null
-			Write-Host "success!" -ForegroundColor Green			
+			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -9179,14 +9179,14 @@ function NetworkFromLockScreen
 		"Enable"
 		{
 			Write-Host "Enabling the Network options on the lockscreen - " -NoNewline
-			LogInfo "Enabling the Network options on the lockscreen"				
+			LogInfo "Enabling the Network options on the lockscreen"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the Network options on the lockscreen - " -NoNewline
-			LogInfo "Disabling the Network options on the lockscreen"			
+			LogInfo "Disabling the Network options on the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -9237,14 +9237,14 @@ function ShutdownFromLockScreen
 		"Enable"
 		{
 			Write-Host "Enabling the shutdown options on the lockscreen - " -NoNewline
-			LogInfo "Enabling the shutdown options on the lockscreen"			
+			LogInfo "Enabling the shutdown options on the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the shutdown options on the lockscreen - " -NoNewline
-			LogInfo "Disabling the shutdown options on the lockscreen"			
+			LogInfo "Disabling the shutdown options on the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -9295,14 +9295,14 @@ function LockScreenBlur
 		"Enable"
 		{
 			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
-			LogInfo "Enabling blurring of the lockscreen"			
+			LogInfo "Enabling blurring of the lockscreen"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
-			LogInfo "Enabling blurring of the lockscreen"			
+			LogInfo "Enabling blurring of the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1 | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -9353,7 +9353,7 @@ function TaskManagerDetails
 		"Enable"
 		{
 			Write-Host "Enabling Task Manager detailed view - " -NoNewline
-			LogInfo "Enabling Task Manager detailed view"			
+			LogInfo "Enabling Task Manager detailed view"
 			$taskmgr = Start-Process -WindowStyle Hidden -FilePath taskmgr.exe -PassThru
 			$timeout = 30000
 			$sleep = 100
@@ -9372,7 +9372,7 @@ function TaskManagerDetails
 		"Disable"
 		{
 			Write-Host "Disabling Task Manager detailed view - " -NoNewline
-			LogInfo "Disabling Task Manager detailed view"			
+			LogInfo "Disabling Task Manager detailed view"
 			$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
 			If ($preferences) {
 				$preferences.Preferences[28] = 1
@@ -9436,7 +9436,7 @@ function FileOperationsDetails
 		"Disable"
 		{
 			Write-Host "Disabling detailed file progress information - " -NoNewline
-			LogInfo "Disabling detailed file progress information"	
+			LogInfo "Disabling detailed file progress information"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -9486,7 +9486,7 @@ function FileDeleteConfirm
 		"Enable"
 		{
 			Write-Host "Enabling confirmation dialog when deleting files - " -NoNewline
-			LogInfo "Enabling confirmation dialog when deleting files"				
+			LogInfo "Enabling confirmation dialog when deleting files"
 			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
 				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
 			}
@@ -9496,7 +9496,7 @@ function FileDeleteConfirm
 		"Disable"
 		{
 			Write-Host "Disabling confirmation dialog when deleting files - " -NoNewline
-			LogInfo "Disabling confirmation dialog when deleting files"				
+			LogInfo "Disabling confirmation dialog when deleting files"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -9556,7 +9556,7 @@ function TrayIcons
 		"Disable"
 		{
 			Write-Host "Disabling all notification area tray icons - " -NoNewline
-			LogInfo "Disabling all notification area tray icons"			
+			LogInfo "Disabling all notification area tray icons"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -9613,7 +9613,7 @@ function SearchAppInStore
 		"Disable"
 		{
 			Write-Host "Disabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
-			LogInfo "Disabling searching for apps in Microsoft Store from Open with dialog"	
+			LogInfo "Disabling searching for apps in Microsoft Store from Open with dialog"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
 			}
@@ -10567,7 +10567,7 @@ function DeliveryOptimization
         				Delete-DeliveryOptimizationCache -Force
     				} finally {
         		[Console]::SetOut($temp)
-    			}			
+    			}
 } *>$null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -10814,10 +10814,10 @@ function WindowsFeatures
 	function DisableButton
 	{
 		Write-Host "Disabling Windows features - " -NoNewline
-		LogInfo "Disabling Windows features"	
+		LogInfo "Disabling Windows features"
 
 		[void]$Window.Close()
-	
+
 		$SelectedFeatures | Disable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
 		Write-Host "success!" -ForegroundColor Green
 	}
@@ -10825,10 +10825,10 @@ function WindowsFeatures
 	function EnableButton
 	{
 		Write-Host "Enabling Windows features - " -NoNewline
-		LogInfo "Enabling Windows features"	
+		LogInfo "Enabling Windows features"
 
 		[void]$Window.Close()
-	
+
 		$SelectedFeatures | Enable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
 		Write-Host "success!" -ForegroundColor Green
 	}
@@ -10898,10 +10898,10 @@ function WindowsFeatures
 		try {
     $Features = Get-WindowsOptionalFeature -Online |
         Where-Object -FilterScript { ($_.State -in $State) -and (($_.FeatureName -match $UncheckedFeatures) -or ($_.FeatureName -match $CheckedFeatures)) } |
-        ForEach-Object -Process { 
-            try { 
-                Get-WindowsOptionalFeature -FeatureName $_.FeatureName -Online 
-            } catch { 
+        ForEach-Object -Process {
+            try {
+                Get-WindowsOptionalFeature -FeatureName $_.FeatureName -Online
+            } catch {
                 # ignore errors completely
             }
         }
@@ -10920,7 +10920,7 @@ function WindowsFeatures
 	#region Sendkey function
 	# Emulate the Backspace key sending to prevent the console window to freeze
 	Start-Sleep -Milliseconds 500
- 
+
 	Add-Type -AssemblyName System.Windows.Forms
 
 	# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
@@ -11157,7 +11157,7 @@ function WindowsCapabilities
 		try
 		{
 			Write-Host "Installing optional features - " -NoNewline
-			LogInfo "Installing optional features"	
+			LogInfo "Installing optional features"
 
 			[void]$Window.Close()
 
@@ -11517,15 +11517,15 @@ function HomeGroups
 		{
     		Write-Host "Enabling HomeGroup services - " -NoNewline
     		LogInfo "Enabling HomeGroup services"
-    
+
     		# Check if services exist before attempting to modify them
     		$listenerExists = Get-Service "HomeGroupListener" -ErrorAction SilentlyContinue
     		$providerExists = Get-Service "HomeGroupProvider" -ErrorAction SilentlyContinue
-    
+
     		if ($listenerExists) {
        		 	Set-Service "HomeGroupListener" -StartupType Manual -ErrorAction SilentlyContinue 2>&1 | Out-Null
     		}
-    
+
     		if ($providerExists) {
         		Set-Service "HomeGroupProvider" -StartupType Manual -ErrorAction SilentlyContinue 2>&1 | Out-Null
         		Start-Service "HomeGroupProvider" -ErrorAction SilentlyContinue 2>&1 | Out-Null
@@ -11536,16 +11536,16 @@ function HomeGroups
 		{
     		Write-Host "Disabling HomeGroup services - " -NoNewline
     		LogInfo "Disabling HomeGroup services"
-    
+
    	 		# Check if services exist before attempting to modify them
     		$listenerExists = Get-Service "HomeGroupListener" -ErrorAction SilentlyContinue
     		$providerExists = Get-Service "HomeGroupProvider" -ErrorAction SilentlyContinue
-    
+
     		If ($listenerExists) {
         	Stop-Service "HomeGroupListener" -ErrorAction SilentlyContinue 2>&1 | Out-Null
         	Set-Service "HomeGroupListener" -StartupType Disabled -ErrorAction SilentlyContinue 2>&1 | Out-Null
     		}
-    
+
     		If ($providerExists) {
         	Stop-Service "HomeGroupProvider" -ErrorAction SilentlyContinue 2>&1 | Out-Null
         	Set-Service "HomeGroupProvider" -StartupType Disabled -ErrorAction SilentlyContinue 2>&1 | Out-Null
@@ -13738,7 +13738,7 @@ function F1HelpPage
 		}
 		"Enable"
 		{
-			Write-Host "Enabling help look up via F1 - " -NoNewline	
+			Write-Host "Enabling help look up via F1 - " -NoNewline
 			LogInfo "Enabling help look up via F1"
 			Remove-Item -Path "HKCU:\Software\Classes\Typelib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}" -Recurse -Force -ErrorAction Ignore | Out-Null
 			Write-Host "success!" -ForegroundColor Green
@@ -13959,7 +13959,7 @@ function Autoplay
 	)
 
 	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Force -ErrorAction SilentlyContinue | Out-Null 
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer, HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Force -ErrorAction SilentlyContinue | Out-Null
 	Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Type CLEAR | Out-Null
 	Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoDriveTypeAutoRun -Type CLEAR | Out-Null
 
@@ -14132,12 +14132,12 @@ function Set-Association
 		[string]
 		$Icon
 	)
-	
+
 	# Suppress all output from the entire function
 	$null = @(
 		Write-Host "Associating $Extension files with $ProgramPath - " -NoNewline
 		LogInfo "Associating $Extension files with $ProgramPath"
-		
+
 		# Microsoft has blocked write access to UserChoice key for .pdf extention and http/https protocols with KB5034765 release, so we have to write values with a copy of powershell.exe to bypass a UCPD driver restrictions
 		# UCPD driver tracks all executables to block the access to the registry so all registry records will be made within powershell_temp.exe in this function just in case
 		Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force -ErrorAction SilentlyContinue 2>&1 | Out-Null
@@ -15579,7 +15579,7 @@ function Install-DotNetRuntimes
 				}
 				else
 				{
-					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) 
+					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_))
 				}
 				Write-Host "success!" -ForegroundColor Green
 			}
@@ -15653,7 +15653,7 @@ function Install-DotNetRuntimes
 				}
 				else
 				{
-					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_)) 
+					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_))
 				}
 				Write-Host "success!" -ForegroundColor Green
 			}
@@ -16134,505 +16134,1298 @@ function Copilot
 	}
 }
 
-
 <#
 	.SYNOPSIS
-	Uninstall UWP apps
+	Install or remove Windows apps (like Calculator, Xbox, Camera, etc.)
+
+	.PARAMETER Install
+	Choose this to install Windows apps that are missing from your computer
+
+	.PARAMETER Uninstall
+	Choose this to remove Windows apps that you don't want
 
 	.PARAMETER ForAllUsers
-	The "ForAllUsers" argument sets a checkbox to unistall packages for all users
+	Check this box if you want to install or uninstall apps for EVERYONE who uses this computer (not just you)
 
 	.EXAMPLE
-	UninstallUWPApps
+	UWPApps -Install
 
 	.EXAMPLE
-	UninstallUWPApps -ForAllUsers
+	UWPApps -Uninstall
+
+	.EXAMPLE
+	UWPApps -Install -ForAllUsers
+
+	.EXAMPLE
+	UWPApps -Uninstall -ForAllUsers
 
 	.NOTES
 	Current user
 #>
-function UninstallUWPApps
+function UWPApps
 {
-	[CmdletBinding()]
+	[CmdletBinding(DefaultParameterSetName = "None")]
 	param
 	(
+		[Parameter(Mandatory = $true, ParameterSetName = "Install")]
+		[switch]
+		$Install,
+
+		[Parameter(Mandatory = $true, ParameterSetName = "Uninstall")]
+		[switch]
+		$Uninstall,
+
 		[Parameter(Mandatory = $false)]
 		[switch]
 		$ForAllUsers
 	)
 
-	Add-Type -AssemblyName PresentationCore, PresentationFramework
-	Write-Host "Uninstalling UWP apps - " -NoNewline
-	LogInfo "Uninstalling UWP apps:"
-	#region Variables
-	# The following UWP apps will have their checkboxes unchecked
-	$UncheckedAppxPackages = @(
-		# Dolby Access
-		"DolbyLaboratories.DolbyAccess",
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Install"
+		{
+			# Install UWP apps
+			Add-Type -AssemblyName PresentationCore, PresentationFramework
+			Write-Host "Installing UWP apps - " -NoNewline
+			LogInfo "Installing UWP apps:"
+			#region Variables
+			# The following UWP apps will have their checkboxes unchecked
+			$UncheckedAppxPackages = @(
+				# Dolby Access
+				"DolbyLaboratories.DolbyAccess",
 
-		# Windows Media Player
-		"Microsoft.ZuneMusic",
+				# Windows Media Player
+				"Microsoft.ZuneMusic",
 
-		# Screen Sketch
-		"Microsoft.ScreenSketch",
+				# Screen Sketch
+				"Microsoft.ScreenSketch",
 
-		# Photos (and Video Editor)
-		"Microsoft.Windows.Photos",
-		"Microsoft.Photos.MediaEngineDLC",
+				# Photos (and Video Editor)
+				"Microsoft.Windows.Photos",
+				"Microsoft.Photos.MediaEngineDLC",
 
-		# Calculator
-		"Microsoft.WindowsCalculator",
+				# Calculator
+				"Microsoft.WindowsCalculator",
 
-		# Windows Camera
-		"Microsoft.WindowsCamera",
+				# Windows Camera
+				"Microsoft.WindowsCamera",
 
-		# Xbox Identity Provider
-		"Microsoft.XboxIdentityProvider",
+				# Xbox Identity Provider
+				"Microsoft.XboxIdentityProvider",
 
-		# Xbox Console Companion
-		"Microsoft.XboxApp",
+				# Xbox Console Companion
+				"Microsoft.XboxApp",
 
-		# Xbox
-		"Microsoft.GamingApp",
-		"Microsoft.GamingServices",
+				# Xbox
+				"Microsoft.GamingApp",
+				"Microsoft.GamingServices",
 
-		# Paint
-		"Microsoft.Paint",
+				# Paint
+				"Microsoft.Paint",
 
-		# Xbox TCUI
-		"Microsoft.Xbox.TCUI",
+				# Xbox TCUI
+				"Microsoft.Xbox.TCUI",
 
-		# Xbox Speech To Text Overlay
-		"Microsoft.XboxSpeechToTextOverlay",
+				# Xbox Speech To Text Overlay
+				"Microsoft.XboxSpeechToTextOverlay",
 
-		# Game Bar
-		"Microsoft.XboxGamingOverlay",
+				# Game Bar
+				"Microsoft.XboxGamingOverlay",
 
-		# Game Bar Plugin
-		"Microsoft.XboxGameOverlay"
-	)
+				# Game Bar Plugin
+				"Microsoft.XboxGameOverlay"
+			)
 
-	# The following UWP apps will be excluded from the display
-	$ExcludedAppxPackages = @(
-		# AMD Radeon Software
-		"AdvancedMicroDevicesInc-2.AMDRadeonSoftware",
+			# The following UWP apps will be excluded from the display
+			$ExcludedAppxPackages = @(
+				# Microsoft Edge
+				"Microsoft.MicrosoftEdge.Stable",
 
-		# Intel Graphics Control Center
-		"AppUp.IntelGraphicsControlPanel",
-		"AppUp.IntelGraphicsExperience",
+				# Microsoft Visual C++ runtime framework
+				"Microsoft.VCLibs.140.00",
 
-		# ELAN Touchpad
-		"ELANMicroelectronicsCorpo.ELANTouchpadforThinkpad",
-		"ELANMicroelectronicsCorpo.ELANTrackPointforThinkpa",
+				# AMD Radeon Software
+				"AdvancedMicroDevicesInc-2.AMDRadeonSoftware",
 
-		# Microsoft Application Compatibility Enhancements
-		"Microsoft.ApplicationCompatibilityEnhancements",
+				# Intel Graphics Control Center
+				"AppUp.IntelGraphicsControlPanel",
+				"AppUp.IntelGraphicsExperience",
 
-		# AVC Encoder Video Extension
-		"Microsoft.AVCEncoderVideoExtension",
+				# ELAN Touchpad
+				"ELANMicroelectronicsCorpo.ELANTouchpadforThinkpad",
+				"ELANMicroelectronicsCorpo.ELANTrackPointforThinkpa",
 
-		# Microsoft Desktop App Installer
-		"Microsoft.DesktopAppInstaller",
+				# Microsoft Application Compatibility Enhancements
+				"Microsoft.ApplicationCompatibilityEnhancements",
 
-		# Store Experience Host
-		"Microsoft.StorePurchaseApp",
+				# AVC Encoder Video Extension
+				"Microsoft.AVCEncoderVideoExtension",
 
-		# Cross Device Experience Host
-		"MicrosoftWindows.CrossDevice",
+				# Microsoft Desktop App Installer
+				"Microsoft.DesktopAppInstaller",
 
-		# Notepad
-		"Microsoft.WindowsNotepad",
+				# Store Experience Host
+				"Microsoft.StorePurchaseApp",
 
-		# Microsoft Store
-		"Microsoft.WindowsStore",
+				# Cross Device Experience Host
+				"MicrosoftWindows.CrossDevice",
 
-		# Windows Terminal
-		"Microsoft.WindowsTerminal",
-		"Microsoft.WindowsTerminalPreview",
+				# Notepad
+				"Microsoft.WindowsNotepad",
 
-		# Web Media Extensions
-		"Microsoft.WebMediaExtensions",
+				# Microsoft Store
+				"Microsoft.WindowsStore",
 
-		# AV1 Video Extension
-		"Microsoft.AV1VideoExtension",
+				# Windows Terminal
+				"Microsoft.WindowsTerminal",
+				"Microsoft.WindowsTerminalPreview",
 
-		# Windows Subsystem for Linux
-		"MicrosoftCorporationII.WindowsSubsystemForLinux",
+				# Web Media Extensions
+				"Microsoft.WebMediaExtensions",
 
-		# HEVC Video Extensions from Device Manufacturer
-		"Microsoft.HEVCVideoExtension",
-		"Microsoft.HEVCVideoExtensions",
+				# AV1 Video Extension
+				"Microsoft.AV1VideoExtension",
 
-		# Raw Image Extension
-		"Microsoft.RawImageExtension",
+				# Windows Subsystem for Linux
+				"MicrosoftCorporationII.WindowsSubsystemForLinux",
 
-		# HEIF Image Extensions
-		"Microsoft.HEIFImageExtension",
+				# HEVC Video Extensions from Device Manufacturer
+				"Microsoft.HEVCVideoExtension",
+				"Microsoft.HEVCVideoExtensions",
 
-		# MPEG-2 Video Extension
-		"Microsoft.MPEG2VideoExtension",
+				# Raw Image Extension
+				"Microsoft.RawImageExtension",
 
-		# VP9 Video Extensions
-		"Microsoft.VP9VideoExtensions",
+				# HEIF Image Extensions
+				"Microsoft.HEIFImageExtension",
 
-		# Webp Image Extensions
-		"Microsoft.WebpImageExtension",
+				# MPEG-2 Video Extension
+				"Microsoft.MPEG2VideoExtension",
 
-		# PowerShell
-		"Microsoft.PowerShell",
+				# VP9 Video Extensions
+				"Microsoft.VP9VideoExtensions",
 
-		# NVIDIA Control Panel
-		"NVIDIACorp.NVIDIAControlPanel",
+				# Webp Image Extensions
+				"Microsoft.WebpImageExtension",
 
-		# Realtek Audio Console
-		"RealtekSemiconductorCorp.RealtekAudioControl",
+				# PowerShell
+				"Microsoft.PowerShell",
 
-		# Synaptics
-		"SynapticsIncorporated.SynapticsControlPanel",
-		"SynapticsIncorporated.24916F58D6E7"
-	)
+				# NVIDIA Control Panel
+				"NVIDIACorp.NVIDIAControlPanel",
 
-	#region Variables
-	#region XAML Markup
-	# The section defines the design of the upcoming dialog box
-	[xml]$XAML = @"
-	<Window
-		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		Name="Window"
-		MinHeight="400" MinWidth="415"
-		SizeToContent="Width" WindowStartupLocation="CenterScreen"
-		TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
-		FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
-		Background="#F1F1F1" Foreground="#262626">
-		<Window.Resources>
-			<Style TargetType="StackPanel">
-				<Setter Property="Orientation" Value="Horizontal"/>
-				<Setter Property="VerticalAlignment" Value="Top"/>
-			</Style>
-			<Style TargetType="CheckBox">
-				<Setter Property="Margin" Value="10, 13, 10, 10"/>
-				<Setter Property="IsChecked" Value="True"/>
-			</Style>
-			<Style TargetType="TextBlock">
-				<Setter Property="Margin" Value="0, 10, 10, 10"/>
-			</Style>
-			<Style TargetType="Button">
-				<Setter Property="Margin" Value="20"/>
-				<Setter Property="Padding" Value="10"/>
-				<Setter Property="IsEnabled" Value="False"/>
-			</Style>
-			<Style TargetType="Border">
-				<Setter Property="Grid.Row" Value="1"/>
-				<Setter Property="CornerRadius" Value="0"/>
-				<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
-				<Setter Property="BorderBrush" Value="#000000"/>
-			</Style>
-			<Style TargetType="ScrollViewer">
-				<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
-				<Setter Property="BorderBrush" Value="#000000"/>
-				<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
-			</Style>
-		</Window.Resources>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="*"/>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
-			<Grid Grid.Row="0">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
-				<StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
-					<CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
-					<TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
-				</StackPanel>
-				<StackPanel Name="PanelRemoveForAll" Grid.Column="1" HorizontalAlignment="Right">
-					<TextBlock Name="TextBlockRemoveForAll" Margin="10,10, 0, 10"/>
-					<CheckBox Name="CheckBoxForAllUsers" IsChecked="False"/>
-				</StackPanel>
-			</Grid>
-			<Border>
-				<ScrollViewer>
-					<StackPanel Name="PanelContainer" Orientation="Vertical"/>
-				</ScrollViewer>
-			</Border>
-			<Button Name="ButtonUninstall" Grid.Row="2"/>
-		</Grid>
-	</Window>
+				# Realtek Audio Console
+				"RealtekSemiconductorCorp.RealtekAudioControl",
+
+				# Synaptics
+				"SynapticsIncorporated.SynapticsControlPanel",
+				"SynapticsIncorporated.24916F58D6E7"
+			)
+
+			#region XAML Markup
+			# The section defines the design of the upcoming dialog box
+			[xml]$XAML = @"
+			<Window
+				xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				Name="Window"
+				MinHeight="400" MinWidth="415"
+				SizeToContent="Width" WindowStartupLocation="CenterScreen"
+				TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
+				FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
+				Background="#F1F1F1" Foreground="#262626">
+				<Window.Resources>
+					<Style TargetType="StackPanel">
+						<Setter Property="Orientation" Value="Horizontal"/>
+						<Setter Property="VerticalAlignment" Value="Top"/>
+					</Style>
+					<Style TargetType="CheckBox">
+						<Setter Property="Margin" Value="10, 13, 10, 10"/>
+						<Setter Property="IsChecked" Value="True"/>
+					</Style>
+					<Style TargetType="TextBlock">
+						<Setter Property="Margin" Value="0, 10, 10, 10"/>
+					</Style>
+					<Style TargetType="Button">
+						<Setter Property="Margin" Value="20"/>
+						<Setter Property="Padding" Value="10"/>
+						<Setter Property="IsEnabled" Value="False"/>
+					</Style>
+					<Style TargetType="Border">
+						<Setter Property="Grid.Row" Value="1"/>
+						<Setter Property="CornerRadius" Value="0"/>
+						<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
+						<Setter Property="BorderBrush" Value="#000000"/>
+					</Style>
+					<Style TargetType="ScrollViewer">
+						<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+						<Setter Property="BorderBrush" Value="#000000"/>
+						<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
+					</Style>
+				</Window.Resources>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Grid Grid.Row="0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
+						<StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
+							<CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
+							<TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
+						</StackPanel>
+						<StackPanel Name="PanelInstallForAll" Grid.Column="1" HorizontalAlignment="Right">
+							<TextBlock Name="TextBlockInstallForAll" Margin="10,10, 0, 10"/>
+							<CheckBox Name="CheckBoxForAllUsers" IsChecked="False"/>
+						</StackPanel>
+					</Grid>
+					<Border>
+						<ScrollViewer>
+							<StackPanel Name="PanelContainer" Orientation="Vertical"/>
+						</ScrollViewer>
+					</Border>
+					<Button Name="ButtonInstall" Grid.Row="2"/>
+				</Grid>
+			</Window>
 "@
-	#endregion XAML Markup
+			#endregion XAML Markup
 
-	$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
-	$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
-		Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
-	}
-
-	$Window.Title               = $Localization.UWPAppsTitle
-	$ButtonUninstall.Content    = $Localization.Uninstall
-	$TextBlockRemoveForAll.Text = $Localization.UninstallUWPForAll
-	# Extract the localized "Select all" string from shell32.dll
-	$TextBlockSelectAll.Text    = [WinAPI.GetStrings]::GetString(31276)
-
-	$ButtonUninstall.Add_Click({ButtonUninstallClick})
-	$CheckBoxForAllUsers.Add_Click({CheckBoxForAllUsersClick})
-	$CheckBoxSelectAll.Add_Click({CheckBoxSelectAllClick})
-	#endregion Variables
-
-	#region Functions
-	function Get-AppxBundle
-	{
-		[CmdletBinding()]
-		param
-		(
-			[string[]]
-			$Exclude,
-
-			[switch]
-			$AllUsers
-		)
-
-		$AppxPackages = @(Get-AppxPackage -PackageTypeFilter Bundle -AllUsers:$AllUsers | Where-Object -FilterScript {$_.Name -notin $ExcludedAppxPackages})
-
-		# The -PackageTypeFilter Bundle doesn't contain these packages, and we need to add manually
-		$Packages = @(
-			# Outlook
-			"Microsoft.OutlookForWindows",
-
-			# Microsoft Teams
-			"MSTeams"
-		)
-		foreach ($Package in $Packages)
-		{
-			if (Get-AppxPackage -Name $Package -AllUsers:$AllUsers)
-			{
-				$AppxPackages += Get-AppxPackage -Name $Package -AllUsers:$AllUsers
-			}
-		}
-
-		$PackagesIds = [Windows.Management.Deployment.PackageManager, Windows.Web, ContentType = WindowsRuntime]::new().FindPackages() | Select-Object -Property DisplayName -ExpandProperty Id | Select-Object -Property Name, DisplayName
-		foreach ($AppxPackage in $AppxPackages)
-		{
-			$PackageId = $PackagesIds | Where-Object -FilterScript {$_.Name -eq $AppxPackage.Name}
-			if (-not $PackageId)
-			{
-				continue
+			$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
+			$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
+				Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
 			}
 
-			[PSCustomObject]@{
-				Name            = $AppxPackage.Name
-				PackageFullName = $AppxPackage.PackageFullName
-				# Sometimes there's more than one package presented in Windows with the same package name like {Microsoft Teams, Microsoft Teams} and we need to display the first one
-				DisplayName     = $PackageId.DisplayName | Select-Object -First 1
-			}
-		}
-	}
+			$Window.Title               = "Install UWP Apps"
+			$ButtonInstall.Content    = "Install"
+			$TextBlockInstallForAll.Text = "Install for all users"
+			# Extract the localized "Select all" string from shell32.dll
+			$TextBlockSelectAll.Text    = [WinAPI.GetStrings]::GetString(31276)
 
-	function Add-Control
-	{
-		[CmdletBinding()]
-		param
-		(
-			[Parameter(
-				Mandatory = $true,
-				ValueFromPipeline = $true
-			)]
-			[ValidateNotNull()]
-			[PSCustomObject[]]
-			$Packages
-		)
+			$ButtonInstall.Add_Click({ButtonInstallClick})
+			$CheckBoxForAllUsers.Add_Click({CheckBoxForAllUsersClick})
+			$CheckBoxSelectAll.Add_Click({CheckBoxSelectAllClick})
+			#endregion Variables
 
-		process
-		{
-			foreach ($Package in $Packages)
+			#region Functions
+			function Get-AvailableAppxPackages
 			{
-				$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
-				$CheckBox.Tag = $Package.PackageFullName
+				[CmdletBinding()]
+				param
+				(
+					[string[]]
+					$Exclude,
 
-				$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
+					[switch]
+					$AllUsers
+				)
 
-				if ($Package.DisplayName)
+				# Comprehensive list of all Windows 10/11 app packages that can be installed
+				$AllPossiblePackages = @(
+					@{
+						Name = "Microsoft.OutlookForWindows"
+						DisplayName = "Microsoft Outlook"
+					},
+					@{
+						Name = "MSTeams"
+						DisplayName = "Microsoft Teams"
+					},
+					@{
+						Name = "Microsoft.WindowsCalculator"
+						DisplayName = "Calculator"
+					},
+					@{
+						Name = "Microsoft.WindowsCamera"
+						DisplayName = "Camera"
+					},
+					@{
+						Name = "Microsoft.Windows.Photos"
+						DisplayName = "Photos"
+					},
+					@{
+						Name = "Microsoft.ZuneMusic"
+						DisplayName = "Media Player"
+					},
+					@{
+						Name = "Microsoft.ZuneVideo"
+						DisplayName = "Movies & TV"
+					},
+					@{
+						Name = "Microsoft.ScreenSketch"
+						DisplayName = "Snipping Tool"
+					},
+					@{
+						Name = "Microsoft.Paint"
+						DisplayName = "Paint"
+					},
+					@{
+						Name = "Microsoft.GamingApp"
+						DisplayName = "Xbox"
+					},
+					@{
+						Name = "Microsoft.XboxGamingOverlay"
+						DisplayName = "Game Bar"
+					},
+					@{
+						Name = "Microsoft.Xbox.TCUI"
+						DisplayName = "Xbox TCUI"
+					},
+					@{
+						Name = "Microsoft.XboxIdentityProvider"
+						DisplayName = "Xbox Identity Provider"
+					},
+					@{
+						Name = "Microsoft.XboxSpeechToTextOverlay"
+						DisplayName = "Xbox Speech To Text Overlay"
+					},
+					@{
+						Name = "Microsoft.XboxApp"
+						DisplayName = "Xbox Console Companion"
+					},
+					@{
+						Name = "Microsoft.GamingServices"
+						DisplayName = "Gaming Services"
+					},
+					@{
+						Name = "Microsoft.StorePurchaseApp"
+						DisplayName = "Store Experience Host"
+					},
+					@{
+						Name = "Microsoft.MixedReality.Portal"
+						DisplayName = "Mixed Reality Portal"
+					},
+					@{
+						Name = "Microsoft.People"
+						DisplayName = "People"
+					},
+					@{
+						Name = "Microsoft.WindowsAlarms"
+						DisplayName = "Alarms & Clock"
+					},
+					@{
+						Name = "Microsoft.WindowsCommunicationsApps"
+						DisplayName = "Communications Apps"
+					},
+					@{
+						Name = "Microsoft.WindowsFeedbackHub"
+						DisplayName = "Feedback Hub"
+					},
+					@{
+						Name = "Microsoft.WindowsMaps"
+						DisplayName = "Maps"
+					},
+					@{
+						Name = "Microsoft.WindowsSoundRecorder"
+						DisplayName = "Voice Recorder"
+					},
+					@{
+						Name = "Microsoft.YourPhone"
+						DisplayName = "Phone Link"
+					},
+					@{
+						Name = "Microsoft.BingWeather"
+						DisplayName = "Weather"
+					},
+					@{
+						Name = "Microsoft.BingNews"
+						DisplayName = "News"
+					},
+					@{
+						Name = "Microsoft.BingSports"
+						DisplayName = "Sports"
+					},
+					@{
+						Name = "Microsoft.BingFinance"
+						DisplayName = "Finance"
+					},
+					@{
+						Name = "Microsoft.MicrosoftOfficeHub"
+						DisplayName = "Microsoft Office"
+					},
+					@{
+						Name = "Microsoft.MicrosoftSolitaireCollection"
+						DisplayName = "Microsoft Solitaire Collection"
+					},
+					@{
+						Name = "Microsoft.Todos"
+						DisplayName = "Microsoft To Do"
+					},
+					@{
+						Name = "Microsoft.StickyNotes"
+						DisplayName = "Sticky Notes"
+					},
+					@{
+						Name = "Microsoft.OneConnect"
+						DisplayName = "Mobile Plans"
+					},
+					@{
+						Name = "Microsoft.Advertising.Xaml"
+						DisplayName = "Advertising Xaml"
+					},
+					@{
+						Name = "Microsoft.GetHelp"
+						DisplayName = "Get Help"
+					},
+					@{
+						Name = "Microsoft.MSPaint"
+						DisplayName = "Paint 3D"
+					},
+					@{
+						Name = "Microsoft.Tips"
+						DisplayName = "Tips"
+					},
+					@{
+						Name = "Microsoft.Whiteboard"
+						DisplayName = "Whiteboard"
+					},
+					@{
+						Name = "Microsoft.Wallet"
+						DisplayName = "Wallet"
+					},
+					@{
+						Name = "DolbyLaboratories.DolbyAccess"
+						DisplayName = "Dolby Access"
+					},
+					@{
+						Name = "Microsoft.HEVCVideoExtension"
+						DisplayName = "HEVC Video Extensions"
+					},
+					@{
+						Name = "Microsoft.HEIFImageExtension"
+						DisplayName = "HEIF Image Extensions"
+					},
+					@{
+						Name = "Microsoft.RawImageExtension"
+						DisplayName = "Raw Image Extension"
+					},
+					@{
+						Name = "Microsoft.WebMediaExtensions"
+						DisplayName = "Web Media Extensions"
+					},
+					@{
+						Name = "Microsoft.VP9VideoExtensions"
+						DisplayName = "VP9 Video Extensions"
+					},
+					@{
+						Name = "Microsoft.WebpImageExtension"
+						DisplayName = "Webp Image Extension"
+					},
+					@{
+						Name = "Microsoft.AV1VideoExtension"
+						DisplayName = "AV1 Video Extension"
+					},
+					@{
+						Name = "Microsoft.MPEG2VideoExtension"
+						DisplayName = "MPEG-2 Video Extension"
+					}
+				)
+
+				$AppxPackages = @()
+
+				# Add all possible packages that aren't excluded and are NOT installed
+				foreach ($Package in $AllPossiblePackages)
 				{
-					$TextBlock.Text = $Package.DisplayName
+					if ($Package.Name -notin $ExcludedAppxPackages)
+					{
+						# Check if already installed - ONLY include if NOT installed
+						$Installed = Get-AppxPackage -Name $Package.Name -AllUsers:$AllUsers -ErrorAction SilentlyContinue
+
+						# Only add to list if NOT installed
+						if ($null -eq $Installed)
+						{
+							$AppxPackages += [PSCustomObject]@{
+								Name = $Package.Name
+								PackageFullName = $Package.Name
+								DisplayName = $Package.DisplayName
+								IsInstalled = $false
+								PackagePath = $null
+							}
+						}
+					}
+				}
+
+				# Sort by display name
+				return $AppxPackages | Sort-Object -Property DisplayName
+			}
+
+			function Add-Control
+			{
+				[CmdletBinding()]
+				param
+				(
+					[Parameter(
+						Mandatory = $true,
+						ValueFromPipeline = $true
+					)]
+					[ValidateNotNull()]
+					[PSCustomObject[]]
+					$Packages
+				)
+
+				process
+				{
+					foreach ($Package in $Packages)
+					{
+						$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
+						$CheckBox.Tag = $Package.PackageFullName
+
+						$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
+
+						if ($Package.DisplayName)
+						{
+							$TextBlock.Text = $Package.DisplayName
+						}
+						else
+						{
+							$TextBlock.Text = $Package.Name
+						}
+
+						# No [Installed] tag needed since we only show uninstalled apps
+
+						$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
+						$StackPanel.Children.Add($CheckBox) | Out-Null
+						$StackPanel.Children.Add($TextBlock) | Out-Null
+
+						$PanelContainer.Children.Add($StackPanel) | Out-Null
+
+						# Check if this package should be unchecked by default
+						if ($UncheckedAppxPackages.Contains($Package.Name))
+						{
+							$CheckBox.IsChecked = $false
+						}
+						else
+						{
+							$CheckBox.IsChecked = $true
+							$PackagesToInstall.Add($Package.PackageFullName)
+						}
+
+						$CheckBox.Add_Click({CheckBoxClick})
+					}
+				}
+			}
+
+			function CheckBoxForAllUsersClick
+			{
+				$PanelContainer.Children.RemoveRange(0, $PanelContainer.Children.Count)
+				$PackagesToInstall.Clear()
+				$AvailablePackages = Get-AvailableAppxPackages -Exclude $ExcludedAppxPackages -AllUsers:$CheckBoxForAllUsers.IsChecked
+				$AvailablePackages | Add-Control
+
+				ButtonInstallSetIsEnabled
+			}
+
+			function Get-ProvisionedPackagePath
+			{
+				param([string]$PackageName)
+
+				$Provisioned = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq $PackageName}
+				if ($Provisioned)
+				{
+					# Try to get the package path from the registry or default locations
+					$PossiblePaths = @(
+						"$env:SystemRoot\SystemApps\$PackageName*",
+						"$env:ProgramFiles\WindowsApps\$PackageName*",
+						"$env:SystemRoot\InfusedApps\Packages\$PackageName*"
+					)
+
+					foreach ($Path in $PossiblePaths)
+					{
+						$Folders = Get-ChildItem -Path $Path -ErrorAction SilentlyContinue
+						if ($Folders)
+						{
+							$AppxFile = Get-ChildItem -Path $Folders[0].FullName -Filter "*.appx" -ErrorAction SilentlyContinue
+							if ($AppxFile)
+							{
+								return $AppxFile[0].FullName
+							}
+						}
+					}
+				}
+				return $null
+			}
+
+function ButtonInstallClick {
+    # Close WPF window first
+    $Window.Close() | Out-Null
+
+    # Ensure PackagesToInstall is not empty
+    if ($PackagesToInstall.Count -eq 0) {
+        Write-Host "No packages selected for installation." -ForegroundColor Yellow
+        return
+    }
+
+    # Resolve winget
+    $WingetExe = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
+    if (-not $WingetExe) {
+        LogError "winget not found. Cannot install packages."
+        return
+    }
+
+    # Determine scope
+    $Scope = if ($CheckBoxForAllUsers.IsChecked) { "machine" } else { "user" }
+
+    # Map of internal names to winget IDs
+    $WingetPackageMap = @{
+        "Microsoft.OutlookForWindows"       = "9NRX63209R7B"
+        "MSTeams"                           = "XP8BT8DW290MPM"
+        "Microsoft.WindowsCalculator"       = "9WZDNCRFHVN5"
+        "Microsoft.WindowsCamera"           = "9WZDNCRFJBBG"
+        "Microsoft.Windows.Photos"          = "9WZDNCRFJBH4"
+        "Microsoft.ZuneMusic"               = "9WZDNCRFJ3PT"
+        "Microsoft.ScreenSketch"            = "9MZ95SN8SQK1"
+        "Microsoft.Paint"                   = "9PCFS5B6T72H"
+        "Microsoft.GamingApp"               = "9MWPM2CQNLHN"
+        "Microsoft.XboxGamingOverlay"       = "9NZKPST35W46"
+        "DolbyLaboratories.DolbyAccess"     = "9N0866FS04W8"
+    }
+
+foreach ($PackageName in $PackagesToInstall)
+{
+    try {
+        # Use Add-AppxPackage directly for UWP apps
+        $Installed = Get-AppxPackage -Name $PackageName -AllUsers -ErrorAction SilentlyContinue
+
+        if (-not $Installed) {
+            # Try to find provisioned package path
+            $Provisioned = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq $PackageName}
+
+            if ($Provisioned) {
+                # Install for all users
+                if ($CheckBoxForAllUsers.IsChecked) {
+                    Add-AppxProvisionedPackage -Online -PackageName $Provisioned.PackageName -SkipLicense -ErrorAction SilentlyContinue | Out-Null
+                } else {
+                    # Current user
+                    Add-AppxPackage -Register "$($Provisioned.PackageName)\AppXManifest.xml" -DisableDevelopmentMode -ErrorAction SilentlyContinue
+                }
+                LogInfo "Successfully installed $PackageName via provisioned package."
+            } else {
+                # Try to install from WindowsApps folder
+                $Folder = Get-ChildItem "$env:ProgramFiles\WindowsApps" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*$PackageName*" } | Select-Object -First 1
+                if ($Folder) {
+                    $AppxManifest = Join-Path $Folder.FullName "AppXManifest.xml"
+                    if (Test-Path $AppxManifest) {
+                        Add-AppxPackage -Register $AppxManifest -DisableDevelopmentMode -ErrorAction SilentlyContinue
+                        LogInfo "Successfully installed $PackageName via WindowsApps."
+                    } else {
+                        LogError "$PackageName - AppXManifest.xml not found"
+                    }
+                } else {
+                    LogError "$PackageName - Installation method not found"
+                }
+            }
+        } else {
+            LogInfo "$PackageName is already installed"
+        }
+    }
+    catch {
+        LogError "$PackageName - Exception: $($_.Exception.Message)"
+    }
+}
+}
+			function CheckBoxClick
+			{
+				$CheckBox = $_.Source
+
+				if ($CheckBox.IsChecked)
+				{
+					$PackagesToInstall.Add($CheckBox.Tag) | Out-Null
 				}
 				else
 				{
-					$TextBlock.Text = $Package.Name
+					$PackagesToInstall.Remove($CheckBox.Tag)
 				}
 
-				$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
-				$StackPanel.Children.Add($CheckBox) | Out-Null
-				$StackPanel.Children.Add($TextBlock) | Out-Null
+				ButtonInstallSetIsEnabled
+			}
 
-				$PanelContainer.Children.Add($StackPanel) | Out-Null
+			function CheckBoxSelectAllClick
+			{
+				$CheckBox = $_.Source
 
-				if ($UncheckedAppxPackages.Contains($Package.Name))
+				if ($CheckBox.IsChecked)
 				{
-					$CheckBox.IsChecked = $false
+					$PackagesToInstall.Clear()
+
+					foreach ($Item in $PanelContainer.Children)
+					{
+						foreach ($Child in $Item.Children)
+						{
+							if ($Child -is [System.Windows.Controls.CheckBox] -and $Child.IsEnabled)
+							{
+								$Child.IsChecked = $true
+								$PackagesToInstall.Add($Child.Tag)
+							}
+						}
+					}
 				}
 				else
 				{
-					$CheckBox.IsChecked = $true
-					$PackagesToRemove.Add($Package.PackageFullName)
+					$PackagesToInstall.Clear()
+
+					foreach ($Item in $PanelContainer.Children)
+					{
+						foreach ($Child in $Item.Children)
+						{
+							if ($Child -is [System.Windows.Controls.CheckBox] -and $Child.IsEnabled)
+							{
+								$Child.IsChecked = $false
+							}
+						}
+					}
 				}
 
-				$CheckBox.Add_Click({CheckBoxClick})
+				ButtonInstallSetIsEnabled
 			}
-		}
-	}
 
-	function CheckBoxForAllUsersClick
-	{
-		$PanelContainer.Children.RemoveRange(0, $PanelContainer.Children.Count)
-		$PackagesToRemove.Clear()
-		$AppXPackages = Get-AppxBundle -Exclude $ExcludedAppxPackages -AllUsers:$CheckBoxForAllUsers.IsChecked
-		$AppXPackages | Add-Control
-
-		ButtonUninstallSetIsEnabled
-	}
-
-	function ButtonUninstallClick
-	{
-		$Window.Close() | Out-Null
-
-		# If MSTeams is selected to uninstall, delete quietly "Microsoft Teams Meeting Add-in for Microsoft Office" too
-		# & "$env:SystemRoot\System32\msiexec.exe" --% /x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn
-		if ($PackagesToRemove -match "MSTeams")
-		{
-			Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn" -Wait
-		}
-
-		$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked 		
-
-		if ($CheckBoxForAllUsers.IsChecked)
+			function ButtonInstallSetIsEnabled
 			{
-				foreach ($Package in $PackagesToRemove)
+				if ($PackagesToInstall.Count -gt 0)
 				{
-					LogInfo "Successfully removed $Package for all users"
+					$ButtonInstall.IsEnabled = $true
 				}
-			}
-		else
-		{
-			foreach ($Package in $PackagesToRemove)
-			{
-			LogInfo "Successfully removed $Package for current user" 
-			}
-		}
-	}
-
-	function CheckBoxClick
-	{
-		$CheckBox = $_.Source
-
-		if ($CheckBox.IsChecked)
-		{
-			$PackagesToRemove.Add($CheckBox.Tag) | Out-Null
-		}
-		else
-		{
-			$PackagesToRemove.Remove($CheckBox.Tag)
-		}
-
-		ButtonUninstallSetIsEnabled
-	}
-
-	function CheckBoxSelectAllClick
-	{
-		$CheckBox = $_.Source
-
-		if ($CheckBox.IsChecked)
-		{
-			$PackagesToRemove.Clear()
-
-			foreach ($Item in $PanelContainer.Children.Children)
-			{
-				if ($Item -is [System.Windows.Controls.CheckBox])
+				else
 				{
-					$Item.IsChecked = $true
-					$PackagesToRemove.Add($Item.Tag)
+					$ButtonInstall.IsEnabled = $false
 				}
 			}
-		}
-		else
-		{
-			$PackagesToRemove.Clear()
+			#endregion Functions
 
-			foreach ($Item in $PanelContainer.Children.Children)
+			# Check "For all users" checkbox to install packages for all accounts
+			if ($ForAllUsers)
 			{
-				if ($Item -is [System.Windows.Controls.CheckBox])
+				$CheckBoxForAllUsers.IsChecked = $true
+			}
+
+			$PackagesToInstall = [Collections.Generic.List[string]]::new()
+			$AvailablePackages = Get-AvailableAppxPackages -Exclude $ExcludedAppxPackages -AllUsers:$ForAllUsers
+			$AvailablePackages | Add-Control
+
+			if ($AvailablePackages.Count -eq 0)
+			{
+				Write-Host "No installable packages found" -ForegroundColor Yellow
+			}
+			else
+			{
+				#region Sendkey function
+				# Emulate the Backspace key sending to prevent the console window to freeze
+				Start-Sleep -Milliseconds 500
+
+				Add-Type -AssemblyName System.Windows.Forms
+
+				# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+				Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "WinUtil Script for Windows 10/11"} | ForEach-Object -Process {
+					# Show window, if minimized
+					[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
+
+					Start-Sleep -Seconds 1
+
+					# Force move the console window to the foreground
+					[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
+
+					Start-Sleep -Seconds 1
+
+					# Emulate the Backspace key sending to prevent the console window to freeze
+					[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
+				}
+				#endregion Sendkey function
+
+				if ($PackagesToInstall.Count -gt 0)
 				{
-					$Item.IsChecked = $false
+					$ButtonInstall.IsEnabled = $true
+				}
+
+				# Force move the WPF form to the foreground
+				$Window.Add_Loaded({$Window.Activate()})
+				$Form.ShowDialog() | Out-Null
+			}
+			Write-Host "success!" -ForegroundColor Green
+		}
+
+		"Uninstall"
+		{
+			# Uninstall UWP apps
+			Add-Type -AssemblyName PresentationCore, PresentationFramework
+			Write-Host "Uninstalling UWP apps - " -NoNewline
+			LogInfo "Uninstalling UWP apps:"
+			#region Variables
+			# The following UWP apps will have their checkboxes unchecked
+			$UncheckedAppxPackages = @(
+				# Dolby Access
+				"DolbyLaboratories.DolbyAccess",
+
+				# Windows Media Player
+				"Microsoft.ZuneMusic",
+
+				# Screen Sketch
+				"Microsoft.ScreenSketch",
+
+				# Photos (and Video Editor)
+				"Microsoft.Windows.Photos",
+				"Microsoft.Photos.MediaEngineDLC",
+
+				# Calculator
+				"Microsoft.WindowsCalculator",
+
+				# Windows Camera
+				"Microsoft.WindowsCamera",
+
+				# Xbox Identity Provider
+				"Microsoft.XboxIdentityProvider",
+
+				# Xbox Console Companion
+				"Microsoft.XboxApp",
+
+				# Xbox
+				"Microsoft.GamingApp",
+				"Microsoft.GamingServices",
+
+				# Paint
+				"Microsoft.Paint",
+
+				# Xbox TCUI
+				"Microsoft.Xbox.TCUI",
+
+				# Xbox Speech To Text Overlay
+				"Microsoft.XboxSpeechToTextOverlay",
+
+				# Game Bar
+				"Microsoft.XboxGamingOverlay",
+
+				# Game Bar Plugin
+				"Microsoft.XboxGameOverlay"
+			)
+
+			# The following UWP apps will be excluded from the display
+			$ExcludedAppxPackages = @(
+				# AMD Radeon Software
+				"AdvancedMicroDevicesInc-2.AMDRadeonSoftware",
+
+				# Intel Graphics Control Center
+				"AppUp.IntelGraphicsControlPanel",
+				"AppUp.IntelGraphicsExperience",
+
+				# ELAN Touchpad
+				"ELANMicroelectronicsCorpo.ELANTouchpadforThinkpad",
+				"ELANMicroelectronicsCorpo.ELANTrackPointforThinkpa",
+
+				# Microsoft Application Compatibility Enhancements
+				"Microsoft.ApplicationCompatibilityEnhancements",
+
+				# AVC Encoder Video Extension
+				"Microsoft.AVCEncoderVideoExtension",
+
+				# Microsoft Desktop App Installer
+				"Microsoft.DesktopAppInstaller",
+
+				# Store Experience Host
+				"Microsoft.StorePurchaseApp",
+
+				# Cross Device Experience Host
+				"MicrosoftWindows.CrossDevice",
+
+				# Notepad
+				"Microsoft.WindowsNotepad",
+
+				# Microsoft Store
+				"Microsoft.WindowsStore",
+
+				# Windows Terminal
+				"Microsoft.WindowsTerminal",
+				"Microsoft.WindowsTerminalPreview",
+
+				# Web Media Extensions
+				"Microsoft.WebMediaExtensions",
+
+				# AV1 Video Extension
+				"Microsoft.AV1VideoExtension",
+
+				# Windows Subsystem for Linux
+				"MicrosoftCorporationII.WindowsSubsystemForLinux",
+
+				# HEVC Video Extensions from Device Manufacturer
+				"Microsoft.HEVCVideoExtension",
+				"Microsoft.HEVCVideoExtensions",
+
+				# Raw Image Extension
+				"Microsoft.RawImageExtension",
+
+				# HEIF Image Extensions
+				"Microsoft.HEIFImageExtension",
+
+				# MPEG-2 Video Extension
+				"Microsoft.MPEG2VideoExtension",
+
+				# VP9 Video Extensions
+				"Microsoft.VP9VideoExtensions",
+
+				# Webp Image Extensions
+				"Microsoft.WebpImageExtension",
+
+				# PowerShell
+				"Microsoft.PowerShell",
+
+				# NVIDIA Control Panel
+				"NVIDIACorp.NVIDIAControlPanel",
+
+				# Realtek Audio Console
+				"RealtekSemiconductorCorp.RealtekAudioControl",
+
+				# Synaptics
+				"SynapticsIncorporated.SynapticsControlPanel",
+				"SynapticsIncorporated.24916F58D6E7"
+			)
+
+			#region XAML Markup
+			# The section defines the design of the upcoming dialog box
+			[xml]$XAML = @"
+			<Window
+				xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				Name="Window"
+				MinHeight="400" MinWidth="415"
+				SizeToContent="Width" WindowStartupLocation="CenterScreen"
+				TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
+				FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
+				Background="#F1F1F1" Foreground="#262626">
+				<Window.Resources>
+					<Style TargetType="StackPanel">
+						<Setter Property="Orientation" Value="Horizontal"/>
+						<Setter Property="VerticalAlignment" Value="Top"/>
+					</Style>
+					<Style TargetType="CheckBox">
+						<Setter Property="Margin" Value="10, 13, 10, 10"/>
+						<Setter Property="IsChecked" Value="True"/>
+					</Style>
+					<Style TargetType="TextBlock">
+						<Setter Property="Margin" Value="0, 10, 10, 10"/>
+					</Style>
+					<Style TargetType="Button">
+						<Setter Property="Margin" Value="20"/>
+						<Setter Property="Padding" Value="10"/>
+						<Setter Property="IsEnabled" Value="False"/>
+					</Style>
+					<Style TargetType="Border">
+						<Setter Property="Grid.Row" Value="1"/>
+						<Setter Property="CornerRadius" Value="0"/>
+						<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
+						<Setter Property="BorderBrush" Value="#000000"/>
+					</Style>
+					<Style TargetType="ScrollViewer">
+						<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+						<Setter Property="BorderBrush" Value="#000000"/>
+						<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
+					</Style>
+				</Window.Resources>
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto"/>
+						<RowDefinition Height="*"/>
+						<RowDefinition Height="Auto"/>
+					</Grid.RowDefinitions>
+					<Grid Grid.Row="0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*"/>
+							<ColumnDefinition Width="*"/>
+						</Grid.ColumnDefinitions>
+						<StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
+							<CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
+							<TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
+						</StackPanel>
+						<StackPanel Name="PanelRemoveForAll" Grid.Column="1" HorizontalAlignment="Right">
+							<TextBlock Name="TextBlockRemoveForAll" Margin="10,10, 0, 10"/>
+							<CheckBox Name="CheckBoxForAllUsers" IsChecked="False"/>
+						</StackPanel>
+					</Grid>
+					<Border>
+						<ScrollViewer>
+							<StackPanel Name="PanelContainer" Orientation="Vertical"/>
+						</ScrollViewer>
+					</Border>
+					<Button Name="ButtonUninstall" Grid.Row="2"/>
+				</Grid>
+			</Window>
+"@
+			#endregion XAML Markup
+
+			$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
+			$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
+				Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
+			}
+
+			$Window.Title               = "Uninstall UWP Apps"
+			$ButtonUninstall.Content    = "Uninstall"
+			$TextBlockRemoveForAll.Text = "Uninstall for all users"
+			# Extract the localized "Select all" string from shell32.dll
+			$TextBlockSelectAll.Text    = [WinAPI.GetStrings]::GetString(31276)
+
+			$ButtonUninstall.Add_Click({ButtonUninstallClick})
+			$CheckBoxForAllUsers.Add_Click({CheckBoxForAllUsersClick})
+			$CheckBoxSelectAll.Add_Click({CheckBoxSelectAllClick})
+			#endregion Variables
+
+			#region Functions
+			function Get-AppxBundle
+			{
+				[CmdletBinding()]
+				param
+				(
+					[string[]]
+					$Exclude,
+
+					[switch]
+					$AllUsers
+				)
+
+				$AppxPackages = @(Get-AppxPackage -PackageTypeFilter Bundle -AllUsers:$AllUsers | Where-Object -FilterScript {$_.Name -notin $ExcludedAppxPackages})
+
+				# The -PackageTypeFilter Bundle doesn't contain these packages, and we need to add manually
+				$Packages = @(
+					# Outlook
+					"Microsoft.OutlookForWindows",
+
+					# Microsoft Teams
+					"MSTeams"
+				)
+				foreach ($Package in $Packages)
+				{
+					if (Get-AppxPackage -Name $Package -AllUsers:$AllUsers)
+					{
+						$AppxPackages += Get-AppxPackage -Name $Package -AllUsers:$AllUsers
+					}
+				}
+
+				$PackagesIds = [Windows.Management.Deployment.PackageManager, Windows.Web, ContentType = WindowsRuntime]::new().FindPackages() | Select-Object -Property DisplayName -ExpandProperty Id | Select-Object -Property Name, DisplayName
+				foreach ($AppxPackage in $AppxPackages)
+				{
+					$PackageId = $PackagesIds | Where-Object -FilterScript {$_.Name -eq $AppxPackage.Name}
+					if (-not $PackageId)
+					{
+						continue
+					}
+
+					[PSCustomObject]@{
+						Name            = $AppxPackage.Name
+						PackageFullName = $AppxPackage.PackageFullName
+						# Sometimes there's more than one package presented in Windows with the same package name like {Microsoft Teams, Microsoft Teams} and we need to display the first one
+						DisplayName     = $PackageId.DisplayName | Select-Object -First 1
+					}
 				}
 			}
+
+			function Add-Control
+			{
+				[CmdletBinding()]
+				param
+				(
+					[Parameter(
+						Mandatory = $true,
+						ValueFromPipeline = $true
+					)]
+					[ValidateNotNull()]
+					[PSCustomObject[]]
+					$Packages
+				)
+
+				process
+				{
+					foreach ($Package in $Packages)
+					{
+						$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
+						$CheckBox.Tag = $Package.PackageFullName
+
+						$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
+
+						if ($Package.DisplayName)
+						{
+							$TextBlock.Text = $Package.DisplayName
+						}
+						else
+						{
+							$TextBlock.Text = $Package.Name
+						}
+
+						$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
+						$StackPanel.Children.Add($CheckBox) | Out-Null
+						$StackPanel.Children.Add($TextBlock) | Out-Null
+
+						$PanelContainer.Children.Add($StackPanel) | Out-Null
+
+						if ($UncheckedAppxPackages.Contains($Package.Name))
+						{
+							$CheckBox.IsChecked = $false
+						}
+						else
+						{
+							$CheckBox.IsChecked = $true
+							$PackagesToRemove.Add($Package.PackageFullName)
+						}
+
+						$CheckBox.Add_Click({CheckBoxClick})
+					}
+				}
+			}
+
+			function CheckBoxForAllUsersClick
+			{
+				$PanelContainer.Children.RemoveRange(0, $PanelContainer.Children.Count)
+				$PackagesToRemove.Clear()
+				$AppXPackages = Get-AppxBundle -Exclude $ExcludedAppxPackages -AllUsers:$CheckBoxForAllUsers.IsChecked
+				$AppXPackages | Add-Control
+
+				ButtonUninstallSetIsEnabled
+			}
+
+			function ButtonUninstallClick
+			{
+				$Window.Close() | Out-Null
+
+				# If MSTeams is selected to uninstall, delete quietly "Microsoft Teams Meeting Add-in for Microsoft Office" too
+				# & "$env:SystemRoot\System32\msiexec.exe" --% /x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn
+				if ($PackagesToRemove -match "MSTeams")
+				{
+					Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn" -Wait
+				}
+
+				$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked
+
+				if ($CheckBoxForAllUsers.IsChecked)
+				{
+					foreach ($Package in $PackagesToRemove)
+					{
+						LogInfo "Successfully removed $Package for all users"
+					}
+				}
+				else
+				{
+					foreach ($Package in $PackagesToRemove)
+					{
+						LogInfo "Successfully removed $Package for current user"
+					}
+				}
+			}
+
+			function CheckBoxClick
+			{
+				$CheckBox = $_.Source
+
+				if ($CheckBox.IsChecked)
+				{
+					$PackagesToRemove.Add($CheckBox.Tag) | Out-Null
+				}
+				else
+				{
+					$PackagesToRemove.Remove($CheckBox.Tag)
+				}
+
+				ButtonUninstallSetIsEnabled
+			}
+
+			function CheckBoxSelectAllClick
+			{
+				$CheckBox = $_.Source
+
+				if ($CheckBox.IsChecked)
+				{
+					$PackagesToRemove.Clear()
+
+					foreach ($Item in $PanelContainer.Children)
+					{
+						foreach ($Child in $Item.Children)
+						{
+							if ($Child -is [System.Windows.Controls.CheckBox])
+							{
+								$Child.IsChecked = $true
+								$PackagesToRemove.Add($Child.Tag)
+							}
+						}
+					}
+				}
+				else
+				{
+					$PackagesToRemove.Clear()
+
+					foreach ($Item in $PanelContainer.Children)
+					{
+						foreach ($Child in $Item.Children)
+						{
+							if ($Child -is [System.Windows.Controls.CheckBox])
+							{
+								$Child.IsChecked = $false
+							}
+						}
+					}
+				}
+
+				ButtonUninstallSetIsEnabled
+			}
+
+			function ButtonUninstallSetIsEnabled
+			{
+				if ($PackagesToRemove.Count -gt 0)
+				{
+					$ButtonUninstall.IsEnabled = $true
+				}
+				else
+				{
+					$ButtonUninstall.IsEnabled = $false
+				}
+			}
+			#endregion Functions
+
+			# Check "For all users" checkbox to uninstall packages from all accounts
+			if ($ForAllUsers)
+			{
+				$CheckBoxForAllUsers.IsChecked = $true
+			}
+
+			$PackagesToRemove = [Collections.Generic.List[string]]::new()
+			$AppXPackages = Get-AppxBundle -Exclude $ExcludedAppxPackages -AllUsers:$ForAllUsers
+			$AppXPackages | Add-Control
+
+			if ($AppXPackages.Count -eq 0)
+			{
+				Write-Host "No apps available to uninstall" -ForegroundColor Yellow
+			}
+			else
+			{
+				#region Sendkey function
+				# Emulate the Backspace key sending to prevent the console window to freeze
+				Start-Sleep -Milliseconds 500
+
+				Add-Type -AssemblyName System.Windows.Forms
+
+				# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
+				Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "WinUtil Script for Windows 10/11"} | ForEach-Object -Process {
+					# Show window, if minimized
+					[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
+
+					Start-Sleep -Seconds 1
+
+					# Force move the console window to the foreground
+					[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
+
+					Start-Sleep -Seconds 1
+
+					# Emulate the Backspace key sending to prevent the console window to freeze
+					[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
+				}
+				#endregion Sendkey function
+
+				if ($PackagesToRemove.Count -gt 0)
+				{
+					$ButtonUninstall.IsEnabled = $true
+				}
+
+				# Force move the WPF form to the foreground
+				$Window.Add_Loaded({$Window.Activate()})
+				$Form.ShowDialog() | Out-Null
+			}
+			Write-Host "success!" -ForegroundColor Green
 		}
-
-		ButtonUninstallSetIsEnabled
 	}
-
-	function ButtonUninstallSetIsEnabled
-	{
-		if ($PackagesToRemove.Count -gt 0)
-		{
-			$ButtonUninstall.IsEnabled = $true
-		}
-		else
-		{
-			$ButtonUninstall.IsEnabled = $false
-		}
-	}
-	#endregion Functions
-
-	# Check "For all users" checkbox to uninstall packages from all accounts
-	if ($ForAllUsers)
-	{
-		$CheckBoxForAllUsers.IsChecked = $true
-	}
-
-	$PackagesToRemove = [Collections.Generic.List[string]]::new()
-	$AppXPackages = Get-AppxBundle -Exclude $ExcludedAppxPackages -AllUsers:$ForAllUsers
-	$AppXPackages | Add-Control
-
-	if ($AppxPackages.Count -eq 0)
-	{
-		#LogWarning -Message $Localization.NoData
-	}
-	else
-	{
-		#region Sendkey function
-		# Emulate the Backspace key sending to prevent the console window to freeze
-		Start-Sleep -Milliseconds 500
-
-		Add-Type -AssemblyName System.Windows.Forms
-
-		# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
-		Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "WinUtil Script for Windows 10/11"} | ForEach-Object -Process {
-			# Show window, if minimized
-			[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
-
-			Start-Sleep -Seconds 1
-
-			# Force move the console window to the foreground
-			[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
-
-			Start-Sleep -Seconds 1
-
-			# Emulate the Backspace key sending to prevent the console window to freeze
-			[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
-		}
-		#endregion Sendkey function
-
-		if ($PackagesToRemove.Count -gt 0)
-		{
-			$ButtonUninstall.IsEnabled = $true
-		}
-
-		# Force move the WPF form to the foreground
-		$Window.Add_Loaded({$Window.Activate()})
-		$Form.ShowDialog() | Out-Null
-	}
-	Write-Host "success!" -ForegroundColor Green
 }
 
 <#
@@ -17071,7 +17864,7 @@ function CleanupTask
 			{
 				$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util Script", $null)
 			}
-	
+
 			Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches | ForEach-Object -Process {
 				Remove-ItemProperty -Path $_.PsPath -Name StateFlags1337 -Force -ErrorAction Ignore | Out-Null
 			}
@@ -17379,7 +18172,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			{
 				$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util Script", $null)
 			}
-			
+
 			# Removing current task
 			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName "Windows Cleanup", "Windows Cleanup Notification" -Confirm:$false -ErrorAction Ignore | Out-Null
 
@@ -18046,7 +18839,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			{
 				$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util Script", $null)
 			}
-	
+
 			# Removing current task
 			Unregister-ScheduledTask -TaskPath "\Win10_11Util\" -TaskName Temp -Confirm:$false -ErrorAction Ignore | Out-Null
 
@@ -18762,7 +19555,7 @@ function WindowsSandbox
 
 	# Get Windows edition from registry instead of WinAPI
 	$Edition = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
-	
+
 	if (($Edition -notmatch "Pro") -and ($Edition -notmatch "Enterprise") -and ($Edition -notmatch "Education"))
 	{
 		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
@@ -18795,8 +19588,8 @@ function WindowsSandbox
 				}
 				catch [System.Exception]
 				{
-					LogError $Localization.EnableHardwareVT 
-					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim()) 
+					LogError $Localization.EnableHardwareVT
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 				}
 			}
 			Write-Host "success!" -ForegroundColor Green
@@ -18822,7 +19615,7 @@ function WindowsSandbox
 				}
 				catch [System.Exception]
 				{
-					LogError $Localization.EnableHardwareVT 
+					LogError $Localization.EnableHardwareVT
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 				}
 			}
@@ -19413,7 +20206,7 @@ function DefenderAppGuard
 		"Enable"
 		{
 			$feature = Get-WindowsOptionalFeature -Online -FeatureName "Windows-Defender-ApplicationGuard" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-			
+
 			if ($feature -and $feature.State -ne "Disabled") {
 				$null = Enable-WindowsOptionalFeature -Online `
         			-FeatureName "Windows-Defender-ApplicationGuard" `
@@ -19432,7 +20225,7 @@ function DefenderAppGuard
 			LogInfo "Disabling Windows Defender Application Guard"
 			# Check if feature exists without throwing error
 			$feature = Get-WindowsOptionalFeature -Online -FeatureName "Windows-Defender-ApplicationGuard" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-			
+
 			if ($feature -and $feature.State -ne "Disabled") {
 				$null = Disable-WindowsOptionalFeature -Online `
         			-FeatureName "Windows-Defender-ApplicationGuard" `
@@ -19443,7 +20236,7 @@ function DefenderAppGuard
 			}
 			else {
 				LogInfo "WDAG feature not available on this system or already disabled."
-			}	
+			}
 		}
 	}
 }
@@ -19618,7 +20411,7 @@ function F8BootMenu
 		"Disable"
 		{
 			Write-Host "Disabling legacy F8 boot menu - " -NoNewline
-			Loginfo "Disabling legacy F8 boot menu"	
+			Loginfo "Disabling legacy F8 boot menu"
 			bcdedit /set `{current`} BootMenuPolicy Standard | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
@@ -19937,7 +20730,7 @@ function EditWithClipchampContext
 		{
 			Write-Host "Showing 'Edit with Clipchamp' item in the media files context menu - " -NoNewline
 			Loginfo "Showing 'Edit with Clipchamp' item in the media files context menu"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction SilentlyContinue | Out-Null	
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 	}
@@ -20077,7 +20870,7 @@ function EditWithPaintContext
 		{
 			Write-Host "Showing 'Edit with Paint' item in the media files context menu - " -NoNewline
 			Loginfo "Showing 'Edit with Paint' item in the media files context menu"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction SilentlyContinue | Out-Null	
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 	}
@@ -21478,7 +22271,7 @@ public static void PostMessage()
                  -Value 1 `
                  -Force `
                  -ErrorAction SilentlyContinue | Out-Null
-				 
+
 	#Reinstall Print Management Console
 	$null = Start-Process -FilePath "DISM.exe" `
                       -ArgumentList "/online /add-capability /CapabilityName:Print.Management.Console~~~~0.0.1.0 /quiet /norestart" `

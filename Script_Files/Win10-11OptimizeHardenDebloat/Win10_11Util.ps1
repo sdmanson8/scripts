@@ -1335,14 +1335,19 @@ StartLayout -ShowMorePins
 # Uninstall Copilot App
 Copilot -Uninstall
 
+# Install UWP apps using the pop-up dialog box
+# UWPApps -Install
+
 # Uninstall UWP apps using the pop-up dialog box
-UninstallUWPApps
+UWPApps -Uninstall
 
 <#
 	Uninstall UWP apps for all users using the pop-up dialog box
 	If the "For All Users" is checked apps packages will not be installed for new users
 #>
-# UninstallUWPApps -ForAllUsers
+# UWPApps -ForAllUsers
+
+
 
 # Disable Cortana autostarting
 CortanaAutostart -Disable
