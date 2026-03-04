@@ -16557,7 +16557,7 @@ function UWPApps
            					    }
                             }
             				catch {
-           					#LogError "Provisioned package installation failed for $PackageName"
+           					LogError "Provisioned package installation failed for $PackageName"
             				}
          			}
 
@@ -16620,7 +16620,7 @@ function UWPApps
          			}
           		}
           		catch {
-         			#LogError "$PackageName - Installation failed: $($_.Exception.Message)"
+         			LogError "$PackageName - Installation failed: $($_.Exception.Message)"
          			$ManualPackages.Add($PackageName)
           		}
            	}
