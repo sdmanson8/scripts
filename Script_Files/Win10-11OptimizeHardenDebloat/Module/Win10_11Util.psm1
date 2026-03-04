@@ -3,11 +3,12 @@
 	This Script is a PowerShell module for Windows 10 & Windows 11 for fine-tuning and automating the routine tasks
 
 	.VERSION
-	2.0.0
+	2.0.1
 
 	.DATE
 	03.10.2021 - initial version
 	24.02.2026 - updated to v2.0.0 with new functions and improvements
+	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
 
 	.AUTHOR
 	sdmanson8
@@ -885,65 +886,103 @@ $($Type):$($Value)`n
 
 function CheckWinGet
 {
-	LogInfo "Checking WinGet:" -NoNewline
-	# Get the OS version
-	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
-	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
-
-	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
-	if ([int]$currentBuild -ge 22000) {
-		# Skip on Windows 11		
-		$osName = "Windows 11"
-	} else {
-		$osName = "Windows 10"
-		# Check if winget is installed
-		$wingetPath = (Get-Command winget -ErrorAction SilentlyContinue).Source
-
-		if ($wingetPath)
-		{
-			LogInfo "Winget is already installed, skipping"
-		}
-		else
-		{
-			# Download and install winget manually
-			LogInfo "Winget not found, Preparing to Download and Install Winget:"
-			Write-Host "Installing WinGet - " -NoNewline
-			LogInfo "Setting temp location"
-			Set-Location -Path $env:TEMP
-			LogInfo "Downloading NuGet"
-			Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.8.6 -Method Get -OutFile microsoft.ui.xaml.2.8.6.zip
-			Expand-Archive microsoft.ui.xaml.2.8.6.zip
-			LogInfo "Installing NuGet"
-			Add-AppxPackage -Path .\microsoft.ui.xaml.2.8.6\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.8.appx
-			LogInfo "Downloading C++ Runtime"
-			Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -Method Get -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
-			LogInfo "Installing C++ Runtime"
-			Add-AppxPackage -Path .\Microsoft.VCLibs.x64.14.00.Desktop.appx
-			LogInfo "Downloading WinGet"
-			# GitHub repo
-			$Repo = "microsoft/winget-cli"
-			$ApiUri = "https://api.github.com/repos/$Repo/releases/latest"
-			# Get latest release metadata
-			$Release = Invoke-RestMethod -Uri $ApiUri -UseBasicParsing
-			# Find required assets
-			$Msix = $Release.assets | Where-Object { $_.name -like "*.msixbundle" }
-			$License = $Release.assets | Where-Object { $_.name -like "*_License*.xml" }
-			# Download paths
-			$MsixPath = Join-Path $PWD $Msix.name
-			$LicensePath = Join-Path $PWD $License.name
-			# Download assets
-			Invoke-WebRequest -Uri $Msix.browser_download_url -OutFile $MsixPath -UseBasicParsing | Out-Null
-			Invoke-WebRequest -Uri $License.browser_download_url -OutFile $LicensePath -UseBasicParsing | Out-Null
-			LogInfo "Installing WinGet"
-			$null = Add-AppxProvisionedPackage -Online `
-				-PackagePath $MsixPath `
-				-LicensePath $LicensePath `
-				-NoRestart `
-				-ErrorAction SilentlyContinue `
-				-WarningAction SilentlyContinue
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
+	Write-Host "Checking WinGet - " -NoNewline
+    LogInfo "Checking WinGet:"
+    
+    # Get OS information for compatibility checks
+    $osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+    $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
+    
+    # Determine Windows version
+    if ([int]$currentBuild -ge 22000) {
+        $osName = "Windows 11"
+    } else {
+        $osName = "Windows 10"
+    }
+    
+    LogInfo "Detected OS: $osName (Build $currentBuild, Release $osVersion)"
+    
+    # Check if winget is already installed and working
+    try {
+        $wingetVersion = winget --version 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            LogInfo "Winget is already installed and working. Version: $wingetVersion"
+            return $true
+        }
+    } catch {
+        LogWarning "Winget not found or not functional"
+    }
+    
+    # If not working, use the asheroto installer script
+    LogInfo "Preparing to download and install Winget using asheroto installer..."
+    
+    try {
+        # Download the asheroto installer script from direct GitHub URL
+        $installerUrl = "https://raw.githubusercontent.com/asheroto/winget-install/master/winget-install.ps1"
+        $installerPath = Join-Path $env:TEMP "winget-install.ps1"
+        
+        LogInfo "Downloading winget installer from $installerUrl"
+        Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing
+        LogInfo "Download completed"
+        
+        LogInfo "Executing installer script..."
+        
+        # Create temporary log files to capture output
+        $stdoutLog = Join-Path $env:TEMP "winget-install-stdout.log"
+        $stderrLog = Join-Path $env:TEMP "winget-install-stderr.log"
+        
+        # Execute the installer and capture all output
+        $process = Start-Process powershell.exe -ArgumentList @(
+            "-NoProfile",
+            "-ExecutionPolicy", "Bypass",
+            "-File", "`"$installerPath`"",
+            "-Force"
+        ) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+        
+        # Read and log the captured output
+        if (Test-Path $stdoutLog) {
+            Get-Content $stdoutLog | ForEach-Object {
+                if ($_) { LogInfo "winget-installer: $_" }
+            }
+            Remove-Item $stdoutLog -Force -ErrorAction SilentlyContinue
+        }
+        
+        if (Test-Path $stderrLog) {
+            Get-Content $stderrLog | ForEach-Object {
+                if ($_) { LogError "winget-installer: $_" }
+            }
+            Remove-Item $stderrLog -Force -ErrorAction SilentlyContinue
+        }
+        
+        # Check process exit code
+        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq $null) {
+            LogInfo "Installer script completed successfully"
+        } else {
+            LogWarning "Installer script reported exit code: $($process.ExitCode)"
+        }
+        
+        # Clean up installer script
+        Remove-Item $installerPath -Force -ErrorAction SilentlyContinue
+        
+        # Final validation
+        Start-Sleep -Seconds 5
+        try {
+            $wingetVersion = winget --version 2>$null
+            if ($LASTEXITCODE -eq 0) {
+	            Write-Host "success!" -ForegroundColor Green
+				#return $true
+            } else {
+                throw "Winget validation failed"
+            }
+        } catch {
+            LogError "Winget installation failed validation: $_"
+            return $false
+        }
+        
+    } catch {
+        LogError "Error during winget installation: $_"
+        return $false
+    }
 }
 
 # Update to Powershell 7.x.x
@@ -1203,7 +1242,6 @@ function Update-RegistryPaths
     # Ensure $path is not empty before proceeding
     if ([string]::IsNullOrWhiteSpace($path))
 	{
-        LogError "Invalid path: Path is empty or null." | Out-Null
         return
     }
 
@@ -8889,7 +8927,7 @@ function OneDrive
     	return
 		}
 
-		LogInfo $Localization.OneDriveUninstalling
+		#LogInfo $Localization.OneDriveUninstalling
 
 		# Kill OneDrive processes safely
 		Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction SilentlyContinue | Out-Null
@@ -13665,7 +13703,7 @@ function ReservedStorage
 			{
 				Write-Host "Disabling reserved storage - " -NoNewline
 				LogInfo "Disabling reserved storage"
-				Set-WindowsReservedStorageState -State Disabled | Out-Null
+				Set-WindowsReservedStorageState -State Disabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
 				Write-Host "success!" -ForegroundColor Green
 			}
 			catch [System.Runtime.InteropServices.COMException]
@@ -13677,7 +13715,7 @@ function ReservedStorage
 		{
 			Write-Host "Enabling reserved storage - " -NoNewline
 			LogInfo "Enabling reserved storage"
-			Set-WindowsReservedStorageState -State Enabled | Out-Null
+			Set-WindowsReservedStorageState -State Enabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
 			Write-Host "success!" -ForegroundColor Green
 		}
 	}
@@ -20024,7 +20062,7 @@ function DefenderAppGuard
 				Write-Host "success!" -ForegroundColor Green
 			}
 			else {
-				LogInfo "WDAG feature not available on this system or already enabled."
+				LogError "WDAG feature not available on this system or already enabled."
 			}
 		}
 		"Disable"
@@ -20043,7 +20081,7 @@ function DefenderAppGuard
 				Write-Host "success!" -ForegroundColor Green
 			}
 			else {
-				LogInfo "WDAG feature not available on this system or already disabled."
+				LogError "WDAG feature not available on this system or already disabled."
 			}
 		}
 	}

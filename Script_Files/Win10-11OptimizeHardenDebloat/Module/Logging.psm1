@@ -42,7 +42,7 @@ function Write-LogMessage {
     return
     }
 
-    $timestamp = Get-Date -Format "dd-MM-yyyy HH:mm:ss.fff"
+    $timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
     $logMessage = "$timestamp $Level`: $Message"
     if ($AddGap) { $logMessage += "`n" }
     
