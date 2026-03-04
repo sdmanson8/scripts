@@ -57,20 +57,16 @@ param
 
 Clear-Host
 
-	# Get the OS version
-	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+# Get the OS version
+$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
-	# Determine if it's Windows 10 or 11
-	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
-
-	if ($productName -match "Windows 11") 
-	{
-    $osName = "Windows 11"
-	} 
-	else 
-	{
-    $osName = "Windows 10"
-	}
+# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
+if ([int]$currentBuild -ge 22000) {
+	$osName = "Windows 11"
+} else {
+	$osName = "Windows 10"
+}
 
 $Host.UI.RawUI.WindowTitle = "WinUtil Script for $osName"
 
@@ -112,20 +108,20 @@ catch [System.InvalidOperationException]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Preset configuration starts here
-# 
+#
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 <#
 	.SYNOPSIS
 	Run the script by specifying functions as an argument
-	 , 
+	 ,
 
 	.EXAMPLE
 	.\Win10_11Util.ps1 -Functions "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal", UninstallUWPApps
 
 	.NOTES
 	Use commas to separate funtions
-	 
+
 #>
 if ($Functions)
 {
@@ -259,7 +255,7 @@ FeedbackFrequency -Never
 # Change the feedback frequency to "Automatically" (default value)
 # FeedbackFrequency -Automatically
 
-# Turn off the diagnostics tracking scheduled tasks 
+# Turn off the diagnostics tracking scheduled tasks
 ScheduledTasks -Disable
 
 # Turn on the diagnostics tracking scheduled tasks (default value)
@@ -423,143 +419,143 @@ StartAccountNotifications -Hide
 
 
 # Enable WiFi Sense to share WiFi networks with contacts and connect to suggested open hotspots.
-# WiFiSense -Enable 
+# WiFiSense -Enable
 # Disable WiFi Sense to prevent automatic connections to open hotspots and sharing of WiFi networks with contacts.
-WiFiSense -Disable 
+WiFiSense -Disable
 
 # Enable web search integration in system search (e.g., Cortana or Windows Search).
-# WebSearch -Enable 
+# WebSearch -Enable
 # Disable web search to limit searches to local files, apps, and settings only.
-WebSearch -Disable 
+WebSearch -Disable
 
 # Enable activity history tracking across devices and timelines.
-# ActivityHistory -Enable 
+# ActivityHistory -Enable
 # Disable activity history to prevent tracking and syncing of activities across devices.
 # Note: The checkbox "Store my activity history on this device" ("Let Windows collect my activities from this PC" on older versions) remains checked even when the function is disabled.
-ActivityHistory -Disable 
+ActivityHistory -Disable
 
 # Enable device sensors such as accelerometer, gyroscope, and ambient light sensor.
-Sensors -Enable 
+Sensors -Enable
 # Disable device sensors to restrict apps and system components from accessing sensor data.
-# Sensors -Disable 
+# Sensors -Disable
 
 # Enable location services to allow apps and system services to access device location.
-# LocationService -Enable 
+# LocationService -Enable
 # Disable location services to prevent apps and system services from accessing device location.
-LocationService -Disable 
+LocationService -Disable
 
 # Enable automatic updates for offline maps to ensure maps are kept up to date.
-# MapUpdates -Enable 
+# MapUpdates -Enable
 # Disable automatic map updates to save bandwidth and storage.
-MapUpdates -Disable 
+MapUpdates -Disable
 
 # Enable synchronization of preferred web languages across devices for a consistent browsing experience.
-# WebLangList -Enable 
+# WebLangList -Enable
 # Disable synchronization of web languages to keep preferences local to the device.
-WebLangList -Disable 
+WebLangList -Disable
 
 # Enable access to the camera for apps and system services that use the Windows camera API.
-Camera -Enable 
+Camera -Enable
 # Disable camera access to prevent apps and services from using the device camera via standard Windows API.
 # Note: Disabling this will not prevent direct hardware-level access by certain apps.
-# Camera -Disable 
+# Camera -Disable
 
 # Enable microphone access for voice input and recording via the Windows audio API.
-Microphone -Enable 
+Microphone -Enable
 # Disable microphone access to prevent apps and services from using the device microphone via standard Windows API.
 # Note: Disabling this will not prevent direct hardware-level access by certain apps.
-# Microphone -Disable 
+# Microphone -Disable
 
 # Enable WAP Push messaging to receive service messages from mobile carriers.
-WAPPush -Enable 
+WAPPush -Enable
 # Disable WAP Push messaging to prevent receiving service messages from carriers.
 # Note: This service is required for Microsoft Intune and other enterprise mobile management services.
-# WAPPush -Disable 
+# WAPPush -Disable
 
 # Enable automatic clearing of recent files list upon system logout.
-ClearRecentFiles -Enable 
+ClearRecentFiles -Enable
 # Disable automatic clearing to retain recent files after logout.
 # Note: Empties most recently used (MRU) lists such as the 'Recent Items' menu on the Start menu, jump lists, and file shortcuts in applications upon logout.
-# ClearRecentFiles -Disable 
+# ClearRecentFiles -Disable
 
 # Enable tracking of recently accessed files to maintain a list of most recently used (MRU) items.
-# RecentFiles -Enable 
+# RecentFiles -Enable
 # Disable tracking to stop the creation of most recently used (MRU) items lists.
 # Note: Prevents the creation of MRU lists such as the 'Recent Items' menu on the Start menu, jump lists, and file shortcuts in applications.
-RecentFiles -Disable 
+RecentFiles -Disable
 
 # Enable access to voice activation from UWP apps
-UWPVoiceActivation -Enable 
+UWPVoiceActivation -Enable
 # Disable access to voice activation from UWP apps
 # UWPVoiceActivation -Disable
 
 # Enable access to notifications from UWP apps
-UWPNotifications -Enable 
+UWPNotifications -Enable
 # Disable access to notifications from UWP apps
 # UWPNotifications -Disable
 
 # Enable access to account info from UWP apps
-UWPAccountInfo -Enable 
+UWPAccountInfo -Enable
 # Disable access to account info from UWP apps
 # UWPAccountInfo -Disable
 
 # Enable access to contacts from UWP apps
-UWPContacts -Enable 
+UWPContacts -Enable
 # Disable access to contacts from UWP apps
 # UWPContacts -Disable
 
 # Enable access to calendar from UWP apps
-UWPCalendar -Enable 
+UWPCalendar -Enable
 # Disable access to calendar from UWP apps
 # UWPCalendar -Disable
 
 # Enable access to phone calls from UWP apps
-UWPPhoneCalls -Enable 
+UWPPhoneCalls -Enable
 # Disable access to phone calls from UWP apps
 # UWPPhoneCalls -Disable
 
 # Enable access to call history from UWP apps
-UWPCallHistory -Enable 
+UWPCallHistory -Enable
 # Disable access to call history from UWP apps
 # UWPCallHistory -Disable
 
 # Enable access to email from UWP apps
-UWPEmail -Enable 
+UWPEmail -Enable
 # Disable access to email from UWP apps
 # UWPEmail -Disable
 
 # Enable access to tasks from UWP apps
-UWPTasks -Enable 
+UWPTasks -Enable
 # Disable access to tasks from UWP apps
 # UWPTasks -Disable
 
 # Enable access to messaging (SMS, MMS) from UWP apps
-UWPMessaging -Enable 
+UWPMessaging -Enable
 # Disable access to messaging (SMS, MMS) from UWP apps
 # UWPMessaging -Disable
 
 # Enable access to radios (e.g. Bluetooth) from UWP apps
-UWPRadios -Enable 
+UWPRadios -Enable
 # Disable access to radios (e.g. Bluetooth) from UWP apps
 # UWPRadios -Disable
 
 # Enable access to other devices (unpaired, beacons, TVs etc.) from UWP apps
-UWPOtherDevices -Enable 
+UWPOtherDevices -Enable
 # Disable access to other devices (unpaired, beacons, TVs etc.) from UWP apps
 # UWPOtherDevices -Disable
 
 # Enable access to diagnostic information from UWP apps
-UWPDiagInfo -Enable 
+UWPDiagInfo -Enable
 # Disable access to diagnostic information from UWP apps
 # UWPDiagInfo -Disable
 
 # Enable access to libraries and file system from UWP apps
-UWPFileSystem -Enable 
+UWPFileSystem -Enable
 # Disable access to libraries and file system from UWP apps
 # UWPFileSystem -Disable
 
 # Enable UWP apps swap file
-UWPSwapFile -Enable 
+UWPSwapFile -Enable
 # Disable UWP apps swap file
 # This disables creation and use of swapfile.sys and frees 256 MB of disk space.
 # Swapfile.sys is used only by UWP apps. The tweak has no effect on the real swap in pagefile.sys.
@@ -795,7 +791,7 @@ TaskbarCombine -Always
 # TaskbarCombine -Never
 
 # Unpin Microsoft Edge, Microsoft Store, Mail, and Outlook shortcuts from the taskbar
-# Microsoft Edge, Microsoft Store Outlook 
+# Microsoft Edge, Microsoft Store Outlook
 UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook, Mail
 
 # Enable end task in taskbar by right click
@@ -1130,7 +1126,7 @@ RestartNotification -Show
 
 # Restart as soon as possible to finish updating
 # RestartDeviceAfterUpdate -Enable
- 
+
 # Don't restart as soon as possible to finish updating (default value)
 RestartDeviceAfterUpdate -Disable
 
@@ -1185,7 +1181,7 @@ InputMethod -English
 #>
 # Set-UserShellFolderLocation -Default
 
-# Use the latest installed .NET runtime for all apps 
+# Use the latest installed .NET runtime for all apps
 LatestInstalled.NET -Enable
 
 # Do not use the latest installed .NET runtime for all apps (default value)
@@ -1196,7 +1192,7 @@ LatestInstalled.NET -Enable
 	The function will be applied only if the preset is configured to remove the OneDrive application, or the app was already uninstalled
 	Otherwise the backup functionality for the "Desktop" and "Pictures" folders in OneDrive breaks
 #>
-WinPrtScrFolder -Desktop
+# WinPrtScrFolder -Desktop
 
 # Save screenshots by pressing Win+PrtScr in the Pictures folder (default value)
 # WinPrtScrFolder -Default
@@ -1276,14 +1272,14 @@ NetworkDiscovery -Enable
 
 <#
 	 Windows Application_Associations.json
-	 Application_Associations.json, 
+	 Application_Associations.json,
 
 	Import all Windows associations from an Application_Associations.json file
 	You need to install all apps according to an exported Application_Associations.json file to restore all associations
 #>
 # Import-Associations
 
-# Set Windows Terminal as default terminal app to host the user interface for command-line applications 
+# Set Windows Terminal as default terminal app to host the user interface for command-line applications
 DefaultTerminalApp -WindowsTerminal
 
 # Set Windows Console Host as default terminal app to host the user interface for command-line applications (default value)
@@ -1457,7 +1453,7 @@ PowerShellScriptsLogging -Enable
 # Disable logging for all PowerShell scripts input to the Windows PowerShell event log (default value)
 # PowerShellScriptsLogging -Disable
 
-# Microsoft Defender SmartScreen doesn't marks downloaded files from the Internet as unsafe 
+# Microsoft Defender SmartScreen doesn't marks downloaded files from the Internet as unsafe
 AppsSmartScreen -Disable
 
 # Microsoft Defender SmartScreen marks downloaded files from the Internet as unsafe (default value)

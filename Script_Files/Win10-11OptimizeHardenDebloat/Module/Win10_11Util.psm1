@@ -29,20 +29,16 @@
 # Import logging module
 Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force
 
-	# Get the OS version
-	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+# Get the OS version
+$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
-	# Determine if it's Windows 10 or 11
-	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
-
-	if ($productName -match "Windows 11")
-	{
-    $osName = "Windows 11"
-	}
-	else
-	{
-    $osName = "Windows 10"
-	}
+# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
+if ([int]$currentBuild -ge 22000) {
+	$osName = "Windows 11"
+} else {
+	$osName = "Windows 10"
+}
 
 # Set up global log file
 $global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for $osName.txt"
@@ -76,25 +72,20 @@ function InitialActions
 		$Warning
 	)
 
-	#Log Message for Start of Script
 	# Get the OS version
 	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
-	# Determine if it's Windows 10 or 11
-	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
-
-	if ($productName -match "Windows 11")
-	{
-    $osName = "Windows 11"
-	}
-	else
-	{
-    $osName = "Windows 10"
+	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
+	if ([int]$currentBuild -ge 22000) {
+		$osName = "Windows 11"
+	} else {
+		$osName = "Windows 10"
 	}
 
 	LogInfo "Starting WinUtil Script for $osName" -addGap
-	LogInfo "Beginning Initial Checks:"
 
+	LogInfo "Beginning Initial Checks:"
 	Clear-Host
 	Write-Host "Please Wait...."
 
@@ -766,7 +757,18 @@ function CreateRestorePoint
 	# Never skip creating a restore point
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force | Out-Null
 
-	Checkpoint-Computer -Description "WinUtil Script for Windows 10/11" -RestorePointType MODIFY_SETTINGS | Out-Null
+	# Get the OS version
+	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
+
+	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
+	if ([int]$currentBuild -ge 22000) {
+		$osName = "Windows 11"
+	} else {
+		$osName = "Windows 10"
+	}
+
+	Checkpoint-Computer -Description "WinUtil Script for $osName" -RestorePointType MODIFY_SETTINGS | Out-Null
 
 	# Revert the System Restore checkpoint creation frequency to 1440 minutes
 	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 1440 -Force | Out-Null
@@ -883,22 +885,23 @@ $($Type):$($Value)`n
 
 function CheckWinGet
 {
+	LogInfo "Checking WinGet:" -NoNewline
+	# Get the OS version
 	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
-	# Determine if it's Windows 10 or 11
-	$productName = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
-
-	if ($productName -match "Windows 10")
-	{
+	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
+	if ([int]$currentBuild -ge 22000) {
+		# Skip on Windows 11		
+		$osName = "Windows 11"
+	} else {
 		$osName = "Windows 10"
 		# Check if winget is installed
-		Write-Host "Checking WinGet - " -NoNewline
 		$wingetPath = (Get-Command winget -ErrorAction SilentlyContinue).Source
 
 		if ($wingetPath)
 		{
 			LogInfo "Winget is already installed, skipping"
-			Write-Host "success!" -ForegroundColor Green
 		}
 		else
 		{
@@ -940,11 +943,6 @@ function CheckWinGet
 				-WarningAction SilentlyContinue
 			Write-Host "success!" -ForegroundColor Green
 		}
-	}
-	else
-	{
-		# Skip on Windows 11
-		LogInfo "Winget is already installed, skipping"
 	}
 }
 
@@ -16162,6 +16160,15 @@ function Copilot
 	.NOTES
 	Current user
 #>
+# Detect Windows version
+$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
+if ([int]$currentBuild -ge 22000) {
+    $script:isWindows11 = $true
+    $script:osName = "Windows 11"
+} else {
+    $script:isWindows11 = $false
+    $script:osName = "Windows 10"
+}
 function UWPApps
 {
 	[CmdletBinding(DefaultParameterSetName = "None")]
@@ -16184,766 +16191,567 @@ function UWPApps
 	{
 		"Install"
 		{
-			# Install UWP apps
-			Add-Type -AssemblyName PresentationCore, PresentationFramework
-			Write-Host "Installing UWP apps - " -NoNewline
-			LogInfo "Installing UWP apps:"
-			#region Variables
-			# The following UWP apps will have their checkboxes unchecked
-			$UncheckedAppxPackages = @(
-				# Dolby Access
-				"DolbyLaboratories.DolbyAccess",
-
-				# Windows Media Player
-				"Microsoft.ZuneMusic",
-
-				# Screen Sketch
-				"Microsoft.ScreenSketch",
-
-				# Photos (and Video Editor)
-				"Microsoft.Windows.Photos",
-				"Microsoft.Photos.MediaEngineDLC",
-
-				# Calculator
-				"Microsoft.WindowsCalculator",
-
-				# Windows Camera
-				"Microsoft.WindowsCamera",
-
-				# Xbox Identity Provider
-				"Microsoft.XboxIdentityProvider",
-
-				# Xbox Console Companion
-				"Microsoft.XboxApp",
-
-				# Xbox
-				"Microsoft.GamingApp",
-				"Microsoft.GamingServices",
-
-				# Paint
-				"Microsoft.Paint",
-
-				# Xbox TCUI
-				"Microsoft.Xbox.TCUI",
-
-				# Xbox Speech To Text Overlay
-				"Microsoft.XboxSpeechToTextOverlay",
-
-				# Game Bar
-				"Microsoft.XboxGamingOverlay",
-
-				# Game Bar Plugin
-				"Microsoft.XboxGameOverlay"
-			)
-
-			# The following UWP apps will be excluded from the display
-			$ExcludedAppxPackages = @(
-				# Microsoft Edge
-				"Microsoft.MicrosoftEdge.Stable",
-
-				# Microsoft Visual C++ runtime framework
-				"Microsoft.VCLibs.140.00",
-
-				# AMD Radeon Software
-				"AdvancedMicroDevicesInc-2.AMDRadeonSoftware",
-
-				# Intel Graphics Control Center
-				"AppUp.IntelGraphicsControlPanel",
-				"AppUp.IntelGraphicsExperience",
-
-				# ELAN Touchpad
-				"ELANMicroelectronicsCorpo.ELANTouchpadforThinkpad",
-				"ELANMicroelectronicsCorpo.ELANTrackPointforThinkpa",
-
-				# Microsoft Application Compatibility Enhancements
-				"Microsoft.ApplicationCompatibilityEnhancements",
-
-				# AVC Encoder Video Extension
-				"Microsoft.AVCEncoderVideoExtension",
-
-				# Microsoft Desktop App Installer
-				"Microsoft.DesktopAppInstaller",
-
-				# Store Experience Host
-				"Microsoft.StorePurchaseApp",
-
-				# Cross Device Experience Host
-				"MicrosoftWindows.CrossDevice",
-
-				# Notepad
-				"Microsoft.WindowsNotepad",
-
-				# Microsoft Store
-				"Microsoft.WindowsStore",
-
-				# Windows Terminal
-				"Microsoft.WindowsTerminal",
-				"Microsoft.WindowsTerminalPreview",
-
-				# Web Media Extensions
-				"Microsoft.WebMediaExtensions",
-
-				# AV1 Video Extension
-				"Microsoft.AV1VideoExtension",
-
-				# Windows Subsystem for Linux
-				"MicrosoftCorporationII.WindowsSubsystemForLinux",
-
-				# HEVC Video Extensions from Device Manufacturer
-				"Microsoft.HEVCVideoExtension",
-				"Microsoft.HEVCVideoExtensions",
-
-				# Raw Image Extension
-				"Microsoft.RawImageExtension",
-
-				# HEIF Image Extensions
-				"Microsoft.HEIFImageExtension",
-
-				# MPEG-2 Video Extension
-				"Microsoft.MPEG2VideoExtension",
-
-				# VP9 Video Extensions
-				"Microsoft.VP9VideoExtensions",
-
-				# Webp Image Extensions
-				"Microsoft.WebpImageExtension",
-
-				# PowerShell
-				"Microsoft.PowerShell",
-
-				# NVIDIA Control Panel
-				"NVIDIACorp.NVIDIAControlPanel",
-
-				# Realtek Audio Console
-				"RealtekSemiconductorCorp.RealtekAudioControl",
-
-				# Synaptics
-				"SynapticsIncorporated.SynapticsControlPanel",
-				"SynapticsIncorporated.24916F58D6E7"
-			)
-
-			#region XAML Markup
-			# The section defines the design of the upcoming dialog box
-			[xml]$XAML = @"
-			<Window
-				xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-				xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-				Name="Window"
-				MinHeight="400" MinWidth="415"
-				SizeToContent="Width" WindowStartupLocation="CenterScreen"
-				TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
-				FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
-				Background="#F1F1F1" Foreground="#262626">
-				<Window.Resources>
-					<Style TargetType="StackPanel">
-						<Setter Property="Orientation" Value="Horizontal"/>
-						<Setter Property="VerticalAlignment" Value="Top"/>
-					</Style>
-					<Style TargetType="CheckBox">
-						<Setter Property="Margin" Value="10, 13, 10, 10"/>
-						<Setter Property="IsChecked" Value="True"/>
-					</Style>
-					<Style TargetType="TextBlock">
-						<Setter Property="Margin" Value="0, 10, 10, 10"/>
-					</Style>
-					<Style TargetType="Button">
-						<Setter Property="Margin" Value="20"/>
-						<Setter Property="Padding" Value="10"/>
-						<Setter Property="IsEnabled" Value="False"/>
-					</Style>
-					<Style TargetType="Border">
-						<Setter Property="Grid.Row" Value="1"/>
-						<Setter Property="CornerRadius" Value="0"/>
-						<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
-						<Setter Property="BorderBrush" Value="#000000"/>
-					</Style>
-					<Style TargetType="ScrollViewer">
-						<Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
-						<Setter Property="BorderBrush" Value="#000000"/>
-						<Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
-					</Style>
-				</Window.Resources>
-				<Grid>
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto"/>
-						<RowDefinition Height="*"/>
-						<RowDefinition Height="Auto"/>
-					</Grid.RowDefinitions>
-					<Grid Grid.Row="0">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*"/>
-							<ColumnDefinition Width="*"/>
-						</Grid.ColumnDefinitions>
-						<StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
-							<CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
-							<TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
-						</StackPanel>
-						<StackPanel Name="PanelInstallForAll" Grid.Column="1" HorizontalAlignment="Right">
-							<TextBlock Name="TextBlockInstallForAll" Margin="10,10, 0, 10"/>
-							<CheckBox Name="CheckBoxForAllUsers" IsChecked="False"/>
-						</StackPanel>
-					</Grid>
-					<Border>
-						<ScrollViewer>
-							<StackPanel Name="PanelContainer" Orientation="Vertical"/>
-						</ScrollViewer>
-					</Border>
-					<Button Name="ButtonInstall" Grid.Row="2"/>
-				</Grid>
-			</Window>
-"@
-			#endregion XAML Markup
-
-			$Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
-			$XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
-				Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
-			}
-
-			$Window.Title               = "Install UWP Apps"
-			$ButtonInstall.Content    = "Install"
-			$TextBlockInstallForAll.Text = "Install for all users"
-			# Extract the localized "Select all" string from shell32.dll
-			$TextBlockSelectAll.Text    = [WinAPI.GetStrings]::GetString(31276)
-
-			$ButtonInstall.Add_Click({ButtonInstallClick})
-			$CheckBoxForAllUsers.Add_Click({CheckBoxForAllUsersClick})
-			$CheckBoxSelectAll.Add_Click({CheckBoxSelectAllClick})
-			#endregion Variables
-
-			#region Functions
-			function Get-AvailableAppxPackages
-			{
-				[CmdletBinding()]
-				param
-				(
-					[string[]]
-					$Exclude,
-
-					[switch]
-					$AllUsers
-				)
-
-				# Comprehensive list of all Windows 10/11 app packages that can be installed
-				$AllPossiblePackages = @(
-					@{
-						Name = "Microsoft.OutlookForWindows"
-						DisplayName = "Microsoft Outlook"
-					},
-					@{
-						Name = "MSTeams"
-						DisplayName = "Microsoft Teams"
-					},
-					@{
-						Name = "Microsoft.WindowsCalculator"
-						DisplayName = "Calculator"
-					},
-					@{
-						Name = "Microsoft.WindowsCamera"
-						DisplayName = "Camera"
-					},
-					@{
-						Name = "Microsoft.Windows.Photos"
-						DisplayName = "Photos"
-					},
-					@{
-						Name = "Microsoft.ZuneMusic"
-						DisplayName = "Media Player"
-					},
-					@{
-						Name = "Microsoft.ZuneVideo"
-						DisplayName = "Movies & TV"
-					},
-					@{
-						Name = "Microsoft.ScreenSketch"
-						DisplayName = "Snipping Tool"
-					},
-					@{
-						Name = "Microsoft.Paint"
-						DisplayName = "Paint"
-					},
-					@{
-						Name = "Microsoft.GamingApp"
-						DisplayName = "Xbox"
-					},
-					@{
-						Name = "Microsoft.XboxGamingOverlay"
-						DisplayName = "Game Bar"
-					},
-					@{
-						Name = "Microsoft.Xbox.TCUI"
-						DisplayName = "Xbox TCUI"
-					},
-					@{
-						Name = "Microsoft.XboxIdentityProvider"
-						DisplayName = "Xbox Identity Provider"
-					},
-					@{
-						Name = "Microsoft.XboxSpeechToTextOverlay"
-						DisplayName = "Xbox Speech To Text Overlay"
-					},
-					@{
-						Name = "Microsoft.XboxApp"
-						DisplayName = "Xbox Console Companion"
-					},
-					@{
-						Name = "Microsoft.GamingServices"
-						DisplayName = "Gaming Services"
-					},
-					@{
-						Name = "Microsoft.StorePurchaseApp"
-						DisplayName = "Store Experience Host"
-					},
-					@{
-						Name = "Microsoft.MixedReality.Portal"
-						DisplayName = "Mixed Reality Portal"
-					},
-					@{
-						Name = "Microsoft.People"
-						DisplayName = "People"
-					},
-					@{
-						Name = "Microsoft.WindowsAlarms"
-						DisplayName = "Alarms & Clock"
-					},
-					@{
-						Name = "Microsoft.WindowsCommunicationsApps"
-						DisplayName = "Communications Apps"
-					},
-					@{
-						Name = "Microsoft.WindowsFeedbackHub"
-						DisplayName = "Feedback Hub"
-					},
-					@{
-						Name = "Microsoft.WindowsMaps"
-						DisplayName = "Maps"
-					},
-					@{
-						Name = "Microsoft.WindowsSoundRecorder"
-						DisplayName = "Voice Recorder"
-					},
-					@{
-						Name = "Microsoft.YourPhone"
-						DisplayName = "Phone Link"
-					},
-					@{
-						Name = "Microsoft.BingWeather"
-						DisplayName = "Weather"
-					},
-					@{
-						Name = "Microsoft.BingNews"
-						DisplayName = "News"
-					},
-					@{
-						Name = "Microsoft.BingSports"
-						DisplayName = "Sports"
-					},
-					@{
-						Name = "Microsoft.BingFinance"
-						DisplayName = "Finance"
-					},
-					@{
-						Name = "Microsoft.MicrosoftOfficeHub"
-						DisplayName = "Microsoft Office"
-					},
-					@{
-						Name = "Microsoft.MicrosoftSolitaireCollection"
-						DisplayName = "Microsoft Solitaire Collection"
-					},
-					@{
-						Name = "Microsoft.Todos"
-						DisplayName = "Microsoft To Do"
-					},
-					@{
-						Name = "Microsoft.StickyNotes"
-						DisplayName = "Sticky Notes"
-					},
-					@{
-						Name = "Microsoft.OneConnect"
-						DisplayName = "Mobile Plans"
-					},
-					@{
-						Name = "Microsoft.Advertising.Xaml"
-						DisplayName = "Advertising Xaml"
-					},
-					@{
-						Name = "Microsoft.GetHelp"
-						DisplayName = "Get Help"
-					},
-					@{
-						Name = "Microsoft.MSPaint"
-						DisplayName = "Paint 3D"
-					},
-					@{
-						Name = "Microsoft.Tips"
-						DisplayName = "Tips"
-					},
-					@{
-						Name = "Microsoft.Whiteboard"
-						DisplayName = "Whiteboard"
-					},
-					@{
-						Name = "Microsoft.Wallet"
-						DisplayName = "Wallet"
-					},
-					@{
-						Name = "DolbyLaboratories.DolbyAccess"
-						DisplayName = "Dolby Access"
-					},
-					@{
-						Name = "Microsoft.HEVCVideoExtension"
-						DisplayName = "HEVC Video Extensions"
-					},
-					@{
-						Name = "Microsoft.HEIFImageExtension"
-						DisplayName = "HEIF Image Extensions"
-					},
-					@{
-						Name = "Microsoft.RawImageExtension"
-						DisplayName = "Raw Image Extension"
-					},
-					@{
-						Name = "Microsoft.WebMediaExtensions"
-						DisplayName = "Web Media Extensions"
-					},
-					@{
-						Name = "Microsoft.VP9VideoExtensions"
-						DisplayName = "VP9 Video Extensions"
-					},
-					@{
-						Name = "Microsoft.WebpImageExtension"
-						DisplayName = "Webp Image Extension"
-					},
-					@{
-						Name = "Microsoft.AV1VideoExtension"
-						DisplayName = "AV1 Video Extension"
-					},
-					@{
-						Name = "Microsoft.MPEG2VideoExtension"
-						DisplayName = "MPEG-2 Video Extension"
-					}
-				)
-
-				$AppxPackages = @()
-
-				# Add all possible packages that aren't excluded and are NOT installed
-				foreach ($Package in $AllPossiblePackages)
-				{
-					if ($Package.Name -notin $ExcludedAppxPackages)
-					{
-						# Check if already installed - ONLY include if NOT installed
-						$Installed = Get-AppxPackage -Name $Package.Name -AllUsers:$AllUsers -ErrorAction SilentlyContinue
-
-						# Only add to list if NOT installed
-						if ($null -eq $Installed)
-						{
-							$AppxPackages += [PSCustomObject]@{
-								Name = $Package.Name
-								PackageFullName = $Package.Name
-								DisplayName = $Package.DisplayName
-								IsInstalled = $false
-								PackagePath = $null
-							}
-						}
-					}
-				}
-
-				# Sort by display name
-				return $AppxPackages | Sort-Object -Property DisplayName
-			}
-
-			function Add-Control
-			{
-				[CmdletBinding()]
-				param
-				(
-					[Parameter(
-						Mandatory = $true,
-						ValueFromPipeline = $true
-					)]
-					[ValidateNotNull()]
-					[PSCustomObject[]]
-					$Packages
-				)
-
-				process
-				{
-					foreach ($Package in $Packages)
-					{
-						$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
-						$CheckBox.Tag = $Package.PackageFullName
-
-						$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-
-						if ($Package.DisplayName)
-						{
-							$TextBlock.Text = $Package.DisplayName
-						}
-						else
-						{
-							$TextBlock.Text = $Package.Name
-						}
-
-						# No [Installed] tag needed since we only show uninstalled apps
-
-						$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
-						$StackPanel.Children.Add($CheckBox) | Out-Null
-						$StackPanel.Children.Add($TextBlock) | Out-Null
-
-						$PanelContainer.Children.Add($StackPanel) | Out-Null
-
-						# Check if this package should be unchecked by default
-						if ($UncheckedAppxPackages.Contains($Package.Name))
-						{
-							$CheckBox.IsChecked = $false
-						}
-						else
-						{
-							$CheckBox.IsChecked = $true
-							$PackagesToInstall.Add($Package.PackageFullName)
-						}
-
-						$CheckBox.Add_Click({CheckBoxClick})
-					}
-				}
-			}
-
-			function CheckBoxForAllUsersClick
-			{
-				$PanelContainer.Children.RemoveRange(0, $PanelContainer.Children.Count)
-				$PackagesToInstall.Clear()
-				$AvailablePackages = Get-AvailableAppxPackages -Exclude $ExcludedAppxPackages -AllUsers:$CheckBoxForAllUsers.IsChecked
-				$AvailablePackages | Add-Control
-
-				ButtonInstallSetIsEnabled
-			}
-
-			function Get-ProvisionedPackagePath
-			{
-				param([string]$PackageName)
-
-				$Provisioned = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq $PackageName}
-				if ($Provisioned)
-				{
-					# Try to get the package path from the registry or default locations
-					$PossiblePaths = @(
-						"$env:SystemRoot\SystemApps\$PackageName*",
-						"$env:ProgramFiles\WindowsApps\$PackageName*",
-						"$env:SystemRoot\InfusedApps\Packages\$PackageName*"
-					)
-
-					foreach ($Path in $PossiblePaths)
-					{
-						$Folders = Get-ChildItem -Path $Path -ErrorAction SilentlyContinue
-						if ($Folders)
-						{
-							$AppxFile = Get-ChildItem -Path $Folders[0].FullName -Filter "*.appx" -ErrorAction SilentlyContinue
-							if ($AppxFile)
-							{
-								return $AppxFile[0].FullName
-							}
-						}
-					}
-				}
-				return $null
-			}
-
-function ButtonInstallClick {
-    # Close WPF window first
-    $Window.Close() | Out-Null
-
-    # Ensure PackagesToInstall is not empty
-    if ($PackagesToInstall.Count -eq 0) {
-        Write-Host "No packages selected for installation." -ForegroundColor Yellow
-        return
-    }
-
-    # Resolve winget
-    $WingetExe = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
-    if (-not $WingetExe) {
-        LogError "winget not found. Cannot install packages."
-        return
-    }
-
-    # Determine scope
-    $Scope = if ($CheckBoxForAllUsers.IsChecked) { "machine" } else { "user" }
-
-    # Map of internal names to winget IDs
-    $WingetPackageMap = @{
-        "Microsoft.OutlookForWindows"       = "9NRX63209R7B"
-        "MSTeams"                           = "XP8BT8DW290MPM"
-        "Microsoft.WindowsCalculator"       = "9WZDNCRFHVN5"
-        "Microsoft.WindowsCamera"           = "9WZDNCRFJBBG"
-        "Microsoft.Windows.Photos"          = "9WZDNCRFJBH4"
-        "Microsoft.ZuneMusic"               = "9WZDNCRFJ3PT"
-        "Microsoft.ScreenSketch"            = "9MZ95SN8SQK1"
-        "Microsoft.Paint"                   = "9PCFS5B6T72H"
-        "Microsoft.GamingApp"               = "9MWPM2CQNLHN"
-        "Microsoft.XboxGamingOverlay"       = "9NZKPST35W46"
-        "DolbyLaboratories.DolbyAccess"     = "9N0866FS04W8"
-    }
-
-foreach ($PackageName in $PackagesToInstall)
-{
-    try {
-        # Use Add-AppxPackage directly for UWP apps
-        $Installed = Get-AppxPackage -Name $PackageName -AllUsers -ErrorAction SilentlyContinue
-
-        if (-not $Installed) {
-            # Try to find provisioned package path
-            $Provisioned = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq $PackageName}
-
-            if ($Provisioned) {
-                # Install for all users
-                if ($CheckBoxForAllUsers.IsChecked) {
-                    Add-AppxProvisionedPackage -Online -PackageName $Provisioned.PackageName -SkipLicense -ErrorAction SilentlyContinue | Out-Null
-                } else {
-                    # Current user
-                    Add-AppxPackage -Register "$($Provisioned.PackageName)\AppXManifest.xml" -DisableDevelopmentMode -ErrorAction SilentlyContinue
-                }
-                LogInfo "Successfully installed $PackageName via provisioned package."
-            } else {
-                # Try to install from WindowsApps folder
-                $Folder = Get-ChildItem "$env:ProgramFiles\WindowsApps" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "*$PackageName*" } | Select-Object -First 1
-                if ($Folder) {
-                    $AppxManifest = Join-Path $Folder.FullName "AppXManifest.xml"
-                    if (Test-Path $AppxManifest) {
-                        Add-AppxPackage -Register $AppxManifest -DisableDevelopmentMode -ErrorAction SilentlyContinue
-                        LogInfo "Successfully installed $PackageName via WindowsApps."
-                    } else {
-                        LogError "$PackageName - AppXManifest.xml not found"
-                    }
-                } else {
-                    LogError "$PackageName - Installation method not found"
+            # Install UWP apps
+            Add-Type -AssemblyName PresentationCore, PresentationFramework
+            Write-Host "Installing UWP apps - " -NoNewline
+            LogInfo "Installing UWP apps:"
+
+            # Check for admin rights when "All Users" is selected
+            if ($ForAllUsers)
+            {
+                $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+                if (-not $IsAdmin)
+                {
+                    $wshell = New-Object -ComObject Wscript.Shell
+                    $wshell.Popup("Installing for all users requires administrator privileges.`nPlease run PowerShell as Administrator.", 0, "Admin Required", 0)
+                    return
                 }
             }
-        } else {
-            LogInfo "$PackageName is already installed"
+
+            # The following UWP apps will be excluded from the display
+            $ExcludedAppxPackages = @(
+                # Microsoft Edge
+                "Microsoft.MicrosoftEdge.Stable",
+                # Microsoft Visual C++ runtime framework
+                "Microsoft.VCLibs.140.00",
+                # AMD Radeon Software
+                "AdvancedMicroDevicesInc-2.AMDRadeonSoftware",
+                # Intel Graphics Control Center
+                "AppUp.IntelGraphicsControlPanel",
+                "AppUp.IntelGraphicsExperience",
+                # ELAN Touchpad
+                "ELANMicroelectronicsCorpo.ELANTouchpadforThinkpad",
+                "ELANMicroelectronicsCorpo.ELANTrackPointforThinkpa",
+                # Microsoft Application Compatibility Enhancements
+                "Microsoft.ApplicationCompatibilityEnhancements",
+                # AVC Encoder Video Extension
+                "Microsoft.AVCEncoderVideoExtension",
+                # Microsoft Desktop App Installer
+                "Microsoft.DesktopAppInstaller",
+                # Store Experience Host
+                "Microsoft.StorePurchaseApp",
+                # Cross Device Experience Host
+                "MicrosoftWindows.CrossDevice",
+                # Notepad
+                "Microsoft.WindowsNotepad",
+                # Microsoft Store
+                "Microsoft.WindowsStore",
+                # Windows Terminal
+                "Microsoft.WindowsTerminal",
+                "Microsoft.WindowsTerminalPreview",
+                # Web Media Extensions
+                "Microsoft.WebMediaExtensions",
+                # AV1 Video Extension
+                "Microsoft.AV1VideoExtension",
+                # Windows Subsystem for Linux
+                "MicrosoftCorporationII.WindowsSubsystemForLinux",
+                # HEVC Video Extensions from Device Manufacturer
+                "Microsoft.HEVCVideoExtension",
+                "Microsoft.HEVCVideoExtensions",
+                # Raw Image Extension
+                "Microsoft.RawImageExtension",
+                # HEIF Image Extensions
+                "Microsoft.HEIFImageExtension",
+                # MPEG-2 Video Extension
+                "Microsoft.MPEG2VideoExtension",
+                # VP9 Video Extensions
+                "Microsoft.VP9VideoExtensions",
+                # Webp Image Extensions
+                "Microsoft.WebpImageExtension",
+                # PowerShell
+                "Microsoft.PowerShell",
+                # NVIDIA Control Panel
+                "NVIDIACorp.NVIDIAControlPanel",
+                # Realtek Audio Console
+                "RealtekSemiconductorCorp.RealtekAudioControl",
+                # Synaptics
+                "SynapticsIncorporated.SynapticsControlPanel",
+                "SynapticsIncorporated.24916F58D6E7"
+            )
+
+            #region XAML Markup
+            [xml]$XAML = @"
+            <Window
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                Name="Window"
+                MinHeight="400" MinWidth="415"
+                SizeToContent="Width" WindowStartupLocation="CenterScreen"
+                TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
+                FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
+                Background="#F1F1F1" Foreground="#262626">
+                <Window.Resources>
+                        <Style TargetType="StackPanel">
+                                <Setter Property="Orientation" Value="Horizontal"/>
+                                <Setter Property="VerticalAlignment" Value="Top"/>
+                        </Style>
+                        <Style TargetType="CheckBox">
+                                <Setter Property="Margin" Value="10, 13, 10, 10"/>
+                                <Setter Property="IsChecked" Value="True"/>
+                        </Style>
+                        <Style TargetType="TextBlock">
+                                <Setter Property="Margin" Value="0, 10, 10, 10"/>
+                        </Style>
+                        <Style TargetType="Button">
+                                <Setter Property="Margin" Value="20"/>
+                                <Setter Property="Padding" Value="10"/>
+                                <Setter Property="IsEnabled" Value="False"/>
+                        </Style>
+                        <Style TargetType="Border">
+                                <Setter Property="Grid.Row" Value="1"/>
+                                <Setter Property="CornerRadius" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                        </Style>
+                        <Style TargetType="ScrollViewer">
+                                <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+                                <Setter Property="BorderBrush" Value="#000000"/>
+                                <Setter Property="BorderThickness" Value="0, 1, 0, 1"/>
+                        </Style>
+                </Window.Resources>
+                <Grid>
+                        <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
+                                        <CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
+                                        <TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
+                                </StackPanel>
+                                <StackPanel Name="PanelInstallForAll" Grid.Column="1" HorizontalAlignment="Right">
+                                        <TextBlock Name="TextBlockInstallForAll" Margin="10,10, 0, 10"/>
+                                        <CheckBox Name="CheckBoxForAllUsers" IsChecked="False"/>
+                                </StackPanel>
+                        </Grid>
+                        <Border>
+                                <ScrollViewer>
+                                        <StackPanel Name="PanelContainer" Orientation="Vertical" Margin="5"/>
+                                </ScrollViewer>
+                        </Border>
+                        <Button Name="ButtonInstall" Grid.Row="2" Content="Install" Margin="20" Padding="10" IsEnabled="False"/>
+                </Grid>
+            </Window>
+"@
+            #endregion XAML Markup
+
+            $Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
+
+            if ($Form -eq $null)
+            {
+                Write-Host "Failed to load XAML" -ForegroundColor Red
+                return
+            }
+
+            $XAML.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]") | ForEach-Object -Process {
+                Set-Variable -Name ($_.Name) -Value $Form.FindName($_.Name)
+            }
+
+            $PanelContainer = $Form.FindName("PanelContainer")
+            if ($PanelContainer -eq $null)
+            {
+                Write-Host "PanelContainer not found!" -ForegroundColor Red
+                return
+            }
+            $Window.Title               = "Install Windows Apps"
+            $ButtonInstall.Content       = "Install"
+            $TextBlockInstallForAll.Text = "Install for all users"
+            $TextBlockSelectAll.Text     = "Select All"
+
+            $ButtonInstall.Add_Click({ButtonInstallClick})
+            $CheckBoxForAllUsers.Add_Click({CheckBoxForAllUsersClick})
+            $CheckBoxSelectAll.Add_Click({CheckBoxSelectAllClick})
+
+            #region Functions
+            function Get-MissingAppxPackages
+            {
+           	[CmdletBinding()]
+           	param
+           	(
+          		[switch]
+          		$AllUsers
+           	)
+
+           	# Check if running as admin for AllUsers queries
+           	$IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+			$CommonPackages = @(
+				@{ Name = "Microsoft.OutlookForWindows"; DisplayName = "Microsoft Outlook" }
+				@{ Name = "Microsoft.WindowsCalculator"; DisplayName = "Calculator" }
+				@{ Name = "Microsoft.WindowsCamera"; DisplayName = "Camera" }
+				@{ Name = "Microsoft.Windows.Photos"; DisplayName = "Photos" }
+				@{ Name = "Microsoft.GamingServices"; DisplayName = "Gaming Services" }
+				@{ Name = "Microsoft.YourPhone"; DisplayName = "Phone Link" }
+				@{ Name = "DolbyLaboratories.DolbyAccess"; DisplayName = "Dolby Access" }
+			)
+
+			# Add Voice Recorder only for Windows 10
+			if (-not $script:isWindows11) {
+				$CommonPackages += @{ Name = "Microsoft.WindowsSoundRecorder"; DisplayName = "Voice Recorder" }
+			}
+
+           	$MissingPackages = @()
+           	$InstalledCount = 0
+           	$ExcludedCount = 0
+
+           	foreach ($Package in $CommonPackages)
+           	{
+          		if ($Package.Name -in $ExcludedAppxPackages)
+          		{
+         			$ExcludedCount++
+         			continue
+          		}
+
+          		# Check if package is installed
+          		$Installed = $null
+
+          		if ($AllUsers)
+          		{
+         			if ($IsAdmin)
+         			{
+            				# Admin: Check all users
+            				$Installed = Get-AppxPackage -Name $Package.Name -AllUsers -ErrorAction SilentlyContinue
+         			}
+         			else
+         			{
+            				# Non-admin: Can only check current user
+            				$Installed = Get-AppxPackage -Name $Package.Name -ErrorAction SilentlyContinue
+            				if (-not $script:AllUsersWarningShown)
+            				{
+           					LogWarning "Running without admin rights - 'All Users' mode will only check current user"
+           					$script:AllUsersWarningShown = $true
+            				}
+         			}
+          		}
+          		else
+          		{
+         			# Current user only
+         			$Installed = Get-AppxPackage -Name $Package.Name -ErrorAction SilentlyContinue
+          		}
+
+          		if ($null -eq $Installed)
+          		{
+         			$MissingPackages += [PSCustomObject]@{
+            				Name = $Package.Name
+            				PackageFullName = $Package.Name
+            				DisplayName = $Package.DisplayName
+         			}
+          		}
+          		else
+          		{
+         			$InstalledCount++
+         			#LogInfo "Already installed: $($Package.DisplayName)"
+          		}
+           	}
+
+           	#LogInfo "Package scan complete: $($MissingPackages.Count) missing, $InstalledCount installed, $ExcludedCount excluded"
+           	return $MissingPackages | Sort-Object -Property DisplayName
+            }
+
+            function CheckBoxForAllUsersClick
+            {
+                $PanelContainer.Children.Clear()
+                $PackagesToInstall.Clear()
+                $MissingPackages = Get-MissingAppxPackages -AllUsers:$CheckBoxForAllUsers.IsChecked
+                Add-Control -Packages $MissingPackages -Panel $PanelContainer
+                ButtonInstallSetIsEnabled
+            }
+
+            function ButtonInstallClick
+            {
+           	$Window.Close()
+
+           	$SuccessfulPackages = [System.Collections.Generic.List[string]]::new()
+           	$FailedPackages = [System.Collections.Generic.List[string]]::new()
+           	$ManualPackages = [System.Collections.Generic.List[string]]::new()
+
+           	# Store URLs for apps that need Store installation
+           	$StoreUrls = @{
+          		"Microsoft.WindowsCalculator" = "ms-windows-store://pdp/?productid=9WZDNCRFHVN5"
+          		"Microsoft.WindowsCamera" = "ms-windows-store://pdp/?productid=9WZDNCRFJBBG"
+          		"Microsoft.Windows.Photos" = "ms-windows-store://pdp/?productid=9WZDNCRFJBH4"
+          		"DolbyLaboratories.DolbyAccess" = "ms-windows-store://pdp/?productid=9N0866FS04W8"
+          		"Microsoft.GamingServices" = "ms-windows-store://pdp/?productid=9MWPM2CQNLHN"
+          		"Microsoft.OutlookForWindows" = "ms-windows-store://pdp/?productid=9NRX63209R7B"
+          		"MSTeams" = "ms-windows-store://pdp/?productid=XP8BT8DW290MPM"
+          		"Microsoft.YourPhone" = "ms-windows-store://pdp/?productid=9NMPJ99VJBWV"
+           	}
+
+           	# Winget package mappings
+           	$WingetMap = @{
+          		"Microsoft.WindowsCalculator" = "Microsoft.WindowsCalculator"
+          		"Microsoft.WindowsCamera" = "Microsoft.WindowsCamera"
+          		"Microsoft.Windows.Photos" = "Microsoft.Windows.Photos"
+          		"Microsoft.OutlookForWindows" = "Microsoft.OutlookForWindows"
+          		"MSTeams" = "Microsoft.Teams"
+          		"Microsoft.GamingServices" = "Microsoft.GamingServices"
+          		"Microsoft.YourPhone" = "Microsoft.YourPhone"
+          		"DolbyLaboratories.DolbyAccess" = "DolbyLaboratories.DolbyAccess"
+           	}
+
+           	foreach ($PackageName in $PackagesToInstall)
+           	{
+          		try {
+         			# METHOD 1: Check if package files exist and register them
+         			$WindowsAppsPath = "$env:ProgramFiles\WindowsApps"
+         			$PackageFolders = Get-ChildItem -Path $WindowsAppsPath -Directory -ErrorAction SilentlyContinue |
+            				Where-Object {$_.Name -like "*$PackageName*"} |
+            				Sort-Object LastWriteTime -Descending
+
+         			$Installed = $false
+         			foreach ($Folder in $PackageFolders)
+         			{
+            				$ManifestPath = Join-Path $Folder.FullName "AppXManifest.xml"
+            				if (Test-Path $ManifestPath)
+            				{
+           					#LogInfo "Found existing package files for $PackageName. Registering..."
+           					try {
+          						Add-AppxPackage -DisableDevelopmentMode -Register $ManifestPath -ErrorAction Stop
+          						Start-Sleep -Seconds 2
+
+          						$VerifyInstall = Get-AppxPackage -Name $PackageName -AllUsers:$CheckBoxForAllUsers.IsChecked -ErrorAction SilentlyContinue
+          						if ($VerifyInstall)
+          						{
+         							$SuccessfulPackages.Add($PackageName)
+         							#LogInfo "Successfully registered $PackageName for $scope"
+         							$Installed = $true
+         							break
+          						}
+           					}
+           					catch {
+          						if ($_.Exception.Message -like "*0x80073D02*")
+          						{
+         							LogInfo "$PackageName registration failed - system components in use"
+         							$ManualPackages.Add($PackageName)
+         							$Installed = $true
+         							break
+          						}
+           					}
+                    	}
+         			}
+
+         			if ($Installed) { continue }
+
+         			# METHOD 2: Try provisioned packages
+         			#LogInfo "Checking provisioned packages for $PackageName..."
+         			$Provisioned = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue |
+            				Where-Object {$_.DisplayName -eq $PackageName -or $_.PackageName -like "*$PackageName*"}
+
+         			if ($Provisioned)
+         			{
+            				try {
+           					Add-AppxProvisionedPackage -Online -PackageName $Provisioned.PackageName -SkipLicense -ErrorAction Stop | Out-Null
+           					Start-Sleep -Seconds 3
+
+           					$VerifyInstall = Get-AppxPackage -Name $PackageName -AllUsers:$CheckBoxForAllUsers.IsChecked -ErrorAction SilentlyContinue
+           					if ($VerifyInstall)
+           					    {
+              						$SuccessfulPackages.Add($PackageName)
+              						#LogInfo "Successfully installed $PackageName for $scope"
+              						continue
+           					    }
+                            }
+            				catch {
+           					LogError "Provisioned package installation failed for $PackageName"
+            				}
+         			}
+
+         			# METHOD 3: Try winget
+         			#LogInfo "Trying winget for $PackageName..."
+         			$WingetPath = Get-Command winget -ErrorAction SilentlyContinue
+         			if ($WingetPath)
+         			{
+            				$WingetID = $WingetMap[$PackageName]
+            				if ($WingetID)
+            				{
+           					if ($CheckBoxForAllUsers.IsChecked)
+           					{
+          						$null = Start-Process -FilePath "winget" -ArgumentList "install --exact --id $WingetID --scope machine --silent --accept-package-agreements --accept-source-agreements" -Wait -WindowStyle Hidden -PassThru
+           					}
+           					else
+           					{
+          						$null = Start-Process -FilePath "winget" -ArgumentList "install --exact --id $WingetID --scope user --silent --accept-package-agreements --accept-source-agreements" -Wait -WindowStyle Hidden -PassThru
+           					}
+
+           					Start-Sleep -Seconds 5
+           					$AfterWinget = Get-AppxPackage -Name $PackageName -AllUsers:$CheckBoxForAllUsers.IsChecked -ErrorAction SilentlyContinue
+
+           					if ($AfterWinget)
+           					{
+          						$SuccessfulPackages.Add($PackageName)
+          						#LogInfo "Successfully installed $PackageName for $scope"
+          						continue
+           					}
+                        }
+         			}
+
+         			# METHOD 4: Try Microsoft Store as last resort
+         			$StoreUrl = $StoreUrls[$PackageName]
+         			if ($StoreUrl)
+         			{
+            				#LogInfo "Opening Microsoft Store for $PackageName. Please install manually..."
+            				Start-Process $StoreUrl
+
+            				Add-Type -AssemblyName System.Windows.Forms
+            				[System.Windows.Forms.MessageBox]::Show("Microsoft Store has been opened for $PackageName.`n`nPlease install the app manually, then click OK to continue with the next app.", "Manual Installation Required", "OK", "Information")
+
+            				Start-Sleep -Seconds 2
+            				$AfterStore = Get-AppxPackage -Name $PackageName -AllUsers:$CheckBoxForAllUsers.IsChecked -ErrorAction SilentlyContinue
+            				if ($AfterStore)
+            				{
+               					$SuccessfulPackages.Add($PackageName)
+               					#LogInfo "Successfully installed $PackageName for $scope"
+            				}
+            				else
+            				{
+               					$ManualPackages.Add($PackageName)
+               					LogError "User will install $PackageName manually later"
+            				}
+         			}
+         			else
+         			{
+                        LogError "$PackageName - Could not install automatically"
+            			$ManualPackages.Add($PackageName)
+         			}
+          		}
+          		catch {
+         			LogError "$PackageName - Installation failed: $($_.Exception.Message)"
+         			$ManualPackages.Add($PackageName)
+          		}
+           	}
+
+           	if ($ManualPackages.Count -gt 0)
+           	{
+          		#LogInfo "The following apps need manual installation: $($ManualPackages -join ', ')"
+           	}
+
+           	#LogInfo "Installation complete: $($SuccessfulPackages.Count) installed, $($ManualPackages.Count) need manual attention"
+
+            # Log results
+            if ($SuccessfulPackages.Count -gt 0)
+            {
+                $scope = if ($CheckBoxForAllUsers.IsChecked) { "all users" } else { "current user" }
+                foreach ($Package in $SuccessfulPackages)
+                {
+                    LogInfo "Successfully installed $Package for $scope"
+                }
+            }
+
+            if ($ManualPackages.Count -gt 0)
+            {
+                #LogInfo "The following apps need manual installation: $($ManualPackages -join ', ')"
+            }
+
+            #LogInfo "Installation complete: $($SuccessfulPackages.Count) installed, $($ManualPackages.Count) need manual attention"
         }
+
+            function Add-Control
+            {
+           	param($Packages, $Panel)
+
+           	foreach ($Package in $Packages)
+           	{
+          		$CheckBox = New-Object System.Windows.Controls.CheckBox
+          		$CheckBox.Tag = $Package.PackageFullName
+          		$CheckBox.IsChecked = $true
+          		$CheckBox.Margin = "5,5,5,5"
+          		$CheckBox.VerticalAlignment = "Center"
+
+          		$TextBlock = New-Object System.Windows.Controls.TextBlock
+          		$TextBlock.Text = $Package.DisplayName
+          		$TextBlock.Margin = "5,5,5,5"
+          		$TextBlock.VerticalAlignment = "Center"
+
+          		$StackPanel = New-Object System.Windows.Controls.StackPanel
+          		$StackPanel.Orientation = "Horizontal"
+          		$StackPanel.Margin = "2,2,2,2"
+          		$StackPanel.Children.Add($CheckBox) | Out-Null
+          		$StackPanel.Children.Add($TextBlock) | Out-Null
+
+          		$Panel.Children.Add($StackPanel) | Out-Null
+          		$PackagesToInstall.Add($Package.PackageFullName) | Out-Null
+
+          		$CheckBox.Add_Click({CheckBoxClick})
+           	}
+        }
+
+            function CheckBoxClick
+            {
+           	$CheckBox = $_.Source
+           	if ($CheckBox.IsChecked)
+           	{
+          		$PackagesToInstall.Add($CheckBox.Tag) | Out-Null
+           	}
+           	else
+           	{
+          		$PackagesToInstall.Remove($CheckBox.Tag)
+           	}
+           	ButtonInstallSetIsEnabled
+            }
+
+            function CheckBoxSelectAllClick
+            {
+           	$CheckBox = $_.Source
+
+           	if ($CheckBox.IsChecked)
+           	{
+          		$PackagesToInstall.Clear()
+          		foreach ($Item in $PanelContainer.Children)
+          		{
+         			$ChildCheckBox = $Item.Children[0]
+         			$ChildCheckBox.IsChecked = $true
+         			$PackagesToInstall.Add($ChildCheckBox.Tag) | Out-Null
+          		}
+           	}
+           	else
+           	{
+          		$PackagesToInstall.Clear()
+          		foreach ($Item in $PanelContainer.Children)
+          		{
+         			$Item.Children[0].IsChecked = $false
+          		}
+           	}
+           	ButtonInstallSetIsEnabled
+            }
+
+            function ButtonInstallSetIsEnabled
+            {
+           	$ButtonInstall.IsEnabled = ($PackagesToInstall.Count -gt 0)
+            }
+            #endregion Functions
+
+            # Check "For all users" checkbox if specified
+            if ($ForAllUsers)
+            {
+           	$CheckBoxForAllUsers.IsChecked = $true
+            }
+
+            $PackagesToInstall = [System.Collections.Generic.List[string]]::new()
+            $MissingPackages = Get-MissingAppxPackages -AllUsers:$ForAllUsers
+
+            if ($MissingPackages.Count -eq 0)
+            {
+           	LogInfo "No apps found to install"
+            }
+            else
+            {
+           	Add-Control -Packages $MissingPackages -Panel $PanelContainer
+
+           	if ($PackagesToInstall.Count -gt 0)
+	{
+		$ButtonInstall.IsEnabled = $true
+	}
+
+	$Window.Add_Loaded({$Window.Activate()})
+	$Form.ShowDialog() | Out-Null
     }
-    catch {
-        LogError "$PackageName - Exception: $($_.Exception.Message)"
-    }
+    Write-Host "success!" -ForegroundColor Green
 }
-}
-			function CheckBoxClick
-			{
-				$CheckBox = $_.Source
-
-				if ($CheckBox.IsChecked)
-				{
-					$PackagesToInstall.Add($CheckBox.Tag) | Out-Null
-				}
-				else
-				{
-					$PackagesToInstall.Remove($CheckBox.Tag)
-				}
-
-				ButtonInstallSetIsEnabled
-			}
-
-			function CheckBoxSelectAllClick
-			{
-				$CheckBox = $_.Source
-
-				if ($CheckBox.IsChecked)
-				{
-					$PackagesToInstall.Clear()
-
-					foreach ($Item in $PanelContainer.Children)
-					{
-						foreach ($Child in $Item.Children)
-						{
-							if ($Child -is [System.Windows.Controls.CheckBox] -and $Child.IsEnabled)
-							{
-								$Child.IsChecked = $true
-								$PackagesToInstall.Add($Child.Tag)
-							}
-						}
-					}
-				}
-				else
-				{
-					$PackagesToInstall.Clear()
-
-					foreach ($Item in $PanelContainer.Children)
-					{
-						foreach ($Child in $Item.Children)
-						{
-							if ($Child -is [System.Windows.Controls.CheckBox] -and $Child.IsEnabled)
-							{
-								$Child.IsChecked = $false
-							}
-						}
-					}
-				}
-
-				ButtonInstallSetIsEnabled
-			}
-
-			function ButtonInstallSetIsEnabled
-			{
-				if ($PackagesToInstall.Count -gt 0)
-				{
-					$ButtonInstall.IsEnabled = $true
-				}
-				else
-				{
-					$ButtonInstall.IsEnabled = $false
-				}
-			}
-			#endregion Functions
-
-			# Check "For all users" checkbox to install packages for all accounts
-			if ($ForAllUsers)
-			{
-				$CheckBoxForAllUsers.IsChecked = $true
-			}
-
-			$PackagesToInstall = [Collections.Generic.List[string]]::new()
-			$AvailablePackages = Get-AvailableAppxPackages -Exclude $ExcludedAppxPackages -AllUsers:$ForAllUsers
-			$AvailablePackages | Add-Control
-
-			if ($AvailablePackages.Count -eq 0)
-			{
-				Write-Host "No installable packages found" -ForegroundColor Yellow
-			}
-			else
-			{
-				#region Sendkey function
-				# Emulate the Backspace key sending to prevent the console window to freeze
-				Start-Sleep -Milliseconds 500
-
-				Add-Type -AssemblyName System.Windows.Forms
-
-				# We cannot use Get-Process -Id $PID as script might be invoked via Terminal with different $PID
-				Get-Process -Name powershell, WindowsTerminal -ErrorAction Ignore | Where-Object -FilterScript {$_.MainWindowTitle -match "WinUtil Script for Windows 10/11"} | ForEach-Object -Process {
-					# Show window, if minimized
-					[WinAPI.ForegroundWindow]::ShowWindowAsync($_.MainWindowHandle, 10)
-
-					Start-Sleep -Seconds 1
-
-					# Force move the console window to the foreground
-					[WinAPI.ForegroundWindow]::SetForegroundWindow($_.MainWindowHandle)
-
-					Start-Sleep -Seconds 1
-
-					# Emulate the Backspace key sending to prevent the console window to freeze
-					[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
-				}
-				#endregion Sendkey function
-
-				if ($PackagesToInstall.Count -gt 0)
-				{
-					$ButtonInstall.IsEnabled = $true
-				}
-
-				# Force move the WPF form to the foreground
-				$Window.Add_Loaded({$Window.Activate()})
-				$Form.ShowDialog() | Out-Null
-			}
-			Write-Host "success!" -ForegroundColor Green
-		}
-
 		"Uninstall"
 		{
 			# Uninstall UWP apps
@@ -17387,7 +17195,7 @@ foreach ($PackageName in $PackagesToInstall)
 
 			if ($AppXPackages.Count -eq 0)
 			{
-				Write-Host "No apps available to uninstall" -ForegroundColor Yellow
+				LogInfo "No apps available to uninstall" -ForegroundColor Yellow
 			}
 			else
 			{
