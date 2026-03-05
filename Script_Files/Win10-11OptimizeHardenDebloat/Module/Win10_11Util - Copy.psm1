@@ -1,4 +1,4 @@
-﻿10<#
+﻿<#
 	.SYNOPSIS
 	This Script is a PowerShell module for Windows 10 & Windows 11 for fine-tuning and automating the routine tasks
 
