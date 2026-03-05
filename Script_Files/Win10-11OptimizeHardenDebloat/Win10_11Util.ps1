@@ -59,7 +59,7 @@ param
 Clear-Host
 
 # Get the OS version
-$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+#$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
 # Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
@@ -150,6 +150,7 @@ InitialActions -Warning
 #CreateRestorePoint
 #endregion Protection
 
+#region Initial Setup
 # Check and Install WinGet
 CheckWinGet
 
@@ -161,7 +162,9 @@ Update-DesktopRegistry
 
 #kill foreground applications
 Stop-Foreground
+#endregion Initial Setup
 
+#region OS Hardening
 #block remote commands
 Disable-RemoteCommands
 
@@ -227,6 +230,7 @@ Update-AdobereaderDCSTIG
 
 #kill foreground applications
 Stop-Foreground
+#endregion OS Hardening
 
 #region Privacy & Telemetry
 <#
@@ -562,7 +566,95 @@ UWPSwapFile -Enable
 # Swapfile.sys is used only by UWP apps. The tweak has no effect on the real swap in pagefile.sys.
 UWPSwapFile -Disable
 
+# Enable PowerShell 7 Telemetry (default value)
+# Powershell7Telemetry -Enable
+
+# Disable PowerShell 7 Telemetry 
+Powershell7Telemetry -Disable
+
 #endregion Privacy & Telemetry
+
+#region System Tweaks
+# Enable Cross-Device Resume (default value)
+# CrossDeviceResume -Enable
+
+# Disable Cross-Device Resume 
+CrossDeviceResume -Disable
+
+# Enable Multiplane Overlay (default value)
+# MultiplaneOverlay -Enable
+
+# Disable Multiplane Overlay 
+MultiplaneOverlay -Disable
+
+# Enable Modern Standby fix (default value)
+# StandbyFix -Enable
+
+# Disable Modern Standby fix 
+StandbyFix -Disable
+
+# Enable S3 Sleep
+S3Sleep -Enable
+
+# Disable S3 Sleep (default value)
+# S3Sleep -Disable
+
+# Enable Explorer Automatic Folder Discovery
+ExplorerAutoDiscovery -Enable
+
+# Disable Explorer Automatic Folder Discovery (default value)
+# ExplorerAutoDiscovery -Disable
+
+# Enable Windows Platform Binary Table (WPBT) (default value)
+# WPBT -Enable
+
+# Disable Windows Platform Binary Table (WPBT) 
+WPBT -Disable
+
+# Run Disk Cleanup
+DiskCleanup
+
+# Apply recommended startup types to Windows services
+ServicesManual -Enable
+
+# Restore Windows services to their original startup types (default value)
+# ServicesManual -Disable
+
+# CAUTION: Blocking Adobe network access may prevent license validation, disable Creative Cloud syncing, break cloud-based features, trigger subscription errors, and may violate Adobe license terms
+# Enable Adobe Network Block
+AdobeNetworkBlock -Enable
+
+# Disable Adobe Network Block (default value)
+# AdobeNetworkBlock -Disable
+
+# CAUTION: Blocking Razer software installation may prevent Razer Synapse from updating, disable RGB/macro functionality, stop firmware updates, and cause limited device features
+# Enable Razer Software Block
+RazerBlock -Enable
+
+# Disable Razer Software Block (default value)
+# RazerBlock -Disable
+
+# CAUTION: Brave Debloat disables rewards, wallet, VPN, and AI chat features - only use if you want to remove these features completely
+# Enable Brave Debloat
+BraveDebloat -Enable
+
+# Disable Brave Debloat (default value)
+# BraveDebloat -Disable
+
+# CAUTION: Disabling Fullscreen Optimizations may reduce gaming performance in some applications - use only for troubleshooting
+# Enable Fullscreen Optimizations (default value)
+FullscreenOptimizations -Enable
+
+# Disable Fullscreen Optimizations 
+# FullscreenOptimizations -Disable
+
+# CAUTION: Teredo is an IPv6 tunneling protocol needed for NAT traversal - disabling may break Xbox Live and certain peer-to-peer applications
+# Enable Teredo (default value)
+# Teredo -Enable
+
+# Disable Teredo 
+Teredo -Disable
+#endregion System Tweaks
 
 #region UI & Personalization
 
@@ -1344,13 +1436,45 @@ UWPApps -Uninstall
 #>
 # UWPApps -ForAllUsers
 
-
-
 # Disable Cortana autostarting
 CortanaAutostart -Disable
 
 # Enable Cortana autostarting (default value)
 # CortanaAutostart -Enable
+
+# Enable New Outlook (default value)
+# NewOutlook -Enable
+
+# Disable New Outlook 
+NewOutlook -Disable
+
+# CAUTION: Disabling Background Apps prevents apps from running in the background - may affect notifications, updates, and sync functionality
+# Enable Background Apps (default value)
+BackgroundApps -Enable
+
+# Disable Background Apps 
+# BackgroundApps -Disable
+
+# CAUTION: Disabling Notifications will completely turn off Windows notifications - you won't receive app alerts, system warnings, reminders, or calendar events
+# Enable Notification Tray/Calendar (default value)
+Notifications -Enable
+
+# Disable Notification Tray/Calendar 
+# Notifications -Disable
+
+# CAUTION: Edge Debloat enforces multiple Group Policy settings that may affect Edge functionality including telemetry, personalization, shopping assistant, collections, rewards, and Copilot
+# Enable Edge Debloat (default value)
+# EdgeDebloat -Enable
+
+# Disable Edge Debloat 
+EdgeDebloat -Disable
+
+# CAUTION: Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling
+# Enable Revert Start Menu (revert to original Start Menu from 24H2)
+# RevertStartMenu -Enable
+
+# Disable Revert Start Menu (restore new Start Menu) (default value)
+RevertStartMenu -Disable
 #endregion UWP apps
 
 #region Gaming
@@ -1624,6 +1748,7 @@ OpenWindowsTerminalAdminContext -Enable
 # OpenWindowsTerminalAdminContext -Disable
 #endregion Context menu
 
+#region Taskbar Clock
 # Show seconds on the taskbar clock
 # SecondsInSystemClock -Show
 
@@ -1635,7 +1760,9 @@ ClockInNotificationCenter -Show
 
 # Hide time in Notification Center (default value)
 # ClockInNotificationCenter -Hide
+#endregion Taskbar Clock
 
+#region Cursors
 # Download and install free dark "Windows 11 Cursors Concept" cursors from Jepri Creations. Internet connection required
 # https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
 # Install-Cursors -Dark
@@ -1646,7 +1773,9 @@ ClockInNotificationCenter -Show
 
 # Set default cursors
 Install-Cursors -Default
+#endregion Cursors
 
+#region Start Menu Apps
 # Hide recently added apps in Start
 RecentlyAddedStartApps -Hide
 
@@ -1658,15 +1787,15 @@ MostUsedStartApps -Hide
 
 # Show most used Apps in Start
 # MostUsedStartApps -Show
+#endregion Start Menu Apps
 
-# Show default Start layout (default value)
-# StartLayout -Default
-
+#region Explorer
 # Do not restore previous folder windows at logon (default value)
 RestorePreviousFolders -Disable
 
 # Restore previous folder windows at logon
 # RestorePreviousFolders -Enable
+#endregion Explorer
 
 #region Update Policies
 <#
@@ -1679,8 +1808,11 @@ RestorePreviousFolders -Disable
 # ScanRegistryPolicies
 #endregion Update Policies
 
+#region Post Actions
 # Environment refresh and other neccessary post actions
 PostActions
+#endregion Post Actions
 
+#region Errors
 # Errors output
-#Errors
+#endregion Errors

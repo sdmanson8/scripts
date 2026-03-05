@@ -1,4 +1,4 @@
-﻿<#
+﻿10<#
 	.SYNOPSIS
 	This Script is a PowerShell module for Windows 10 & Windows 11 for fine-tuning and automating the routine tasks
 
@@ -31,7 +31,7 @@
 Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force
 
 # Get the OS version
-#$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
 # Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
@@ -63,7 +63,7 @@ Function Restart-Script
     }
 }
 
-#region Protection
+#region InitialActions
 function InitialActions
 {
 	param
@@ -74,7 +74,7 @@ function InitialActions
 	)
 
 	# Get the OS version
-	#$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
 	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
@@ -735,6 +735,53 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	LogInfo "Initial Checks finished, continuing with Main Script" -addGap
 	Clear-Host
 }
+#endregion InitialActions
+
+#region Protection
+# Create a restore point for the system drive
+function CreateRestorePoint
+{
+	LogInfo "Creating Restore Point"
+	#Clear-Host
+	Write-Host "Creating System Restore Point - "-NoNewline
+	$SystemDriveUniqueID = (Get-Volume | Where-Object -FilterScript {$_.DriveLetter -eq "$($env:SystemDrive[0])"}).UniqueID
+	$SystemProtection = ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SPP\Clients" -ErrorAction Ignore)."{09F7EDC5-294E-4180-AF6A-FB0E6A0E9513}") | Where-Object -FilterScript {$_ -match [regex]::Escape($SystemDriveUniqueID)}
+
+	$Script:ComputerRestorePoint = $false
+
+	if ($null -eq $SystemProtection)
+	{
+		$ComputerRestorePoint = $true
+		Enable-ComputerRestore -Drive $env:SystemDrive
+	}
+
+	# Never skip creating a restore point
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force | Out-Null
+
+	# Get the OS version
+	$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
+	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
+
+	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
+	if ([int]$currentBuild -ge 22000) {
+		$osName = "Windows 11"
+	} else {
+		$osName = "Windows 10"
+	}
+
+	Checkpoint-Computer -Description "WinUtil Script for $osName" -RestorePointType MODIFY_SETTINGS | Out-Null
+
+	# Revert the System Restore checkpoint creation frequency to 1440 minutes
+	New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 1440 -Force | Out-Null
+
+	# Turn off System Protection for the system drive if it was turned off before without deleting the existing restore points
+	if ($Script:ComputerRestorePoint)
+	{
+		LogInfo "Disabling System Restore again"
+		Disable-ComputerRestore -Drive $env:SystemDrive | Out-Null
+	}
+	Write-Host "success!" -ForegroundColor Green
+}
 #endregion Protection
 
 #region Additional function
@@ -837,7 +884,6 @@ $($Type):$($Value)`n
 }
 #endregion Additional function
 
-#region Initial Setup
 function CheckWinGet
 {
 	Write-Host "Checking WinGet - " -NoNewline
@@ -909,7 +955,7 @@ function CheckWinGet
         }
         
         # Check process exit code
-        if ($process.ExitCode -eq 0 -or $null -eq $process.ExitCode) {
+        if ($process.ExitCode -eq 0 -or $process.ExitCode -eq $null) {
             LogInfo "Installer script completed successfully"
         } else {
             LogWarning "Installer script reported exit code: $($process.ExitCode)"
@@ -939,6 +985,7 @@ function CheckWinGet
     }
 }
 
+# Update to Powershell 7.x.x
 Function Update-Powershell
 {
     # Check if PowerShell 7 is installed
@@ -970,11 +1017,11 @@ Function Update-Powershell
     }
 	else
 	{
-        $currentPSVersion = $psVersion.ToString()
-        LogWarning "PowerShell 7 is already installed (Version: $currentPSVersion)."
+        LogWarning "PowerShell 7 $latestVersion is already installed (Version: $($psVersion.ToString()))."
 	}
 }
 
+# Hide "About this Picture" on Desktop
 function Update-DesktopRegistry
 {
 	Write-Host 'Removing "About this Picture" from Desktop - ' -NoNewline
@@ -1011,13 +1058,13 @@ function Update-DesktopRegistry
     }
 }
 
+# Function to kill foreground applications
 function Stop-Foreground
 {
     Stop-Process -Name "explorer" -Force | Out-Null
 }
-#endregion Initial Setup
 
-#region OS Hardening
+# Function to block remote commands
 function Disable-RemoteCommands {
     Write-Host "Disable Remote Commands - " -NoNewline
 	LogInfo "Disabling Remote Commands"
@@ -1036,6 +1083,7 @@ function Disable-RemoteCommands {
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to prevent local Windows wireless exploitation
 function Suspend-AirstrikeAttack
 {
     Write-Host "Restrict local Windows wireless exploitation - " -NoNewline
@@ -1044,6 +1092,7 @@ function Suspend-AirstrikeAttack
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to disable SMBv3 compression (workaround for CVE-2020-0796)
 function Disable-SMBv3Compression
 {
     Write-Host "Disable SMB version 3 Compression - " -NoNewline
@@ -1052,6 +1101,7 @@ function Disable-SMBv3Compression
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to harden MS Office security
 function Protect-MSOffice
 {
     Write-Host "Configure Office to be Hardened - " -NoNewline
@@ -1092,6 +1142,7 @@ function Protect-MSOffice
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to perform general OS hardening
 function Protect-OS
 {
     Write-Host "Configure OS to be Hardened - " -NoNewline
@@ -1128,6 +1179,7 @@ function Protect-OS
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Prevent Remote DLL Hijacking
 function Set-DLLHijackingPrevention
 {
     Write-Host "Configure DLL Hijacking Prevention - " -NoNewline
@@ -1138,6 +1190,7 @@ function Set-DLLHijackingPrevention
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Disable IPv6
 function Disable-IPv6
 {
     Write-Host "Disable IPv6 - " -NoNewline
@@ -1146,6 +1199,7 @@ function Disable-IPv6
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Disable TCP Timestamps
 function Disable-TCPTimestamps
 {
     Write-Host "Disable TCP Timestamps - " -NoNewline
@@ -1154,6 +1208,7 @@ function Disable-TCPTimestamps
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Enable Biometrics Anti-Spoofing
 function Enable-BiometricsAntiSpoofing
 {
     Write-Host "Enable Biometrics Anti-Spoofing - " -NoNewline
@@ -1177,6 +1232,7 @@ function Enable-BiometricsAntiSpoofing
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to ensure registry path exists before setting properties
 function Update-RegistryPaths
 {
     param (
@@ -1202,6 +1258,7 @@ function Update-RegistryPaths
     }
 }
 
+# Disable AutoRun function
 function Disable-AutoRun
 {
     Write-Host "Disable AutoRun - " -NoNewline
@@ -1225,6 +1282,7 @@ function Disable-AutoRun
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to disable AES ciphers
 function Disable-AESCiphers
 {
     Write-Host "Disable AES Ciphers - " -NoNewline
@@ -1246,6 +1304,7 @@ function Disable-AESCiphers
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to disable RC2 and RC4 ciphers
 function Disable-RC2RC4Ciphers
 {
     Write-Host "Disable RC2 and RC4 Ciphers - " -NoNewline
@@ -1265,6 +1324,7 @@ function Disable-RC2RC4Ciphers
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to disable Triple DES cipher
 function Disable-TripleDESCipher
 {
     Write-Host "Disable Triple DES Ciphers - " -NoNewline
@@ -1280,6 +1340,7 @@ function Disable-TripleDESCipher
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to disable specified hash algorithms
 function Disable-HashAlgorithms
 {
     Write-Host "Disable Hash Algorithms - " -NoNewline
@@ -1302,6 +1363,7 @@ function Disable-HashAlgorithms
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to configure Key Exchange Algorithms
 function Update-KeyExchanges
 {
     Write-Host "Configure Key Exchanges - " -NoNewline
@@ -1324,6 +1386,7 @@ function Update-KeyExchanges
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to configure SSL/TLS protocols
 function Update-Protocols
 {
     Write-Host "Configure SSL/TLS Protocols - " -NoNewline
@@ -1362,6 +1425,7 @@ function Update-Protocols
     }
 }
 
+# Function to configure cipher suites
 function Update-CipherSuites
 {
     Write-Host "Configure Cipher Suites - " -NoNewline
@@ -1371,6 +1435,7 @@ function Update-CipherSuites
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to configure strong .NET authentication
 function Update-DotNetStrongAuth
 {
     Write-Host "Use Strong .Net Authentication - " -NoNewline
@@ -1379,6 +1444,7 @@ function Update-DotNetStrongAuth
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Function to configure Event Log sizes
 function Update-EventLogSize
 {
     Write-Host "Configure Event Log Sizes - " -NoNewline
@@ -1394,6 +1460,7 @@ function Update-EventLogSize
     }
 }
 
+# Function to configure Adobe Reader security
 function Update-AdobereaderDCSTIG
 {
     Write-Host "Configure Adobe Reader Security - " -NoNewline
@@ -1410,9 +1477,30 @@ function Update-AdobereaderDCSTIG
     }
 	Write-Host "success!" -ForegroundColor Green
 }
-#endregion OS Hardening
 
 #region Privacy & Telemetry
+<#
+	.SYNOPSIS
+	The Connected User Experiences and Telemetry (DiagTrack) service
+
+	.PARAMETER Disable
+	Disable the Connected User Experiences and Telemetry (DiagTrack) service, and block connection for the Unified Telemetry Client Outbound Traffic
+
+	.PARAMETER Enable
+	Enable the Connected User Experiences and Telemetry (DiagTrack) service, and allow connection for the Unified Telemetry Client Outbound Traffic
+
+	.EXAMPLE
+	DiagTrackService -Disable
+
+	.EXAMPLE
+	DiagTrackService -Enable
+
+	.NOTES
+	Disabling the "Connected User Experiences and Telemetry" service (DiagTrack) can cause you not being able to get Xbox achievements anymore and affects Feedback Hub
+
+	.NOTES
+	Current user
+#>
 function DiagTrackService
 {
 	param
@@ -1468,6 +1556,25 @@ function DiagTrackService
 	}
 }
 
+<#
+	.SYNOPSIS
+	Diagnostic data
+
+	.PARAMETER Minimal
+	Set the diagnostic data collection to minimum
+
+	.PARAMETER Default
+	Set the diagnostic data collection to default
+
+	.EXAMPLE
+	DiagnosticDataLevel -Minimal
+
+	.EXAMPLE
+	DiagnosticDataLevel -Default
+
+	.NOTES
+	Machine-wide
+#>
 function DiagnosticDataLevel
 {
 	param
@@ -1528,6 +1635,25 @@ function DiagnosticDataLevel
     }
 }
 
+<#
+	.SYNOPSIS
+	Windows Error Reporting
+
+	.PARAMETER Disable
+	Turn off Windows Error Reporting
+
+	.PARAMETER Enable
+	Turn on Windows Error Reporting
+
+	.EXAMPLE
+	ErrorReporting -Disable
+
+	.EXAMPLE
+	ErrorReporting -Enable
+
+	.NOTES
+	Current user
+#>
 function ErrorReporting
 {
 	param
@@ -1577,6 +1703,26 @@ function ErrorReporting
 	}
 }
 
+<#
+	.SYNOPSIS
+	The feedback frequency
+
+	.PARAMETER Never
+	Change the feedback frequency to "Never"
+
+	.PARAMETER Automatically
+	Change feedback frequency to "Automatically"
+
+	.EXAMPLE
+	FeedbackFrequency -Never
+
+	.EXAMPLE
+	FeedbackFrequency -Automatically
+
+	.NOTES
+	Current user
+#>
+
 function FeedbackFrequency
 {
 	param
@@ -1624,6 +1770,28 @@ function FeedbackFrequency
 	}
 }
 
+<#
+	.SYNOPSIS
+	The diagnostics tracking scheduled tasks
+
+	.PARAMETER Disable
+	Turn off the diagnostics tracking scheduled tasks
+
+	.PARAMETER Enable
+	Turn on the diagnostics tracking scheduled tasks
+
+	.EXAMPLE
+	ScheduledTasks -Disable
+
+	.EXAMPLE
+	ScheduledTasks -Enable
+
+	.NOTES
+	A pop-up dialog box lets a user select tasks
+
+	.NOTES
+	Current user
+#>
 function ScheduledTasks
 {
 	param
@@ -1906,6 +2074,25 @@ function ScheduledTasks
 
 }
 
+<#
+    .SYNOPSIS
+    Manage the offering of Malicious Software Removal Tool through Windows Update settings
+
+    .PARAMETER Enable
+    Enable the offering of Malicious Software Removal Tool through Windows Update
+
+    .PARAMETER Disable
+    Disable the offering of Malicious Software Removal Tool through Windows Update
+
+    .EXAMPLE
+    UpdateMSRT -Enable
+
+    .EXAMPLE
+    UpdateMSRT -Disable
+
+    .NOTES
+    Current user
+#>
 function UpdateMSRT
 {
 	param
@@ -1947,6 +2134,34 @@ function UpdateMSRT
 	}
 }
 
+<#
+    .SYNOPSIS
+    Offering of drivers through Windows Update settings
+
+    .DESCRIPTION
+    This script enables or disables the Offering of drivers through Windows Update
+
+    IMPORTANT NOTE:
+    This does not work properly if you use a driver intended for another hardware model
+    For example, Intel I219-V on Windows Server works only with the I219-LM driver
+    Therefore, Windows Update will repeatedly try and fail to install the I219-V driver indefinitely,
+    even if you use this tweak
+
+    .PARAMETER Enable
+    Enable the Offering of drivers through Windows Update
+
+    .PARAMETER Disable
+    Disable the Offering of drivers through Windows Update
+
+    .EXAMPLE
+    UpdateDriver -Enable
+
+    .EXAMPLE
+    UpdateDriver -Disable
+
+    .NOTES
+    Current user
+#>
 function UpdateDriver
 {
 	param
@@ -1998,6 +2213,25 @@ function UpdateDriver
 	}
 }
 
+<#
+.SYNOPSIS
+Configure the setting to receive updates for other Microsoft products via Windows Update
+
+.PARAMETER Enable
+Enable receiving updates for other Microsoft products via Windows Update
+
+.PARAMETER Disable
+Disable receiving updates for other Microsoft products via Windows Update
+
+.EXAMPLE
+UpdateMSProducts -Enable
+
+.EXAMPLE
+UpdateMSProducts -Disable
+
+.NOTES
+Current user
+#>
 function UpdateMSProducts
 {
 	param
@@ -2038,6 +2272,25 @@ function UpdateMSProducts
 	}
 }
 
+<#
+    .SYNOPSIS
+    Windows Update automatic downloads settings
+
+    .PARAMETER Enable
+    Enable Windows Update automatic downloads
+
+    .PARAMETER Disable
+    Disable Windows Update automatic downloads
+
+    .EXAMPLE
+    UpdateAutoDownload -Enable
+
+    .EXAMPLE
+    UpdateAutoDownload -Disable
+
+    .NOTES
+    Current user
+#>
 function UpdateAutoDownload
 {
 	param
@@ -2079,6 +2332,29 @@ function UpdateAutoDownload
 	}
 }
 
+<#
+    .SYNOPSIS
+    Automatic restart after Windows Update installation settings
+
+    .DESCRIPTION
+    IMPORTANT: This tweak is experimental and should be used with caution
+    It works by registering a dummy debugger for MusNotification.exe, which effectively blocks the restart prompt executable from running. This prevents the system from scheduling the automatic restart after a Windows Update installation, potentially avoiding unwanted restarts.
+
+    .PARAMETER Enable
+    Enable automatic restart after Windows Update installation
+
+    .PARAMETER Disable
+    Disable automatic restart after Windows Update installation
+
+    .EXAMPLE
+    UpdateRestart -Enable
+
+    .EXAMPLE
+    UpdateRestart -Disable
+
+    .NOTES
+    Current user
+#>
 function UpdateRestart
 {
 	param
@@ -2120,6 +2396,25 @@ function UpdateRestart
 	}
 }
 
+<#
+    .SYNOPSIS
+    Nightly wake-up for Automatic Maintenance and Windows Updates
+
+    .PARAMETER Enable
+    Enable the nightly wake-up for automatic maintenance and Windows updates
+
+    .PARAMETER Disable
+    Disable the nightly wake-up for automatic maintenance and Windows updates
+
+    .EXAMPLE
+    MaintenanceWakeUp -Enable
+
+    .EXAMPLE
+    MaintenanceWakeUp -Disable
+
+    .NOTES
+    Current user
+#>
 function MaintenanceWakeUp
 {
 	param
@@ -2163,6 +2458,25 @@ function MaintenanceWakeUp
 	}
 }
 
+<#
+    .SYNOPSIS
+    Shared Experiences feature settings
+
+    .PARAMETER Enable
+    Enable the Shared Experiences feature
+
+    .PARAMETER Disable
+    Disable the Shared Experiences feature
+
+    .EXAMPLE
+    SharedExperiences -Enable
+
+    .EXAMPLE
+    SharedExperiences -Disable
+
+    .NOTES
+    Current user
+#>
 function SharedExperiences
 {
 	param
@@ -2204,6 +2518,25 @@ function SharedExperiences
 	}
 }
 
+<#
+    .SYNOPSIS
+    Clipboard History feature settings
+
+    .PARAMETER Enable
+    Enable the Clipboard History feature
+
+    .PARAMETER Disable
+    Disable the Clipboard History feature
+
+    .EXAMPLE
+    ClipboardHistory -Enable
+
+    .EXAMPLE
+    ClipboardHistory -Disable
+
+    .NOTES
+    Current user
+#>
 function ClipboardHistory
 {
 	param
@@ -2245,6 +2578,25 @@ function ClipboardHistory
 	}
 }
 
+<#
+    .SYNOPSIS
+    Superfetch service settings
+
+    .PARAMETER Enable
+    Enable the Superfetch service
+
+    .PARAMETER Disable
+    Disable the Superfetch service
+
+    .EXAMPLE
+    Superfetch -Enable
+
+    .EXAMPLE
+    Superfetch -Disable
+
+    .NOTES
+    Current user
+#>
 function Superfetch
 {
 	param
@@ -2285,6 +2637,25 @@ function Superfetch
 	}
 }
 
+<#
+.SYNOPSIS
+NTFS paths with length over 260 characters settings
+
+.PARAMETER Enable
+Enable NTFS paths with length over 260 characters
+
+.PARAMETER Disable
+Disable NTFS paths with length over 260 characters
+
+.EXAMPLE
+NTFSLongPaths -Enable
+
+.EXAMPLE
+NTFSLongPaths -Disable
+
+.NOTES
+Current user
+#>
 function NTFSLongPaths
 {
 	param
@@ -2323,6 +2694,25 @@ function NTFSLongPaths
 	}
 }
 
+<#
+    .SYNOPSIS
+    Updating of NTFS last access timestamps settings
+
+    .PARAMETER Enable
+    Enable updating of NTFS last access timestamps
+
+    .PARAMETER Disable
+    Disable updating of NTFS last access timestamps
+
+    .EXAMPLE
+    NTFSLastAccess -Enable
+
+    .EXAMPLE
+    NTFSLastAccess -Disable
+
+    .NOTES
+    Current user
+#>
 function NTFSLastAccess
 {
 	param
@@ -2367,6 +2757,25 @@ function NTFSLastAccess
 	}
 }
 
+<#
+    .SYNOPSIS
+    Sleep start menu and keyboard button feature settings
+
+    .PARAMETER Enable
+    Enable the Sleep start menu and keyboard button
+
+    .PARAMETER Disable
+    Disable the Sleep start menu and keyboard button
+
+    .EXAMPLE
+    SleepButton -Enable
+
+    .EXAMPLE
+    SleepButton -Disable
+
+    .NOTES
+    Current user
+#>
 function SleepButton
 {
 	param
@@ -2415,6 +2824,25 @@ function SleepButton
 	}
 }
 
+<#
+    .SYNOPSIS
+    Display and sleep mode timeouts
+
+    .PARAMETER Enable
+    Enable the display and sleep mode timeouts
+
+    .PARAMETER Disable
+    Disable the display and sleep mode timeouts
+
+    .EXAMPLE
+    SleepTimeout -Enable
+
+    .EXAMPLE
+    SleepTimeout -Disable
+
+    .NOTES
+    Current user
+#>
 function SleepTimeout
 {
 	param
@@ -2459,6 +2887,25 @@ function SleepTimeout
 	}
 }
 
+<#
+    .SYNOPSIS
+    Fast Startup feature settings
+
+    .PARAMETER Enable
+    Enable the Fast Startup feature
+
+    .PARAMETER Disable
+    Disable the Fast Startup feature
+
+    .EXAMPLE
+    FastStartup -Enable
+
+    .EXAMPLE
+    FastStartup -Disable
+
+    .NOTES
+    Current user
+#>
 function FastStartup
 {
 	param
@@ -2497,6 +2944,25 @@ function FastStartup
 	}
 }
 
+<#
+    .SYNOPSIS
+    Automatic reboot on crash (BSOD) settings
+
+    .PARAMETER Enable
+    Enable automatic reboot on crash
+
+    .PARAMETER Disable
+    Disable automatic reboot on crash
+
+    .EXAMPLE
+    AutoRebootOnCrash -Enable
+
+    .EXAMPLE
+    AutoRebootOnCrash -Disable
+
+    .NOTES
+    Current user
+#>
 function AutoRebootOnCrash
 {
 	param
@@ -2535,6 +3001,25 @@ function AutoRebootOnCrash
 	}
 }
 
+<#
+	.SYNOPSIS
+	The sign-in info to automatically finish setting up device after an update
+
+	.PARAMETER Disable
+	Do not use sign-in info to automatically finish setting up device after an update
+
+	.PARAMETER Enable
+	Use sign-in info to automatically finish setting up device after an update
+
+	.EXAMPLE
+	SigninInfo -Disable
+
+	.EXAMPLE
+	SigninInfo -Enable
+
+	.NOTES
+	Current user
+#>
 function SigninInfo
 {
 	param
@@ -2583,6 +3068,25 @@ function SigninInfo
 	}
 }
 
+<#
+	.SYNOPSIS
+	The provision to websites a locally relevant content by accessing my language list
+
+	.PARAMETER Disable
+	Do not let websites show me locally relevant content by accessing my language list
+
+	.PARAMETER Enable
+	Let websites show me locally relevant content by accessing my language list
+
+	.EXAMPLE
+	LanguageListAccess -Disable
+
+	.EXAMPLE
+	LanguageListAccess -Enable
+
+	.NOTES
+	Current user
+#>
 function LanguageListAccess
 {
 	param
@@ -2621,6 +3125,25 @@ function LanguageListAccess
 	}
 }
 
+<#
+	.SYNOPSIS
+	The permission for apps to show me personalized ads by using my advertising ID
+
+	.PARAMETER Disable
+	Do not let apps show me personalized ads by using my advertising ID
+
+	.PARAMETER Enable
+	Let apps show me personalized ads by using my advertising ID
+
+	.EXAMPLE
+	AdvertisingID -Disable
+
+	.EXAMPLE
+	AdvertisingID -Enable
+
+	.NOTES
+	Current user
+#>
 function AdvertisingID
 {
 	param
@@ -2668,6 +3191,25 @@ function AdvertisingID
 	}
 }
 
+<#
+	.SYNOPSIS
+	The Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
+
+	.PARAMETER Hide
+	Hide the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
+
+	.PARAMETER Show
+	Show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
+
+	.EXAMPLE
+	WindowsWelcomeExperience -Hide
+
+	.EXAMPLE
+	WindowsWelcomeExperience -Show
+
+	.NOTES
+	Current user
+#>
 function WindowsWelcomeExperience
 {
 	param
@@ -2706,6 +3248,25 @@ function WindowsWelcomeExperience
 	}
 }
 
+<#
+    .SYNOPSIS
+    Enable or disable the Windows Web Experience Pack (used for widgets and lock screen features)
+
+    .PARAMETER Enable
+    Install or re-register the Windows Web Experience Pack
+
+    .PARAMETER Disable
+    Uninstall the Windows Web Experience Pack
+
+    .EXAMPLE
+    LockWidgets -Enable
+
+    .EXAMPLE
+    LockWidgets -Disable
+
+    .NOTES
+    Affects the current user
+#>
 function LockWidgets {
     param (
         [Parameter(
@@ -2740,6 +3301,25 @@ function LockWidgets {
     }
 }
 
+<#
+	.SYNOPSIS
+	Getting tip and suggestions when I use Windows
+
+	.PARAMETER Enable
+	Get tip and suggestions when using Windows
+
+	.PARAMETER Disable
+	Do not get tip and suggestions when I use Windows
+
+	.EXAMPLE
+	WindowsTips -Enable
+
+	.EXAMPLE
+	WindowsTips -Disable
+
+	.NOTES
+	Current user
+#>
 function WindowsTips
 {
 	param
@@ -2758,1488 +3338,25 @@ function WindowsTips
 		[switch]
 		$Enable
 	)
+<#
+.SYNOPSIS
+Enable or disable Cross-Device Resume
 
-	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableSoftLanding -Force -ErrorAction Ignore | Out-Null
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableSoftLanding -Type CLEAR | Out-Null
+.PARAMETER Enable
+Enable Cross-Device Resume
 
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling tip and suggestions when I use Windows - " -NoNewline
-			LogInfo "Enabling tip and suggestions when I use Windows"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling tip and suggestions when I use Windows - " -NoNewline
-			LogInfo "Disabling tip and suggestions when I use Windows"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
+.PARAMETER Disable
+Disable Cross-Device Resume
 
-function SettingsSuggestedContent
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
+.EXAMPLE
+CrossDeviceResume -Enable
 
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
+.EXAMPLE
+CrossDeviceResume -Disable
 
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			Write-Host "Disabling suggested content in the Settings app - " -NoNewline
-			LogInfo "Disabling suggested content in the Settings app"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Show"
-		{
-			Write-Host "Enabling suggested content in the Settings app - " -NoNewline
-			LogInfo "Enabling suggested content in the Settings app"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function AppsSilentInstalling
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableWindowsConsumerFeatures -Force -ErrorAction Ignore | Out-Null
-	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableWindowsConsumerFeatures -Type CLEAR | Out-Null
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			Write-Host "Disabling Automatic installing of suggested apps - " -NoNewline
-			LogInfo "Disabling Automatic installing of suggested apps"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Enable"
-		{
-			Write-Host "Enabling Automatic installing of suggested apps - " -NoNewline
-			LogInfo "Enabling Automatic installing of suggested apps"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function WhatsNewInWindows
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
-	{
-		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force | Out-Null
-	}
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			Write-Host 'Disabling "suggest ways to get the most out of Windows and finish setting up this device" - ' -NoNewline
-			LogInfo 'Disabling "suggest ways to get the most out of Windows and finish setting up this device"'
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Enable"
-		{
-			Write-Host 'Enabling "suggest ways to get the most out of Windows and finish setting up this device" - ' -NoNewline
-			LogInfo 'Enabling "suggest ways to get the most out of Windows and finish setting up this device"'
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function TailoredExperiences
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	# Remove all policies in order to make changes visible in UI only if it's possible
-	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CloudContent -Name DisableTailoredExperiencesWithDiagnosticData -Force -ErrorAction Ignore | Out-Null
-	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\CloudContent -Name DisableTailoredExperiencesWithDiagnosticData -Type CLEAR | Out-Null
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			Write-Host "Disabling Diagnostic data for personalized tips, ads, and recommendations - " -NoNewline
-			LogInfo "Disabling Diagnostic data for personalized tips, ads, and recommendations"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Enable"
-		{
-			Write-Host "Enabling Diagnostic data for personalized tips, ads, and recommendations - " -NoNewline
-			LogInfo "Enabling Diagnostic data for personalized tips, ads, and recommendations"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function BingSearch
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Disable"
-		{
-			Write-Host "Disabling Bing search in Start Menu - " -NoNewline
-			LogInfo "Disabling Bing search in Start Menu"
-			if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
-			{
-				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force | Out-Null
-			}
-			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -PropertyType DWord -Value 1 -Force | Out-Null
-
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type DWORD -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Enable"
-		{
-			Write-Host "Enabling Bing search in Start Menu - " -NoNewline
-			LogInfo "Enabling Bing search in Start Menu"
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Ignore | Out-Null
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type CLEAR | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function StartRecommendationsTips
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			Write-Host "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
-			LogInfo "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Show"
-		{
-			Write-Host "Enabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
-			LogInfo "Enabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function StartAccountNotifications
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Hide"
-		)]
-		[switch]
-		$Hide,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Show"
-		)]
-		[switch]
-		$Show
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Hide"
-		{
-			Write-Host "Disabling Microsoft account-related notifications on Start Menu in Start menu - " -NoNewline
-			LogInfo "Disabling Microsoft account-related notifications on Start Menu in Start menu"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Show"
-		{
-			Write-Host "Enabling Microsoft account-related notifications on Start Menu in Start menu - " -NoNewline
-			LogInfo "Enabling Microsoft account-related notifications on Start Menu in Start menu"
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function WiFiSense
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Wi-Fi Sense to allow automatic connection to open hotspots and sharing of Wi-Fi networks - " -NoNewline
-			LogInfo "Enabling Wi-Fi Sense to allow automatic connection to open hotspots and sharing of Wi-Fi networks"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Name "Value" -Type DWord -Value 1
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Name "Value" -Type DWord -Value 1 | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "AutoConnectAllowedOEM" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "WiFISenseAllowed" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks - " -NoNewline
-			LogInfo "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Name "Value" -Type DWord -Value 0 | Out-Null
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Name "Value" -Type DWord -Value 0 | Out-Null
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "AutoConnectAllowedOEM" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "WiFISenseAllowed" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function WebSearch
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Web Search in the Start Menu - " -NoNewline
-			LogInfo "Enabling Web Search in the Start Menu"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 1 | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Web Search in the Start Menu - " -NoNewline
-			LogInfo "Disabling Web Search in the Start Menu"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 0 | Out-Null
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function ActivityHistory
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Activity History related notifications in Task View - " -NoNewline
-			LogInfo "Enabling Activity History-related notifications in Task View"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Activity History related notifications in Task View - " -NoNewline
-			LogInfo "Disabling Activity History-related notifications in Task View"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function Sensors
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling sensor-related features, such as screen auto-rotation - " -NoNewline
-			LogInfo "Enabling sensor-related features, such as screen auto-rotation"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling sensor-related features, such as screen auto-rotation - " -NoNewline
-			LogInfo "Disabling sensor-related features, such as screen auto-rotation"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function LocationService
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling location features - " -NoNewline
-			LogInfo "Enabling the location feature for the current user"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling location features - " -NoNewline
-			LogInfo "Disabling the location feature for the current user"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Type DWord -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function MapUpdates
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling automatic map updates - " -NoNewline
-			LogInfo "Enabling automatic map updates for the current user"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling automatic map updates - " -NoNewline
-			LogInfo "Disabling automatic map updates for the current user"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0 -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function WebLangList
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling websites to show relevant content by accessing my language list - " -NoNewline
-			LogInfo "Enabling websites to show relevant content by accessing my language list"
-			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling websites to show relevant content by accessing my language list - " -NoNewline
-			LogInfo "Disabling websites to show relevant content by accessing my language list"
-			Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function Camera
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Access to use the camera - " -NoNewline
-			LogInfo "Enabling Access to use the camera"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Access to use the camera - " -NoNewline
-			LogInfo "Disabling Access to use the camera"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function Microphone
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Access to use the microphone - " -NoNewline
-			LogInfo "Enabling Access to use the microphone"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Access to use the microphone - " -NoNewline
-			LogInfo "Disabling Access to use the microphone"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function WAPPush
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
-			LogInfo "Enabling Device Management Wireless Application Protocol (WAP) Push Service"
-			Set-Service "dmwappushservice" -StartupType Automatic | Out-Null
-			Start-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
-			LogInfo "Disabling Device Management Wireless Application Protocol (WAP) Push Service"
-			Stop-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
-			Set-Service "dmwappushservice" -StartupType Disabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function ClearRecentFiles
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling the clearing of recent files on exit - " -NoNewline
-			LogInfo "Enabling the clearing of recent files on exit"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling the clearing of recent files on exit - " -NoNewline
-			LogInfo "Disabling the clearing of recent files on exit"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function RecentFiles
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling the recent files lists - " -NoNewline
-			LogInfo "Enabling the recent files lists"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling the recent files lists - " -NoNewline
-			LogInfo "Disabling the recent files lists"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPVoiceActivation
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to voice activation from UWP apps - " -NoNewline
-			LogInfo "Enabling access to voice activation from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to voice activation from UWP apps - " -NoNewline
-			LogInfo "Disabling access to voice activation from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -Type DWord -Value 2 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPNotifications
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to notifications from UWP apps - " -NoNewline
-			LogInfo "Enabling access to notifications from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to notifications from UWP apps - " -NoNewline
-			LogInfo "Disabling access to notifications from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPAccountInfo
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to account info from UWP apps - " -NoNewline
-			LogInfo "Enabling access to account info from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to account info from UWP apps - " -NoNewline
-			LogInfo "Disabling access to account info from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPContacts
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to contacts from UWP apps - " -NoNewline
-			LogInfo "Enabling access to contacts from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to contacts from UWP apps - " -NoNewline
-			LogInfo "Disabling access to contacts from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPCalendar
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to calendar from UWP apps - " -NoNewline
-			LogInfo "Enabling access to calendar from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to calendar from UWP apps - " -NoNewline
-			LogInfo "Disabling access to calendar from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPPhoneCalls
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to phone calls from UWP apps - " -NoNewline
-			LogInfo "Enabling access to phone calls from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to phone calls from UWP apps - " -NoNewline
-			LogInfo "Disabling access to phone calls from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPCallHistory
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to call history from UWP apps - " -NoNewline
-			LogInfo "Enabling access to call history from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to call history from UWP apps - " -NoNewline
-			LogInfo "Disabling access to call history from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPEmail
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to email from UWP apps - " -NoNewline
-			LogInfo "Enabling access to email from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to email from UWP apps - " -NoNewline
-			LogInfo "Disabling access to email from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPTasks
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to tasks from UWP apps - " -NoNewline
-			LogInfo "Enabling access to tasks from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to tasks from UWP apps - " -NoNewline
-			LogInfo "Disabling access to tasks from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPMessaging
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
-			LogInfo "Enabling access to messaging (SMS, MMS) from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
-			LogInfo "Disabling access to messaging (SMS, MMS) from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPRadios
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
-			LogInfo "Enabling access to radios (e.g. Bluetooth) from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
-			LogInfo "Disabling access to radios (e.g. Bluetooth) from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPOtherDevices
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
-			LogInfo "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
-			LogInfo "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPDiagInfo
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to diagnostic information from UWP apps - " -NoNewline
-			LogInfo "Enabling access to diagnostic information from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to diagnostic information from UWP apps - " -NoNewline
-			LogInfo "Disabling access to diagnostic information from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPFileSystem
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling access to libraries and the file system from UWP apps - " -NoNewline
-			LogInfo "Enabling access to libraries and the file system from UWP apps"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling access to libraries and the file system from UWP apps - " -NoNewline
-			LogInfo "Disabling access to libraries and the file system from UWP apps"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function UWPSwapFile
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling the UWP apps swap file - " -NoNewline
-			LogInfo "Enabling the UWP apps swap file"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling the UWP apps swap file - " -NoNewline
-			LogInfo "Disabling the UWP apps swap file"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function Powershell7Telemetry
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling PowerShell 7 Telemetry - " -NoNewline
-			LogInfo "Enabling PowerShell 7 Telemetry"
-			[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '', 'Machine')
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling PowerShell 7 Telemetry - " -NoNewline
-			LogInfo "Disabling PowerShell 7 Telemetry"
-			[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '1', 'Machine')
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-#endregion Privacy & Telemetry
-
-#region System Tweaks
+.NOTES
+Current user
+#>
 function CrossDeviceResume
 {
 	param
@@ -4278,6 +3395,25 @@ function CrossDeviceResume
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Multiplane Overlay
+
+.PARAMETER Enable
+Enable Multiplane Overlay
+
+.PARAMETER Disable
+Disable Multiplane Overlay
+
+.EXAMPLE
+MultiplaneOverlay -Enable
+
+.EXAMPLE
+MultiplaneOverlay -Disable
+
+.NOTES
+Current user
+#>
 function MultiplaneOverlay
 {
 	param
@@ -4316,6 +3452,25 @@ function MultiplaneOverlay
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Modern Standby fix
+
+.PARAMETER Enable
+Enable Modern Standby fix
+
+.PARAMETER Disable
+Disable Modern Standby fix
+
+.EXAMPLE
+StandbyFix -Enable
+
+.EXAMPLE
+StandbyFix -Disable
+
+.NOTES
+Current user
+#>
 function StandbyFix
 {
 	param
@@ -4358,6 +3513,88 @@ function StandbyFix
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable New Outlook
+
+.PARAMETER Enable
+Enable New Outlook
+
+.PARAMETER Disable
+Disable New Outlook
+
+.EXAMPLE
+NewOutlook -Enable
+
+.EXAMPLE
+NewOutlook -Disable
+
+.NOTES
+Current user
+#>
+function NewOutlook
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling New Outlook - " -NoNewline
+			LogInfo "Enabling New Outlook"
+			Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Preferences" -Name "UseNewOutlook" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Options\General" -Name "HideNewOutlookToggle" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Options\General" -Name "DoNewOutlookAutoMigration" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Preferences" -Name "NewOutlookMigrationUserSetting" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling New Outlook - " -NoNewline
+			LogInfo "Disabling New Outlook"
+			Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Preferences" -Name "UseNewOutlook" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Options\General" -Name "HideNewOutlookToggle" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Options\General" -Name "DoNewOutlookAutoMigration" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Preferences" -Name "NewOutlookMigrationUserSetting" -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+.SYNOPSIS
+Enable or disable S3 Sleep
+
+.PARAMETER Enable
+Enable S3 Sleep
+
+.PARAMETER Disable
+Disable S3 Sleep
+
+.EXAMPLE
+S3Sleep -Enable
+
+.EXAMPLE
+S3Sleep -Disable
+
+.NOTES
+Current user
+#>
 function S3Sleep
 {
 	param
@@ -4396,6 +3633,25 @@ function S3Sleep
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Explorer Automatic Folder Discovery
+
+.PARAMETER Enable
+Enable Explorer Automatic Folder Discovery
+
+.PARAMETER Disable
+Disable Explorer Automatic Folder Discovery
+
+.EXAMPLE
+ExplorerAutoDiscovery -Enable
+
+.EXAMPLE
+ExplorerAutoDiscovery -Disable
+
+.NOTES
+Current user
+#>
 function ExplorerAutoDiscovery
 {
 	param
@@ -4449,6 +3705,82 @@ function ExplorerAutoDiscovery
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable PowerShell 7 Telemetry
+
+.PARAMETER Enable
+Enable PowerShell 7 Telemetry
+
+.PARAMETER Disable
+Disable PowerShell 7 Telemetry
+
+.EXAMPLE
+Powershell7Telemetry -Enable
+
+.EXAMPLE
+Powershell7Telemetry -Disable
+
+.NOTES
+Current user
+#>
+function Powershell7Telemetry
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling PowerShell 7 Telemetry - " -NoNewline
+			LogInfo "Enabling PowerShell 7 Telemetry"
+			[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '', 'Machine')
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling PowerShell 7 Telemetry - " -NoNewline
+			LogInfo "Disabling PowerShell 7 Telemetry"
+			[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '1', 'Machine')
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+.SYNOPSIS
+Enable or disable Windows Platform Binary Table (WPBT)
+
+.PARAMETER Enable
+Enable Windows Platform Binary Table (WPBT)
+
+.PARAMETER Disable
+Disable Windows Platform Binary Table (WPBT)
+
+.EXAMPLE
+WPBT -Enable
+
+.EXAMPLE
+WPBT -Disable
+
+.NOTES
+Current user
+#>
 function WPBT
 {
 	param
@@ -4487,6 +3819,16 @@ function WPBT
 	}
 }
 
+<#
+.SYNOPSIS
+Run Disk Cleanup on Drive C: and remove old Windows Updates
+
+.EXAMPLE
+DiskCleanup
+
+.NOTES
+Current user
+#>
 function DiskCleanup
 {
 	Write-Host "Running Disk Cleanup - " -NoNewline
@@ -4498,6 +3840,25 @@ function DiskCleanup
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+.SYNOPSIS
+Enable or disable recommended Windows service startup configuration
+
+.PARAMETER Enable
+Apply recommended startup types to Windows services
+
+.PARAMETER Disable
+Restore Windows services to their original startup types
+
+.EXAMPLE
+ServicesManual -Enable
+
+.EXAMPLE
+ServicesManual -Disable
+
+.NOTES
+Current user
+#>
 function ServicesManual
 {
 	param
@@ -4693,6 +4054,35 @@ function ServicesManual
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	Enable or disable Adobe Network Block
+
+	.PARAMETER Enable
+	Enable Adobe Network Block
+
+	.PARAMETER Disable
+	Disable Adobe Network Block
+
+	.EXAMPLE
+	AdobeNetworkBlock -Enable
+
+	.EXAMPLE
+	AdobeNetworkBlock -Disable
+
+	.NOTES
+	Current user
+
+	CAUTION:
+	Blocking Adobe network access may:
+	- Prevent license validation and activation
+	- Disable Creative Cloud syncing
+	- Break cloud-based features (Fonts, Libraries, AI tools, etc.)
+	- Trigger subscription or account errors
+	- Violate Adobe license terms depending on usage
+
+	Use only if you understand the implications.
+#>
 function AdobeNetworkBlock
 {
 	[CmdletBinding()]
@@ -4758,6 +4148,34 @@ function AdobeNetworkBlock
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enable or disable Block Razer Software Installs
+
+	.PARAMETER Enable
+	Enable Block Razer Software Installs
+
+	.PARAMETER Disable
+	Disable Block Razer Software Installs
+
+	.EXAMPLE
+	RazerBlock -Enable
+
+	.EXAMPLE
+	RazerBlock -Disable
+
+	.NOTES
+	Current user
+
+	CAUTION:
+	Blocking Razer software installation may:
+	- Prevent Razer Synapse from installing or updating
+	- Disable RGB, macro, or device profile functionality
+	- Stop firmware updates for Razer devices
+	- Cause certain Razer peripherals to function with limited features
+
+	Use only if you understand the implications.
+#>
 function RazerBlock
 {
 	[CmdletBinding()]
@@ -4834,6 +4252,25 @@ function RazerBlock
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Brave Debloat
+
+.PARAMETER Enable
+Enable Brave Debloat
+
+.PARAMETER Disable
+Disable Brave Debloat
+
+.EXAMPLE
+BraveDebloat -Enable
+
+.EXAMPLE
+BraveDebloat -Disable
+
+.NOTES
+Current user
+#>
 function BraveDebloat
 {
 	[CmdletBinding()]
@@ -4881,6 +4318,75 @@ function BraveDebloat
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Background Apps
+
+.PARAMETER Enable
+Enable Background Apps
+
+.PARAMETER Disable
+Disable Background Apps
+
+.EXAMPLE
+BackgroundApps -Enable
+
+.EXAMPLE
+BackgroundApps -Disable
+
+.NOTES
+Current user
+#>
+function BackgroundApps
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
+		[switch]$Enable,
+
+		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
+		[switch]$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Background Apps - " -NoNewline
+			LogInfo "Enabling Background Apps"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Background Apps - " -NoNewline
+			LogInfo "Disabling Background Apps"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+.SYNOPSIS
+Enable or disable Fullscreen Optimizations
+
+.PARAMETER Enable
+Enable Fullscreen Optimizations
+
+.PARAMETER Disable
+Disable Fullscreen Optimizations
+
+.EXAMPLE
+FullscreenOptimizations -Enable
+
+.EXAMPLE
+FullscreenOptimizations -Disable
+
+.NOTES
+Current user
+#>
 function FullscreenOptimizations
 {
 	[CmdletBinding()]
@@ -4912,6 +4418,204 @@ function FullscreenOptimizations
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Notification Tray/Calendar
+
+.PARAMETER Enable
+Enable Notification Tray/Calendar
+
+.PARAMETER Disable
+Disable Notification Tray/Calendar
+
+.EXAMPLE
+Notifications -Enable
+
+.EXAMPLE
+Notifications -Disable
+
+.NOTES
+Current user
+
+.CAUTION
+This will completely disable Windows notifications.
+You will not receive app alerts, system warnings, reminders, or calendar events.
+The notification tray and calendar flyout will not function.
+#>
+function Notifications
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
+		[switch]$Enable,
+
+		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
+		[switch]$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Notification Tray/Calendar - " -NoNewline
+			LogInfo "Enabling Notification Tray/Calendar"
+			Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableNotificationCenter" -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Notification Tray/Calendar - " -NoNewline
+			LogInfo "Disabling Notification Tray/Calendar"
+			if (-not (Test-Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer"))
+			{
+				New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Force -ErrorAction SilentlyContinue | Out-Null
+			}
+			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableNotificationCenter" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+.SYNOPSIS
+Enable or disable Edge Debloat
+
+.PARAMETER Enable
+Enable Edge Debloat
+
+.PARAMETER Disable
+Disable Edge Debloat
+
+.EXAMPLE
+EdgeDebloat -Enable
+
+.EXAMPLE
+EdgeDebloat -Disable
+
+.NOTES
+Current user
+
+.CAUTION
+This will enforce multiple Group Policy settings on Microsoft Edge.
+Telemetry, personalization reporting, and diagnostic data will be disabled.
+Shopping assistant, collections, rewards, and feedback features will be removed.
+The Copilot sidebar extension will be blocked via extension blocklist.
+First run experience and insider promotions will be hidden.
+These changes apply system-wide and may affect all Edge user profiles.
+#>
+function EdgeDebloat
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
+		[switch]$Enable,
+
+		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
+		[switch]$Disable
+	)
+
+	$EdgePath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
+	$EdgeUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate"
+	$EdgeBlocklistPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallBlocklist"
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Edge Debloat - " -NoNewline
+			LogInfo "Enabling Edge Debloat"
+			
+			# Create paths if they don't exist
+			if (-not (Test-Path $EdgeUpdatePath))
+			{
+				New-Item -Path $EdgeUpdatePath -Force -ErrorAction SilentlyContinue | Out-Null
+			}
+			if (-not (Test-Path $EdgePath))
+			{
+				New-Item -Path $EdgePath -Force -ErrorAction SilentlyContinue | Out-Null
+			}
+			if (-not (Test-Path $EdgeBlocklistPath))
+			{
+				New-Item -Path $EdgeBlocklistPath -Force -ErrorAction SilentlyContinue | Out-Null
+			}
+			
+			Set-ItemProperty -Path $EdgeUpdatePath -Name "CreateDesktopShortcutDefault" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "PersonalizationReportingEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgeBlocklistPath -Name "1" -Type String -Value "ofefcgjbeghpigppfmkologfjadafddi" -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "ShowRecommendationsEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "HideFirstRunExperience" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "UserFeedbackAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "ConfigureDoNotTrack" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "AlternateErrorPagesEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "EdgeCollectionsEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "EdgeShoppingAssistantEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "MicrosoftEdgeInsiderPromotionEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "ShowMicrosoftRewards" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "WebWidgetAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "DiagnosticData" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "EdgeAssetDeliveryServiceEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path $EdgePath -Name "WalletDonationEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+			
+			LogInfo "Edge debloat policies applied"
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Edge Debloat - " -NoNewline
+			LogInfo "Disabling Edge Debloat"
+			
+			Remove-ItemProperty -Path $EdgeUpdatePath -Name "CreateDesktopShortcutDefault" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "PersonalizationReportingEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgeBlocklistPath -Name "1" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "ShowRecommendationsEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "HideFirstRunExperience" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "UserFeedbackAllowed" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "ConfigureDoNotTrack" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "AlternateErrorPagesEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "EdgeCollectionsEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "EdgeShoppingAssistantEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "MicrosoftEdgeInsiderPromotionEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "ShowMicrosoftRewards" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "WebWidgetAllowed" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "DiagnosticData" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "EdgeAssetDeliveryServiceEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path $EdgePath -Name "WalletDonationEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
+			
+			LogInfo "Edge debloat policies removed"
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+.SYNOPSIS
+Enable or disable Teredo
+
+.PARAMETER Enable
+Enable Teredo
+
+.PARAMETER Disable
+Disable Teredo
+
+.EXAMPLE
+Teredo -Enable
+
+.EXAMPLE
+Teredo -Disable
+
+.NOTES
+Current user
+
+.CAUTION
+Teredo is an IPv6 tunneling protocol used for NAT traversal.
+Disabling it may reduce network latency for some applications.
+However, some games and peer-to-peer applications rely on Teredo for connectivity.
+Xbox Live and certain multiplayer games may not function correctly without Teredo.
+#>
 function Teredo
 {
 	[CmdletBinding()]
@@ -4946,9 +4650,2263 @@ function Teredo
 		}
 	}
 }
-#endregion System Tweaks
+
+<#
+.SYNOPSIS
+Enable or disable Revert Start Menu
+
+.PARAMETER Enable
+Revert to the original Start Menu from 24H2
+
+.PARAMETER Disable
+Restore the new Start Menu
+
+.EXAMPLE
+RevertStartMenu -Enable
+
+.EXAMPLE
+RevertStartMenu -Disable
+
+.NOTES
+Current user
+
+.CAUTION
+Reverting the Start Menu may break future Windows updates that depend on the new layout.
+#>
+function RevertStartMenu
+{
+	[CmdletBinding()]
+	param
+	(
+		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
+		[switch]$Enable,
+
+		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
+		[switch]$Disable
+	)
+
+	$viveToolUrl = "https://github.com/thebookisclosed/ViVe/releases/download/v0.3.4/ViVeTool-v0.3.4-IntelAmd.zip"
+	$featureId = "47205210"
+	$tempDir = "$env:TEMP\ViVeTool"
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Revert Start Menu - " -NoNewline
+			LogInfo "Enabling Revert Start Menu"
+			try
+			{
+				# Create temp directory
+				if (Test-Path $tempDir)
+				{
+					Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+				}
+				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+				
+				# Download ViVeTool
+				$zipPath = "$tempDir\ViVeTool.zip"
+				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+				LogInfo "Downloaded ViVeTool"
+				
+				# Extract
+				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction SilentlyContinue | Out-Null
+				LogInfo "Extracted ViVeTool"
+				
+				# Run ViVeTool
+				$viveExe = "$tempDir\ViVeTool.exe"
+				if (Test-Path $viveExe)
+				{
+					Start-Process $viveExe -ArgumentList "/disable /id:$featureId" -Wait -NoNewWindow -ErrorAction SilentlyContinue | Out-Null
+					LogInfo "Applied ViVeTool setting to disable feature $featureId"
+				}
+				
+				# Cleanup
+				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+				LogInfo "Cleaned up temporary files"
+				LogInfo "Please restart your computer to apply the changes."
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				LogError "Failed to enable Revert Start Menu: $_"
+				Write-Host "failed!" -ForegroundColor Red
+			}
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Revert Start Menu - " -NoNewline
+			LogInfo "Disabling Revert Start Menu"
+			try
+			{
+				# Create temp directory
+				if (Test-Path $tempDir)
+				{
+					Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+				}
+				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+				
+				# Download ViVeTool
+				$zipPath = "$tempDir\ViVeTool.zip"
+				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+				LogInfo "Downloaded ViVeTool"
+				
+				# Extract
+				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction SilentlyContinue | Out-Null
+				LogInfo "Extracted ViVeTool"
+				
+				# Run ViVeTool
+				$viveExe = "$tempDir\ViVeTool.exe"
+				if (Test-Path $viveExe)
+				{
+					Start-Process $viveExe -ArgumentList "/enable /id:$featureId" -Wait -NoNewWindow -ErrorAction SilentlyContinue | Out-Null
+					LogInfo "Applied ViVeTool setting to enable feature $featureId"
+				}
+				
+				# Cleanup
+				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+				LogInfo "Cleaned up temporary files"
+				LogInfo "Please restart your computer to apply the changes."
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				LogError "Failed to disable Revert Start Menu: $_"
+				Write-Host "failed!" -ForegroundColor Red
+			}
+		}
+	}
+}
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableSoftLanding -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableSoftLanding -Type CLEAR | Out-Null
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling tip and suggestions when I use Windows - " -NoNewline
+			LogInfo "Enabling tip and suggestions when I use Windows"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling tip and suggestions when I use Windows - " -NoNewline
+			LogInfo "Disabling tip and suggestions when I use Windows"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Show me suggested content in the Settings app
+
+	.PARAMETER Hide
+	Hide from me suggested content in the Settings app
+
+	.PARAMETER Show
+	Show me suggested content in the Settings app
+
+	.EXAMPLE
+	SettingsSuggestedContent -Hide
+
+	.EXAMPLE
+	SettingsSuggestedContent -Show
+
+	.NOTES
+	Current user
+#>
+function SettingsSuggestedContent
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Hide"
+		{
+			Write-Host "Disabling suggested content in the Settings app - " -NoNewline
+			LogInfo "Disabling suggested content in the Settings app"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 0 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 0 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Show"
+		{
+			Write-Host "Enabling suggested content in the Settings app - " -NoNewline
+			LogInfo "Enabling suggested content in the Settings app"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 1 -Force | Out-Null
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Automatic installing suggested apps
+
+	.PARAMETER Disable
+	Turn off automatic installing suggested apps
+
+	.PARAMETER Enable
+	Turn on automatic installing suggested apps
+
+	.EXAMPLE
+	AppsSilentInstalling -Disable
+
+	.EXAMPLE
+	AppsSilentInstalling -Enable
+
+	.NOTES
+	Current user
+#>
+function AppsSilentInstalling
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable
+	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableWindowsConsumerFeatures -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\CloudContent -Name DisableWindowsConsumerFeatures -Type CLEAR | Out-Null
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Disable"
+		{
+			Write-Host "Disabling Automatic installing of suggested apps - " -NoNewline
+			LogInfo "Disabling Automatic installing of suggested apps"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Enable"
+		{
+			Write-Host "Enabling Automatic installing of suggested apps - " -NoNewline
+			LogInfo "Enabling Automatic installing of suggested apps"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Ways to get the most out of Windows and finish setting up this device
+
+	.PARAMETER Disable
+	Do not suggest ways to get the most out of Windows and finish setting up this device
+
+	.PARAMETER Enable
+	Suggest ways to get the most out of Windows and finish setting up this device
+
+	.EXAMPLE
+	WhatsNewInWindows -Disable
+
+	.EXAMPLE
+	WhatsNewInWindows -Enable
+
+	.NOTES
+	Current user
+#>
+function WhatsNewInWindows
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable
+	)
+
+	if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement))
+	{
+		New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Force | Out-Null
+	}
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Disable"
+		{
+			Write-Host 'Disabling "suggest ways to get the most out of Windows and finish setting up this device" - ' -NoNewline
+			LogInfo 'Disabling "suggest ways to get the most out of Windows and finish setting up this device"'
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Enable"
+		{
+			Write-Host 'Enabling "suggest ways to get the most out of Windows and finish setting up this device" - ' -NoNewline
+			LogInfo 'Enabling "suggest ways to get the most out of Windows and finish setting up this device"'
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Tailored experiences
+
+	.PARAMETER Disable
+	Do not let Microsoft use your diagnostic data for personalized tips, ads, and recommendations
+
+	.PARAMETER Enable
+	Let Microsoft use your diagnostic data for personalized tips, ads, and recommendations
+
+	.EXAMPLE
+	TailoredExperiences -Disable
+
+	.EXAMPLE
+	TailoredExperiences -Enable
+
+	.NOTES
+	Current user
+#>
+function TailoredExperiences
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable
+	)
+
+	# Remove all policies in order to make changes visible in UI only if it's possible
+	Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\CloudContent -Name DisableTailoredExperiencesWithDiagnosticData -Force -ErrorAction Ignore | Out-Null
+	Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\CloudContent -Name DisableTailoredExperiencesWithDiagnosticData -Type CLEAR | Out-Null
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Disable"
+		{
+			Write-Host "Disabling Diagnostic data for personalized tips, ads, and recommendations - " -NoNewline
+			LogInfo "Disabling Diagnostic data for personalized tips, ads, and recommendations"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Enable"
+		{
+			Write-Host "Enabling Diagnostic data for personalized tips, ads, and recommendations - " -NoNewline
+			LogInfo "Enabling Diagnostic data for personalized tips, ads, and recommendations"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 1 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Bing search in Start Menu
+
+	.PARAMETER Disable
+	Disable Bing search in Start Menu
+
+	.PARAMETER Enable
+	Enable Bing search in Start Menu
+
+	.EXAMPLE
+	BingSearch -Disable
+
+	.EXAMPLE
+	BingSearch -Enable
+
+	.NOTES
+	Current user
+#>
+function BingSearch
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Disable"
+		{
+			Write-Host "Disabling Bing search in Start Menu - " -NoNewline
+			LogInfo "Disabling Bing search in Start Menu"
+			if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
+			{
+				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force | Out-Null
+			}
+			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -PropertyType DWord -Value 1 -Force | Out-Null
+
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type DWORD -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Enable"
+		{
+			Write-Host "Enabling Bing search in Start Menu - " -NoNewline
+			LogInfo "Enabling Bing search in Start Menu"
+			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Ignore | Out-Null
+			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type CLEAR | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Recommendations for tips, shortcuts, new apps, and more in Start menu
+
+	.PARAMETER Hide
+	Do not show recommendations for tips, shortcuts, new apps, and more in Start menu
+
+	.PARAMETER Show
+	Show recommendations for tips, shortcuts, new apps, and more in Start menu
+
+	.EXAMPLE
+	StartRecommendationsTips -Hide
+
+	.EXAMPLE
+	StartRecommendationsTips -Show
+
+	.NOTES
+	Current user
+#>
+function StartRecommendationsTips
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Hide"
+		{
+			Write-Host "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
+			LogInfo "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Show"
+		{
+			Write-Host "Enabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
+			LogInfo "Enabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Microsoft account-related notifications on Start Menu
+
+	.PARAMETER Hide
+	Do not show Microsoft account-related notifications on Start Menu in Start menu
+
+	.PARAMETER Show
+	Show Microsoft account-related notifications on Start Menu in Start menu
+
+	.EXAMPLE
+	StartAccountNotifications -Hide
+
+	.EXAMPLE
+	StartAccountNotifications -Show
+
+	.NOTES
+	Current user
+#>
+function StartAccountNotifications
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Hide"
+		)]
+		[switch]
+		$Hide,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Show"
+		)]
+		[switch]
+		$Show
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Hide"
+		{
+			Write-Host "Disabling Microsoft account-related notifications on Start Menu in Start menu - " -NoNewline
+			LogInfo "Disabling Microsoft account-related notifications on Start Menu in Start menu"
+			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -PropertyType DWord -Value 0 -Force | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Show"
+		{
+			Write-Host "Enabling Microsoft account-related notifications on Start Menu in Start menu - " -NoNewline
+			LogInfo "Enabling Microsoft account-related notifications on Start Menu in Start menu"
+			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -Force -ErrorAction Ignore | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Wi-Fi Sense configuration
+
+	.PARAMETER Disable
+	Disable Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks.
+
+	.PARAMETER Enable
+	Enable Wi-Fi Sense to allow automatic connection to open hotspots and sharing of Wi-Fi networks.
+
+	.EXAMPLE
+	WiFiSense -Disable
+
+	.EXAMPLE
+	WiFiSense -Enable
+
+	.NOTES
+	Current user
+#>
+function WiFiSense
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Wi-Fi Sense to allow automatic connection to open hotspots and sharing of Wi-Fi networks - " -NoNewline
+			LogInfo "Enabling Wi-Fi Sense to allow automatic connection to open hotspots and sharing of Wi-Fi networks"
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Name "Value" -Type DWord -Value 1
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Name "Value" -Type DWord -Value 1 | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "AutoConnectAllowedOEM" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "WiFISenseAllowed" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks - " -NoNewline
+			LogInfo "Disabling Wi-Fi Sense to prevent automatic connection to open hotspots and sharing of Wi-Fi networks"
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting" -Name "Value" -Type DWord -Value 0 | Out-Null
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots" -Name "Value" -Type DWord -Value 0 | Out-Null
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "AutoConnectAllowedOEM" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" -Name "WiFISenseAllowed" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Web Search functionality in the Start Menu
+
+	.PARAMETER Disable
+	Disable Web Search in the Start Menu
+
+	.PARAMETER Enable
+	Enable Web Search in the Start Menu
+
+	.EXAMPLE
+	WebSearch -Disable
+
+	.EXAMPLE
+	WebSearch -Enable
+
+	.NOTES
+	Current user
+#>
+function WebSearch
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Web Search in the Start Menu - " -NoNewline
+			LogInfo "Enabling Web Search in the Start Menu"
+			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -ErrorAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 1 | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Web Search in the Start Menu - " -NoNewline
+			LogInfo "Disabling Web Search in the Start Menu"
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 0 | Out-Null
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Activity History related notifications in Task View
+
+    .PARAMETER Hide
+    Do not show Activity History-related notifications in Task View
+
+    .PARAMETER Show
+    Show Activity History-related notifications in Task View
+
+    .EXAMPLE
+    ActivityHistory -Enable
+
+    .EXAMPLE
+    ActivityHistory -Disable
+
+    .NOTES
+    Current user
+#>
+# Note: The checkbox "Store my activity history on this device" ("Let Windows collect my activities from this PC" on older versions) remains checked even when the function is disabled
+function ActivityHistory
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Activity History related notifications in Task View - " -NoNewline
+			LogInfo "Enabling Activity History-related notifications in Task View"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Activity History related notifications in Task View - " -NoNewline
+			LogInfo "Disabling Activity History-related notifications in Task View"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+	.SYNOPSIS
+	Controls sensor-related features, such as screen auto-rotation
+
+	.PARAMETER Disable
+	Disable sensor-related features, such as screen auto-rotation
+
+	.PARAMETER Enable
+	Enable sensor-related features, such as screen auto-rotation
+
+	.EXAMPLE
+	Sensors -Disable
+
+	.EXAMPLE
+	Sensors -Enable
+
+	.NOTES
+	Current user
+#>
+function Sensors
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling sensor-related features, such as screen auto-rotation - " -NoNewline
+			LogInfo "Enabling sensor-related features, such as screen auto-rotation"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling sensor-related features, such as screen auto-rotation - " -NoNewline
+			LogInfo "Disabling sensor-related features, such as screen auto-rotation"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Location feature settings and scripting
+
+    .PARAMETER Enable
+    Enable the location feature
+
+    .PARAMETER Disable
+    Disable the location feature
+
+    .EXAMPLE
+    LocationService -Enable
+
+    .EXAMPLE
+    LocationService -Disable
+
+    .NOTES
+    Current user
+#>
+function LocationService
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling location features - " -NoNewline
+			LogInfo "Enabling the location feature for the current user"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling location features - " -NoNewline
+			LogInfo "Disabling the location feature for the current user"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Type DWord -Value 1 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Automatic Map Updates settings and scripting
+
+    .PARAMETER Enable
+    Enable automatic map updates
+
+    .PARAMETER Disable
+    Disable automatic map updates
+
+    .EXAMPLE
+    MapUpdates -Enable
+
+    .EXAMPLE
+    MapUpdates -Disable
+
+    .NOTES
+    Current user
+#>
+function MapUpdates
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling automatic map updates - " -NoNewline
+			LogInfo "Enabling automatic map updates for the current user"
+			Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling automatic map updates - " -NoNewline
+			LogInfo "Disabling automatic map updates for the current user"
+			Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0 -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Location feature settings
+
+    .PARAMETER Enable
+    Enable the setting "Let websites provide locally relevant content by accessing my language list"
+
+    .PARAMETER Disable
+    Disable the setting "Let websites provide locally relevant content by accessing my language list"
+
+    .EXAMPLE
+    WebLangList -Enable
+
+    .EXAMPLE
+    WebLangList -Disable
+
+    .NOTES
+    Current user
+#>
+function WebLangList
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling websites to show relevant content by accessing my language list - " -NoNewline
+			LogInfo "Enabling websites to show relevant content by accessing my language list"
+			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling websites to show relevant content by accessing my language list - " -NoNewline
+			LogInfo "Disabling websites to show relevant content by accessing my language list"
+			Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to camera
+
+    .DESCRIPTION
+    Note: This disables access using standard Windows API. Direct access to device will still be allowed.
+
+    .PARAMETER Enable
+    Enable access to camera
+
+    .PARAMETER Disable
+    Disable access to camera
+
+    .EXAMPLE
+    Camera -Enable
+
+    .EXAMPLE
+    Camera -Disable
+
+    .NOTES
+    Current user
+#>
+function Camera
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Access to use the camera - " -NoNewline
+			LogInfo "Enabling Access to use the camera"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Access to use the camera - " -NoNewline
+			LogInfo "Disabling Access to use the camera"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to microphone settings
+
+    .DESCRIPTION
+    Note: This disables access using standard Windows API. Direct access to device will still be allowed.
+
+    .PARAMETER Enable
+    Enable access to microphone
+
+    .PARAMETER Disable
+    Disable access to microphone
+
+    .EXAMPLE
+    Microphone -Enable
+
+    .EXAMPLE
+    Microphone -Disable
+
+    .NOTES
+    Current user
+#>
+function Microphone
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Access to use the microphone - " -NoNewline
+			LogInfo "Enabling Access to use the microphone"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Access to use the microphone - " -NoNewline
+			LogInfo "Disabling Access to use the microphone"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Device Management Wireless Application Protocol (WAP) Push Service settings
+
+    .DESCRIPTION
+    Note: This service is needed for Microsoft Intune interoperability
+
+    .PARAMETER Enable
+    Enable the Device Management Wireless Application Protocol (WAP) Push Service
+
+    .PARAMETER Disable
+    Disable the Device Management Wireless Application Protocol (WAP) Push Service
+
+    .EXAMPLE
+    WAPPush -Enable
+
+    .EXAMPLE
+    WAPPush -Disable
+
+    .NOTES
+    Current user
+#>
+function WAPPush
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
+			LogInfo "Enabling Device Management Wireless Application Protocol (WAP) Push Service"
+			Set-Service "dmwappushservice" -StartupType Automatic | Out-Null
+			Start-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
+			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
+			LogInfo "Disabling Device Management Wireless Application Protocol (WAP) Push Service"
+			Stop-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
+			Set-Service "dmwappushservice" -StartupType Disabled | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Clearing of recent files on exit
+
+    .DESCRIPTION
+    Empties most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications during every logout
+
+    .PARAMETER Enable
+    Enable the clearing of recent files on exit
+
+    .PARAMETER Disable
+    Disable the clearing of recent files on exit
+
+    .EXAMPLE
+    ClearRecentFiles -Enable
+
+    .EXAMPLE
+    ClearRecentFiles -Disable
+
+    .NOTES
+    Current user
+#>
+function ClearRecentFiles
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling the clearing of recent files on exit - " -NoNewline
+			LogInfo "Enabling the clearing of recent files on exit"
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling the clearing of recent files on exit - " -NoNewline
+			LogInfo "Disabling the clearing of recent files on exit"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Recent files lists settings
+
+    .DESCRIPTION
+    Most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications
+
+    .PARAMETER Enable
+    Enable the recent files lists
+
+    .PARAMETER Disable
+    Disable the recent files lists
+
+    .EXAMPLE
+    RecentFiles -Enable
+
+    .EXAMPLE
+    RecentFiles -Disable
+
+    .NOTES
+    Current user
+#>
+function RecentFiles
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling the recent files lists - " -NoNewline
+			LogInfo "Enabling the recent files lists"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling the recent files lists - " -NoNewline
+			LogInfo "Disabling the recent files lists"
+			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -Type DWord -Value 1 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to voice activation from UWP (Universal Windows Platform) apps
+
+    .PARAMETER Enable
+    Enable access to voice activation from UWP apps
+
+    .PARAMETER Disable
+    Disable access to voice activation from UWP apps
+
+    .EXAMPLE
+    UWPVoiceActivation -Enable
+
+    .EXAMPLE
+    UWPVoiceActivation -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPVoiceActivation
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to voice activation from UWP apps - " -NoNewline
+			LogInfo "Enabling access to voice activation from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue | Out-Null
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to voice activation from UWP apps - " -NoNewline
+			LogInfo "Disabling access to voice activation from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -Type DWord -Value 2 | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to notifications from UWP (Universal Windows Platform) apps
+
+    .PARAMETER Enable
+    Enable access to notifications from UWP apps
+
+    .PARAMETER Disable
+    Disable access to notifications from UWP apps
+
+    .EXAMPLE
+    UWPNotifications -Enable
+
+    .EXAMPLE
+    UWPNotifications -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPNotifications
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to notifications from UWP apps - " -NoNewline
+			LogInfo "Enabling access to notifications from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to notifications from UWP apps - " -NoNewline
+			LogInfo "Disabling access to notifications from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to account info from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to account info from UWP apps
+
+    .PARAMETER Disable
+    Disable access to account info from UWP apps
+
+    .EXAMPLE
+    UWPAccountInfo -Enable
+
+    .EXAMPLE
+    UWPAccountInfo -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPAccountInfo
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to account info from UWP apps - " -NoNewline
+			LogInfo "Enabling access to account info from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to account info from UWP apps - " -NoNewline
+			LogInfo "Disabling access to account info from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to contacts from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to contacts from UWP apps
+
+    .PARAMETER Disable
+    Disable access to contacts from UWP apps
+
+    .EXAMPLE
+    UWPContacts -Enable
+
+    .EXAMPLE
+    UWPContacts -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPContacts
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to contacts from UWP apps - " -NoNewline
+			LogInfo "Enabling access to contacts from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to contacts from UWP apps - " -NoNewline
+			LogInfo "Disabling access to contacts from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to calendar from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to calendar from UWP apps
+
+    .PARAMETER Disable
+    Disable access to calendar from UWP apps
+
+    .EXAMPLE
+    UWPCalendar -Enable
+
+    .EXAMPLE
+    UWPCalendar -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPCalendar
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to calendar from UWP apps - " -NoNewline
+			LogInfo "Enabling access to calendar from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to calendar from UWP apps - " -NoNewline
+			LogInfo "Disabling access to calendar from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to phone calls from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to phone calls from UWP apps
+
+    .PARAMETER Disable
+    Disable access to phone calls from UWP apps
+
+    .EXAMPLE
+    UWPPhoneCalls -Enable
+
+    .EXAMPLE
+    UWPPhoneCalls -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPPhoneCalls
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to phone calls from UWP apps - " -NoNewline
+			LogInfo "Enabling access to phone calls from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to phone calls from UWP apps - " -NoNewline
+			LogInfo "Disabling access to phone calls from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to call history from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to call history from UWP apps
+
+    .PARAMETER Disable
+    Disable access to call history from UWP apps
+
+    .EXAMPLE
+    UWPCallHistory -Enable
+
+    .EXAMPLE
+    UWPCallHistory -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPCallHistory
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to call history from UWP apps - " -NoNewline
+			LogInfo "Enabling access to call history from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to call history from UWP apps - " -NoNewline
+			LogInfo "Disabling access to call history from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to email from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to email from UWP apps
+
+    .PARAMETER Disable
+    Disable access to email from UWP apps
+
+    .EXAMPLE
+    UWPEmail -Enable
+
+    .EXAMPLE
+    UWPEmail -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPEmail
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to email from UWP apps - " -NoNewline
+			LogInfo "Enabling access to email from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to email from UWP apps - " -NoNewline
+			LogInfo "Disabling access to email from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to tasks from UWP (Universal Windows Platform) apps
+
+    .PARAMETER Enable
+    Enable access to tasks from UWP apps
+
+    .PARAMETER Disable
+    Disable access to tasks from UWP apps
+
+    .EXAMPLE
+    UWPTasks -Enable
+
+    .EXAMPLE
+    UWPTasks -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPTasks
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to tasks from UWP apps - " -NoNewline
+			LogInfo "Enabling access to tasks from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to tasks from UWP apps - " -NoNewline
+			LogInfo "Disabling access to tasks from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to messaging (SMS, MMS) from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to messaging (SMS, MMS) from UWP apps
+
+    .PARAMETER Disable
+    Disable access to messaging (SMS, MMS) from UWP apps
+
+    .EXAMPLE
+    UWPMessaging -Enable
+
+    .EXAMPLE
+    UWPMessaging -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPMessaging
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
+			LogInfo "Enabling access to messaging (SMS, MMS) from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
+			LogInfo "Disabling access to messaging (SMS, MMS) from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to radios (e.g. Bluetooth) from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to radios (e.g. Bluetooth) from UWP apps
+
+    .PARAMETER Disable
+    Disable access to radios (e.g. Bluetooth) from UWP apps
+
+    .EXAMPLE
+    UWPRadios -Enable
+
+    .EXAMPLE
+    UWPRadios -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPRadios
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
+			LogInfo "Enabling access to radios (e.g. Bluetooth) from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
+			LogInfo "Disabling access to radios (e.g. Bluetooth) from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to other devices (unpaired, beacons, TVs etc.) from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to other devices (unpaired, beacons, TVs etc.) from UWP apps
+
+    .PARAMETER Disable
+    Disable access to other devices (unpaired, beacons, TVs etc.) from UWP apps
+
+    .EXAMPLE
+    UWPOtherDevices -Enable
+
+    .EXAMPLE
+    UWPOtherDevices -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPOtherDevices
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
+			LogInfo "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
+			LogInfo "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to diagnostic information from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to diagnostic information from UWP apps
+
+    .PARAMETER Disable
+    Disable access to diagnostic information from UWP apps
+
+    .EXAMPLE
+    UWPDiagInfo -Enable
+
+    .EXAMPLE
+    UWPDiagInfo -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPDiagInfo
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to diagnostic information from UWP apps - " -NoNewline
+			LogInfo "Enabling access to diagnostic information from UWP apps"
+			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to diagnostic information from UWP apps - " -NoNewline
+			LogInfo "Disabling access to diagnostic information from UWP apps"
+			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			}
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -Type DWord -Value 2 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    Access to libraries and file system from UWP (Universal Windows Platform) apps settings
+
+    .PARAMETER Enable
+    Enable access to libraries and file system from UWP apps
+
+    .PARAMETER Disable
+    Disable access to libraries and file system from UWP apps
+
+    .EXAMPLE
+    UWPFileSystem -Enable
+
+    .EXAMPLE
+    UWPFileSystem -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPFileSystem
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling access to libraries and the file system from UWP apps - " -NoNewline
+			LogInfo "Enabling access to libraries and the file system from UWP apps"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Allow" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling access to libraries and the file system from UWP apps - " -NoNewline
+			LogInfo "Disabling access to libraries and the file system from UWP apps"
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Deny" | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+<#
+    .SYNOPSIS
+    UWP apps swap file settings
+
+    .DESCRIPTION
+    This disables creation and use of swapfile.sys and frees 256 MB of disk space. Swapfile.sys is used only by UWP apps.
+	IMPORTANT: The tweak has no effect on the real swap in pagefile.sys.
+
+    .PARAMETER Enable
+    Enable the UWP apps swap file
+
+    .PARAMETER Disable
+    Disable the UWP apps swap file
+
+    .EXAMPLE
+    UWPSwapFile -Enable
+
+    .EXAMPLE
+    UWPSwapFile -Disable
+
+    .NOTES
+    Current user
+#>
+function UWPSwapFile
+{
+	param
+	(
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Enable"
+		)]
+		[switch]
+		$Enable,
+
+		[Parameter(
+			Mandatory = $true,
+			ParameterSetName = "Disable"
+		)]
+		[switch]
+		$Disable
+	)
+
+	switch ($PSCmdlet.ParameterSetName)
+	{
+		"Enable"
+		{
+			Write-Host "Enabling the UWP apps swap file - " -NoNewline
+			LogInfo "Enabling the UWP apps swap file"
+			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		"Disable"
+		{
+			Write-Host "Disabling the UWP apps swap file - " -NoNewline
+			LogInfo "Disabling the UWP apps swap file"
+			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0 | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+	}
+}
+
+#endregion Privacy & Telemetry
 
 #region UI & Personalization
+
+<#
+.SYNOPSIS
+Enable or disable displaying full path in Explorer window title
+
+.PARAMETER Enable
+Enable displaying full path in Explorer title
+
+.PARAMETER Disable
+Disable displaying full path in Explorer title
+
+.EXAMPLE
+ExplorerTitleFullPath -Enable
+
+.EXAMPLE
+ExplorerTitleFullPath -Disable
+
+.NOTES
+Current user
+#>
 function ExplorerTitleFullPath
 {
 	param
@@ -4990,6 +6948,25 @@ function ExplorerTitleFullPath
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable showing folder merge conflict notifications
+
+.PARAMETER Enable
+Enable showing folder merge conflict notifications
+
+.PARAMETER Disable
+Disable showing folder merge conflict notifications
+
+.EXAMPLE
+FolderMergeConflicts -Enable
+
+.EXAMPLE
+FolderMergeConflicts -Disable
+
+.NOTES
+Current user
+#>
 function FolderMergeConflicts
 {
 	param
@@ -5028,6 +7005,25 @@ function FolderMergeConflicts
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable showing all folders in Explorer navigation pane
+
+.PARAMETER Enable
+Enable showing all folders in navigation pane
+
+.PARAMETER Disable
+Disable showing all folders in navigation pane
+
+.EXAMPLE
+NavPaneAllFolders -Enable
+
+.EXAMPLE
+NavPaneAllFolders -Disable
+
+.NOTES
+Current user
+#>
 function NavPaneAllFolders
 {
 	param
@@ -5066,6 +7062,25 @@ function NavPaneAllFolders
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable showing Libraries in Explorer navigation pane
+
+.PARAMETER Enable
+Enable showing Libraries in navigation pane
+
+.PARAMETER Disable
+Disable showing Libraries in navigation pane
+
+.EXAMPLE
+NavPaneLibraries -Enable
+
+.EXAMPLE
+NavPaneLibraries -Disable
+
+.NOTES
+Current user
+#>
 function NavPaneLibraries
 {
 	param
@@ -5107,6 +7122,25 @@ function NavPaneLibraries
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable launching folder windows in a separate process
+
+.PARAMETER Enable
+Enable launching folder windows in a separate process
+
+.PARAMETER Disable
+Disable launching folder windows in a separate process
+
+.EXAMPLE
+FldrSeparateProcess -Enable
+
+.EXAMPLE
+FldrSeparateProcess -Disable
+
+.NOTES
+Current user
+#>
 function FldrSeparateProcess
 {
 	param
@@ -5145,6 +7179,25 @@ function FldrSeparateProcess
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable restoring previous folder windows at logon
+
+.PARAMETER Enable
+Enable restoring previous folder windows at logon
+
+.PARAMETER Disable
+Disable restoring previous folder windows at logon
+
+.EXAMPLE
+RestoreFldrWindows -Enable
+
+.EXAMPLE
+RestoreFldrWindows -Disable
+
+.NOTES
+Current user
+#>
 function RestoreFldrWindows
 {
 	param
@@ -5183,6 +7236,25 @@ function RestoreFldrWindows
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed)
+
+.PARAMETER Enable
+Enable coloring of encrypted or compressed NTFS files
+
+.PARAMETER Disable
+Disable coloring of encrypted or compressed NTFS files
+
+.EXAMPLE
+EncCompFilesColor -Enable
+
+.EXAMPLE
+EncCompFilesColor -Disable
+
+.NOTES
+Current user
+#>
 function EncCompFilesColor
 {
 	param
@@ -5221,6 +7293,25 @@ function EncCompFilesColor
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable Sharing Wizard in Explorer
+
+.PARAMETER Enable
+Enable Sharing Wizard
+
+.PARAMETER Disable
+Disable Sharing Wizard
+
+.EXAMPLE
+SharingWizard -Enable
+
+.EXAMPLE
+SharingWizard -Disable
+
+.NOTES
+Current user
+#>
 function SharingWizard
 {
 	param
@@ -5259,6 +7350,25 @@ function SharingWizard
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable item selection checkboxes in Explorer
+
+.PARAMETER Enable
+Enable item selection checkboxes
+
+.PARAMETER Disable
+Disable item selection checkboxes
+
+.EXAMPLE
+SelectCheckboxes -Enable
+
+.EXAMPLE
+SelectCheckboxes -Disable
+
+.NOTES
+Current user
+#>
 function SelectCheckboxes
 {
 	param
@@ -5297,6 +7407,25 @@ function SelectCheckboxes
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable sync provider notifications in Explorer
+
+.PARAMETER Enable
+Enable sync provider notifications
+
+.PARAMETER Disable
+Disable sync provider notifications
+
+.EXAMPLE
+SyncNotifications -Enable
+
+.EXAMPLE
+SyncNotifications -Disable
+
+.NOTES
+Current user
+#>
 function SyncNotifications
 {
 	param
@@ -5335,6 +7464,28 @@ function SyncNotifications
 	}
 }
 
+<#
+.SYNOPSIS
+Enable or disable recently and frequently used item shortcuts in Explorer
+
+.DESCRIPTION
+Note: This is only a UI tweak to hide the shortcuts. In order to stop creating most recently used (MRU) items lists everywhere, use privacy tweak 'DisableRecentFiles' instead.
+
+.PARAMETER Enable
+Enable hiding recently and frequently used item shortcuts
+
+.PARAMETER Disable
+Disable hiding recently and frequently used item shortcuts
+
+.EXAMPLE
+RecentShortcuts -Enable
+
+.EXAMPLE
+RecentShortcuts -Disable
+
+.NOTES
+Current user
+#>
 function RecentShortcuts
 {
 	param
@@ -5375,6 +7526,25 @@ function RecentShortcuts
 	}
 }
 
+<#
+    .SYNOPSIS
+    Windows build number and edition display on desktop
+
+    .PARAMETER Enable
+    Enable the build number and edition display
+
+    .PARAMETER Disable
+    Disable the build number and edition display
+
+    .EXAMPLE
+    BuildNumberOnDesktop -Enable
+
+    .EXAMPLE
+    BuildNumberOnDesktop -Disable
+
+    .NOTES
+    Current user
+#>
 function BuildNumberOnDesktop
 {
 	param
@@ -5413,6 +7583,25 @@ function BuildNumberOnDesktop
 	}
 }
 
+<#
+    .SYNOPSIS
+    Share context menu item
+
+    .PARAMETER Enable
+    Enable the Share context menu item
+
+    .PARAMETER Disable
+    Disable the Share context menu item
+
+    .EXAMPLE
+    ShareMenu -Enable
+
+    .EXAMPLE
+    ShareMenu -Disable
+
+    .NOTES
+    Current user
+#>
 function ShareMenu
 {
 	param
@@ -5458,6 +7647,25 @@ function ShareMenu
 	}
 }
 
+<#
+    .SYNOPSIS
+    Show thumbnails instead of file extension icons
+
+    .PARAMETER Enable
+    Show thumbnails for files
+
+    .PARAMETER Disable
+    Show only file extension icons
+
+    .EXAMPLE
+    Thumbnails -Enable
+
+    .EXAMPLE
+    Thumbnails -Disable
+
+    .NOTES
+    Current user
+#>
 function Thumbnails
 {
 	param
@@ -5496,6 +7704,25 @@ function Thumbnails
 	}
 }
 
+<#
+    .SYNOPSIS
+    Creation of thumbnail cache files
+
+    .PARAMETER Enable
+    Enable creation of thumbnail cache files
+
+    .PARAMETER Disable
+    Disable creation of thumbnail cache files
+
+    .EXAMPLE
+    ThumbnailCache -Enable
+
+    .EXAMPLE
+    ThumbnailCache -Disable
+
+    .NOTES
+    Current user
+#>
 function ThumbnailCache
 {
 	param
@@ -5534,6 +7761,25 @@ function ThumbnailCache
 	}
 }
 
+<#
+    .SYNOPSIS
+    Creation of Thumbs.db thumbnail cache files on network folders
+
+    .PARAMETER Enable
+    Enable creation of Thumbs.db cache on network folders
+
+    .PARAMETER Disable
+    Disable creation of Thumbs.db cache on network folders
+
+    .EXAMPLE
+    ThumbsDBOnNetwork -Enable
+
+    .EXAMPLE
+    ThumbsDBOnNetwork -Disable
+
+    .NOTES
+    Current user
+#>
 function ThumbsDBOnNetwork
 {
 	param
@@ -5572,6 +7818,25 @@ function ThumbsDBOnNetwork
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "This PC" icon on Desktop
+
+	.PARAMETER Show
+	Show the "This PC" icon on Desktop
+
+	.PARAMETER Hide
+	Hide the "This PC" icon on Desktop
+
+	.EXAMPLE
+	ThisPC -Show
+
+	.EXAMPLE
+	ThisPC -Hide
+
+	.NOTES
+	Current user
+#>
 function ThisPC
 {
 	param
@@ -5614,6 +7879,25 @@ function ThisPC
 	}
 }
 
+<#
+	.SYNOPSIS
+	Item check boxes
+
+	.PARAMETER Disable
+	Do not use item check boxes
+
+	.PARAMETER Enable
+	Use check item check boxes
+
+	.EXAMPLE
+	CheckBoxes -Disable
+
+	.EXAMPLE
+	CheckBoxes -Enable
+
+	.NOTES
+	Current user
+#>
 function CheckBoxes
 {
 	param
@@ -5652,6 +7936,25 @@ function CheckBoxes
 	}
 }
 
+<#
+	.SYNOPSIS
+	Hidden files, folders, and drives
+
+	.PARAMETER Enable
+	Show hidden files, folders, and drives
+
+	.PARAMETER Disable
+	Do not show hidden files, folders, and drives
+
+	.EXAMPLE
+	HiddenItems -Enable
+
+	.EXAMPLE
+	HiddenItems -Disable
+
+	.NOTES
+	Current user
+#>
 function HiddenItems
 {
 	param
@@ -5690,6 +7993,25 @@ function HiddenItems
 	}
 }
 
+<#
+	.SYNOPSIS
+	Show or hide protected operating system files
+
+	.PARAMETER Enable
+	Show protected operating system files
+
+	.PARAMETER Disable
+	Do not show protected operating system files
+
+	.EXAMPLE
+	SuperHiddenFiles -Enable
+
+	.EXAMPLE
+	SuperHiddenFiles -Disable
+
+	.NOTES
+	Current user
+#>
 function SuperHiddenFiles
 {
 	param
@@ -5728,6 +8050,25 @@ function SuperHiddenFiles
 	}
 }
 
+<#
+	.SYNOPSIS
+	File name extensions
+
+	.PARAMETER Show
+	Show file name extensions
+
+	.PARAMETER Hide
+	Hide file name extensions
+
+	.EXAMPLE
+	FileExtensions -Show
+
+	.EXAMPLE
+	FileExtensions -Hide
+
+	.NOTES
+	Current user
+#>
 function FileExtensions
 {
 	param
@@ -5766,6 +8107,25 @@ function FileExtensions
 	}
 }
 
+<#
+	.SYNOPSIS
+	Folder merge conflicts
+
+	.PARAMETER Show
+	Show folder merge conflicts
+
+	.PARAMETER Hide
+	Hide folder merge conflicts
+
+	.EXAMPLE
+	MergeConflicts -Show
+
+	.EXAMPLE
+	MergeConflicts -Hide
+
+	.NOTES
+	Current user
+#>
 function MergeConflicts
 {
 	param
@@ -5804,6 +8164,31 @@ function MergeConflicts
 	}
 }
 
+<#
+	.SYNOPSIS
+	Configure how to open File Explorer
+
+	.PARAMETER ThisPC
+	Open File Explorer to "This PC"
+
+	.PARAMETER QuickAccess
+	Open File Explorer to Quick access
+
+	.PARAMETER Downloads
+	Open File Explorer to Downloads
+
+	.EXAMPLE
+	OpenFileExplorerTo -ThisPC
+
+	.EXAMPLE
+	OpenFileExplorerTo -QuickAccess
+
+	.EXAMPLE
+	OpenFileExplorerTo -Downloads
+
+	.NOTES
+	Current user
+#>
 function OpenFileExplorerTo
 {
 	param
@@ -5856,6 +8241,25 @@ function OpenFileExplorerTo
 	}
 }
 
+<#
+	.SYNOPSIS
+	File Explorer mode
+
+	.PARAMETER Disable
+	Disable File Explorer compact mode
+
+	.PARAMETER Enable
+	Enable File Explorer compact mode
+
+	.EXAMPLE
+	FileExplorerCompactMode -Disable
+
+	.EXAMPLE
+	FileExplorerCompactMode -Enable
+
+	.NOTES
+	Current user
+#>
 function FileExplorerCompactMode
 {
 	param
@@ -5893,6 +8297,26 @@ function FileExplorerCompactMode
 		}
 	}
 }
+
+<#
+	.SYNOPSIS
+	Sync provider notification in File Explorer
+
+	.PARAMETER Hide
+	Do not show sync provider notification within File Explorer
+
+	.PARAMETER Show
+	Show sync provider notification within File Explorer
+
+	.EXAMPLE
+	OneDriveFileExplorerAd -Hide
+
+	.EXAMPLE
+	OneDriveFileExplorerAd -Show
+
+	.NOTES
+	Current user
+#>
 
 function OneDriveFileExplorerAd
 {
@@ -5932,6 +8356,25 @@ function OneDriveFileExplorerAd
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows snapping
+
+	.PARAMETER Disable
+	When I snap a window, do not show what I can snap next to it
+
+	.PARAMETER Enable
+	When I snap a window, show what I can snap next to it
+
+	.EXAMPLE
+	SnapAssist -Disable
+
+	.EXAMPLE
+	SnapAssist -Enable
+
+	.NOTES
+	Current user
+#>
 function SnapAssist
 {
 	param
@@ -5972,6 +8415,25 @@ function SnapAssist
 	}
 }
 
+<#
+	.SYNOPSIS
+	The file transfer dialog box mode
+
+	.PARAMETER Detailed
+	Show the file transfer dialog box in the detailed mode
+
+	.PARAMETER Compact
+	Show the file transfer dialog box in the compact mode
+
+	.EXAMPLE
+	FileTransferDialog -Detailed
+
+	.EXAMPLE
+	FileTransferDialog -Compact
+
+	.NOTES
+	Current user
+#>
 function FileTransferDialog
 {
 	param
@@ -6015,6 +8477,25 @@ function FileTransferDialog
 	}
 }
 
+<#
+	.SYNOPSIS
+	The recycle bin files delete confirmation dialog
+
+	.PARAMETER Enable
+	Display the recycle bin files delete confirmation dialog
+
+	.PARAMETER Disable
+	Do not display the recycle bin files delete confirmation dialog
+
+	.EXAMPLE
+	RecycleBinDeleteConfirmation -Enable
+
+	.EXAMPLE
+	RecycleBinDeleteConfirmation -Disable
+
+	.NOTES
+	Current user
+#>
 function RecycleBinDeleteConfirmation
 {
 	param
@@ -6062,6 +8543,25 @@ function RecycleBinDeleteConfirmation
 	}
 }
 
+<#
+	.SYNOPSIS
+	Recently used files in Quick access
+
+	.PARAMETER Hide
+	Hide recently used files in Quick access
+
+	.PARAMETER Show
+	Show recently used files in Quick access
+
+	.EXAMPLE
+	QuickAccessRecentFiles -Hide
+
+	.EXAMPLE
+	QuickAccessRecentFiles -Show
+
+	.NOTES
+	Current user
+#>
 function QuickAccessRecentFiles
 {
 	param
@@ -6105,6 +8605,25 @@ function QuickAccessRecentFiles
 	}
 }
 
+<#
+	.SYNOPSIS
+	Frequently used folders in Quick access
+
+	.PARAMETER Hide
+	Hide frequently used folders in Quick access
+
+	.PARAMETER Show
+	Show frequently used folders in Quick access
+
+	.EXAMPLE
+	QuickAccessFrequentFolders -Hide
+
+	.EXAMPLE
+	QuickAccessFrequentFolders -Show
+
+	.NOTES
+	Current user
+#>
 function QuickAccessFrequentFolders
 {
 	param
@@ -6143,6 +8662,25 @@ function QuickAccessFrequentFolders
 	}
 }
 
+<#
+	.SYNOPSIS
+	The Meet Now icon in the notification area
+
+	.PARAMETER Hide
+	Hide the Meet Now icon in the notification area
+
+	.PARAMETER Show
+	Show the Meet Now icon in the notification area
+
+	.EXAMPLE
+	MeetNow -Hide
+
+	.EXAMPLE
+	MeetNow -Show
+
+	.NOTES
+	Current user only
+#>
 function MeetNow
 {
 	param
@@ -6192,6 +8730,28 @@ function MeetNow
 	}
 }
 
+<#
+	.SYNOPSIS
+	News and Interests
+
+	.PARAMETER Disable
+	Disable "News and Interests" on the taskbar
+
+	.PARAMETER Enable
+	Enable "News and Interests" on the taskbar
+
+	.EXAMPLE
+	NewsInterests -Disable
+
+	.EXAMPLE
+	NewsInterests -Enable
+
+	.NOTES
+	https://forums.mydigitallife.net/threads/taskbarda-widgets-registry-change-is-now-blocked.88547/#post-1848877
+
+	.NOTES
+	Current user
+#>
 function NewsInterests
 {
 	param
@@ -6290,6 +8850,25 @@ public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int ou
 	}
 }
 
+<#
+	.SYNOPSIS
+	Taskbar alignment
+
+	.PARAMETER Left
+	Set the taskbar alignment to the left
+
+	.PARAMETER Center
+	Set the taskbar alignment to the center
+
+	.EXAMPLE
+	TaskbarAlignment -Center
+
+	.EXAMPLE
+	TaskbarAlignment -Left
+
+	.NOTES
+	Current user
+#>
 function TaskbarAlignment
 {
 	param
@@ -6328,6 +8907,25 @@ function TaskbarAlignment
 	}
 }
 
+<#
+	.SYNOPSIS
+	The widgets icon on the taskbar
+
+	.PARAMETER Hide
+	Hide the widgets icon on the taskbar
+
+	.PARAMETER Show
+	Show the widgets icon on the taskbar
+
+	.EXAMPLE
+	TaskbarWidgets -Hide
+
+	.EXAMPLE
+	TaskbarWidgets -Show
+
+	.NOTES
+	Current user
+#>
 function TaskbarWidgets
 {
 	param
@@ -6382,6 +8980,34 @@ function TaskbarWidgets
 	Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force | Out-Null
 }
 
+<#
+	.SYNOPSIS
+	Search on the taskbar
+
+	.PARAMETER Hide
+	Hide the search on the taskbar
+
+	.PARAMETER SearchIcon
+	Show the search icon on the taskbar
+
+	.PARAMETER SearchBox
+	Show the search box on the taskbar
+
+	.EXAMPLE
+	TaskbarSearch -Hide
+
+	.EXAMPLE
+	TaskbarSearch -SearchIcon
+
+	.EXAMPLE
+	TaskbarSearch -SearchIconLabel
+
+	.EXAMPLE
+	TaskbarSearch -SearchBox
+
+	.NOTES
+	Current user
+#>
 function TaskbarSearch
 {
 	param
@@ -6454,6 +9080,25 @@ function TaskbarSearch
 	}
 }
 
+<#
+	.SYNOPSIS
+	Search highlights
+
+	.PARAMETER Hide
+	Hide search highlights
+
+	.PARAMETER Show
+	Show search highlights
+
+	.EXAMPLE
+	SearchHighlights -Hide
+
+	.EXAMPLE
+	SearchHighlights -Show
+
+	.NOTES
+	Current user
+#>
 function SearchHighlights
 {
 	param
@@ -6511,6 +9156,25 @@ function SearchHighlights
 	}
 }
 
+<#
+	.SYNOPSIS
+	Task view button on the taskbar
+
+	.PARAMETER Hide
+	Hide the Task view button on the taskbar
+
+	.PARAMETER Show
+	Show the Task View button on the taskbar
+
+	.EXAMPLE
+	TaskViewButton -Hide
+
+	.EXAMPLE
+	TaskViewButton -Show
+
+	.NOTES
+	Current user
+#>
 function TaskViewButton
 {
 	param
@@ -6554,6 +9218,31 @@ function TaskViewButton
 	}
 }
 
+<#
+	.SYNOPSIS
+	Combine taskbar buttons and hide labels
+
+	.PARAMETER Always
+	Combine taskbar buttons and always hide labels
+
+	.PARAMETER Full
+	Combine taskbar buttons and hide labels when taskbar is full
+
+	.PARAMETER Never
+	Combine taskbar buttons and never hide labels
+
+	.EXAMPLE
+	TaskbarCombine -Always
+
+	.EXAMPLE
+	TaskbarCombine -Full
+
+	.EXAMPLE
+	TaskbarCombine -Never
+
+	.NOTES
+	Current user
+#>
 function TaskbarCombine
 {
 	param
@@ -6611,6 +9300,25 @@ function TaskbarCombine
 	}
 }
 
+<#
+	.SYNOPSIS
+	Unpin shortcuts from the taskbar
+
+	.PARAMETER Edge
+	Unpin Microsoft Edge shortcut from the taskbar
+
+	.PARAMETER Store
+	Unpin Microsoft Store from the taskbar
+
+	.PARAMETER Outlook
+	Unpin Outlook shortcut from the taskbar
+
+	.EXAMPLE
+	UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook
+
+	.NOTES
+	Current user
+#>
 function UnpinTaskbarShortcuts
 {
 	[CmdletBinding()]
@@ -6684,6 +9392,25 @@ function UnpinTaskbarShortcuts
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	End task in taskbar by right click
+
+	.PARAMETER Enable
+	Enable end task in taskbar by right click
+
+	.PARAMETER Disable
+	Disable end task in taskbar by right click
+
+	.EXAMPLE
+	TaskbarEndTask -Enable
+
+	.EXAMPLE
+	TaskbarEndTask -Disable
+
+	.NOTES
+	Current user
+#>
 function TaskbarEndTask
 {
 	param
@@ -6727,6 +9454,31 @@ function TaskbarEndTask
 	}
 }
 
+<#
+	.SYNOPSIS
+	The Control Panel icons view
+
+	.PARAMETER Category
+	View the Control Panel icons by category
+
+	.PARAMETER LargeIcons
+	View the Control Panel icons by large icons
+
+	.PARAMETER SmallIcons
+	View the Control Panel icons by Small icons
+
+	.EXAMPLE
+	ControlPanelView -Category
+
+	.EXAMPLE
+	ControlPanelView -LargeIcons
+
+	.EXAMPLE
+	ControlPanelView -SmallIcons
+
+	.NOTES
+	Current user
+#>
 function ControlPanelView
 {
 	param
@@ -6791,6 +9543,25 @@ function ControlPanelView
 	}
 }
 
+<#
+	.SYNOPSIS
+	The default Windows mode
+
+	.PARAMETER Dark
+	Set the default Windows mode to dark
+
+	.PARAMETER Light
+	Set the default Windows mode to light
+
+	.EXAMPLE
+	WindowsColorScheme -Dark
+
+	.EXAMPLE
+	WindowsColorScheme -Light
+
+	.NOTES
+	Current user
+#>
 function WindowsColorMode
 {
 	param
@@ -6829,6 +9600,25 @@ function WindowsColorMode
 	}
 }
 
+<#
+	.SYNOPSIS
+	The default app mode
+
+	.PARAMETER Dark
+	Set the default app mode to dark
+
+	.PARAMETER Light
+	Set the default app mode to light
+
+	.EXAMPLE
+	AppColorMode -Dark
+
+	.EXAMPLE
+	AppColorMode -Light
+
+	.NOTES
+	Current user
+#>
 function AppColorMode
 {
 	param
@@ -6867,6 +9657,25 @@ function AppColorMode
 	}
 }
 
+<#
+	.SYNOPSIS
+	First sign-in animation after the upgrade
+
+	.PARAMETER Disable
+	Disable first sign-in animation after the upgrade
+
+	.PARAMETER Enable
+	Enable first sign-in animation after the upgrade
+
+	.EXAMPLE
+	FirstLogonAnimation -Disable
+
+	.EXAMPLE
+	FirstLogonAnimation -Enable
+
+	.NOTES
+	Current user
+#>
 function FirstLogonAnimation
 {
 	param
@@ -6909,6 +9718,25 @@ function FirstLogonAnimation
 	}
 }
 
+<#
+	.SYNOPSIS
+	The quality factor of the JPEG desktop wallpapers
+
+	.PARAMETER Max
+	Set the quality factor of the JPEG desktop wallpapers to maximum
+
+	.PARAMETER Default
+	Set the quality factor of the JPEG desktop wallpapers to default
+
+	.EXAMPLE
+	JPEGWallpapersQuality -Max
+
+	.EXAMPLE
+	JPEGWallpapersQuality -Default
+
+	.NOTES
+	Current user
+#>
 function JPEGWallpapersQuality
 {
 	param
@@ -6947,6 +9775,25 @@ function JPEGWallpapersQuality
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "- Shortcut" suffix adding to the name of the created shortcuts
+
+	.PARAMETER Disable
+	Do not add the "- Shortcut" suffix to the file name of created shortcuts
+
+	.PARAMETER Enable
+	Add the "- Shortcut" suffix to the file name of created shortcuts
+
+	.EXAMPLE
+	ShortcutsSuffix -Disable
+
+	.EXAMPLE
+	ShortcutsSuffix -Enable
+
+	.NOTES
+	Current user
+#>
 function ShortcutsSuffix
 {
 	param
@@ -6991,6 +9838,25 @@ function ShortcutsSuffix
 	}
 }
 
+<#
+	.SYNOPSIS
+	Controls the display of shortcut arrow overlay on icons
+
+	.PARAMETER Enable
+	Show shortcut arrow overlay on icons
+
+	.PARAMETER Disable
+	Remove shortcut arrow overlay on icons
+
+	.EXAMPLE
+	ShortcutArrow -Enable
+
+	.EXAMPLE
+	ShortcutArrow -Disable
+
+	.NOTES
+	Current user
+#>
 function ShortcutArrow
 {
 	param
@@ -7032,6 +9898,25 @@ function ShortcutArrow
 	}
 }
 
+<#
+	.SYNOPSIS
+	The Print screen button usage
+
+	.PARAMETER Enable
+	Use the Print screen button to open screen snipping
+
+	.PARAMETER Disable
+	Do not use the Print screen button to open screen snipping
+
+	.EXAMPLE
+	PrtScnSnippingTool -Enable
+
+	.EXAMPLE
+	PrtScnSnippingTool -Disable
+
+	.NOTES
+	Current user
+#>
 function PrtScnSnippingTool
 {
 	param
@@ -7070,6 +9955,25 @@ function PrtScnSnippingTool
 	}
 }
 
+<#
+	.SYNOPSIS
+	A different input method for each app window
+
+	.PARAMETER Enable
+	Let me use a different input method for each app window
+
+	.PARAMETER Disable
+	Do not use a different input method for each app window
+
+	.EXAMPLE
+	AppsLanguageSwitch -Enable
+
+	.EXAMPLE
+	AppsLanguageSwitch -Disable
+
+	.NOTES
+	Current user
+#>
 function AppsLanguageSwitch
 {
 	param
@@ -7108,6 +10012,25 @@ function AppsLanguageSwitch
 	}
 }
 
+<#
+	.SYNOPSIS
+	Title bar window shake
+
+	.PARAMETER Enable
+	When I grab a windows's title bar and shake it, minimize all other windows
+
+	.PARAMETER Disable
+	When I grab a windows's title bar and shake it, don't minimize all other windows
+
+	.EXAMPLE
+	AeroShaking -Enable
+
+	.EXAMPLE
+	AeroShaking -Disable
+
+	.NOTES
+	Current user
+#>
 function AeroShaking
 {
 	param
@@ -7151,6 +10074,25 @@ function AeroShaking
 	}
 }
 
+<#
+	.SYNOPSIS
+	Files and folders grouping in the Downloads folder
+
+	.PARAMETER None
+	Do not group files and folder in the Downloads folder
+
+	.PARAMETER Default
+	Group files and folder by date modified in the Downloads folder (default value)
+
+	.EXAMPLE
+	FolderGroupBy -None
+
+	.EXAMPLE
+	FolderGroupBy -Default
+
+	.NOTES
+	Current user
+#>
 function FolderGroupBy
 {
 	param
@@ -7205,6 +10147,25 @@ function FolderGroupBy
 	}
 }
 
+<#
+	.SYNOPSIS
+	Expand to current folder in navigation pane
+
+	.PARAMETER Disable
+	Do not expand to open folder on navigation pane (default value)
+
+	.PARAMETER Enable
+	Expand to open folder on navigation pane
+
+	.EXAMPLE
+	NavigationPaneExpand -Disable
+
+	.EXAMPLE
+	NavigationPaneExpand -Enable
+
+	.NOTES
+	Current user
+#>
 function NavigationPaneExpand
 {
 	param
@@ -7243,6 +10204,25 @@ function NavigationPaneExpand
 	}
 }
 
+<#
+	.SYNOPSIS
+	Recommended section in Start Menu
+
+	.PARAMETER Hide
+	Remove Recommended section in Start Menu
+
+	.PARAMETER Show
+	Do not remove Recommended section in Start Menu (default value)
+
+	.EXAMPLE
+	StartRecommendedSection -Hide
+
+	.EXAMPLE
+	StartRecommendedSection -Show
+
+	.NOTES
+	Current user
+#>
 function StartRecommendedSection
 {
 	param
@@ -7308,6 +10288,34 @@ function StartRecommendedSection
 #endregion UI & Personalization
 
 #region OneDrive
+<#
+	.SYNOPSIS
+	OneDrive
+
+	.PARAMETER Uninstall
+	Uninstall OneDrive
+
+	.PARAMETER Install
+	Install OneDrive 64-bit depending which installer is triggered
+
+	.PARAMETER Install -AllUsers
+	Install OneDrive 64-bit for all users to %ProgramFiles% depending which installer is triggered
+
+	.EXAMPLE
+	OneDrive -Uninstall
+
+	.EXAMPLE
+	OneDrive -Install
+
+	.EXAMPLE
+	OneDrive -Install -AllUsers
+
+	.NOTES
+	The OneDrive user folder won't be removed
+
+	.NOTES
+	Machine-wide
+#>
 function OneDrive
 {
 	param
@@ -7470,7 +10478,28 @@ function OneDrive
 	}
 }
 #endregion OneDrive
+
 #region System
+
+<#
+	.SYNOPSIS
+	Enable or disable the Windows lock screen
+
+	.PARAMETER Enable
+	Enable the Windows lock screen
+
+	.PARAMETER Disable
+	Disable the Windows lock screen
+
+	.EXAMPLE
+	LockScreen -Enable
+
+	.EXAMPLE
+	LockScreen -Disable
+
+	.NOTES
+	Current user
+#>
 function LockScreen
 {
 	param
@@ -7512,6 +10541,26 @@ function LockScreen
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enable or disable the Windows lock screen
+
+	.PARAMETER Enable
+	Enable the Windows lock screen
+
+	.PARAMETER Disable
+	Disable the Windows lock screen
+
+	.EXAMPLE
+	LockScreen -Enable
+
+	.EXAMPLE
+	LockScreen -Disable
+
+	.NOTES
+	Current user
+	Anniversary Update workaround. The GPO used in DisableLockScreen has been broken in 1607 and fixed again in 1803
+#>
 function LockScreenRS1
 {
 	param
@@ -7560,6 +10609,26 @@ function LockScreenRS1
 	}
 }
 
+<#
+	.SYNOPSIS
+	Show or hide network options on the lock screen
+
+	.PARAMETER Enable
+	Allow network selection from the lock screen
+
+	.PARAMETER Disable
+	Prevent network selection from the lock screen
+
+	.EXAMPLE
+	NetworkFromLockScreen -Enable
+
+	.EXAMPLE
+	NetworkFromLockScreen -Disable
+
+	.NOTES
+	Current user
+#>
+# Network options from Lock Screen
 function NetworkFromLockScreen
 {
 	param
@@ -7598,6 +10667,26 @@ function NetworkFromLockScreen
 	}
 }
 
+<#
+	.SYNOPSIS
+	Shutdown option on the lock screen
+
+	.PARAMETER Enable
+	Allow shutdown from the lock screen
+
+	.PARAMETER Disable
+	Do not allow shutdown from the lock screen
+
+	.EXAMPLE
+	ShutdownFromLockScreen -Enable
+
+	.EXAMPLE
+	ShutdownFromLockScreen -Disable
+
+	.NOTES
+	Current user
+#>
+# Shutdown options from Lock Screen
 function ShutdownFromLockScreen
 {
 	param
@@ -7636,6 +10725,26 @@ function ShutdownFromLockScreen
 	}
 }
 
+<#
+    .SYNOPSIS
+    Lock screen blur effect
+
+    .PARAMETER Enable
+    Enable lock screen blur effect
+
+    .PARAMETER Disable
+    Disable lock screen blur effect
+
+    .EXAMPLE
+    LockScreenBlur -Enable
+
+    .EXAMPLE
+    LockScreenBlur -Disable
+
+    .NOTES
+    Current user
+#>
+# Lock screen Blur - Applicable since 1903
 function LockScreenBlur
 {
 	param
@@ -7674,6 +10783,26 @@ function LockScreenBlur
 	}
 }
 
+<#
+	.SYNOPSIS
+	Task Manager details view in Windows 10 and later
+
+	.PARAMETER Enable
+	Always show full details view in Task Manager
+
+	.PARAMETER Disable
+	Revert Task Manager to default summary view
+
+	.EXAMPLE
+	TaskManagerDetails -Enable
+
+	.EXAMPLE
+	TaskManagerDetails -Disable
+
+	.NOTES
+	Current user
+	Anniversary Update workaround. The GPO used in DisableTaskManagerDetails has been broken in 1607 and fixed again in 1803
+#>
 function TaskManagerDetails
 {
 	param
@@ -7728,6 +10857,25 @@ function TaskManagerDetails
 	}
 }
 
+<#
+	.SYNOPSIS
+	File operation progress details in File Explorer
+
+	.PARAMETER Enable
+	Show detailed file operation progress information
+
+	.PARAMETER Disable
+	Hide detailed file operation progress information
+
+	.EXAMPLE
+	FileOperationsDetails -Enable
+
+	.EXAMPLE
+	FileOperationsDetails -Disable
+
+	.NOTES
+	Current user
+#>
 function FileOperationsDetails
 {
 	param
@@ -7769,6 +10917,25 @@ function FileOperationsDetails
 	}
 }
 
+<#
+	.SYNOPSIS
+	File delete confirmation dialog in File Explorer
+
+	.PARAMETER Enable
+	Show confirmation dialog when deleting files
+
+	.PARAMETER Disable
+	Do not show confirmation dialog when deleting files
+
+	.EXAMPLE
+	FileDeleteConfirm -Enable
+
+	.EXAMPLE
+	FileDeleteConfirm -Disable
+
+	.NOTES
+	Current user
+#>
 function FileDeleteConfirm
 {
 	param
@@ -7810,6 +10977,25 @@ function FileDeleteConfirm
 	}
 }
 
+<#
+	.SYNOPSIS
+	Notification area tray icons visibility in Windows
+
+	.PARAMETER Enable
+	Always show all notification area tray icons
+
+	.PARAMETER Disable
+	Allow Windows to hide inactive notification area tray icons
+
+	.EXAMPLE
+	TrayIcons -Enable
+
+	.EXAMPLE
+	TrayIcons -Disable
+
+	.NOTES
+	Current user
+#>
 function TrayIcons
 {
 	param
@@ -7851,6 +11037,25 @@ function TrayIcons
 	}
 }
 
+<#
+	.SYNOPSIS
+	Search for apps in Microsoft Store from Open with dialog
+
+	.PARAMETER Enable
+	Allow searching for apps in Microsoft Store from Open with dialog
+
+	.PARAMETER Disable
+	Prevent searching for apps in Microsoft Store from Open with dialog
+
+	.EXAMPLE
+	SearchAppInStore -Enable
+
+	.EXAMPLE
+	SearchAppInStore -Disable
+
+	.NOTES
+	Current user
+#>
 function SearchAppInStore
 {
 	param
@@ -7892,6 +11097,25 @@ function SearchAppInStore
 	}
 }
 
+<#
+	.SYNOPSIS
+	How do you want to open this file prompt in Windows
+
+	.PARAMETER Enable
+	Show How do you want to open this file prompt
+
+	.PARAMETER Disable
+	Do not show How do you want to open this file prompt
+
+	.EXAMPLE
+	NewAppPrompt -Enable
+
+	.EXAMPLE
+	NewAppPrompt -Disable
+
+	.NOTES
+	Current user
+#>
 function NewAppPrompt
 {
 	param
@@ -7933,6 +11157,25 @@ function NewAppPrompt
 	}
 }
 
+<#
+	.SYNOPSIS
+	Recently added apps list in Start Menu
+
+	.PARAMETER Enable
+	Show recently added apps list in Start Menu
+
+	.PARAMETER Disable
+	Hide recently added apps list in Start Menu
+
+	.EXAMPLE
+	RecentlyAddedApps -Enable
+
+	.EXAMPLE
+	RecentlyAddedApps -Disable
+
+	.NOTES
+	Current user
+#>
 function RecentlyAddedApps
 {
 	param
@@ -7974,6 +11217,25 @@ function RecentlyAddedApps
 	}
 }
 
+<#
+	.SYNOPSIS
+	Most used apps list in Start Menu
+
+	.PARAMETER Enable
+	Show most used apps list in Start Menu
+
+	.PARAMETER Disable
+	Hide most used apps list in Start Menu
+
+	.EXAMPLE
+	MostUsedApps -Enable
+
+	.EXAMPLE
+	MostUsedApps -Disable
+
+	.NOTES
+	Current user
+#>
 function MostUsedApps
 {
 	param
@@ -8015,6 +11277,25 @@ function MostUsedApps
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows visual effects performance and appearance settings
+
+	.PARAMETER Performance
+	Adjust visual effects for best performance
+
+	.PARAMETER Appearance
+	Adjust visual effects for best appearance
+
+	.EXAMPLE
+	VisualFX -Performance
+
+	.EXAMPLE
+	VisualFX -Appearance
+
+	.NOTES
+	Current user
+#>
 function VisualFX
 {
 	param
@@ -8073,6 +11354,25 @@ function VisualFX
 	}
 }
 
+<#
+	.SYNOPSIS
+	Window title bar color adapts to the prevalent background color
+
+	.PARAMETER Enable
+	Enable title bar color to match prevalent background color
+
+	.PARAMETER Disable
+	Disable title bar color adaptation to background
+
+	.EXAMPLE
+	TitleBarColor -Enable
+
+	.EXAMPLE
+	TitleBarColor -Disable
+
+	.NOTES
+	Current user
+#>
 function TitleBarColor
 {
 	param
@@ -8111,6 +11411,25 @@ function TitleBarColor
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enhanced pointer precision (mouse acceleration) settings
+
+	.PARAMETER Enable
+	Enable enhanced pointer precision
+
+	.PARAMETER Disable
+	Disable enhanced pointer precision
+
+	.EXAMPLE
+	EnhPointerPrecision -Enable
+
+	.EXAMPLE
+	EnhPointerPrecision -Disable
+
+	.NOTES
+	Current user
+#>
 function EnhPointerPrecision
 {
 	param
@@ -8153,6 +11472,25 @@ function EnhPointerPrecision
 	}
 }
 
+<#
+	.SYNOPSIS
+	Play or disable Windows startup sound
+
+	.PARAMETER Enable
+	Play Windows startup sound
+
+	.PARAMETER Disable
+	Do not play Windows startup sound
+
+	.EXAMPLE
+	StartupSound -Enable
+
+	.EXAMPLE
+	StartupSound -Disable
+
+	.NOTES
+	Current user
+#>
 function StartupSound
 {
 	param
@@ -8191,6 +11529,25 @@ function StartupSound
 	}
 }
 
+<#
+	.SYNOPSIS
+	Allow or prevent changing Windows sound scheme
+
+	.PARAMETER Enable
+	Allow changing Windows sound scheme
+
+	.PARAMETER Disable
+	Prevent changing Windows sound scheme
+
+	.EXAMPLE
+	ChangingSoundScheme -Enable
+
+	.EXAMPLE
+	ChangingSoundScheme -Disable
+
+	.NOTES
+	Current user
+#>
 function ChangingSoundScheme
 {
 	param
@@ -8232,6 +11589,25 @@ function ChangingSoundScheme
 	}
 }
 
+<#
+	.SYNOPSIS
+	Verbose startup and shutdown status messages
+
+	.PARAMETER Enable
+	Show detailed status messages during startup and shutdown
+
+	.PARAMETER Disable
+	Hide detailed status messages during startup and shutdown
+
+	.EXAMPLE
+	VerboseStatus -Enable
+
+	.EXAMPLE
+	VerboseStatus -Disable
+
+	.NOTES
+	Current user
+#>
 function VerboseStatus
 {
 	param
@@ -8278,6 +11654,25 @@ function VerboseStatus
 	}
 }
 
+<#
+	.SYNOPSIS
+	Storage Sense
+
+	.PARAMETER Enable
+	Turn on Storage Sense
+
+	.PARAMETER Disable
+	Turn off Storage Sense
+
+	.EXAMPLE
+	StorageSense -Enable
+
+	.EXAMPLE
+	StorageSense -Disable
+
+	.NOTES
+	Current user
+#>
 function StorageSense
 {
 	param
@@ -8339,6 +11734,28 @@ function StorageSense
 	}
 }
 
+<#
+	.SYNOPSIS
+	Hibernation
+
+	.PARAMETER Disable
+	Disable hibernation
+
+	.PARAMETER Enable
+	Enable hibernation
+
+	.EXAMPLE
+	Hibernation -Enable
+
+	.EXAMPLE
+	Hibernation -Disable
+
+	.NOTES
+	It isn't recommended to turn off for laptops
+
+	.NOTES
+	Current user
+#>
 function Hibernation
 {
 	param
@@ -8377,6 +11794,25 @@ function Hibernation
 	}
 }
 
+<#
+	.SYNOPSIS
+	The Windows 260 character path limit
+
+	.PARAMETER Disable
+	Disable the Windows 260 character path limit
+
+	.PARAMETER Enable
+	Enable the Windows 260 character path limit
+
+	.EXAMPLE
+	Win32LongPathLimit -Disable
+
+	.EXAMPLE
+	Win32LongPathLimit -Enable
+
+	.NOTES
+	Machine-wide
+#>
 function Win32LongPathLimit
 {
 	param
@@ -8415,6 +11851,25 @@ function Win32LongPathLimit
 	}
 }
 
+<#
+	.SYNOPSIS
+	Stop error code when BSoD occurs
+
+	.PARAMETER Enable
+	Display Stop error code when BSoD occurs
+
+	.PARAMETER Disable
+	Do not display stop error code when BSoD occurs
+
+	.EXAMPLE
+	BSoDStopError -Enable
+
+	.EXAMPLE
+	BSoDStopError -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function BSoDStopError
 {
 	param
@@ -8453,6 +11908,25 @@ function BSoDStopError
 	}
 }
 
+<#
+	.SYNOPSIS
+	The User Account Control (UAC) behavior
+
+	.PARAMETER Never
+	Never notify
+
+	.PARAMETER Default
+	Notify me only when apps try to make changes to my computer
+
+	.EXAMPLE
+	AdminApprovalMode -Never
+
+	.EXAMPLE
+	AdminApprovalMode -Default
+
+	.NOTES
+	Machine-wide
+#>
 function AdminApprovalMode
 {
 	param
@@ -8511,6 +11985,25 @@ function AdminApprovalMode
 	}
 }
 
+<#
+	.SYNOPSIS
+	Delivery Optimization
+
+	.PARAMETER Disable
+	Turn off Delivery Optimization
+
+	.PARAMETER Enable
+	Turn on Delivery Optimization
+
+	.EXAMPLE
+	DeliveryOptimization -Disable
+
+	.EXAMPLE
+	DeliveryOptimization -Enable
+
+	.NOTES
+	Current user
+#>
 function DeliveryOptimization
 {
 	param
@@ -8562,6 +12055,25 @@ function DeliveryOptimization
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows manages my default printer
+
+	.PARAMETER Disable
+	Do not let Windows manage my default printer
+
+	.PARAMETER Enable
+	Let Windows manage my default printer
+
+	.EXAMPLE
+	WindowsManageDefaultPrinter -Disable
+
+	.EXAMPLE
+	WindowsManageDefaultPrinter -Enable
+
+	.NOTES
+	Current user
+#>
 function WindowsManageDefaultPrinter
 {
 	param
@@ -8602,6 +12114,28 @@ function WindowsManageDefaultPrinter
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows features
+
+	.PARAMETER Disable
+	Disable Windows features
+
+	.PARAMETER Enable
+	Enable Windows features
+
+	.EXAMPLE
+	WindowsFeatures -Disable
+
+	.EXAMPLE
+	WindowsFeatures -Enable
+
+	.NOTES
+	A pop-up dialog box lets a user select features
+
+	.NOTES
+	Current user
+#>
 function WindowsFeatures
 {
 	param
@@ -8891,6 +12425,28 @@ function WindowsFeatures
 	$Form.ShowDialog() | Out-Null
 }
 
+<#
+.SYNOPSIS
+	Optional features
+
+	.PARAMETER Uninstall
+	Uninstall optional features
+
+	.PARAMETER Install
+	Install optional features
+
+	.EXAMPLE
+	WindowsCapabilities -Uninstall
+
+	.EXAMPLE
+	WindowsCapabilities -Install
+
+	.NOTES
+	A pop-up dialog box lets a user select features
+
+	.NOTES
+	Current user
+#>
 function WindowsCapabilities
 {
 	param
@@ -8964,8 +12520,8 @@ function WindowsCapabilities
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		Name="Window"
-		MinHeight="400" MinWidth="415"
-		SizeToContent="Width" WindowStartupLocation="CenterScreen"
+		MinHeight="450" MinWidth="400"
+		SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen"
 		TextOptions.TextFormattingMode="Display" SnapsToDevicePixels="True"
 		FontFamily="Candara" FontSize="16" ShowInTaskbar="True"
 		Background="#F1F1F1" Foreground="#262626">
@@ -8975,16 +12531,15 @@ function WindowsCapabilities
 				<Setter Property="VerticalAlignment" Value="Top"/>
 			</Style>
 			<Style TargetType="CheckBox">
-				<Setter Property="Margin" Value="10, 13, 10, 10"/>
+				<Setter Property="Margin" Value="10, 10, 5, 10"/>
 				<Setter Property="IsChecked" Value="True"/>
 			</Style>
 			<Style TargetType="TextBlock">
-				<Setter Property="Margin" Value="0, 10, 10, 10"/>
+				<Setter Property="Margin" Value="5, 10, 10, 10"/>
 			</Style>
 			<Style TargetType="Button">
 				<Setter Property="Margin" Value="20"/>
 				<Setter Property="Padding" Value="10"/>
-				<Setter Property="IsEnabled" Value="False"/>
 			</Style>
 			<Style TargetType="Border">
 				<Setter Property="Grid.Row" Value="1"/>
@@ -9004,26 +12559,12 @@ function WindowsCapabilities
 				<RowDefinition Height="*"/>
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
-			<Grid Grid.Row="0">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
-				<StackPanel Name="PanelSelectAll" Grid.Column="0" HorizontalAlignment="Left">
-					<CheckBox Name="CheckBoxSelectAll" IsChecked="False"/>
-					<TextBlock Name="TextBlockSelectAll" Margin="10,10, 0, 10"/>
-				</StackPanel>
-				<StackPanel Name="PanelInstallForAll" Grid.Column="1" HorizontalAlignment="Right">
-					<TextBlock Name="TextBlockInstallForAll" Margin="10,10, 0, 10"/>
-					<CheckBox Name="CheckBoxForAllUsers" IsChecked="False"/>
-				</StackPanel>
-			</Grid>
-			<Border>
-				<ScrollViewer>
-					<StackPanel Name="PanelContainer" Orientation="Vertical"/>
-				</ScrollViewer>
-			</Border>
-			<Button Name="ButtonInstall" Grid.Row="2"/>
+			<ScrollViewer Name="Scroll" Grid.Row="0"
+				HorizontalScrollBarVisibility="Disabled"
+				VerticalScrollBarVisibility="Auto">
+				<StackPanel Name="PanelContainer" Orientation="Vertical"/>
+			</ScrollViewer>
+			<Button Name="Button" Grid.Row="2"/>
 		</Grid>
 	</Window>
 "@
@@ -9227,6 +12768,25 @@ function WindowsCapabilities
 	$Form.ShowDialog() | Out-Null
 }
 
+<#
+	.SYNOPSIS
+	Set current network profile category
+
+	.PARAMETER Private
+	Set current network profile to Private
+
+	.PARAMETER Public
+	Set current network profile to Public
+
+	.EXAMPLE
+	CurrentNetwork -Private
+
+	.EXAMPLE
+	CurrentNetwork -Public
+
+	.NOTES
+	Current user
+#>
 function CurrentNetwork
 {
 	param
@@ -9265,6 +12825,25 @@ function CurrentNetwork
 	}
 }
 
+<#
+	.SYNOPSIS
+	Set network category for unidentified networks
+
+	.PARAMETER Private
+	Set unidentified networks to Private profile
+
+	.PARAMETER Public
+	Set unidentified networks to Public profile
+
+	.EXAMPLE
+	UnknownNetworks -Private
+
+	.EXAMPLE
+	UnknownNetworks -Public
+
+	.NOTES
+	Current user
+#>
 function UnknownNetworks
 {
 	param
@@ -9306,6 +12885,25 @@ function UnknownNetworks
 	}
 }
 
+<#
+	.SYNOPSIS
+	Automatic installation of network devices
+
+	.PARAMETER Enable
+	Allow automatic installation of network devices
+
+	.PARAMETER Disable
+	Prevent automatic installation of network devices
+
+	.EXAMPLE
+	NetDevicesAutoInst -Enable
+
+	.EXAMPLE
+	NetDevicesAutoInst -Disable
+
+	.NOTES
+	Current user
+#>
 function NetDevicesAutoInst
 {
 	param
@@ -9347,6 +12945,27 @@ function NetDevicesAutoInst
 	}
 }
 
+<#
+	.SYNOPSIS
+	HomeGroup services configuration
+
+	.PARAMETER Enable
+	Enable HomeGroup services
+
+	.PARAMETER Disable
+	Disable HomeGroup services
+
+	.EXAMPLE
+	HomeGroups -Enable
+
+	.EXAMPLE
+	HomeGroups -Disable
+
+	.NOTES
+	Current user
+	Not applicable since 1803
+	Not applicable to Server
+#>
 function HomeGroups
 {
 	param
@@ -9410,6 +13029,25 @@ function HomeGroups
 	}
 }
 
+<#
+	.SYNOPSIS
+	SMB 1.0 protocol configuration
+
+	.PARAMETER Enable
+	Enable SMB 1.0 protocol
+
+	.PARAMETER Disable
+	Disable SMB 1.0 protocol
+
+	.EXAMPLE
+	SMB1 -Enable
+
+	.EXAMPLE
+	SMB1 -Disable
+
+	.NOTES
+	Current user
+#>
 function SMB1
 {
 	param
@@ -9448,6 +13086,27 @@ function SMB1
 	}
 }
 
+<#
+	.SYNOPSIS
+	SMB Server file and printer sharing configuration
+
+	.PARAMETER Enable
+	Enable SMB Server file and printer sharing
+
+	.PARAMETER Disable
+	Disable SMB Server file and printer sharing
+
+	.EXAMPLE
+	SMBServer -Enable
+
+	.EXAMPLE
+	SMBServer -Disable
+
+	.NOTES
+	Current user
+	Disabling prevents file and printer sharing but allows client connections
+	Do not disable if using Docker with shared drives as it uses SMB internally
+#>
 function SMBServer
 {
 	param
@@ -9489,6 +13148,25 @@ function SMBServer
 	}
 }
 
+<#
+	.SYNOPSIS
+	NetBIOS over TCP/IP configuration on installed network interfaces
+
+	.PARAMETER Enable
+	Enable NetBIOS over TCP/IP on all installed network interfaces
+
+	.PARAMETER Disable
+	Disable NetBIOS over TCP/IP on all installed network interfaces
+
+	.EXAMPLE
+	NetBIOS -Enable
+
+	.EXAMPLE
+	NetBIOS -Disable
+
+	.NOTES
+	Current user
+#>
 function NetBIOS
 {
 	param
@@ -9527,6 +13205,25 @@ function NetBIOS
 	}
 }
 
+<#
+	.SYNOPSIS
+	Link-Local Multicast Name Resolution (LLMNR) protocol configuration
+
+	.PARAMETER Enable
+	Enable LLMNR protocol
+
+	.PARAMETER Disable
+	Disable LLMNR protocol
+
+	.EXAMPLE
+	LLMNR -Enable
+
+	.EXAMPLE
+	LLMNR -Disable
+
+	.NOTES
+	Current user
+#>
 function LLMNR
 {
 	param
@@ -9568,6 +13265,26 @@ function LLMNR
 	}
 }
 
+<#
+	.SYNOPSIS
+	Client for Microsoft Networks configuration on all network interfaces
+
+	.PARAMETER Enable
+	Enable Client for Microsoft Networks on all installed network interfaces
+
+	.PARAMETER Disable
+	Disable Client for Microsoft Networks on all installed network interfaces
+
+	.EXAMPLE
+	MSNetClient -Enable
+
+	.EXAMPLE
+	MSNetClient -Disable
+
+	.NOTES
+	Current user
+#>
+`
 function MSNetClient
 {
 	param
@@ -9606,6 +13323,25 @@ function MSNetClient
 	}
 }
 
+<#
+	.SYNOPSIS
+	Quality of Service (QoS) packet scheduler configuration on all network interfaces
+
+	.PARAMETER Enable
+	Enable QoS packet scheduler on all installed network interfaces
+
+	.PARAMETER Disable
+	Disable QoS packet scheduler on all installed network interfaces
+
+	.EXAMPLE
+	QoS -Enable
+
+	.EXAMPLE
+	QoS -Disable
+
+	.NOTES
+	Current user
+#>
 function QoS
 {
 	param
@@ -9644,6 +13380,27 @@ function QoS
 	}
 }
 
+<#
+	.SYNOPSIS
+	Network Connectivity Status Indicator (NCSI) active probe configuration
+
+	.PARAMETER Enable
+	Enable NCSI active probe
+
+	.PARAMETER Disable
+	Disable NCSI active probe to reduce certain zero-click attack exposure
+
+	.EXAMPLE
+	NCSIProbe -Enable
+
+	.EXAMPLE
+	NCSIProbe -Disable
+
+	.NOTES
+	Current user
+	Disabling may reduce OS ability to detect internet connectivity
+	See https://github.com/Disassembler0/Win10-Initial-Setup-Script/pull/111 for details
+#>
 function NCSIProbe
 {
 	param
@@ -9682,6 +13439,25 @@ function NCSIProbe
 	}
 }
 
+<#
+	.SYNOPSIS
+	Internet Connection Sharing (ICS) configuration, e.g., mobile hotspot
+
+	.PARAMETER Enable
+	Allow Internet Connection Sharing
+
+	.PARAMETER Disable
+	Prevent Internet Connection Sharing
+
+	.EXAMPLE
+	ConnectionSharing -Enable
+
+	.EXAMPLE
+	ConnectionSharing -Disable
+
+	.NOTES
+	Current user
+#>
 function ConnectionSharing
 {
 	param
@@ -9720,6 +13496,25 @@ function ConnectionSharing
 	}
 }
 
+<#
+	.SYNOPSIS
+	Receive updates for other Microsoft products
+
+	.PARAMETER Enable
+	Receive updates for other Microsoft products
+
+	.PARAMETER Disable
+	Do not receive updates for other Microsoft products
+
+	.EXAMPLE
+	UpdateMicrosoftProducts -Enable
+
+	.EXAMPLE
+	UpdateMicrosoftProducts -Disable
+
+	.NOTES
+	Current user
+#>
 function UpdateMicrosoftProducts
 {
 	param
@@ -9762,6 +13557,25 @@ function UpdateMicrosoftProducts
 	}
 }
 
+<#
+	.SYNOPSIS
+	Notification when your PC requires a restart to finish updating
+
+	.PARAMETER Show
+	Notify me when a restart is required to finish updating
+
+	.PARAMETER Hide
+	Do not notify me when a restart is required to finish updating
+
+	.EXAMPLE
+	RestartNotification -Show
+
+	.EXAMPLE
+	RestartNotification -Hide
+
+	.NOTES
+	Machine-wide
+#>
 function RestartNotification
 {
 	param
@@ -9804,6 +13618,25 @@ function RestartNotification
 	}
 }
 
+<#
+	.SYNOPSIS
+	Restart as soon as possible to finish updating
+
+	.PARAMETER Enable
+	Restart as soon as possible to finish updating
+
+	.PARAMETER Disable
+	Don't restart as soon as possible to finish updating
+
+	.EXAMPLE
+	DeviceRestartAfterUpdate -Enable
+
+	.EXAMPLE
+	DeviceRestartAfterUpdate -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function RestartDeviceAfterUpdate
 {
 	param
@@ -9848,6 +13681,25 @@ function RestartDeviceAfterUpdate
 	}
 }
 
+<#
+	.SYNOPSIS
+	Active hours
+
+	.PARAMETER Automatically
+	Automatically adjust active hours for me based on daily usage
+
+	.PARAMETER Manually
+	Manually adjust active hours for me based on daily usage
+
+	.EXAMPLE
+	ActiveHours -Automatically
+
+	.EXAMPLE
+	ActiveHours -Manually
+
+	.NOTES
+	Machine-wide
+#>
 function ActiveHours
 {
 	param
@@ -9896,6 +13748,25 @@ function ActiveHours
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows latest updates
+
+	.PARAMETER Disable
+	Do not get the latest updates as soon as they're available
+
+	.PARAMETER Enable
+	Get the latest updates as soon as they're available
+
+	.EXAMPLE
+	WindowsLatestUpdate -Disable
+
+	.EXAMPLE
+	WindowsLatestUpdate -Enable
+
+	.NOTES
+	Machine-wide
+#>
 function WindowsLatestUpdate
 {
 	param
@@ -9939,6 +13810,28 @@ function WindowsLatestUpdate
 	}
 }
 
+<#
+	.SYNOPSIS
+	Power plan
+
+	.PARAMETER High
+	Set power plan on "High performance"
+
+	.PARAMETER Balanced
+	Set power plan on "Balanced"
+
+	.EXAMPLE
+	PowerPlan -High
+
+	.EXAMPLE
+	PowerPlan -Balanced
+
+	.NOTES
+	It isn't recommended to turn on for laptops
+
+	.NOTES
+	Current user
+#>
 function PowerPlan
 {
 	param
@@ -9981,6 +13874,28 @@ function PowerPlan
 	}
 }
 
+<#
+	.SYNOPSIS
+	Network adapters power management
+
+	.PARAMETER Disable
+	Do not allow the computer to turn off the network adapters to save power
+
+	.PARAMETER Enable
+	Allow the computer to turn off the network adapters to save power
+
+	.EXAMPLE
+	NetworkAdaptersSavePower -Disable
+
+	.EXAMPLE
+	NetworkAdaptersSavePower -Enable
+
+	.NOTES
+	It isn't recommended to turn off for laptops
+
+	.NOTES
+	Current user
+#>
 function NetworkAdaptersSavePower
 {
 	param
@@ -10068,6 +13983,25 @@ function NetworkAdaptersSavePower
 	}
 }
 
+<#
+	.SYNOPSIS
+	Override for default input method
+
+	.PARAMETER English
+	Override for default input method: English
+
+	.PARAMETER Default
+	Override for default input method: use language list
+
+	.EXAMPLE
+	InputMethod -English
+
+	.EXAMPLE
+	InputMethod -Default
+
+	.NOTES
+	Current user
+#>
 function InputMethod
 {
 	param
@@ -10106,6 +14040,34 @@ function InputMethod
 	}
 }
 
+<#
+	.SYNOPSIS
+	Change User folders location
+
+	.PARAMETER Root
+	Change user folders location to the root of any drive using the interactive menu
+
+	.PARAMETER Custom
+	Select folders for user folders location manually using a folder browser dialog
+
+	.PARAMETER Default
+	Change user folders location to the default values
+
+	.EXAMPLE
+	Set-UserShellFolderLocation -Root
+
+	.EXAMPLE
+	Set-UserShellFolderLocation -Custom
+
+	.EXAMPLE
+	Set-UserShellFolderLocation -Default
+
+	.NOTES
+	User files or folders won't be moved to a new location
+
+	.NOTES
+	Current user
+#>
 function Set-UserShellFolderLocation
 {
 
@@ -10877,6 +14839,25 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 	}
 }
 
+<#
+	.SYNOPSIS
+	Use the latest installed .NET runtime for all apps usage
+
+	.PARAMETER Enable
+	Use the latest installed .NET runtime for all apps
+
+	.PARAMETER Disable
+	Do not use the latest installed .NET runtime for all apps
+
+	.EXAMPLE
+	LatestInstalled.NET -Enable
+
+	.EXAMPLE
+	LatestInstalled.NET -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function LatestInstalled.NET
 {
 	param
@@ -10917,6 +14898,29 @@ function LatestInstalled.NET
 	}
 }
 
+<#
+	.SYNOPSIS
+	The location to save screenshots by pressing Win+PrtScr
+
+	.PARAMETER Desktop
+	Save screenshots by pressing Win+PrtScr on the Desktop
+
+	.PARAMETER Default
+	Save screenshots by pressing Win+PrtScr in the Pictures folder
+
+	.EXAMPLE
+	WinPrtScrFolder -Desktop
+
+	.EXAMPLE
+	WinPrtScrFolder -Default
+
+	.NOTES
+	The function will be applied only if the preset is configured to remove the OneDrive application, or the app was already uninstalled
+	otherwise the backup functionality for the "Desktop" and "Pictures" folders in OneDrive breaks
+
+	.NOTES
+	Current user
+#>
 function WinPrtScrFolder
 {
 	param
@@ -11010,6 +15014,28 @@ function WinPrtScrFolder
 	}
 }
 
+<#
+	.SYNOPSIS
+	Recommended troubleshooter preferences
+
+	.PARAMETER Automatically
+	Run troubleshooter automatically, then notify me
+
+	.PARAMETER Default
+	Ask me before running troubleshooter
+
+	.EXAMPLE
+	RecommendedTroubleshooting -Automatically
+
+	.EXAMPLE
+	RecommendedTroubleshooting -Default
+
+	.NOTES
+	In order this feature to work Windows level of diagnostic data gathering will be set to "Optional diagnostic data" and the error reporting feature will be turned on
+
+	.NOTES
+	Machine-wide
+#>
 function RecommendedTroubleshooting
 {
 	param
@@ -11069,6 +15095,25 @@ function RecommendedTroubleshooting
 	}
 }
 
+<#
+	.SYNOPSIS
+	Reserved storage
+
+	.PARAMETER Disable
+	Disable and delete reserved storage after the next update installation
+
+	.PARAMETER Enable
+	Enable reserved storage after the next update installation
+
+	.EXAMPLE
+	ReservedStorage -Disable
+
+	.EXAMPLE
+	ReservedStorage -Enable
+
+	.NOTES
+	Current user
+#>
 function ReservedStorage
 {
 	param
@@ -11114,6 +15159,25 @@ function ReservedStorage
 	}
 }
 
+<#
+	.SYNOPSIS
+	Help look up via F1
+
+	.PARAMETER Disable
+	Disable help lookup via F1
+
+	.PARAMETER Enable
+	Enable help lookup via F1
+
+	.EXAMPLE
+	F1HelpPage -Disable
+
+	.EXAMPLE
+	F1HelpPage -Enable
+
+	.NOTES
+	Current user
+#>
 function F1HelpPage
 {
 	param
@@ -11156,6 +15220,26 @@ function F1HelpPage
 	}
 }
 
+<#
+	.SYNOPSIS
+	Num Lock at startup
+
+	.PARAMETER Enable
+	Enable Num Lock at startup
+
+	.PARAMETER Disable
+	Disable Num Lock at startup
+
+	.EXAMPLE
+	NumLock -Enable
+
+	.EXAMPLE
+	NumLock -Disable
+
+	.NOTES
+	Current user
+#>
+
 function NumLock
 {
 	param
@@ -11194,6 +15278,25 @@ function NumLock
 	}
 }
 
+<#
+	.SYNOPSIS
+	Caps Lock
+
+	.PARAMETER Disable
+	Disable Caps Lock
+
+	.PARAMETER Enable
+	Enable Caps Lock
+
+	.EXAMPLE
+	CapsLock -Disable
+
+	.EXAMPLE
+	CapsLock -Enable
+
+	.NOTES
+	Machine-wide
+#>
 function CapsLock
 {
 	param
@@ -11234,6 +15337,25 @@ function CapsLock
 	}
 }
 
+<#
+	.SYNOPSIS
+	The shortcut to start Sticky Keys
+
+	.PARAMETER Disable
+	Turn off Sticky keys by pressing the Shift key 5 times
+
+	.PARAMETER Enable
+	Turn on Sticky keys by pressing the Shift key 5 times
+
+	.EXAMPLE
+	StickyShift -Disable
+
+	.EXAMPLE
+	StickyShift -Enable
+
+	.NOTES
+	Current user
+#>
 function StickyShift
 {
 	param
@@ -11272,6 +15394,25 @@ function StickyShift
 	}
 }
 
+<#
+	.SYNOPSIS
+	AutoPlay for all media and devices
+
+	.PARAMETER Disable
+	Don't use AutoPlay for all media and devices
+
+	.PARAMETER Enable
+	Use AutoPlay for all media and devices
+
+	.EXAMPLE
+	Autoplay -Disable
+
+	.EXAMPLE
+	Autoplay -Enable
+
+	.NOTES
+	Current user
+#>
 function Autoplay
 {
 	param
@@ -11315,6 +15456,25 @@ function Autoplay
 	}
 }
 
+<#
+	.SYNOPSIS
+	Restart apps after signing in
+
+	.PARAMETER Enable
+	Automatically saving my restartable apps and restart them when I sign back in
+
+	.PARAMETER Disable
+	Turn off automatically saving my restartable apps and restart them when I sign back in
+
+	.EXAMPLE
+	SaveRestartableApps -Enable
+
+	.EXAMPLE
+	SaveRestartableApps -Disable
+
+	.NOTES
+	Current user
+#>
 function SaveRestartableApps
 {
 	param
@@ -11353,6 +15513,25 @@ function SaveRestartableApps
 	}
 }
 
+<#
+	.SYNOPSIS
+	Network Discovery File and Printers Sharing
+
+	.PARAMETER Enable
+	Enable "Network Discovery" and "File and Printers Sharing" for workgroup networks
+
+	.PARAMETER Disable
+	Disable "Network Discovery" and "File and Printers Sharing" for workgroup networks
+
+	.EXAMPLE
+	NetworkDiscovery -Enable
+
+	.EXAMPLE
+	NetworkDiscovery -Disable
+
+	.NOTES
+	Current user
+#>
 function NetworkDiscovery
 {
 	param
@@ -12281,6 +16460,22 @@ public static void Refresh()
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	Export all Windows associations
+
+	.EXAMPLE
+	Export-Associations
+
+	.NOTES
+	Associations will be exported as Application_Associations.json file in script root folder
+
+	.NOTES
+	You need to install all apps according to an exported JSON file to restore all associations
+
+	.NOTES
+	Machine-wide
+#>
 function Export-Associations
 {
 	Write-Host "Exporting associations - " -NoNewline
@@ -12453,6 +16648,19 @@ function Export-Associations
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	Import all Windows associations
+
+	.EXAMPLE
+	Import-Associations
+
+	.NOTES
+	You have to install all apps according to an exported JSON file to restore all associations
+
+	.NOTES
+	Current user
+#>
 function Import-Associations
 {
 	Write-Host "Importing associations - " -NoNewline
@@ -12497,6 +16705,25 @@ function Import-Associations
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	Default terminal app
+
+	.PARAMETER WindowsTerminal
+	Set Windows Terminal as default terminal app to host the user interface for command-line applications
+
+	.PARAMETER ConsoleHost
+	Set Windows Console Host as default terminal app to host the user interface for command-line applications
+
+	.EXAMPLE
+	DefaultTerminalApp -WindowsTerminal
+
+	.EXAMPLE
+	DefaultTerminalApp -ConsoleHost
+
+	.NOTES
+	Current user
+#>
 function DefaultTerminalApp
 {
 	param
@@ -12561,6 +16788,19 @@ function DefaultTerminalApp
 	}
 }
 
+<#
+	.SYNOPSIS
+	Install the latest Microsoft Visual C++ Redistributable Packages 2015 - 2022 (x86/x64)
+
+	.EXAMPLE
+	Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64
+
+	.LINK
+	https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist
+
+	.NOTES
+	Machine-wide
+#>
 function Install-VCRedist
 {
 	[CmdletBinding()]
@@ -12703,6 +16943,25 @@ function Install-VCRedist
 	}
 }
 
+<#
+	.SYNOPSIS
+	Install the latest .NET Desktop Runtime 8, 9 x64
+
+	.PARAMETER NET8x64
+	Install the latest .NET Desktop Runtime 8 x64
+
+	.PARAMETER NET9x64
+	Install the latest .NET Desktop Runtime 9 x64
+
+	.EXAMPLE
+	Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
+
+	.LINK
+	https://dotnet.microsoft.com/en-us/download/dotnet
+
+	.NOTES
+	Machine-wide
+#>
 function Install-DotNetRuntimes
 {
 	[CmdletBinding()]
@@ -12876,6 +17135,25 @@ function Install-DotNetRuntimes
 	}
 }
 
+<#
+	.SYNOPSIS
+	Desktop shortcut creation upon Microsoft Edge update
+
+	.PARAMETER Channels
+	List Microsoft Edge channels to prevent desktop shortcut creation upon its update
+
+	.PARAMETER Disable
+	Do not prevent desktop shortcut creation upon Microsoft Edge update
+
+	.EXAMPLE
+	PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
+
+	.EXAMPLE
+	PreventEdgeShortcutCreation -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function PreventEdgeShortcutCreation
 {
 	[CmdletBinding()]
@@ -12979,6 +17257,25 @@ function PreventEdgeShortcutCreation
 	}
 }
 
+<#
+	.SYNOPSIS
+	Back up the system registry to %SystemRoot%\System32\config\RegBack folder when PC restarts and create a RegIdleBackup in the Task Scheduler task to manage subsequent backups
+
+	.PARAMETER Enable
+	Back up the system registry to %SystemRoot%\System32\config\RegBack folder
+
+	.PARAMETER Disable
+	Do not back up the system registry to %SystemRoot%\System32\config\RegBack folder
+
+	.EXAMPLE
+	RegistryBackup -Enable
+
+	.EXAMPLE
+	RegistryBackup -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function RegistryBackup
 {
 	param
@@ -13019,6 +17316,22 @@ function RegistryBackup
 #endregion System
 
 #region WSL
+<#
+	.SYNOPSIS
+	Windows Subsystem for Linux (WSL)
+
+	.PARAMETER
+	Enable Windows Subsystem for Linux (WSL), install the latest WSL Linux kernel version, and a Linux distribution using a pop-up form
+
+	.EXAMPLE
+	Install-WSL
+
+	.NOTES
+	The "Receive updates for other Microsoft products" setting will be enabled automatically to receive kernel updates
+
+	.NOTES
+	Machine-wide
+#>
 function Install-WSL
 {
 	try
@@ -13172,6 +17485,31 @@ function Install-WSL
 #endregion WSL
 
 #region Start menu
+<#
+	.SYNOPSIS
+	Configure Start layout
+
+	.PARAMETER Default
+	Show default Start layout
+
+	.PARAMETER ShowMorePins
+	Show more pins on Start
+
+	.PARAMETER ShowMoreRecommendations
+	Show more recommendations on Start
+
+	.EXAMPLE
+	StartLayout -Default
+
+	.EXAMPLE
+	StartLayout -ShowMorePins
+
+	.EXAMPLE
+	StartLayout -ShowMoreRecommendations
+
+	.NOTES
+	Current user
+#>
 function StartLayout
 {
 	param
@@ -13226,6 +17564,8 @@ function StartLayout
 #endregion Start menu
 
 #region UWP apps
+
+# Co Pilot
 function Copilot
 {
 	param
@@ -13268,6 +17608,34 @@ function Copilot
 	}
 }
 
+<#
+	.SYNOPSIS
+	Install or remove Windows apps (like Calculator, Xbox, Camera, etc.)
+
+	.PARAMETER Install
+	Choose this to install Windows apps that are missing from your computer
+
+	.PARAMETER Uninstall
+	Choose this to remove Windows apps that you don't want
+
+	.PARAMETER ForAllUsers
+	Check this box if you want to install or uninstall apps for EVERYONE who uses this computer (not just you)
+
+	.EXAMPLE
+	UWPApps -Install
+
+	.EXAMPLE
+	UWPApps -Uninstall
+
+	.EXAMPLE
+	UWPApps -Install -ForAllUsers
+
+	.EXAMPLE
+	UWPApps -Uninstall -ForAllUsers
+
+	.NOTES
+	Current user
+#>
 # Detect Windows version
 $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 if ([int]$currentBuild -ge 22000) {
@@ -13277,7 +17645,6 @@ if ([int]$currentBuild -ge 22000) {
     $script:isWindows11 = $false
     $script:osName = "Windows 10"
 }
-
 function UWPApps
 {
 	[CmdletBinding(DefaultParameterSetName = "None")]
@@ -13451,7 +17818,7 @@ function UWPApps
 
             $Form = [Windows.Markup.XamlReader]::Load((New-Object -TypeName System.Xml.XmlNodeReader -ArgumentList $XAML))
 
-            if ($null -eq $Form)
+            if ($Form -eq $null)
             {
                 Write-Host "Failed to load XAML" -ForegroundColor Red
                 return
@@ -13462,7 +17829,7 @@ function UWPApps
             }
 
             $PanelContainer = $Form.FindName("PanelContainer")
-            if ($null -eq $PanelContainer)
+            if ($PanelContainer -eq $null)
             {
                 Write-Host "PanelContainer not found!" -ForegroundColor Red
                 return
@@ -13576,7 +17943,7 @@ function UWPApps
            	$Window.Close()
 
            	$SuccessfulPackages = [System.Collections.Generic.List[string]]::new()
-           	#$FailedPackages = [System.Collections.Generic.List[string]]::new()
+           	$FailedPackages = [System.Collections.Generic.List[string]]::new()
            	$ManualPackages = [System.Collections.Generic.List[string]]::new()
 
            	# Store URLs for apps that need Store installation
@@ -14345,6 +18712,25 @@ function UWPApps
 	}
 }
 
+<#
+	.SYNOPSIS
+	Cortana autostarting
+
+	.PARAMETER Disable
+	Disable Cortana autostarting
+
+	.PARAMETER Enable
+	Enable Cortana autostarting
+
+	.EXAMPLE
+	CortanaAutostart -Disable
+
+	.EXAMPLE
+	CortanaAutostart -Enable
+
+	.NOTES
+	Current user
+#>
 function CortanaAutostart
 {
 	param
@@ -14393,311 +18779,31 @@ function CortanaAutostart
 		}
 	}
 }
-
-function NewOutlook
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling New Outlook - " -NoNewline
-			LogInfo "Enabling New Outlook"
-			Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Preferences" -Name "UseNewOutlook" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Options\General" -Name "HideNewOutlookToggle" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Options\General" -Name "DoNewOutlookAutoMigration" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Preferences" -Name "NewOutlookMigrationUserSetting" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling New Outlook - " -NoNewline
-			LogInfo "Disabling New Outlook"
-			Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Preferences" -Name "UseNewOutlook" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Options\General" -Name "HideNewOutlookToggle" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Options\General" -Name "DoNewOutlookAutoMigration" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Preferences" -Name "NewOutlookMigrationUserSetting" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function BackgroundApps
-{
-	[CmdletBinding()]
-	param
-	(
-		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
-		[switch]$Enable,
-
-		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
-		[switch]$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Background Apps - " -NoNewline
-			LogInfo "Enabling Background Apps"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Background Apps - " -NoNewline
-			LogInfo "Disabling Background Apps"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function Notifications
-{
-	[CmdletBinding()]
-	param
-	(
-		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
-		[switch]$Enable,
-
-		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
-		[switch]$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Notification Tray/Calendar - " -NoNewline
-			LogInfo "Enabling Notification Tray/Calendar"
-			Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableNotificationCenter" -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Notification Tray/Calendar - " -NoNewline
-			LogInfo "Disabling Notification Tray/Calendar"
-			if (-not (Test-Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer"))
-			{
-				New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Force -ErrorAction SilentlyContinue | Out-Null
-			}
-			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableNotificationCenter" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function EdgeDebloat
-{
-	[CmdletBinding()]
-	param
-	(
-		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
-		[switch]$Enable,
-
-		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
-		[switch]$Disable
-	)
-
-	$EdgePath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
-	$EdgeUpdatePath = "HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate"
-	$EdgeBlocklistPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\ExtensionInstallBlocklist"
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Edge Debloat - " -NoNewline
-			LogInfo "Enabling Edge Debloat"
-			
-			# Create paths if they don't exist
-			if (-not (Test-Path $EdgeUpdatePath))
-			{
-				New-Item -Path $EdgeUpdatePath -Force -ErrorAction SilentlyContinue | Out-Null
-			}
-			if (-not (Test-Path $EdgePath))
-			{
-				New-Item -Path $EdgePath -Force -ErrorAction SilentlyContinue | Out-Null
-			}
-			if (-not (Test-Path $EdgeBlocklistPath))
-			{
-				New-Item -Path $EdgeBlocklistPath -Force -ErrorAction SilentlyContinue | Out-Null
-			}
-			
-			Set-ItemProperty -Path $EdgeUpdatePath -Name "CreateDesktopShortcutDefault" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "PersonalizationReportingEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgeBlocklistPath -Name "1" -Type String -Value "ofefcgjbeghpigppfmkologfjadafddi" -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "ShowRecommendationsEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "HideFirstRunExperience" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "UserFeedbackAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "ConfigureDoNotTrack" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "AlternateErrorPagesEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "EdgeCollectionsEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "EdgeShoppingAssistantEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "MicrosoftEdgeInsiderPromotionEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "ShowMicrosoftRewards" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "WebWidgetAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "DiagnosticData" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "EdgeAssetDeliveryServiceEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path $EdgePath -Name "WalletDonationEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			
-			LogInfo "Edge debloat policies applied"
-			Write-Host "success!" -ForegroundColor Green
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Edge Debloat - " -NoNewline
-			LogInfo "Disabling Edge Debloat"
-			
-			Remove-ItemProperty -Path $EdgeUpdatePath -Name "CreateDesktopShortcutDefault" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "PersonalizationReportingEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgeBlocklistPath -Name "1" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "ShowRecommendationsEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "HideFirstRunExperience" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "UserFeedbackAllowed" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "ConfigureDoNotTrack" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "AlternateErrorPagesEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "EdgeCollectionsEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "EdgeShoppingAssistantEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "MicrosoftEdgeInsiderPromotionEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "ShowMicrosoftRewards" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "WebWidgetAllowed" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "DiagnosticData" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "EdgeAssetDeliveryServiceEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path $EdgePath -Name "WalletDonationEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
-			
-			LogInfo "Edge debloat policies removed"
-			Write-Host "success!" -ForegroundColor Green
-		}
-	}
-}
-
-function RevertStartMenu
-{
-	[CmdletBinding()]
-	param
-	(
-		[Parameter(Mandatory = $true, ParameterSetName = "Enable")]
-		[switch]$Enable,
-
-		[Parameter(Mandatory = $true, ParameterSetName = "Disable")]
-		[switch]$Disable
-	)
-
-	$viveToolUrl = "https://github.com/thebookisclosed/ViVe/releases/download/v0.3.4/ViVeTool-v0.3.4-IntelAmd.zip"
-	$featureId = "47205210"
-	$tempDir = "$env:TEMP\ViVeTool"
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling Revert Start Menu - " -NoNewline
-			LogInfo "Enabling Revert Start Menu"
-			try
-			{
-				# Create temp directory
-				if (Test-Path $tempDir)
-				{
-					Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-				}
-				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-				
-				# Download ViVeTool
-				$zipPath = "$tempDir\ViVeTool.zip"
-				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
-				LogInfo "Downloaded ViVeTool"
-				
-				# Extract
-				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction SilentlyContinue | Out-Null
-				LogInfo "Extracted ViVeTool"
-				
-				# Run ViVeTool
-				$viveExe = "$tempDir\ViVeTool.exe"
-				if (Test-Path $viveExe)
-				{
-					Start-Process $viveExe -ArgumentList "/disable /id:$featureId" -Wait -NoNewWindow -ErrorAction SilentlyContinue | Out-Null
-					LogInfo "Applied ViVeTool setting to disable feature $featureId"
-				}
-				
-				# Cleanup
-				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-				LogInfo "Cleaned up temporary files"
-				LogInfo "Please restart your computer to apply the changes."
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				LogError "Failed to enable Revert Start Menu: $_"
-				Write-Host "failed!" -ForegroundColor Red
-			}
-		}
-		"Disable"
-		{
-			Write-Host "Disabling Revert Start Menu - " -NoNewline
-			LogInfo "Disabling Revert Start Menu"
-			try
-			{
-				# Create temp directory
-				if (Test-Path $tempDir)
-				{
-					Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-				}
-				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
-				
-				# Download ViVeTool
-				$zipPath = "$tempDir\ViVeTool.zip"
-				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
-				LogInfo "Downloaded ViVeTool"
-				
-				# Extract
-				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction SilentlyContinue | Out-Null
-				LogInfo "Extracted ViVeTool"
-				
-				# Run ViVeTool
-				$viveExe = "$tempDir\ViVeTool.exe"
-				if (Test-Path $viveExe)
-				{
-					Start-Process $viveExe -ArgumentList "/enable /id:$featureId" -Wait -NoNewWindow -ErrorAction SilentlyContinue | Out-Null
-					LogInfo "Applied ViVeTool setting to enable feature $featureId"
-				}
-				
-				# Cleanup
-				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-				LogInfo "Cleaned up temporary files"
-				LogInfo "Please restart your computer to apply the changes."
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				LogError "Failed to disable Revert Start Menu: $_"
-				Write-Host "failed!" -ForegroundColor Red
-			}
-		}
-	}
-}
 #endregion UWP apps
 
 #region Gaming
+<#
+	.SYNOPSIS
+	Xbox Game Bar
+
+	.PARAMETER Disable
+	Disable Xbox Game Bar
+
+	.PARAMETER Enable
+	Enable Xbox Game Bar
+
+	.EXAMPLE
+	XboxGameBar -Disable
+
+	.EXAMPLE
+	XboxGameBar -Enable
+
+	.NOTES
+	To prevent popping up the "You'll need a new app to open this ms-gamingoverlay" warning, you need to disable the Xbox Game Bar app, even if you uninstalled it before
+
+	.NOTES
+	Current user
+#>
 function XboxGameBar
 {
 	param
@@ -14738,6 +18844,25 @@ function XboxGameBar
 	}
 }
 
+<#
+	.SYNOPSIS
+	Xbox Game Bar tips
+
+	.PARAMETER Disable
+	Disable Xbox Game Bar tips
+
+	.PARAMETER Enable
+	Enable Xbox Game Bar tips
+
+	.EXAMPLE
+	XboxGameTips -Disable
+
+	.EXAMPLE
+	XboxGameTips -Enable
+
+	.NOTES
+	Current user
+#>
 function XboxGameTips
 {
 	param
@@ -14783,6 +18908,19 @@ function XboxGameTips
 	}
 }
 
+<#
+	.SYNOPSIS
+	Choose an app and set the "High performance" graphics performance for it
+
+	.EXAMPLE
+	Set-AppGraphicsPerformance
+
+	.NOTES
+	Works only with a dedicated GPU
+
+	.NOTES
+	Current user
+#>
 function Set-AppGraphicsPerformance
 {
 	if (Get-CimInstance -ClassName Win32_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)})
@@ -14828,6 +18966,28 @@ function Set-AppGraphicsPerformance
 	}
 }
 
+<#
+	.SYNOPSIS
+	Hardware-accelerated GPU scheduling
+
+	.PARAMETER Enable
+	Enable hardware-accelerated GPU scheduling
+
+	.PARAMETER Disable
+	Disable hardware-accelerated GPU scheduling
+
+	.EXAMPLE
+	GPUScheduling -Enable
+
+	.EXAMPLE
+	GPUScheduling -Disable
+
+	.NOTES
+	Only with a dedicated GPU and WDDM verion is 2.7 or higher. Restart needed
+
+	.NOTES
+	Current user
+#>
 function GPUScheduling
 {
 	param
@@ -14878,6 +19038,31 @@ function GPUScheduling
 #endregion Gaming
 
 #region Scheduled tasks
+<#
+	.SYNOPSIS
+	The "Windows Cleanup" scheduled task for cleaning up Windows unused files and updates
+
+	.PARAMETER Register
+	Create the "Windows Cleanup" scheduled task for cleaning up Windows unused files and updates
+
+	.PARAMETER Delete
+	Delete the "Windows Cleanup" and "Windows Cleanup Notification" scheduled tasks for cleaning up Windows unused files and updates
+
+	.EXAMPLE
+	CleanupTask -Register
+
+	.EXAMPLE
+	CleanupTask -Delete
+
+	.NOTES
+	A native interactive toast notification pops up every 30 days
+
+	.NOTES
+	Windows Script Host has to be enabled
+
+	.NOTES
+	Current user
+#>
 function CleanupTask
 {
 	param
@@ -15293,6 +19478,31 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "SoftwareDistribution" scheduled task for cleaning up the %SystemRoot%\SoftwareDistribution\Download folder
+
+	.PARAMETER Register
+	Create the "SoftwareDistribution" scheduled task for cleaning up the %SystemRoot%\SoftwareDistribution\Download folder
+
+	.PARAMETER Delete
+	Delete the "SoftwareDistribution" scheduled task for cleaning up the %SystemRoot%\SoftwareDistribution\Download folder
+
+	.EXAMPLE
+	SoftwareDistributionTask -Register
+
+	.EXAMPLE
+	SoftwareDistributionTask -Delete
+
+	.NOTES
+	The task will wait until the Windows Updates service finishes running. The task runs every 90 days
+
+	.NOTES
+	Windows Script Host has to be enabled
+
+	.NOTES
+	Current user
+#>
 function SoftwareDistributionTask
 {
 	param
@@ -15591,6 +19801,31 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Temp" scheduled task for cleaning up the %TEMP% folder
+
+	.PARAMETER Register
+	Create the "Temp" scheduled task for cleaning up the %TEMP% folder
+
+	.PARAMETER Delete
+	Delete the "Temp" scheduled task for cleaning up the %TEMP% folder
+
+	.EXAMPLE
+	TempTask -Register
+
+	.EXAMPLE
+	TempTask -Delete
+
+	.NOTES
+	Only files older than one day will be deleted. The task runs every 60 days
+
+	.NOTES
+	Windows Script Host has to be enabled
+
+	.NOTES
+	Current user
+#>
 function TempTask
 {
 	param
@@ -15907,6 +20142,25 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 #endregion Scheduled tasks
 
 #region Microsoft Defender & Security
+<#
+	.SYNOPSIS
+	Microsoft Defender Exploit Guard network protection
+
+	.PARAMETER Enable
+	Enable Microsoft Defender Exploit Guard network protection
+
+	.PARAMETER Disable
+	Disable Microsoft Defender Exploit Guard network protection
+
+	.EXAMPLE
+	NetworkProtection -Enable
+
+	.EXAMPLE
+	NetworkProtection -Disable
+
+	.NOTES
+	Current user
+#>
 function NetworkProtection
 {
 	param
@@ -15951,6 +20205,25 @@ function NetworkProtection
 	}
 }
 
+<#
+	.SYNOPSIS
+	Detection for potentially unwanted applications
+
+	.PARAMETER Enable
+	Enable detection for potentially unwanted applications and block them
+
+	.PARAMETER Disable
+	Disable detection for potentially unwanted applications and block them
+
+	.EXAMPLE
+	PUAppsDetection -Enable
+
+	.EXAMPLE
+	PUAppsDetection -Disable
+
+	.NOTES
+	Current user
+#>
 function PUAppsDetection
 {
 	param
@@ -15996,6 +20269,25 @@ function PUAppsDetection
 	}
 }
 
+<#
+	.SYNOPSIS
+	Sandboxing for Microsoft Defender
+
+	.PARAMETER Enable
+	Enable sandboxing for Microsoft Defender
+
+	.PARAMETER Disable
+	Disable sandboxing for Microsoft Defender
+
+	.EXAMPLE
+	DefenderSandbox -Enable
+
+	.EXAMPLE
+	DefenderSandbox -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function DefenderSandbox
 {
 	param
@@ -16041,6 +20333,7 @@ function DefenderSandbox
 	}
 }
 
+# Dismiss Microsoft Defender offer in the Windows Security about signing in Microsoft account
 function DismissMSAccount
 {
 	if (-not $Script:DefenderEnabled)
@@ -16056,6 +20349,7 @@ function DismissMSAccount
 	Write-Host "success!" -ForegroundColor Green
 }
 
+# Dismiss Microsoft Defender offer in the Windows Security about turning on the SmartScreen filter for Microsoft Edge
 function DismissSmartScreenFilter
 {
 	if (-not $Script:DefenderEnabled)
@@ -16071,6 +20365,28 @@ function DismissSmartScreenFilter
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	The "Process Creation" Event Viewer custom view
+
+	.PARAMETER Enable
+	Create the "Process Creation" сustom view in the Event Viewer to log executed processes and their arguments
+
+	.PARAMETER Disable
+	Remove the "Process Creation" custom view in the Event Viewer
+
+	.EXAMPLE
+	EventViewerCustomView -Enable
+
+	.EXAMPLE
+	EventViewerCustomView -Disable
+
+	.NOTES
+	In order this feature to work events auditing and command line in process creation events will be enabled
+
+	.NOTES
+	Machine-wide
+#>
 function EventViewerCustomView
 {
 	param
@@ -16144,6 +20460,25 @@ function EventViewerCustomView
 	}
 }
 
+<#
+	.SYNOPSIS
+	Logging for all Windows PowerShell modules
+
+	.PARAMETER Enable
+	Enable logging for all Windows PowerShell modules
+
+	.PARAMETER Disable
+	Disable logging for all Windows PowerShell modules
+
+	.EXAMPLE
+	PowerShellModulesLogging -Enable
+
+	.EXAMPLE
+	PowerShellModulesLogging -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function PowerShellModulesLogging
 {
 	param
@@ -16193,6 +20528,25 @@ function PowerShellModulesLogging
 	}
 }
 
+<#
+	.SYNOPSIS
+	Logging for all PowerShell scripts input to the Windows PowerShell event log
+
+	.PARAMETER Enable
+	Enable logging for all PowerShell scripts input to the Windows PowerShell event log
+
+	.PARAMETER Disable
+	Disable logging for all PowerShell scripts input to the Windows PowerShell event log
+
+	.EXAMPLE
+	PowerShellScriptsLogging -Enable
+
+	.EXAMPLE
+	PowerShellScriptsLogging -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function PowerShellScriptsLogging
 {
 	param
@@ -16238,6 +20592,25 @@ function PowerShellScriptsLogging
 	}
 }
 
+<#
+	.SYNOPSIS
+	Microsoft Defender SmartScreen
+
+	.PARAMETER Disable
+	Disable apps and files checking within Microsoft Defender SmartScreen
+
+	.PARAMETER Enable
+	Enable apps and files checking within Microsoft Defender SmartScreen
+
+	.EXAMPLE
+	AppsSmartScreen -Disable
+
+	.EXAMPLE
+	AppsSmartScreen -Enable
+
+	.NOTES
+	Machine-wide
+#>
 function AppsSmartScreen
 {
 	param
@@ -16283,6 +20656,25 @@ function AppsSmartScreen
 	}
 }
 
+<#
+	.SYNOPSIS
+	The Attachment Manager
+
+	.PARAMETER Disable
+	Microsoft Defender SmartScreen doesn't marks downloaded files from the Internet as unsafe
+
+	.PARAMETER Enable
+	Microsoft Defender SmartScreen marks downloaded files from the Internet as unsafe
+
+	.EXAMPLE
+	SaveZoneInformation -Disable
+
+	.EXAMPLE
+	SaveZoneInformation -Enable
+
+	.NOTES
+	Current user
+#>
 function SaveZoneInformation
 {
 	param
@@ -16332,6 +20724,28 @@ function SaveZoneInformation
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows Script Host
+
+	.PARAMETER Disable
+	Disable Windows Script Host
+
+	.PARAMETER Enable
+	Enable Windows Script Host
+
+	.EXAMPLE
+	WindowsScriptHost -Disable
+
+	.EXAMPLE
+	WindowsScriptHost -Enable
+
+	.NOTES
+	Blocks WSH from executing .js and .vbs files
+
+	.NOTES
+	Current user
+#>
 function WindowsScriptHost
 {
 	param
@@ -16385,6 +20799,25 @@ function WindowsScriptHost
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows Sandbox
+
+	.PARAMETER Disable
+	Disable Windows Sandbox
+
+	.PARAMETER Enable
+	Enable Windows Sandbox
+
+	.EXAMPLE
+	WindowsSandbox -Disable
+
+	.EXAMPLE
+	WindowsSandbox -Enable
+
+	.NOTES
+	Current user
+#>
 function WindowsSandbox
 {
 	param
@@ -16475,6 +20908,34 @@ function WindowsSandbox
 	}
 }
 
+<#
+	.SYNOPSIS
+	DNS-over-HTTPS for IPv4
+
+	.PARAMETER Enable
+	Enable DNS-over-HTTPS for IPv4
+
+	.PARAMETER Disable
+	Disable DNS-over-HTTPS for IPv4
+
+	.EXAMPLE
+	DNSoverHTTPS -Enable -PrimaryDNS 1.0.0.1 -SecondaryDNS 1.1.1.1
+
+	.EXAMPLE
+	DNSoverHTTPS -Disable
+
+	.NOTES
+	The valid IPv4 addresses: 1.0.0.1, 1.1.1.1, 149.112.112.112, 8.8.4.4, 8.8.8.8, 9.9.9.9
+
+	.LINK
+	https://docs.microsoft.com/en-us/windows-server/networking/dns/doh-client-support
+
+	.LINK
+	https://www.comss.ru/page.php?id=7315
+
+	.NOTES
+	Machine-wide
+#>
 function DNSoverHTTPS
 {
 	[CmdletBinding()]
@@ -16582,6 +21043,28 @@ function DNSoverHTTPS
 	Register-DnsClient
 }
 
+<#
+	.SYNOPSIS
+	Local Security Authority protection
+
+	.PARAMETER Enable
+	Enable Local Security Authority protection to prevent code injection without UEFI lock
+
+	.PARAMETER Disable
+	Disable Local Security Authority protection
+
+	.EXAMPLE
+	LocalSecurityAuthority -Enable
+
+	.EXAMPLE
+	LocalSecurityAuthority -Disable
+
+	.NOTES
+	https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection
+
+	.NOTES
+	Machine-wide
+#>
 function LocalSecurityAuthority
 {
 	param
@@ -16645,6 +21128,26 @@ function LocalSecurityAuthority
 	}
 }
 
+
+<#
+	.SYNOPSIS
+	Sharing mapped drives between elevated and standard user sessions
+
+	.PARAMETER Enable
+	Enable sharing mapped drives between users
+
+	.PARAMETER Disable
+	Disable sharing mapped drives between users
+
+	.EXAMPLE
+	SharingMappedDrives -Enable
+
+	.EXAMPLE
+	SharingMappedDrives -Disable
+
+	.NOTES
+	Current user
+#>
 function SharingMappedDrives
 {
 	param
@@ -16683,6 +21186,25 @@ function SharingMappedDrives
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows Firewall configuration
+
+	.PARAMETER Enable
+	Enable Windows Firewall
+
+	.PARAMETER Disable
+	Disable Windows Firewall
+
+	.EXAMPLE
+	Firewall -Enable
+
+	.EXAMPLE
+	Firewall -Disable
+
+	.NOTES
+	Current user
+#>
 function Firewall
 {
 	param
@@ -16724,6 +21246,25 @@ function Firewall
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows Defender notification area (system tray) icon configuration
+
+	.PARAMETER Enable
+	Show Windows Defender (Windows Security) system tray icon
+
+	.PARAMETER Disable
+	Hide Windows Defender (Windows Security) system tray icon
+
+	.EXAMPLE
+	DefenderTrayIcon -Enable
+
+	.EXAMPLE
+	DefenderTrayIcon -Disable
+
+	.NOTES
+	Current User
+#>
 function DefenderTrayIcon
 {
 	param
@@ -16777,6 +21318,25 @@ function DefenderTrayIcon
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows Defender Cloud-delivered protection configuration
+
+	.PARAMETER Enable
+	Enable Windows Defender cloud protection (MAPS reporting and automatic sample submission default behavior)
+
+	.PARAMETER Disable
+	Disable Windows Defender cloud protection (disable MAPS reporting and prevent automatic sample submission)
+
+	.EXAMPLE
+	DefenderCloud -Enable
+
+	.EXAMPLE
+	DefenderCloud -Disable
+
+	.NOTES
+	Current user
+#>
 function DefenderCloud
 {
 	param
@@ -16820,6 +21380,27 @@ function DefenderCloud
 	}
 }
 
+<#
+	.SYNOPSIS
+	Core Isolation Memory Integrity (Hypervisor-Enforced Code Integrity)
+
+	.PARAMETER Enable
+	Enable Memory Integrity (HVCI)
+
+	.PARAMETER Disable
+	Disable Memory Integrity (HVCI)
+
+	.EXAMPLE
+	CIMemoryIntegrity -Enable
+
+	.EXAMPLE
+	CIMemoryIntegrity -Disable
+
+	.NOTES
+	Current User
+	Applicable since Windows 10 version 1803.
+	May cause compatibility issues with old drivers and antivirus software.
+#>
 function CIMemoryIntegrity
 {
 	param
@@ -16861,6 +21442,30 @@ function CIMemoryIntegrity
 	}
 }
 
+<#
+	.SYNOPSIS
+	Windows Defender Application Guard configuration
+
+	.PARAMETER Enable
+	Enable Windows Defender Application Guard optional feature
+
+	.PARAMETER Disable
+	Disable Windows Defender Application Guard optional feature
+
+	.EXAMPLE
+	DefenderAppGuard -Enable
+
+	.EXAMPLE
+	DefenderAppGuard -Disable
+
+	.NOTES
+	Current User
+	Applicable since:
+	- Windows 10 1709 (Enterprise)
+	- Windows 10 1803 (Pro)
+	Not applicable to Windows Server.
+	Not supported on VMs or VDI environments.
+#>
 function DefenderAppGuard
 {
 	param
@@ -16920,6 +21525,25 @@ function DefenderAppGuard
 	}
 }
 
+<#
+	.SYNOPSIS
+	Accounts protection warning configuration
+
+	.PARAMETER Enable
+	Enable account protection warning for Microsoft accounts
+
+	.PARAMETER Disable
+	Disable account protection warning for Microsoft accounts
+
+	.EXAMPLE
+	AccountProtectionWarn -Enable
+
+	.EXAMPLE
+	AccountProtectionWarn -Disable
+
+	.NOTES
+	Current user
+#>
 function AccountProtectionWarn
 {
 	param
@@ -16961,6 +21585,25 @@ function AccountProtectionWarn
 	}
 }
 
+<#
+	.SYNOPSIS
+	Blocks or allows file downloads from the internet
+
+	.PARAMETER Enable
+	Enable blocking of file downloads
+
+	.PARAMETER Disable
+	Disable blocking of file downloads
+
+	.EXAMPLE
+	DownloadBlocking -Enable
+
+	.EXAMPLE
+	DownloadBlocking -Disable
+
+	.NOTES
+	Current user
+#>
 function DownloadBlocking
 {
 	param
@@ -17002,6 +21645,25 @@ function DownloadBlocking
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enables or disables the F8 boot menu on startup
+
+	.PARAMETER Enable
+	Enable the legacy F8 boot menu
+
+	.PARAMETER Disable
+	Disable the legacy F8 boot menu
+
+	.EXAMPLE
+	F8BootMenu -Enable
+
+	.EXAMPLE
+	F8BootMenu -Disable
+
+	.NOTES
+	Current user
+#>
 function F8BootMenu
 {
 	param
@@ -17040,6 +21702,25 @@ function F8BootMenu
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enables or disables automatic recovery mode during boot
+
+	.PARAMETER Enable
+	Enable automatic recovery mode on startup errors
+
+	.PARAMETER Disable
+	Disable automatic recovery mode on startup errors
+
+	.EXAMPLE
+	BootRecovery -Enable
+
+	.EXAMPLE
+	BootRecovery -Disable
+
+	.NOTES
+	Current user
+#>
 function BootRecovery
 {
 	param
@@ -17079,6 +21760,25 @@ function BootRecovery
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enables or disables Data Execution Prevention (DEP) policy
+
+	.PARAMETER Enable
+	Sets DEP to OptIn (default for most apps)
+
+	.PARAMETER Disable
+	Sets DEP to OptOut (allows all apps without DEP)
+
+	.EXAMPLE
+	DEPOptOut -Enable
+
+	.EXAMPLE
+	DEPOptOut -Disable
+
+	.NOTES
+	Current user
+#>
 function DEPOptOut
 {
 	param
@@ -17118,9 +21818,29 @@ function DEPOptOut
 		}
 	}
 }
+
 #endregion Microsoft Defender & Security
 
 #region Context menu
+<#
+	.SYNOPSIS
+	The "Extract all" item in the Windows Installer (.msi) context menu
+
+	.PARAMETER Show
+	Show the "Extract all" item in the Windows Installer (.msi) context menu
+
+	.PARAMETER Remove
+	Hide the "Extract all" item from the Windows Installer (.msi) context menu
+
+	.EXAMPLE
+	MSIExtractContext -Show
+
+	.EXAMPLE
+	MSIExtractContext -Hide
+
+	.NOTES
+	Current user
+#>
 function MSIExtractContext
 {
 	param
@@ -17166,6 +21886,25 @@ function MSIExtractContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Install" item for the Cabinet (.cab) filenames extensions context menu
+
+	.PARAMETER Show
+	Show the "Install" item in the Cabinet (.cab) filenames extensions context menu
+
+	.PARAMETER Hide
+	Hide the "Install" item from the Cabinet (.cab) filenames extensions context menu
+
+	.EXAMPLE
+	CABInstallContext -Show
+
+	.EXAMPLE
+	CABInstallContext -Hide
+
+	.NOTES
+	Current user
+#>
 function CABInstallContext
 {
 	param
@@ -17211,6 +21950,25 @@ function CABInstallContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Edit with Clipchamp" item in the media files context menu
+
+	.PARAMETER Hide
+	Hide the "Edit with Clipchamp" item from the media files context menu
+
+	.PARAMETER Show
+	Show the "Edit with Clipchamp" item in the media files context menu
+
+	.EXAMPLE
+	EditWithClipchampContext -Hide
+
+	.EXAMPLE
+	EditWithClipchampContext -Show
+
+	.NOTES
+	Current user
+#>
 function EditWithClipchampContext
 {
 	param
@@ -17262,6 +22020,25 @@ function EditWithClipchampContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Edit with Photos" item in the media files context menu
+
+	.PARAMETER Hide
+	Hide the "Edit with Photos" item from the media files context menu
+
+	.PARAMETER Show
+	Show the "Edit with Photos" item in the media files context menu
+
+	.EXAMPLE
+	EditWithPhotosContext -Hide
+
+	.EXAMPLE
+	EditWithPhotosContext -Show
+
+	.NOTES
+	Current user
+#>
 function EditWithPhotosContext
 {
 	param
@@ -17313,6 +22090,25 @@ function EditWithPhotosContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Edit with Paint" item in the media files context menu
+
+	.PARAMETER Hide
+	Hide the "Edit with Paint" item from the media files context menu
+
+	.PARAMETER Show
+	Show the "Edit with Paint" item in the media files context menu
+
+	.EXAMPLE
+	EditWithPaintContext -Hide
+
+	.EXAMPLE
+	EditWithPaintContext -Show
+
+	.NOTES
+	Current user
+#>
 function EditWithPaintContext
 {
 	param
@@ -17364,6 +22160,25 @@ function EditWithPaintContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Print" item in the .bat and .cmd context menu
+
+	.PARAMETER Hide
+	Hide the "Print" item from the .bat and .cmd context menu
+
+	.PARAMETER Show
+	Show the "Print" item in the .bat and .cmd context menu
+
+	.EXAMPLE
+	PrintCMDContext -Hide
+
+	.EXAMPLE
+	PrintCMDContext -Show
+
+	.NOTES
+	Current user
+#>
 function PrintCMDContext
 {
 	param
@@ -17404,6 +22219,25 @@ function PrintCMDContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Compressed (zipped) Folder" item in the "New" context menu
+
+	.PARAMETER Hide
+	Hide the "Compressed (zipped) Folder" item from the "New" context menu
+
+	.PARAMETER Show
+	Show the "Compressed (zipped) Folder" item to the "New" context menu
+
+	.EXAMPLE
+	CompressedFolderNewContext -Hide
+
+	.EXAMPLE
+	CompressedFolderNewContext -Show
+
+	.NOTES
+	Current user
+#>
 function CompressedFolderNewContext
 {
 	param
@@ -17447,6 +22281,25 @@ function CompressedFolderNewContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Open", "Print", and "Edit" items if more than 15 files selected
+
+	.PARAMETER Enable
+	Enable the "Open", "Print", and "Edit" items if more than 15 files selected
+
+	.PARAMETER Disable
+	Disable the "Open", "Print", and "Edit" items if more than 15 files selected
+
+	.EXAMPLE
+	MultipleInvokeContext -Enable
+
+	.EXAMPLE
+	MultipleInvokeContext -Disable
+
+	.NOTES
+	Current user
+#>
 function MultipleInvokeContext
 {
 	param
@@ -17485,6 +22338,25 @@ function MultipleInvokeContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Look for an app in the Microsoft Store" item in the "Open with" dialog
+
+	.PARAMETER Hide
+	Hide the "Look for an app in the Microsoft Store" item in the "Open with" dialog
+
+	.PARAMETER Show
+	Show the "Look for an app in the Microsoft Store" item in the "Open with" dialog
+
+	.EXAMPLE
+	UseStoreOpenWith -Hide
+
+	.EXAMPLE
+	UseStoreOpenWith -Show
+
+	.NOTES
+	Current user
+#>
 function UseStoreOpenWith
 {
 	param
@@ -17534,6 +22406,25 @@ function UseStoreOpenWith
 	}
 }
 
+<#
+	.SYNOPSIS
+	The "Open in Windows Terminal" item in the folders context menu
+
+	.PARAMETER Hide
+	Hide the "Open in Windows Terminal" item in the folders context menu
+
+	.PARAMETER Show
+	Show the "Open in Windows Terminal" item in the folders context menu
+
+	.EXAMPLE
+	OpenWindowsTerminalContext -Show
+
+	.EXAMPLE
+	OpenWindowsTerminalContext -Hide
+
+	.NOTES
+	Current user
+#>
 function OpenWindowsTerminalContext
 {
 	param
@@ -17584,6 +22475,25 @@ function OpenWindowsTerminalContext
 	}
 }
 
+<#
+	.SYNOPSIS
+	Open Windows Terminal in context menu as administrator
+
+	.PARAMETER Enable
+	Open Windows Terminal in context menu as administrator by default
+
+	.PARAMETER Disable
+	Do not open Windows Terminal in context menu as administrator by default
+
+	.EXAMPLE
+	OpenWindowsTerminalAdminContext -Enable
+
+	.EXAMPLE
+	OpenWindowsTerminalAdminContext -Disable
+
+	.NOTES
+	Current user
+#>
 function OpenWindowsTerminalAdminContext
 {
 	param
@@ -17672,7 +22582,25 @@ function OpenWindowsTerminalAdminContext
 }
 #endregion Context menu
 
-#region Taskbar Clock
+<#
+	.SYNOPSIS
+	Seconds on the taskbar clock
+
+	.PARAMETER Show
+	Show seconds on the taskbar clock
+
+	.PARAMETER Hide
+	Hide seconds on the taskbar clock
+
+	.EXAMPLE
+	SecondsInSystemClock -Show
+
+	.EXAMPLE
+	SecondsInSystemClock -Hide
+
+	.NOTES
+	Current user
+#>
 function SecondsInSystemClock
 {
 	param
@@ -17711,6 +22639,25 @@ function SecondsInSystemClock
 	}
 }
 
+<#
+	.SYNOPSIS
+	Time in Notification Center
+
+	.PARAMETER Show
+	Show time in Notification Center
+
+	.PARAMETER Hide
+	Hide time in Notification Center
+
+	.EXAMPLE
+	ClockInNotificationCenter -Show
+
+	.EXAMPLE
+	ClockInNotificationCenter -Hide
+
+	.NOTES
+	Current user
+#>
 function ClockInNotificationCenter
 {
 	param
@@ -17748,9 +22695,38 @@ function ClockInNotificationCenter
 		}
 	}
 }
-#endregion Taskbar Clock
 
-#region Cursors
+<#
+	.SYNOPSIS
+	Free "Windows 11 Cursors Concept" cursors from Jepri Creations
+
+	.PARAMETER Dark
+	Download and install free dark "Windows 11 Cursors Concept" cursors from Jepri Creations
+
+	.PARAMETER Light
+	Download and install free light "Windows 11 Cursors Concept" cursors from Jepri Creations
+
+	.PARAMETER Default
+	Set default cursors
+
+	.EXAMPLE
+	Install-Cursors -Dark
+
+	.EXAMPLE
+	Install-Cursors -Light
+
+	.EXAMPLE
+	Install-Cursors -Default
+
+	.LINK
+	https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
+
+	.NOTES
+	The 14/12/24 version
+
+	.NOTES
+	Current user
+#>
 function Install-Cursors
 {
 	param
@@ -17973,9 +22949,26 @@ public static extern bool SystemParametersInfo(uint uiAction, uint uiParam, uint
 	}
 	[void][WinAPI.Cursor]::SystemParametersInfo(0x0057, 0, $null, 0)
 }
-#endregion Cursors
 
-#region Start Menu Apps
+<#
+	.SYNOPSIS
+	Recently added apps on Start
+
+	.PARAMETER Hide
+	Hide recently added apps on Start
+
+	.PARAMETER Show
+	Show recently added apps in Start
+
+	.EXAMPLE
+	RecentlyAddedStartApps -Hide
+
+	.EXAMPLE
+	RecentlyAddedStartApps -Show
+
+	.NOTES
+	Current user
+#>
 function RecentlyAddedStartApps
 {
 	param
@@ -18026,6 +23019,25 @@ function RecentlyAddedStartApps
 	}
 }
 
+<#
+	.SYNOPSIS
+	Most used apps in Start
+
+	.PARAMETER Hide
+	Hide most used Apps in Start
+
+	.PARAMETER Show
+	Show most used Apps in Start
+
+	.EXAMPLE
+	MostUsedStartApps -Hide
+
+	.EXAMPLE
+	MostUsedStartApps -Show
+
+	.NOTES
+	Current user
+#>
 function MostUsedStartApps
 {
 	param
@@ -18081,9 +23093,26 @@ function MostUsedStartApps
 		}
 	}
 }
-#endregion Start Menu Apps
 
-#region Explorer
+<#
+	.SYNOPSIS
+	Restore previous folder windows at logon
+
+	.PARAMETER Disable
+	Do not restore previous folder windows at logon
+
+	.PARAMETER Enable
+	Restore previous folder windows at logon
+
+	.EXAMPLE
+	RestorePreviousFolders -Disable
+
+	.EXAMPLE
+	RestorePreviousFolders -Enable
+
+	.NOTES
+	Current user
+#>
 function RestorePreviousFolders
 {
 	param
@@ -18121,9 +23150,23 @@ function RestorePreviousFolders
 		}
 	}
 }
-#endregion Explorer
 
 #region Update Policies
+<#
+	.SYNOPSIS
+	Display all policy registry keys (even manually created ones) in the Local Group Policy Editor snap-in (gpedit.msc)
+	This can take up to 30 minutes, depending on the number of policies created in the registry and your system resources
+
+	.EXAMPLE
+	UpdateLGPEPolicies
+
+	.NOTES
+	https://techcommunity.microsoft.com/t5/microsoft-security-baselines/lgpo-exe-local-group-policy-object-utility-v1-0/ba-p/701045
+
+	.NOTES
+	Machine-wide user
+	Current user
+#>
 function UpdateLGPEPolicies
 {
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
@@ -18246,6 +23289,20 @@ function UpdateLGPEPolicies
 	cmd /c "gpupdate /force > NUL 2>&1"
 }
 
+<#
+	.SYNOPSIS
+	Scan the Windows registry and display all policies (even created manually) in the Local Group Policy Editor snap-in (gpedit.msc)
+
+	.EXAMPLE
+	ScanRegistryPolicies
+
+	.NOTES
+	https://techcommunity.microsoft.com/t5/microsoft-security-baselines/lgpo-exe-local-group-policy-object-utility-v1-0/ba-p/701045
+
+	.NOTES
+	Machine-wide user
+	Current user
+#>
 function ScanRegistryPolicies
 {
 	Write-Host "Scanning registry for policies to display in the Local Group Policy Editor snap-in - " -NoNewline
@@ -18328,6 +23385,7 @@ function ScanRegistryPolicies
 	}
 	Write-Host "success!" -ForegroundColor Green
 }
+
 #endregion Update Policies
 
 #region Post Actions
@@ -18506,6 +23564,7 @@ public static void PostMessage()
                       -PassThru
 	Write-Host "success!" -ForegroundColor Green
 }
+
 #endregion Post Actions
 
 #region Errors
