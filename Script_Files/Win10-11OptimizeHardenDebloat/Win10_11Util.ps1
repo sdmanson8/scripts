@@ -46,7 +46,6 @@
 #>
 
 #Requires -RunAsAdministrator
-#Requires -Version 5.1
 
 [CmdletBinding()]
 param
@@ -57,6 +56,8 @@ param
 )
 
 Clear-Host
+
+#region InitialActions
 
 # Get the OS version
 #$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
@@ -71,19 +72,30 @@ if ([int]$currentBuild -ge 22000) {
 
 $Host.UI.RawUI.WindowTitle = "WinUtil Script for $osName"
 
-# Checking whether all files were expanded before running
-$ScriptFiles = @(
- "$PSScriptRoot\Localizations\Win10_11Util.psd1", # Localization file
- "$PSScriptRoot\Module\Win10_11Util.psm1", # Module definition
- "$PSScriptRoot\Manifest\Win10_11Util.psd1" # Manifest file
+$RequiredFiles = @(
+    "$PSScriptRoot\Localizations\Win10_11Util.psd1",
+    "$PSScriptRoot\Module\Win10_11Util.psm1",
+    "$PSScriptRoot\Manifest\Win10_11Util.psd1"
 )
 
-if (($ScriptFiles | Test-Path) -contains $false)
-{
-	Write-Information -MessageData "" -InformationAction Continue
-	Write-Warning -Message "There are no files in the script folder. Please, re-download the archive."
-	Write-Information -MessageData "" -InformationAction Continue
-	exit
+$MissingRequired = $RequiredFiles | Where-Object { -not (Test-Path -LiteralPath $_) }
+$RegionFiles = Get-ChildItem -Path "$PSScriptRoot\Module\Regions" -Filter '*.psm1' -File -ErrorAction SilentlyContinue
+
+if ($MissingRequired -or -not $RegionFiles) {
+    Write-Host ""
+    Write-Warning "There are missing files in the script folder. Please re-download the archive."
+    Write-Host ""
+
+    if ($MissingRequired) {
+        Write-Warning "Missing required files:"
+        $MissingRequired | ForEach-Object { Write-Warning "  $_" }
+    }
+
+    if (-not $RegionFiles) {
+        Write-Warning "No region files found in: $PSScriptRoot\Module\Regions"
+    }
+
+    exit
 }
 
 Remove-Module -Name Win10_11Util -Force -ErrorAction Ignore
@@ -99,7 +111,7 @@ catch
 # Checking whether script is the correct PowerShell version
 try
 {
-	Import-Module -Name $PSScriptRoot\Manifest\Win10_11Util.psd1 -PassThru -Force -ErrorAction Stop
+	Import-Module -Name $PSScriptRoot\Manifest\Win10_11Util.psd1 -Force -ErrorAction Stop
 }
 catch [System.InvalidOperationException]
 {
@@ -139,15 +151,16 @@ if ($Functions)
 	exit
 }
 
-# Restart script in v5.1 if required
-Restart-Script -scriptPath $MyInvocation.MyCommand.Path
+# Restart Script in Powershell 5.1 if running Powershell 7
+Restart-Script -ScriptPath $MyInvocation.MyCommand.Path
 
-#region Protection
 # The mandatory checks. If you want to disable a warning message about whether the preset file was customized, remove the "-Warning" argument
 InitialActions -Warning
+#endregion InitialActions
 
+#region Protection
 # Create a restore point
-#CreateRestorePoint
+# CreateRestorePoint
 #endregion Protection
 
 #region Initial Setup
@@ -347,25 +360,21 @@ AutoRebootOnCrash -Disable
 
 # Do not use sign-in info to automatically finish setting up device after an update
 SigninInfo -Disable
-
 # Use sign-in info to automatically finish setting up device after an update (default value)
 # SigninInfo -Enable
 
 # Do not let websites provide locally relevant content by accessing language list
 LanguageListAccess -Disable
-
 # Let websites provide locally relevant content by accessing language list (default value)
 # LanguageListAccess -Enable
 
 # Do not let apps show me personalized ads by using my advertising ID
 AdvertisingID -Disable
-
 # Let apps show me personalized ads by using my advertising ID (default value)
 # AdvertisingID -Enable
 
 # Hide the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
 WindowsWelcomeExperience -Hide
-
 # Show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested (default value)
 # WindowsWelcomeExperience -Show
 
@@ -376,49 +385,41 @@ LockWidgets -Disable
 
 # Get tips and suggestions when I use Windows (default value)
 WindowsTips -Enable
-
 # Do not get tips and suggestions when I use Windows
 # WindowsTips -Disable
 
 # Hide from me suggested content in the Settings app
 SettingsSuggestedContent -Hide
-
 # Show me suggested content in the Settings app (default value)
 # SettingsSuggestedContent -Show
 
 # Turn off automatic installing suggested apps
 AppsSilentInstalling -Disable
-
 # Turn on automatic installing suggested apps (default value)
 # AppsSilentInstalling -Enable
 
 # Do not suggest ways to get the most out of Windows and finish setting up this device
 WhatsNewInWindows -Disable
-
 # Suggest ways to get the most out of Windows and finish setting up this device (default value)
 # WhatsNewInWindows -Enable
 
 # Don't let Microsoft use your diagnostic data for personalized tips, ads, and recommendations
 TailoredExperiences -Disable
-
 # Let Microsoft use your diagnostic data for personalized tips, ads, and recommendations (default value)
 # TailoredExperiences -Enable
 
 # Disable Bing search in Start Menu
 BingSearch -Disable
-
 # Enable Bing search in Start Menu (default value)
 # BingSearch -Enable
 
 # Do not show recommendations for tips, shortcuts, new apps, and more in Start menu
 StartRecommendationsTips -Hide
-
 # Show recommendations for tips, shortcuts, new apps, and more in Start menu (default value)
 # StartRecommendationsTips -Show
 
 # Do not show Microsoft account-related notifications on Start Menu in Start menu
 StartAccountNotifications -Hide
-
 # Show Microsoft account-related notifications on Start Menu in Start menu (default value)
 # StartAccountNotifications -Show
 
@@ -427,7 +428,6 @@ StartAccountNotifications -Hide
 # WiFiSense -Enable
 # Disable WiFi Sense to prevent automatic connections to open hotspots and sharing of WiFi networks with contacts.
 WiFiSense -Disable
-
 # Enable web search integration in system search (e.g., Cortana or Windows Search).
 # WebSearch -Enable
 # Disable web search to limit searches to local files, apps, and settings only.
@@ -568,7 +568,6 @@ UWPSwapFile -Disable
 
 # Enable PowerShell 7 Telemetry (default value)
 # Powershell7Telemetry -Enable
-
 # Disable PowerShell 7 Telemetry 
 Powershell7Telemetry -Disable
 
@@ -577,37 +576,31 @@ Powershell7Telemetry -Disable
 #region System Tweaks
 # Enable Cross-Device Resume (default value)
 # CrossDeviceResume -Enable
-
 # Disable Cross-Device Resume 
 CrossDeviceResume -Disable
 
 # Enable Multiplane Overlay (default value)
 # MultiplaneOverlay -Enable
-
 # Disable Multiplane Overlay 
 MultiplaneOverlay -Disable
 
 # Enable Modern Standby fix (default value)
 # StandbyFix -Enable
-
 # Disable Modern Standby fix 
 StandbyFix -Disable
 
 # Enable S3 Sleep
 S3Sleep -Enable
-
 # Disable S3 Sleep (default value)
 # S3Sleep -Disable
 
 # Enable Explorer Automatic Folder Discovery
 ExplorerAutoDiscovery -Enable
-
 # Disable Explorer Automatic Folder Discovery (default value)
 # ExplorerAutoDiscovery -Disable
 
 # Enable Windows Platform Binary Table (WPBT) (default value)
 # WPBT -Enable
-
 # Disable Windows Platform Binary Table (WPBT) 
 WPBT -Disable
 
@@ -616,42 +609,36 @@ DiskCleanup
 
 # Apply recommended startup types to Windows services
 ServicesManual -Enable
-
 # Restore Windows services to their original startup types (default value)
 # ServicesManual -Disable
 
 # CAUTION: Blocking Adobe network access may prevent license validation, disable Creative Cloud syncing, break cloud-based features, trigger subscription errors, and may violate Adobe license terms
-# Enable Adobe Network Block
+# Enable Adobe Network Block (default value)
 AdobeNetworkBlock -Enable
-
-# Disable Adobe Network Block (default value)
+# Disable Adobe Network Block 
 # AdobeNetworkBlock -Disable
 
 # CAUTION: Blocking Razer software installation may prevent Razer Synapse from updating, disable RGB/macro functionality, stop firmware updates, and cause limited device features
-# Enable Razer Software Block
+# Enable Razer Software Block (default value)
 RazerBlock -Enable
-
-# Disable Razer Software Block (default value)
+# Disable Razer Software Block 
 # RazerBlock -Disable
 
 # CAUTION: Brave Debloat disables rewards, wallet, VPN, and AI chat features - only use if you want to remove these features completely
-# Enable Brave Debloat
+# Enable Brave Debloat (default value)
 BraveDebloat -Enable
-
-# Disable Brave Debloat (default value)
+# Disable Brave Debloat 
 # BraveDebloat -Disable
 
 # CAUTION: Disabling Fullscreen Optimizations may reduce gaming performance in some applications - use only for troubleshooting
 # Enable Fullscreen Optimizations (default value)
 FullscreenOptimizations -Enable
-
 # Disable Fullscreen Optimizations 
 # FullscreenOptimizations -Disable
 
 # CAUTION: Teredo is an IPv6 tunneling protocol needed for NAT traversal - disabling may break Xbox Live and certain peer-to-peer applications
 # Enable Teredo (default value)
-# Teredo -Enable
-
+# Teredo -Enable 
 # Disable Teredo 
 Teredo -Disable
 #endregion System Tweaks
@@ -741,19 +728,16 @@ ThumbsDBOnNetwork -Disable
 
 # Show the "This PC" icon on Desktop
 # ThisPC -Show
-
 # Hide the "This PC" icon on Desktop (default value)
 ThisPC -Hide
 
 # Do not use item check boxes
 CheckBoxes -Disable
-
 # Use check item check boxes (default value)
 # CheckBoxes -Enable
 
 # Show hidden files, folders, and drives
 # HiddenItems -Enable
-
 # Do not show hidden files, folders, and drives (default value)
 HiddenItems -Disable
 
@@ -764,122 +748,96 @@ SuperHiddenFiles -Disable
 
 # Show file name extensions
 # FileExtensions -Show
-
 # Hide file name extensions (default value)
 FileExtensions -Hide
 
 # Show folder merge conflicts
 MergeConflicts -Show
-
 # Hide folder merge conflicts (default value)
 # MergeConflicts -Hide
 
 # Open File Explorer to "This PC"
 OpenFileExplorerTo -ThisPC
-
 # Open File Explorer to Quick access (default value)
 # OpenFileExplorerTo -QuickAccess
-
 # Open File Explorer to Downloads
 # OpenFileExplorerTo -Downloads
 
 # Disable File Explorer compact mode (default value)
 FileExplorerCompactMode -Disable
-
 # Enable File Explorer compact mode
 # FileExplorerCompactMode -Enable
 
 # Do not show sync provider notification within File Explorer
 OneDriveFileExplorerAd -Hide
-
 # Show sync provider notification within File Explorer (default value)
 # OneDriveFileExplorerAd -Show
 
 # When I snap a window, do not show what I can snap next to it
 SnapAssist -Disable
-
 # When I snap a window, show what I can snap next to it (default value)
 # SnapAssist -Enable
 
 # Show the file transfer dialog box in the detailed mode
 FileTransferDialog -Detailed
-
 # Show the file transfer dialog box in the compact mode (default value)
 # FileTransferDialog -Compact
 
 # Display the recycle bin files delete confirmation dialog
 RecycleBinDeleteConfirmation -Enable
-
 # Do not display the recycle bin files delete confirmation dialog (default value)
 # RecycleBinDeleteConfirmation -Disable
 
 # Hide recently used files in Quick access
-
 QuickAccessRecentFiles -Hide
-
 # Show recently used files in Quick access (default value)
 # QuickAccessRecentFiles -Show
-
 # Hide frequently used folders in Quick access
 QuickAccessFrequentFolders -Hide
-
 # Show frequently used folders in Quick access (default value)
 # QuickAccessFrequentFolders -Show
 
 # Hide the Meet Now icon in the notification area
 MeetNow -Hide
-
 # Show the Meet Now icon in the notification area (default value)
 # MeetNow -Show
 
 # Disable "News and Interests" on the taskbar
 NewsInterests -Disable
-
 # Enable "News and Interests" on the taskbar (default value)
 # NewsInterests -Enable
 
 # Set the taskbar alignment to the center (default value)
 # TaskbarAlignment -Center
-
 # Set the taskbar alignment to the left
 TaskbarAlignment -Left
 
 # Hide the widgets icon on the taskbar
 TaskbarWidgets -Hide
-
 # Show the widgets icon on the taskbar (default value)
 # TaskbarWidgets -Show
 
 # Hide the search on the taskbar
 TaskbarSearch -Hide
-
 # Show the search icon on the taskbar
 # TaskbarSearch -SearchIcon
-
-# Show the search icon and label on the taskbar
-# TaskbarSearch -SearchIconLabel
-
 # Show the search box on the taskbar (default value)
 # TaskbarSearch -SearchBox
 
 # Hide search highlights
 SearchHighlights -Hide
-
 # Show search highlights (default value)
 # SearchHighlights -Show
 
 # Hide the Task view button from the taskbar
 TaskViewButton -Hide
-
 # Show the Task view button on the taskbar (default value)
 # TaskViewButton -Show
 
 # Combine taskbar buttons and always hide labels (default value)
 TaskbarCombine -Always
-
 # Combine taskbar buttons and hide labels when taskbar is full
 # TaskbarCombine -Full
-
 # Combine taskbar buttons and never hide labels
 # TaskbarCombine -Never
 
@@ -889,46 +847,38 @@ UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook, Mail
 
 # Enable end task in taskbar by right click
 TaskbarEndTask -Enable
-
 # Disable end task in taskbar by right click (default value)
 # TaskbarEndTask -Disable
 
 # View the Control Panel icons by large icons
 # ControlPanelView -LargeIcons
-
 # View the Control Panel icons by small icons
 # ControlPanelView -SmallIcons
-
 # View the Control Panel icons by category (default value)
 ControlPanelView -Category
 
 # Set the default Windows mode to dark
 WindowsColorMode -Dark
-
 # Set the default Windows mode to light (default value)
 # WindowsColorMode -Light
 
 # Set the default app mode to dark
 AppColorMode -Dark
-
 # Set the default app mode to light (default value)
 # AppColorMode -Light
 
 # Hide first sign-in animation after the upgrade
 FirstLogonAnimation -Disable
-
 # Show first sign-in animation after the upgrade (default value)
 # FirstLogonAnimation -Enable
 
 # Set the quality factor of the JPEG desktop wallpapers to maximum
 JPEGWallpapersQuality -Max
-
 # Set the quality factor of the JPEG desktop wallpapers to default
 # JPEGWallpapersQuality -Default
 
 # Do not add the "- Shortcut" suffix to the file name of created shortcuts
 ShortcutsSuffix -Disable
-
 # Add the "- Shortcut" suffix to the file name of created shortcuts (default value)
 # ShortcutsSuffix -Enable
 
@@ -939,37 +889,31 @@ ShortcutArrow -Enable
 
 # Use the Print screen button to open screen snipping
 PrtScnSnippingTool -Enable
-
 # Do not use the Print screen button to open screen snipping (default value)
 # PrtScnSnippingTool -Disable
 
 # Let me use a different input method for each app window
 # AppsLanguageSwitch -Enable
-
 # Do not use a different input method for each app window (default value)
 AppsLanguageSwitch -Disable
 
 # When I grab a windows's title bar and shake it, minimize all other windows
 AeroShaking -Enable
-
 # When I grab a windows's title bar and shake it, don't minimize all other windows (default value)
 # AeroShaking -Disable
 
 # Do not group files and folder in the Downloads folder
 FolderGroupBy -None
-
 # Group files and folder by date modified in the Downloads folder (default value)
 # FolderGroupBy -Default
 
 # Do not expand to open folder on navigation pane (default value)
 NavigationPaneExpand -Disable
-
 # Expand to open folder on navigation pane
 # NavigationPaneExpand -Enable
 
 # Remove Recommended section in Start Menu. Applicable only to Enterprise and Education editions, but not to IoT Enterprise
 StartRecommendedSection -Hide
-
 # Show Recommended section in Start Menu (default value). Applicable only to Enterprise and Education editions, but not to IoT Enterprise
 # StartRecommendedSection -Show
 #endregion UI & Personalization
@@ -977,7 +921,6 @@ StartRecommendedSection -Hide
 #region OneDrive
 # Uninstall OneDrive. The OneDrive user folder won't be removed
 OneDrive -Uninstall
-
 # Install OneDrive 64-bit (default value)
 # OneDrive -Install
 
@@ -1083,43 +1026,36 @@ VerboseStatus -Enable
 
 # Turn on Storage Sense
 StorageSense -Enable
-
 # Turn off Storage Sense (default value)
 # StorageSense -Disable
 
 # Disable hibernation. It isn't recommended to turn off for laptops
 Hibernation -Disable
-
 # Enable hibernate (default value)
 # Hibernation -Enable
 
 # Disable the Windows 260 characters path limit
 Win32LongPathLimit -Disable
-
 # Enable the Windows 260 character path limit (default value)
 # Win32LongPathLimit -Enable
 
 # Display Stop error code when BSoD occurs
 BSoDStopError -Enable
-
 # Do not display stop error code when BSoD occurs (default value)
 # BSoDStopError -Disable
 
 # Choose when to be notified about changes to your computer: never notify
 AdminApprovalMode -Never
-
 # Choose when to be notified about changes to your computer: notify me only when apps try to make changes to my computer (default value)
 # AdminApprovalMode -Default
 
 # Turn off Delivery Optimization
 DeliveryOptimization -Disable
-
 # Turn on Delivery Optimization (default value)
 # DeliveryOptimization -Enable
 
 # Do not let Windows manage my default printer
 WindowsManageDefaultPrinter -Disable
-
 # Let Windows manage my default printer (default value)
 # WindowsManageDefaultPrinter -Enable
 
@@ -1128,7 +1064,6 @@ WindowsManageDefaultPrinter -Disable
 	If you want to leave "Multimedia settings" element in the advanced settings of Power Options do not disable the "Media Features" feature
 #>
 WindowsFeatures -Disable
-
 # Enable the Windows features using the pop-up dialog box
 # WindowsFeatures -Enable
 
@@ -1137,10 +1072,8 @@ WindowsFeatures -Disable
 	If you want to leave "Multimedia settings" element in the advanced settings of Power Options do not uninstall the "Media Features" feature
 #>
 WindowsCapabilities -Uninstall
-
 # Install optional features using the pop-up dialog box
 # WindowsCapabilities -Install
-
 
 # Set current network profile to Private
 CurrentNetwork -Private
@@ -1207,49 +1140,41 @@ ConnectionSharing -Enable
 
 # Receive updates for other Microsoft products
 UpdateMicrosoftProducts -Enable
-
 # Do not receive updates for other Microsoft products (default value)
 # UpdateMicrosoftProducts -Disable
 
 # Notify me when a restart is required to finish updating
 RestartNotification -Show
-
 # Do not notify me when a restart is required to finish updating (default value)
 # RestartNotification -Hide
 
 # Restart as soon as possible to finish updating
 # RestartDeviceAfterUpdate -Enable
-
 # Don't restart as soon as possible to finish updating (default value)
 RestartDeviceAfterUpdate -Disable
 
 # Automatically adjust active hours for me based on daily usage
 ActiveHours -Automatically
-
 # Manually adjust active hours for me based on daily usage (default value)
 # ActiveHours -Manually
 
 # Do not get the latest updates as soon as they're available (default value)
 WindowsLatestUpdate -Disable
-
 # Get the latest updates as soon as they're available
 # WindowsLatestUpdate -Enable
 
 # Set power plan on "High performance". It isn't recommended to turn on for laptops
 PowerPlan -High
-
 # Set power plan on "Balanced" (default value)
 # PowerPlan -Balanced
 
 # Do not allow the computer to turn off the network adapters to save power. It isn't recommended to turn off for laptops
 NetworkAdaptersSavePower -Disable
-
 # Allow the computer to turn off the network adapters to save power (default value)
 # NetworkAdaptersSavePower -Enable
 
 # Override for default input method: English
 InputMethod -English
-
 # Override for default input method: use language list (default value)
 # InputMethod -Default
 
@@ -1259,14 +1184,12 @@ InputMethod -English
 	They're located in the %USERPROFILE% folder by default
 #>
 # Set-UserShellFolderLocation -Root
-
 <#
 	Select folders for user folders location manually using a folder browser dialog
 	User files or folders won't be moved to a new location. Move them manually
 	They're located in the %USERPROFILE% folder by default
 #>
 # Set-UserShellFolderLocation -Custom
-
 <#
 	Change user folders location to the default values
 	User files or folders won't be moved to the new location. Move them manually
@@ -1276,7 +1199,6 @@ InputMethod -English
 
 # Use the latest installed .NET runtime for all apps
 LatestInstalled.NET -Enable
-
 # Do not use the latest installed .NET runtime for all apps (default value)
 # LatestInstalled.NET -Disable
 
@@ -1286,7 +1208,6 @@ LatestInstalled.NET -Enable
 	Otherwise the backup functionality for the "Desktop" and "Pictures" folders in OneDrive breaks
 #>
 # WinPrtScrFolder -Desktop
-
 # Save screenshots by pressing Win+PrtScr in the Pictures folder (default value)
 # WinPrtScrFolder -Default
 
@@ -1295,7 +1216,6 @@ LatestInstalled.NET -Enable
 	In order this feature to work Windows level of diagnostic data gathering will be set to "Optional diagnostic data", and the error reporting feature will be turned on
 #>
 RecommendedTroubleshooting -Automatically
-
 <#
 	Ask me before running troubleshooter (default value)
 	In order this feature to work Windows level of diagnostic data gathering will be set to "Optional diagnostic data"
@@ -1304,49 +1224,41 @@ RecommendedTroubleshooting -Automatically
 
 # Disable and delete reserved storage after the next update installation
 ReservedStorage -Disable
-
 # Enable reserved storage (default value)
 # ReservedStorage -Enable
 
 # Disable help lookup via F1
 F1HelpPage -Disable
-
 # Enable help lookup via F1 (default value)
 # F1HelpPage -Enable
 
 # Enable Num Lock at startup
 NumLock -Enable
-
 # Disable Num Lock at startup (default value)
 # NumLock -Disable
 
 # Disable Caps Lock
 # CapsLock -Disable
-
 # Enable Caps Lock (default value)
 # CapsLock -Enable
 
 # Turn off pressing the Shift key 5 times to turn Sticky keys
 StickyShift -Disable
-
 # Turn on pressing the Shift key 5 times to turn Sticky keys (default value)
 # StickyShift -Enable
 
 # Don't use AutoPlay for all media and devices
 #Autoplay -Disable
-
 # Use AutoPlay for all media and devices (default value)
 Autoplay -Enable
 
 # Automatically saving my restartable apps and restart them when I sign back in
 #SaveRestartableApps -Enable
-
 # Turn off automatically saving my restartable apps and restart them when I sign back in (default value)
 SaveRestartableApps -Disable
 
 # Enable "Network Discovery" and "File and Printers Sharing" for workgroup networks
 NetworkDiscovery -Enable
-
 # Disable "Network Discovery" and "File and Printers Sharing" for workgroup networks (default value)
 # NetworkDiscovery -Disable
 
@@ -1374,7 +1286,6 @@ NetworkDiscovery -Enable
 
 # Set Windows Terminal as default terminal app to host the user interface for command-line applications
 DefaultTerminalApp -WindowsTerminal
-
 # Set Windows Console Host as default terminal app to host the user interface for command-line applications (default value)
 # DefaultTerminalApp -ConsoleHost
 
@@ -1386,13 +1297,11 @@ DefaultTerminalApp -WindowsTerminal
 
 # List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
-
 # Do not prevent desktop shortcut creation upon Microsoft Edge update (default value)
 # PreventEdgeShortcutCreation -Disable
 
 # Back up the system registry to %SystemRoot%\System32\config\RegBack folder when PC restarts and create a RegIdleBackup in the Task Scheduler task to manage subsequent backups
 # RegistryBackup -Enable
-
 # Do not back up the system registry to %SystemRoot%\System32\config\RegBack folder (default value)
 # RegistryBackup -Disable
 #endregion System
@@ -1408,28 +1317,22 @@ PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
 #region Start menu
 # Show default Start layout (default value)
 # StartLayout -Default
-
 # Show more pins on Start
 StartLayout -ShowMorePins
-
 # Show more recommendations on Start
 # StartLayout -ShowMoreRecommendations
 #endregion Start menu
 
 #region UWP apps
-
 # Install Copilot App
 #Copilot -Install
-
 # Uninstall Copilot App
 Copilot -Uninstall
 
 # Install UWP apps using the pop-up dialog box
 # UWPApps -Install
-
 # Uninstall UWP apps using the pop-up dialog box
 UWPApps -Uninstall
-
 <#
 	Uninstall UWP apps for all users using the pop-up dialog box
 	If the "For All Users" is checked apps packages will not be installed for new users
@@ -1438,41 +1341,35 @@ UWPApps -Uninstall
 
 # Disable Cortana autostarting
 CortanaAutostart -Disable
-
 # Enable Cortana autostarting (default value)
 # CortanaAutostart -Enable
 
 # Enable New Outlook (default value)
 # NewOutlook -Enable
-
 # Disable New Outlook 
 NewOutlook -Disable
 
 # CAUTION: Disabling Background Apps prevents apps from running in the background - may affect notifications, updates, and sync functionality
 # Enable Background Apps (default value)
 BackgroundApps -Enable
-
 # Disable Background Apps 
 # BackgroundApps -Disable
 
 # CAUTION: Disabling Notifications will completely turn off Windows notifications - you won't receive app alerts, system warnings, reminders, or calendar events
 # Enable Notification Tray/Calendar (default value)
 Notifications -Enable
-
 # Disable Notification Tray/Calendar 
 # Notifications -Disable
 
 # CAUTION: Edge Debloat enforces multiple Group Policy settings that may affect Edge functionality including telemetry, personalization, shopping assistant, collections, rewards, and Copilot
 # Enable Edge Debloat (default value)
 # EdgeDebloat -Enable
-
 # Disable Edge Debloat 
 EdgeDebloat -Disable
 
 # CAUTION: Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling
 # Enable Revert Start Menu (revert to original Start Menu from 24H2)
 # RevertStartMenu -Enable
-
 # Disable Revert Start Menu (restore new Start Menu) (default value)
 RevertStartMenu -Disable
 #endregion UWP apps
@@ -1483,14 +1380,12 @@ RevertStartMenu -Disable
 	To prevent popping up the "You'll need a new app to open this ms-gamingoverlay" warning, you need to disable the Xbox Game Bar app, even if you uninstalled it before
 #>
 XboxGameBar -Disable
-
 # Enable Xbox Game Bar (default value)
 # XboxGameBar -Enable
 
 # Disable Xbox Game Bar tips
 # Xbox Game Bar
 XboxGameTips -Disable
-
 # Enable Xbox Game Bar tips (default value)
 # XboxGameTips -Enable
 
@@ -1502,7 +1397,6 @@ XboxGameTips -Disable
 	Only if you have a dedicated GPU and WDDM verion is 2.7 or higher
 #>
 GPUScheduling -Enable
-
 # Turn off hardware-accelerated GPU scheduling (default value). Restart needed
 # GPUScheduling -Disable
 #endregion Gaming
@@ -1513,7 +1407,6 @@ GPUScheduling -Enable
 	A native interactive toast notification pops up every 30 days. You have to enable Windows Script Host in order to make the function work
 #>
 #CleanupTask -Register
-
 # Delete the "Windows Cleanup" and "Windows Cleanup Notification" scheduled tasks for cleaning up Windows unused files and updates
 # CleanupTask -Delete
 
@@ -1522,7 +1415,6 @@ GPUScheduling -Enable
 	The task will wait until the Windows Updates service finishes running. The task runs every 90 days. You have to enable Windows Script Host in order to make the function work
 #>
 #SoftwareDistributionTask -Register
-
 # Delete the "SoftwareDistribution" scheduled task for cleaning up the %SystemRoot%\SoftwareDistribution\Download folder
 # SoftwareDistributionTask -Delete
 
@@ -1531,26 +1423,22 @@ GPUScheduling -Enable
 	Only files older than one day will be deleted. The task runs every 60 days. You have to enable Windows Script Host in order to make the function work
 #>
 #TempTask -Register
-
 # Delete the "Temp" scheduled task for cleaning up the %TEMP% folder
 #endregion Scheduled tasks
 
 #region Microsoft Defender & Security
 # Enable Microsoft Defender Exploit Guard network protection
 NetworkProtection -Enable
-
 # Disable Microsoft Defender Exploit Guard network protection (default value)
 # NetworkProtection -Disable
 
 # Enable detection for potentially unwanted applications and block them
 PUAppsDetection -Enable
-
 # Disable detection for potentially unwanted applications and block them (default value)
 # PUAppsDetection -Disable
 
 # Enable sandboxing for Microsoft Defender
 DefenderSandbox -Enable
-
 # Disable sandboxing for Microsoft Defender (default value)
 # DefenderSandbox -Disable
 
@@ -1562,43 +1450,36 @@ DismissSmartScreenFilter
 
 # Create the "Process Creation" ustom view in the Event Viewer to log executed processes and their arguments
 EventViewerCustomView -Enable
-
 # Remove the "Process Creation" custom view in the Event Viewer to log executed processes and their arguments (default value)
 # EventViewerCustomView -Disable
 
 # Enable logging for all Windows PowerShell modules
 PowerShellModulesLogging -Enable
-
 # Disable logging for all Windows PowerShell modules (default value)
 # PowerShellModulesLogging -Disable
 
 # Enable logging for all PowerShell scripts input to the Windows PowerShell event log
 PowerShellScriptsLogging -Enable
-
 # Disable logging for all PowerShell scripts input to the Windows PowerShell event log (default value)
 # PowerShellScriptsLogging -Disable
 
 # Microsoft Defender SmartScreen doesn't marks downloaded files from the Internet as unsafe
 AppsSmartScreen -Disable
-
 # Microsoft Defender SmartScreen marks downloaded files from the Internet as unsafe (default value)
 # AppsSmartScreen -Enable
 
 # Disable the Attachment Manager marking files that have been downloaded from the Internet as unsafe
 SaveZoneInformation -Disable
-
 # Enable the Attachment Manager marking files that have been downloaded from the Internet as unsafe (default value)
 # SaveZoneInformation -Enable
 
 # Disable Windows Script Host. Blocks WSH from executing .js and .vbs files
 # WindowsScriptHost -Disable
-
 # Enable Windows Script Host (default value)
 # WindowsScriptHost -Enable
 
 # Enable Windows Sandbox. Applicable only to Professional, Enterprise and Education editions
 # WindowsSandbox -Enable
-
 # Disable Windows Sandbox (default value). Applicable only to Professional, Enterprise and Education editions
 # WindowsSandbox -Disable
 
@@ -1607,13 +1488,11 @@ SaveZoneInformation -Disable
 	The valid IPv4 addresses: 1.0.0.1, 1.1.1.1, 149.112.112.112, 8.8.4.4, 8.8.8.8, 9.9.9.9
 #>
 # DNSoverHTTPS -Enable -PrimaryDNS 1.0.0.1 -SecondaryDNS 1.1.1.1
-
 # Disable DNS-over-HTTPS for IPv4 (default value)
 DNSoverHTTPS -Disable
 
 # Enable Local Security Authority protection to prevent code injection
 # LocalSecurityAuthority -Enable
-
 # Disable Local Security Authority protection (default value)
 LocalSecurityAuthority -Disable
 
@@ -1683,67 +1562,56 @@ DEPOptOut -Disable
 #region Context menu
 # Show the "Extract all" item in the Windows Installer (.msi) context menu
 MSIExtractContext -Show
-
 # Hide the "Extract all" item from the Windows Installer (.msi) context menu (default value)
 # MSIExtractContext -Hide
 
 # Show the "Install" item in the Cabinet (.cab) filenames extensions context menu
 CABInstallContext -Show
-
 # Hide the "Install" item from the Cabinet (.cab) filenames extensions context menu (default value)
 # CABInstallContext -Hide
 
 # Hide the "Edit with Clipchamp" item from the media files context menu
 EditWithClipchampContext -Hide
-
 # Show the "Edit with Clipchamp" item in the media files context menu (default value)
 # EditWithClipchampContext -Show
 
 # Hide the "Edit with Photos" item from the media files context menu
 EditWithPhotosContext -Hide
-
 # Show the "Edit with Photos" item in the media files context menu (default value)
 # EditWithPhotosContext -Show
 
 # Hide the "Edit with Paint" item from the media files context menu
 EditWithPaintContext -Hide
-
 # Show the "Edit with Paint" item in the media files context menu (default value)
 # EditWithPaintContext -Show
 
 # Hide the "Print" item from the .bat and .cmd context menu
 PrintCMDContext -Hide
-
 # Show the "Print" item in the .bat and .cmd context menu (default value)
 # PrintCMDContext -Show
 
 # Hide the "Compressed (zipped) Folder" item from the "New" context menu
 CompressedFolderNewContext -Hide
-
 # Show the "Compressed (zipped) Folder" item to the "New" context menu (default value)
 # CompressedFolderNewContext -Show
 
 # Enable the "Open", "Print", and "Edit" context menu items for more than 15 items selected
 MultipleInvokeContext -Enable
-
 # Disable the "Open", "Print", and "Edit" context menu items for more than 15 items selected (default value)
 # MultipleInvokeContext -Disable
 
 # Hide the "Look for an app in the Microsoft Store" item in the "Open with" dialog
 UseStoreOpenWith -Hide
-
 # Show the "Look for an app in the Microsoft Store" item in the "Open with" dialog (default value)
 # UseStoreOpenWith -Show
 
 # Show the "Open in Windows Terminal" item in the folders context menu (default value)
 OpenWindowsTerminalContext -Show
-
 # Hide the "Open in Windows Terminal" item in the folders context menu
 # OpenWindowsTerminalContext -Hide
 
 # Open Windows Terminal in context menu as administrator by default
 OpenWindowsTerminalAdminContext -Enable
-
 # Do not open Windows Terminal in context menu as administrator by default (default value)
 # OpenWindowsTerminalAdminContext -Disable
 #endregion Context menu
@@ -1751,13 +1619,11 @@ OpenWindowsTerminalAdminContext -Enable
 #region Taskbar Clock
 # Show seconds on the taskbar clock
 # SecondsInSystemClock -Show
-
 # Hide seconds on the taskbar clock (default value)
 SecondsInSystemClock -Hide
 
 # Show time in Notification Center
 ClockInNotificationCenter -Show
-
 # Hide time in Notification Center (default value)
 # ClockInNotificationCenter -Hide
 #endregion Taskbar Clock
@@ -1766,11 +1632,9 @@ ClockInNotificationCenter -Show
 # Download and install free dark "Windows 11 Cursors Concept" cursors from Jepri Creations. Internet connection required
 # https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
 # Install-Cursors -Dark
-
 # Download and install free light "Windows 11 Cursors Concept" cursors from Jepri Creations. Internet connection required
 # https://www.deviantart.com/jepricreations/art/Windows-11-Cursors-Concept-886489356
 # Install-Cursors -Light
-
 # Set default cursors
 Install-Cursors -Default
 #endregion Cursors
@@ -1778,13 +1642,11 @@ Install-Cursors -Default
 #region Start Menu Apps
 # Hide recently added apps in Start
 RecentlyAddedStartApps -Hide
-
 # Show recently added apps in Start (default value)
 # RecentlyAddedStartApps -Show
 
 # Hide most used apps in Start (default value)
 MostUsedStartApps -Hide
-
 # Show most used Apps in Start
 # MostUsedStartApps -Show
 #endregion Start Menu Apps
@@ -1792,7 +1654,6 @@ MostUsedStartApps -Hide
 #region Explorer
 # Do not restore previous folder windows at logon (default value)
 RestorePreviousFolders -Disable
-
 # Restore previous folder windows at logon
 # RestorePreviousFolders -Enable
 #endregion Explorer

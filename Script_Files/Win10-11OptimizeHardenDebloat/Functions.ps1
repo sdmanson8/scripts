@@ -66,6 +66,7 @@ catch
 # The mandatory checks. Please, do not comment out this function
 InitialActions
 
+
 $Parameters = @{
 	CommandName   = "Win10_11Util"
 	ParameterName = "Functions"

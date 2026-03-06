@@ -29,19 +29,34 @@ if ($nonInteractive) {
 $Host.UI.RawUI.WindowTitle = "Remove Windows AI - Win10_11Util"
 
 # Checking whether all files were expanded before running
+$LocalizationRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Localizations"))
+$ModulePath       = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Win10_11Util.psm1"))
+$ManifestPath     = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Manifest\Win10_11Util.psd1"))
+
 $ScriptFiles = @(
-    "$PSScriptRoot\Localizations\Win10_11Util.psd1",  # Localization file
-    "$PSScriptRoot\Module\Win10_11Util.psm1",        # Module definition
-    "$PSScriptRoot\Manifest\Win10_11Util.psd1"      # Manifest file
+	$ModulePath,
+	$ManifestPath
 )
 
 if (($ScriptFiles | Test-Path) -contains $false)
 {
 	Write-Information -MessageData "" -InformationAction Continue
-	Write-Warning -Message "There are no files in the script folder. Please, re-download the archive."
+	Write-Warning "Required files are missing. Please re-download the archive."
 	Write-Information -MessageData "" -InformationAction Continue
+
+	foreach ($File in $ScriptFiles)
+	{
+		if (-not (Test-Path $File))
+		{
+			Write-Warning "Missing: $File"
+		}
+	}
+
 	exit
 }
+
+Import-LocalizedData -BindingVariable Global:Localization -UICulture "en-US" -FileName "Win10_11Util.psd1" -BaseDirectory $LocalizationRoot
+Import-Module -Name $ManifestPath -ErrorAction Stop
 
 Remove-Module -Name Win10_11Util -Force -ErrorAction Ignore
 try
@@ -50,15 +65,14 @@ try
 }
 catch
 {
-	Import-LocalizedData -BindingVariable Global:Localization -UICulture en-US -BaseDirectory $PSScriptRoot\Localizations -FileName Win10_11Util
+	Import-LocalizedData -BindingVariable Global:Localization -UICulture $PSUICulture -BaseDirectory $LocalizationRoot -FileName "Win10_11Util"
 }
 
 # Checking whether script is the correct PowerShell version
 try
 {
-	Import-Module -Name $PSScriptRoot\Manifest\Win10_11Util.psd1 -PassThru -Force -ErrorAction Stop | Out-Null
+	Import-Module -Name $ManifestPath -PassThru -Force -ErrorAction Stop | Out-Null
 }
-
 catch [System.InvalidOperationException]
 {
 	Write-Warning -Message $Localization.UnsupportedPowerShell
@@ -333,7 +347,8 @@ function Write-Status {
 
 #Log file
 # Import logging module
-Import-Module -Name "$PSScriptRoot\Module\Logging.psm1" -Force
+$LoggingModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Logging.psm1"))
+Import-Module -Name $LoggingModulePath -Force
 
 # Set up logging - priority: parameter > environment > global > default
 if ($LogFilePath) {

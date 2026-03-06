@@ -1,4 +1,4 @@
-$script:LogFilePath = $null
+﻿$script:LogFilePath = $null
 $script:LogLock = New-Object System.Threading.Mutex($false, "Global\RemoveWindowsAILogLock")
 
 function Set-LogFile {
