@@ -18,6 +18,8 @@ function PostActions
 {
 	Write-Host "Performing post actions - " -NoNewline
 	LogInfo "Performing post actions"
+	try
+	{
 	#region Refresh Environment
 	# Refresh the shell so desktop, taskbar, and environment changes are visible immediately.
 	$Signature = @{
@@ -68,7 +70,7 @@ public static void PostMessage()
 	}
 	if (-not ("WinAPI.UpdateEnvironment" -as [type]))
 	{
-		Add-Type @Signature
+		Add-Type @Signature -ErrorAction Stop
 	}
 
 	# Simulate pressing F5 to refresh the desktop
@@ -87,25 +89,41 @@ public static void PostMessage()
 	if ((Test-Path -Path "$env:TEMP\Computer.txt") -or (Test-Path -Path "$env:TEMP\User.txt"))
 	{
 		if (Test-Path -Path "$env:TEMP\Computer.txt") {
-    		Start-Process -FilePath "$PSScriptRoot\..\Binaries\LGPO.exe" `
+    		$ComputerLgpoProcess = Start-Process -FilePath "$PSScriptRoot\..\Binaries\LGPO.exe" `
                   -ArgumentList "/t `"$env:TEMP\Computer.txt`"" `
                   -WindowStyle Hidden `
                   -Wait `
+                  -PassThru `
+                  -ErrorAction Stop `
                   -RedirectStandardOutput "$env:TEMP\LGPOOutput.txt" `
                   -RedirectStandardError "$env:TEMP\LGPOError.txt"
+			if ($ComputerLgpoProcess.ExitCode -ne 0)
+			{
+				throw "LGPO.exe returned exit code $($ComputerLgpoProcess.ExitCode) while importing Computer.txt"
+			}
 		}
 
 		if (Test-Path -Path "$env:TEMP\User.txt") {
-    		Start-Process -FilePath "$PSScriptRoot\..\Binaries\LGPO.exe" `
+    		$UserLgpoProcess = Start-Process -FilePath "$PSScriptRoot\..\Binaries\LGPO.exe" `
                   -ArgumentList "/t `"$env:TEMP\User.txt`"" `
                   -WindowStyle Hidden `
                   -Wait `
+                  -PassThru `
+                  -ErrorAction Stop `
                   -RedirectStandardOutput "$env:TEMP\LGPOOutput.txt" `
                   -RedirectStandardError "$env:TEMP\LGPOError.txt"
+			if ($UserLgpoProcess.ExitCode -ne 0)
+			{
+				throw "LGPO.exe returned exit code $($UserLgpoProcess.ExitCode) while importing User.txt"
+			}
 		}
 
 	# Run gpupdate silently
-	cmd /c "gpupdate /force > NUL 2>&1"
+	cmd /c "gpupdate /force > NUL 2>&1" 2>$null | Out-Null
+		if ($LASTEXITCODE -ne 0)
+		{
+			throw "gpupdate returned exit code $LASTEXITCODE"
+		}
 	}
 
 	# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
@@ -184,11 +202,22 @@ public static void PostMessage()
                  -ErrorAction SilentlyContinue | Out-Null
 
 	#Reinstall Print Management Console
-	$null = Start-Process -FilePath "DISM.exe" `
+	$PrintManagementProcess = Start-Process -FilePath "DISM.exe" `
                       -ArgumentList "/online /add-capability /CapabilityName:Print.Management.Console~~~~0.0.1.0 /quiet /norestart" `
                       -Wait `
                       -NoNewWindow `
-                      -PassThru
+                      -PassThru `
+                      -ErrorAction Stop
+	if ($PrintManagementProcess.ExitCode -ne 0)
+	{
+		throw "DISM.exe returned exit code $($PrintManagementProcess.ExitCode) while reinstalling Print Management Console"
+	}
 	Write-Host "success!" -ForegroundColor Green
+	}
+	catch
+	{
+		LogError "Post actions failed: $($_.Exception.Message)"
+		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+	}
 }
 #endregion Post Actions

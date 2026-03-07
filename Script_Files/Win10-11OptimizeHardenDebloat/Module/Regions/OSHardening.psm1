@@ -19,19 +19,27 @@ using module ..\Helpers.psm1
 function Disable-RemoteCommands {
     Write-Host "Disable Remote Commands - " -NoNewline
 	LogInfo "Disabling Remote Commands"
-    Set-ItemProperty -Path "HKLM:\Software\Microsoft\OLE" -Name "EnableDCOM" -Value "N" | Out-Null
+    try
+    {
+        Set-ItemProperty -Path "HKLM:\Software\Microsoft\OLE" -Name "EnableDCOM" -Value "N" -ErrorAction Stop | Out-Null
 
-    # Ensure the registry key exists before trying to remove the value
-    if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms")
-	{
-        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms" -Name "default" -Force | Out-Null
-    }
+        # Ensure the registry key exists before trying to remove the value
+        if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms")
+		{
+            Remove-ItemProperty -Path "HKLM:\SOFTWARE\Classes\.devicemetadata-ms" -Name "default" -Force -ErrorAction Stop | Out-Null
+        }
 
-    if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms")
-	{
-        Remove-ItemProperty -Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms" -Name "default" -Force | Out-Null
+        if (Test-Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms")
+		{
+            Remove-ItemProperty -Path "HKLM:\SOFTWARE\Classes\.devicemanifest-ms" -Name "default" -Force -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable remote commands: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -52,8 +60,16 @@ function Suspend-AirstrikeAttack
 {
     Write-Host "Restrict local Windows wireless exploitation - " -NoNewline
 	LogInfo "Restricting local Windows wireless exploitation"
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Value 1 | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+    {
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Value 1 -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to restrict lock screen network selection: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -74,8 +90,16 @@ function Disable-SMBv3Compression
 {
     Write-Host "Disable SMB version 3 Compression - " -NoNewline
 	LogInfo "Disabling SMB version 3 Compression"
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "DisableCompression" -Value 1 | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+    {
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "DisableCompression" -Value 1 -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable SMBv3 compression: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -96,40 +120,45 @@ function Protect-MSOffice
 {
     Write-Host "Configure Office to be Hardened - " -NoNewline
 	LogInfo "Configuring Office to be Hardened"
-    $officeVersions = @("12.0", "14.0", "15.0", "16.0")
+    try
+    {
+        $officeVersions = @("12.0", "14.0", "15.0", "16.0")
 
-    foreach ($version in $officeVersions)
-	{
-        $wordPath = "HKCU:\Software\Policies\Microsoft\Office\$version\Word\Security"
-        $publisherPath = "HKCU:\Software\Policies\Microsoft\Office\$version\Publisher\Security"
-
-        # Check if the Word registry path exists before setting vbawarnings
-        if (Test-Path $wordPath)
+        foreach ($version in $officeVersions)
 		{
-            Set-ItemProperty -Path $wordPath -Name "vbawarnings" -Value 4 | Out-Null
+            $wordPath = "HKCU:\Software\Policies\Microsoft\Office\$version\Word\Security"
+            $publisherPath = "HKCU:\Software\Policies\Microsoft\Office\$version\Publisher\Security"
+
+            if (Test-Path $wordPath)
+			{
+                Set-ItemProperty -Path $wordPath -Name "vbawarnings" -Value 4 -ErrorAction Stop | Out-Null
+            }
+
+            if (Test-Path $publisherPath)
+			{
+                Set-ItemProperty -Path $publisherPath -Name "vbawarnings" -Value 4 -ErrorAction Stop | Out-Null
+            }
         }
 
-        # Check if the Publisher registry path exists before setting vbawarnings
-        if (Test-Path $publisherPath)
+        $word15Path = "HKCU:\Software\Policies\Microsoft\Office\15.0\Word\Security"
+        $word16Path = "HKCU:\Software\Policies\Microsoft\Office\16.0\Word\Security"
+
+        if (Test-Path $word15Path)
 		{
-            Set-ItemProperty -Path $publisherPath -Name "vbawarnings" -Value 4 | Out-Null
+            Set-ItemProperty -Path $word15Path -Name "blockcontentexecutionfrominternet" -Value 1 -ErrorAction Stop | Out-Null
         }
-    }
 
-    # Check and apply settings for blockcontentexecutionfrominternet for Office 15.0 and 16.0 Word
-    $word15Path = "HKCU:\Software\Policies\Microsoft\Office\15.0\Word\Security"
-    $word16Path = "HKCU:\Software\Policies\Microsoft\Office\16.0\Word\Security"
-
-    if (Test-Path $word15Path)
-	{
-        Set-ItemProperty -Path $word15Path -Name "blockcontentexecutionfrominternet" -Value 1 | Out-Null
+        if (Test-Path $word16Path)
+		{
+            Set-ItemProperty -Path $word16Path -Name "blockcontentexecutionfrominternet" -Value 1 -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-
-    if (Test-Path $word16Path)
-	{
-        Set-ItemProperty -Path $word16Path -Name "blockcontentexecutionfrominternet" -Value 1 | Out-Null
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure Office hardening settings: $($_.Exception.Message)"
     }
-	Write-Host "success!" -ForegroundColor Green
 }
 
 <#
@@ -150,36 +179,40 @@ function Protect-OS
 {
     Write-Host "Configure OS to be Hardened - " -NoNewline
 	LogInfo "Configuring OS to be Hardened"
-    # Check if the WDigest registry path exists before setting the value
-    $wdigestPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest"
-    if (Test-Path $wdigestPath)
-	{
-        Set-ItemProperty -Path $wdigestPath -Name "UseLogonCredential" -Value 0 | Out-Null
-    }
+    try
+    {
+        $wdigestPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest"
+        if (Test-Path $wdigestPath)
+		{
+            Set-ItemProperty -Path $wdigestPath -Name "UseLogonCredential" -Value 0 -ErrorAction Stop | Out-Null
+        }
 
-    # Check if the Kerberos Parameters registry path exists before setting the value
-    $kerberosPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters"
-    if (Test-Path $kerberosPath)
-	{
-        Set-ItemProperty -Path $kerberosPath -Name "SupportedEncryptionTypes" -Value 2147483640 | Out-Null
-    }
+        $kerberosPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters"
+        if (Test-Path $kerberosPath)
+		{
+            Set-ItemProperty -Path $kerberosPath -Name "SupportedEncryptionTypes" -Value 2147483640 -ErrorAction Stop | Out-Null
+        }
 
-    # Check if the Tcpip Parameters registry path exists before setting the value
-    $tcpipPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
-    if (Test-Path $tcpipPath)
-	{
-        Set-ItemProperty -Path $tcpipPath -Name "DisableIPSourceRouting" -Value 2 | Out-Null
-    }
+        $tcpipPath = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters"
+        if (Test-Path $tcpipPath)
+		{
+            Set-ItemProperty -Path $tcpipPath -Name "DisableIPSourceRouting" -Value 2 -ErrorAction Stop | Out-Null
+        }
 
-    # Check if the System registry path exists before setting EnableLUA
-    $systemPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
-    if (Test-Path $systemPath)
-	{
-        Set-ItemProperty -Path $systemPath -Name "EnableLUA" -Value 1 | Out-Null
-        Set-ItemProperty -Path $systemPath -Name "EnableVirtualization" -Value 1 | Out-Null
-        Set-ItemProperty -Path $systemPath -Name "ConsentPromptBehaviorAdmin" -Value 2 | Out-Null
+        $systemPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"
+        if (Test-Path $systemPath)
+		{
+            Set-ItemProperty -Path $systemPath -Name "EnableLUA" -Value 1 -ErrorAction Stop | Out-Null
+            Set-ItemProperty -Path $systemPath -Name "EnableVirtualization" -Value 1 -ErrorAction Stop | Out-Null
+            Set-ItemProperty -Path $systemPath -Name "ConsentPromptBehaviorAdmin" -Value 2 -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure OS hardening settings: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -200,10 +233,18 @@ function Set-DLLHijackingPrevention
 {
     Write-Host "Configure DLL Hijacking Prevention - " -NoNewline
 	LogInfo "Configuring DLL Hijacking Prevention"
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "CWDIllegalInDllSearch" -Value 2 | Out-Null
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "SafeDLLSearchMode" -Value 1 | Out-Null
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "ProtectionMode" -Value 1 | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+    {
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "CWDIllegalInDllSearch" -Value 2 -ErrorAction Stop | Out-Null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "SafeDLLSearchMode" -Value 1 -ErrorAction Stop | Out-Null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "ProtectionMode" -Value 1 -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure DLL hijacking prevention: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -220,8 +261,16 @@ function Disable-IPv6
 {
     Write-Host "Disable IPv6 - " -NoNewline
 	LogInfo "Disabling IPv6"
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\services\tcpip6\parameters" -Name "DisabledComponents" -Value 0xFF | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+    {
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\services\tcpip6\parameters" -Name "DisabledComponents" -Value 0xFF -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable IPv6: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -238,8 +287,20 @@ function Disable-TCPTimestamps
 {
     Write-Host "Disable TCP Timestamps - " -NoNewline
 	LogInfo "Disabling TCP Timestamps"
-    netsh int tcp set global timestamps=disabled | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+	{
+        netsh int tcp set global timestamps=disabled 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw "netsh returned exit code $LASTEXITCODE"
+        }
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable TCP timestamps: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -275,8 +336,16 @@ function Enable-BiometricsAntiSpoofing
         }
     }
 
-    Set-ItemProperty -Path "HKLM:\$path" -Name "EnhancedAntiSpoofing" -Value 1 -ErrorAction SilentlyContinue | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+    {
+        Set-ItemProperty -Path "HKLM:\$path" -Name "EnhancedAntiSpoofing" -Value 1 -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to enable biometrics anti-spoofing: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -337,21 +406,29 @@ function Disable-AutoRun
     LogInfo "Disabling Autorun"
     # Ensure paths exist or suppress the error
     $paths = @(
-        "HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer",
-        "HKCU\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer",
+        "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"
     )
 
     # Create missing paths and set registry values
-    foreach ($path in $paths)
-	{
-        if (-not (Test-Path -Path $path))
+    try
+    {
+        foreach ($path in $paths)
 		{
-            New-Item -Path $path -Force | Out-Null
-        }
+            if (-not (Test-Path -Path $path))
+			{
+                New-Item -Path $path -Force -ErrorAction Stop | Out-Null
+            }
 
-        Set-ItemProperty -Path $path -Name "NoDriveTypeAutoRun" -Value 0xFF -ErrorAction SilentlyContinue | Out-Null
+            New-ItemProperty -Path $path -Name "NoDriveTypeAutoRun" -PropertyType DWord -Value 0xFF -Force -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+    {
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable AutoRun: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -368,21 +445,29 @@ function Disable-AESCiphers
 {
     Write-Host "Disable AES Ciphers - " -NoNewline
 	LogInfo "Disabling AES Ciphers"
-    $ciphers = @(
-        'AES 128/128', 'AES 256/256', 'DES 56/56', 'RC2 128/128', 'RC4 128/128'
-    )
-    foreach ($cipher in $ciphers)
+    try
 	{
-        $cipherPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\$cipher"
-
-        if (-not (Test-Path $cipherPath))
+        $ciphers = @(
+            'AES 128/128', 'AES 256/256', 'DES 56/56', 'RC2 128/128', 'RC4 128/128'
+        )
+        foreach ($cipher in $ciphers)
 		{
-            New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers" -Name $cipher -Force | Out-Null
-        }
+            $cipherPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\$cipher"
 
-        Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 | Out-Null
+            if (-not (Test-Path $cipherPath))
+			{
+                New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers" -Name $cipher -Force -ErrorAction Stop | Out-Null
+            }
+
+            Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable AES ciphers: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -399,19 +484,27 @@ function Disable-RC2RC4Ciphers
 {
     Write-Host "Disable RC2 and RC4 Ciphers - " -NoNewline
 	LogInfo "Disabling RC2 and RC4 Ciphers"
-    $rcCiphers = @("RC2 128/128", "RC2 40/128", "RC2 56/128", "RC4 128/128", "RC4 40/128", "RC4 56/128", "RC4 64/128")
-    foreach ($cipher in $rcCiphers)
+    try
 	{
-        $cipherPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\$cipher"
-
-        if (-not (Test-Path $cipherPath))
+        $rcCiphers = @("RC2 128/128", "RC2 40/128", "RC2 56/128", "RC4 128/128", "RC4 40/128", "RC4 56/128", "RC4 64/128")
+        foreach ($cipher in $rcCiphers)
 		{
-            New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers" -Name $cipher -Force | Out-Null
-        }
+            $cipherPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\$cipher"
 
-        Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 | Out-Null
+            if (-not (Test-Path $cipherPath))
+			{
+                New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers" -Name $cipher -Force -ErrorAction Stop | Out-Null
+            }
+
+            Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable RC2 and RC4 ciphers: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -428,15 +521,23 @@ function Disable-TripleDESCipher
 {
     Write-Host "Disable Triple DES Ciphers - " -NoNewline
 	LogInfo "Disabling Triple DES Ciphers"
-    $cipherPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\Triple DES 168'
-
-    if (-not (Test-Path $cipherPath))
+    try
 	{
-        New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers' -Name 'Triple DES 168' -Force | Out-Null
-    }
+        $cipherPath = 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers\Triple DES 168'
 
-    Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+        if (-not (Test-Path $cipherPath))
+		{
+            New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Ciphers' -Name 'Triple DES 168' -Force -ErrorAction Stop | Out-Null
+        }
+
+        Set-ItemProperty -Path $cipherPath -Name 'Enabled' -Value 0 -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to disable the Triple DES cipher: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -453,22 +554,28 @@ function Disable-HashAlgorithms
 {
     Write-Host "Disable Hash Algorithms - " -NoNewline
 	LogInfo "Disabling Hash Algorithms"
-    $hashes = @('MD5', 'SHA', 'SHA256', 'SHA384', 'SHA512')
-
-    foreach ($hash in $hashes)
+    try
 	{
-        $hashPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\$hash"
+        $hashes = @('MD5', 'SHA', 'SHA256', 'SHA384', 'SHA512')
 
-        # Check if the registry key exists, if not, create it
-        if (-not (Test-Path $hashPath))
+        foreach ($hash in $hashes)
 		{
-            New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes" -Name $hash -Force | Out-Null
-        }
+            $hashPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes\$hash"
 
-        # Set the 'Enabled' value to 0xffffffff
-        Set-ItemProperty -Path $hashPath -Name 'Enabled' -Value 0xffffffff | Out-Null
+            if (-not (Test-Path $hashPath))
+			{
+                New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Hashes" -Name $hash -Force -ErrorAction Stop | Out-Null
+            }
+
+            Set-ItemProperty -Path $hashPath -Name 'Enabled' -Value 0xffffffff -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure SCHANNEL hash algorithms: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -485,22 +592,30 @@ function Update-KeyExchanges
 {
     Write-Host "Configure Key Exchanges - " -NoNewline
 	LogInfo "Configuring Key Exchanges"
-    $keyPaths = @(
-        'Diffie-Hellman', 'ECDH', 'PKCS'
-    )
-
-    foreach ($keyPath in $keyPaths)
+    try
 	{
-        $fullPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\$keyPath"
+        $keyPaths = @(
+            'Diffie-Hellman', 'ECDH', 'PKCS'
+        )
 
-        if (-not (Test-Path $fullPath))
+        foreach ($keyPath in $keyPaths)
 		{
-            New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms" -Name $keyPath -Force | Out-Null
-        }
+            $fullPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms\$keyPath"
 
-        Set-ItemProperty -Path $fullPath -Name 'Enabled' -Value 0xffffffff | Out-Null
+            if (-not (Test-Path $fullPath))
+			{
+                New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\KeyExchangeAlgorithms" -Name $keyPath -Force -ErrorAction Stop | Out-Null
+            }
+
+            Set-ItemProperty -Path $fullPath -Name 'Enabled' -Value 0xffffffff -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
     }
-	Write-Host "success!" -ForegroundColor Green
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure key exchange algorithms: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -521,37 +636,42 @@ function Update-Protocols
 {
     Write-Host "Configure SSL/TLS Protocols - " -NoNewline
 	LogInfo "Configuring SSL/TLS Protocols"
-    $protocols = @{
-        'Multi-Protocol Unified Hello\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'Multi-Protocol Unified Hello\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'PCT 1.0\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'PCT 1.0\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'SSL 2.0\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'SSL 2.0\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'SSL 3.0\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'SSL 3.0\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
-        'TLS 1.0\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
-        'TLS 1.0\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
-        'TLS 1.1\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
-        'TLS 1.1\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
-        'TLS 1.2\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
-        'TLS 1.2\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
-    }
-    Write-Host "success!" -ForegroundColor Green
-    foreach ($protocol in $protocols.Keys)
+    try
 	{
-        foreach ($key in $protocols[$protocol].Keys)
-		{
-            $protocolPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\$protocol"
-
-            # Ensure the registry path exists before setting properties
-            if (Update-RegistryPaths -path $protocolPath)
-			{
-				Write-Host "Updating SSL/TLS Registry Paths - " -NoNewline
-				LogInfo "Updating SSL/TLS Registry Paths"
-                Set-ItemProperty -Path $protocolPath -Name $key -Value $protocols[$protocol][$key] | Out-Null
-			}
+        $protocols = @{
+            'Multi-Protocol Unified Hello\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'Multi-Protocol Unified Hello\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'PCT 1.0\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'PCT 1.0\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'SSL 2.0\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'SSL 2.0\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'SSL 3.0\Client' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'SSL 3.0\Server' = @{'Enabled' = 0; 'DisabledByDefault' = 1}
+            'TLS 1.0\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
+            'TLS 1.0\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
+            'TLS 1.1\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
+            'TLS 1.1\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
+            'TLS 1.2\Client' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
+            'TLS 1.2\Server' = @{'Enabled' = 0xffffffff; 'DisabledByDefault' = 0}
         }
+        foreach ($protocol in $protocols.Keys)
+		{
+            foreach ($key in $protocols[$protocol].Keys)
+			{
+                $protocolPath = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\$protocol"
+
+                if (Update-RegistryPaths -path $protocolPath)
+				{
+                    Set-ItemProperty -Path $protocolPath -Name $key -Value $protocols[$protocol][$key] -ErrorAction Stop | Out-Null
+				}
+            }
+        }
+        Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure SSL/TLS protocol settings: $($_.Exception.Message)"
     }
 }
 
@@ -569,9 +689,17 @@ function Update-CipherSuites
 {
     Write-Host "Configure Cipher Suites - " -NoNewline
 	LogInfo "Configuring Cipher Suites"
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\CipherSuites" -Name "TLS_RSA_WITH_AES_256_CBC_SHA256" -Value 0x1 | Out-Null
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\CipherSuites" -Name "TLS_RSA_WITH_AES_128_CBC_SHA256" -Value 0x1 | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+	{
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\CipherSuites" -Name "TLS_RSA_WITH_AES_256_CBC_SHA256" -Value 0x1 -ErrorAction Stop | Out-Null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\CipherSuites" -Name "TLS_RSA_WITH_AES_128_CBC_SHA256" -Value 0x1 -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure cipher suites: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -588,8 +716,32 @@ function Update-DotNetStrongAuth
 {
     Write-Host "Use Strong .Net Authentication - " -NoNewline
 	LogInfo "Using Strong .Net Authentication"
-    Set-ItemProperty -Path "HKLM\Software\Microsoft\NET Framework Setup\NDP\v4\Full" -Name "EnableLegacyStrongNameBehavior" -Value 0 -ErrorAction SilentlyContinue | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+    try
+	{
+        $paths = @(
+            "HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v4.0.30319",
+            "HKLM:\SOFTWARE\Microsoft\.NETFramework\v2.0.50727",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\.NETFramework\v2.0.50727"
+        )
+
+        foreach ($path in $paths)
+        {
+            if (-not (Test-Path -Path $path))
+            {
+                New-Item -Path $path -Force -ErrorAction Stop | Out-Null
+            }
+
+            New-ItemProperty -Path $path -Name "SchUseStrongCrypto" -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+            New-ItemProperty -Path $path -Name "SystemDefaultTlsVersions" -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+        }
+		Write-Host "success!" -ForegroundColor Green
+    }
+    catch
+	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to enable strong .NET authentication: $($_.Exception.Message)"
+    }
 }
 
 <#
@@ -608,12 +760,14 @@ function Update-EventLogSize
 	LogInfo "Configuring Event Log Sizes"
     try
 	{
-        wevtutil sl Security /ms:1024000 | Out-Null
+        wevtutil sl Security /ms:1024000 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "wevtutil returned exit code $LASTEXITCODE" }
 		Write-Host "success!" -ForegroundColor Green
     }
     catch
 	{
-        LogError "Wevtutil cmdlet not available, skipping."
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
+        LogError "Failed to configure the Security event log size: $($_.Exception.Message)"
     }
 }
 
@@ -640,11 +794,13 @@ function Update-AdobereaderDCSTIG
     if (Test-Path -Path "HKCU:\$adobePath")
 	{
         Set-ItemProperty -Path "HKCU:\$adobePath" -Name "bProtectedMode" -Value 0 -ErrorAction SilentlyContinue | Out-Null
+        Write-Host "success!" -ForegroundColor Green
     }
     else
 	{
-        LogInfo "Adobe Reader is not installed or the registry path does not exist. Skipping configuration."
+        Write-Host "success!" -ForegroundColor Green
+        LogWarning "Adobe Reader is not installed or the registry path does not exist. Skipping configuration."
     }
-	Write-Host "success!" -ForegroundColor Green
+
 }
 #endregion OS Hardening

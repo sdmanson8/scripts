@@ -19,7 +19,7 @@ function Errors
     if ($Global:Error)
     {
         $FilteredErrors = $Global:Error | Where-Object {
-            $_.Exception.Message -notmatch 'Property .* does not exist|Cannot find path'
+            $_.Exception.Message -notmatch 'Property .* does not exist|Cannot find path|Cannot find a process with the name|The process ".*" not found|The operation completed successfully\.|The system was unable to find the specified registry key or value\.|The registry key at the specified path does not exist\.|Cannot find any service with service name|No package found for ''Microsoft Edge|No MSFT_ScheduledTask objects found with property ''TaskName'' equal to ''Disable LockScreen''|A key in this path already exists\.'
         }
 
         if ($FilteredErrors)
@@ -42,6 +42,6 @@ function Errors
 
     LogInfo "Script is finished"
     Write-Host "Script is finished, log file can be found here '$Global:LogFilePath'" -ForegroundColor DarkYellow
-    Pause
+    Read-Host "Press Enter to close"
 }
 #endregion Errors

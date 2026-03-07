@@ -71,7 +71,7 @@ function CheckWinGet
             "-ExecutionPolicy", "Bypass",
             "-File", "`"$installerPath`"",
             "-Force"
-        ) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+        ) -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog -ErrorAction Stop
         
         # Read and log the captured output
         if (Test-Path $stdoutLog) {
@@ -110,11 +110,13 @@ function CheckWinGet
             }
         } catch {
             LogError "Winget installation failed validation: $_"
+            Write-Host "Failed! Check logs for details." -ForegroundColor Red
             return $false
         }
         
     } catch {
         LogError "Error during winget installation: $_"
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
         return $false
     }
 }
@@ -135,37 +137,76 @@ function CheckWinGet
 #>
 Function Update-Powershell
 {
-    # Check if PowerShell 7 is installed
+    Write-Host "Checking Powershell Installation - " -NoNewline
+    LogInfo "Checking Powershell Installation"
+
+    $installedPwsh = Get-Command -Name pwsh -ErrorAction SilentlyContinue
+    if ($installedPwsh)
+    {
+        try
+        {
+            $installedPwshVersion = (& $installedPwsh.Source -NoProfile -Command '$PSVersionTable.PSVersion.ToString()' 2>$null).Trim()
+        }
+        catch
+        {
+            $installedPwshVersion = $null
+        }
+
+        if ($installedPwshVersion)
+        {
+            LogInfo "PowerShell 7 is already installed (Version: $installedPwshVersion)."
+        }
+        else
+        {
+            LogInfo "PowerShell 7 is already installed."
+        }
+
+        Write-Host "success!" -ForegroundColor Green
+        return
+    }
+
     $psVersion = $PSVersionTable.PSVersion
     if ($psVersion.Major -lt 7)
 	{
 		# Get the latest version of PowerShell 7 from winget
-		$latestVersion = (winget show --id Microsoft.PowerShell --accept-source-agreements | Select-String -Pattern "Version:" | ForEach-Object { $_.ToString().Split()[-1] }).Trim()
+		$wingetShowOutput = winget show --id Microsoft.PowerShell --accept-source-agreements 2>$null
+		if ($LASTEXITCODE -ne 0)
+		{
+			LogError "winget show failed to retrieve Microsoft.PowerShell metadata. Exit code: $LASTEXITCODE"
+            Write-Host "Failed! Check logs for details." -ForegroundColor Red
+			return
+		}
+
+		$latestVersion = ($wingetShowOutput | Select-String -Pattern "Version:" | ForEach-Object { $_.ToString().Split()[-1] }).Trim()
 
 		if (-not $latestVersion) {
 			LogError "Failed to retrieve the latest PowerShell version."
+            Write-Host "Failed! Check logs for details." -ForegroundColor Red
+			return
 		}
 
-		Write-Host "Installing PowerShell $latestVersion - " -NoNewline
+		Write-Host "`rInstalling PowerShell $latestVersion - " -NoNewline
 		LogInfo "Installing PowerShell $latestVersion"
-		# Run winget command as administrator to install PowerShell
-		powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy Bypass', '-Command winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements' -Verb RunAs -Wait"
-		Write-Host "success!" -ForegroundColor Green
-
-        # Check if the installation was successful
-        if ($LASTEXITCODE -eq 0)
+		try
 		{
-            #
-        }
-		else
+			# Run winget command as administrator to install PowerShell
+			$PowerShellInstallProcess = Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy Bypass', '-Command winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements' -Verb RunAs -Wait -PassThru -ErrorAction Stop
+			if ($PowerShellInstallProcess.ExitCode -ne 0)
+			{
+				LogError "winget install returned exit code $($PowerShellInstallProcess.ExitCode)"
+                Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				return
+			}
+			Write-Host "success!" -ForegroundColor Green
+		}
+		catch
 		{
-            LogError "Failed to install PowerShell $latestVersion. Please check the logs and try again."
+            LogError "Failed to install PowerShell $latestVersion. $($_.Exception.Message)"
             Write-Host "Failed! Check logs for details." -ForegroundColor Red
-        }
+		}
     }
 	else
 	{
-        Write-Host "Checking Powershell Installation - " -NoNewline
         $currentPSVersion = $psVersion.ToString()
         LogInfo "PowerShell 7 is already installed (Version: $currentPSVersion)."
         Write-Host "success!" -ForegroundColor Green
@@ -211,13 +252,14 @@ function Update-DesktopRegistry
 	{
         if (-not (Test-Path -Path $hideIconsPath))
 		{
-            New-Item -Path $hideIconsPath -Force | Out-Null
+            New-Item -Path $hideIconsPath -Force -ErrorAction Stop | Out-Null
         }
-        Set-ItemProperty -Path $hideIconsPath -Name $valueName -Value $valueData -Type DWord | Out-Null
+        Set-ItemProperty -Path $hideIconsPath -Name $valueName -Value $valueData -Type DWord -ErrorAction Stop | Out-Null
 		Write-Host "success!" -ForegroundColor Green
     }
 	catch
 	{
+        Write-Host "Failed! Check logs for details." -ForegroundColor Red
         LogError "Failed to set registry value: $valueName"
     }
 }

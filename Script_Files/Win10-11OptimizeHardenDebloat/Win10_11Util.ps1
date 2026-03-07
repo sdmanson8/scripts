@@ -3,13 +3,14 @@
 	This Script is a PowerShell module for Windows 10 & Windows 11 fine-tuning and automating the routine tasks
 
 	.VERSION
-	2.0.1
+	2.0.2
 
 	.DATE
 	03.10.2021 - initial version
 	24.02.2026 - updated to v2.0.0 with new functions and improvements
 	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
-	
+	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
+
 	.AUTHOR
 	sdmanson8
 
@@ -567,9 +568,9 @@ Powershell7Telemetry -Disable
 #endregion Privacy & Telemetry
 
 #region System Tweaks
-# Enable Cross-Device Resume (default value)
+# Enable Cross-Device Resume (Windows 11 build 26200.7705 / 26H1+ only) (default value)
 # CrossDeviceResume -Enable
-# Disable Cross-Device Resume 
+# Disable Cross-Device Resume (Windows 11 build 26200.7705 / 26H1+ only)
 CrossDeviceResume -Disable
 
 # Enable Multiplane Overlay (default value)
@@ -1277,10 +1278,10 @@ DefaultTerminalApp -WindowsTerminal
 # DefaultTerminalApp -ConsoleHost
 
 # Install the latest Microsoft Visual C++ Redistributable Packages 2015–2022 (x86/x64)
-Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64
+# Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64
 
 # Install the latest .NET Desktop Runtime 8, 9 x64
-Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
+# Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
 
 # List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
@@ -1359,10 +1360,10 @@ EdgeDebloat -Enable
 # Disable Edge Debloat (default value)
 # EdgeDebloat -Disable
 
-# Enable Revert Start Menu (revert to original Start Menu from 24H2)
+# Enable Revert Start Menu (revert to original Start Menu from 24H2) (Windows 11 build 26200.7019+ only)
 # CAUTION: Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling
 # RevertStartMenu -Enable
-# Disable Revert Start Menu (restore new Start Menu) (default value)
+# Disable Revert Start Menu (restore new Start Menu) (Windows 11 build 26200.7019+ only) (default value)
 RevertStartMenu -Disable
 #endregion UWP apps
 
@@ -1639,6 +1640,11 @@ RecentlyAddedStartApps -Hide
 MostUsedStartApps -Hide
 # Show most used Apps in Start
 # MostUsedStartApps -Show
+
+# Hide the All section with categories in Start (Windows 11 build 26200.7705 / 26H1+ only)
+StartMenuAllSectionCategories -Hide
+# Show the All section with categories in Start (Windows 11 build 26200.7705 / 26H1+ only) (default value)
+# StartMenuAllSectionCategories -Show
 #endregion Start Menu Apps
 
 #region Update Policies
@@ -1658,5 +1664,5 @@ PostActions
 #endregion Post Actions
 
 #region Errors
-# Errors output
+Errors #output
 #endregion Errors

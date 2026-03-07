@@ -134,26 +134,43 @@ function DiagnosticDataLevel
         "Minimal" {
 			Write-Host "Set Diagnostic Data Collection to Minimal - " -NoNewline
 			LogInfo "Setting Diagnostic Data Collection to Minimal"
-            if ($WindowsEdition -match "Enterprise" -or $WindowsEdition -match "Education") {
-                # Diagnostic data off
-                New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 0 -Force | Out-Null
-            } else {
-                # Send required diagnostic data
-                New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 1 -Force | Out-Null
-            }
+			try
+			{
+				if ($WindowsEdition -match "Enterprise" -or $WindowsEdition -match "Education") {
+					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				} else {
+					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				}
 
-            New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -PropertyType DWord -Value 1 -Force | Out-Null
-            New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set Diagnostic Data Collection to Minimal: $($_.Exception.Message)"
+			}
 		}
         "Default" {
             # Optional diagnostic data
 			Write-Host "Set Diagnostic Data Collection to Default - " -NoNewline
 			LogInfo "Setting Diagnostic Data Collection to Default"
-            New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -PropertyType DWord -Value 3 -Force | Out-Null
-            New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -PropertyType DWord -Value 3 -Force | Out-Null
-            Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection -Name MaxTelemetryAllowed -PropertyType DWord -Value 3 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack -Name ShowedToastAtLevel -PropertyType DWord -Value 3 -Force -ErrorAction Stop | Out-Null
+				if ((Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection -Name AllowTelemetry -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set Diagnostic Data Collection to Default: $($_.Exception.Message)"
+			}
 		}
     }
 }
@@ -207,21 +224,40 @@ function ErrorReporting
 		{
 			Write-Host "Disable Windows Error Reporting - " -NoNewline
 			LogInfo "Disabling Windows Error Reporting"
-			Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Disable-ScheduledTask | Out-Null
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Get-Service -Name WerSvc | Stop-Service -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-			Get-Service -Name WerSvc | Set-Service -StartupType Disabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Disable-ScheduledTask | Out-Null
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Get-Service -Name WerSvc | Stop-Service -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+				Get-Service -Name WerSvc | Set-Service -StartupType Disabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows Error Reporting: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enable Windows Error Reporting - " -NoNewline
 			LogInfo "Enabling Windows Error Reporting"
-			Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Enable-ScheduledTask | Out-Null
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Ignore | Out-Null
-			Get-Service -Name WerSvc | Set-Service -StartupType Manual -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-			Get-Service -Name WerSvc | Start-Service -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Get-ScheduledTask -TaskName QueueReporting -ErrorAction Ignore | Enable-ScheduledTask | Out-Null
+				if ((Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\Windows Error Reporting" -Name Disabled -Force -ErrorAction Stop | Out-Null
+				}
+				Get-Service -Name WerSvc | Set-Service -StartupType Manual -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+				Get-Service -Name WerSvc | Start-Service -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows Error Reporting: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -274,20 +310,39 @@ function FeedbackFrequency
 		{
 			Write-Host "Set Feedback Frequency to Never - " -NoNewline
 			LogInfo "Setting Feedback Frequency to Never"
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Siuf\Rules))
+			try
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Siuf\Rules -Force | Out-Null
+				if (-not (Test-Path -Path HKCU:\Software\Microsoft\Siuf\Rules))
+				{
+					New-Item -Path HKCU:\Software\Microsoft\Siuf\Rules -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name NumberOfSIUFInPeriod -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				if ((Get-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name NumberOfSIUFInPeriod -PropertyType DWord -Value 0 -Force | Out-Null
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set Feedback Frequency to Never: $($_.Exception.Message)"
+			}
 		}
 		"Automatically"
 		{
 			Write-Host "Set Feedback Frequency to Automatic - " -NoNewline
 			LogInfo "Setting Feedback Frequency to Automatic"
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds, NumberOfSIUFInPeriod -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path HKCU:\Software\Microsoft\Siuf\Rules -Name PeriodInNanoSeconds, NumberOfSIUFInPeriod -Force -ErrorAction Ignore | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set Feedback Frequency to Automatic: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -640,18 +695,37 @@ function UpdateMSRT
 		{
 			Write-Host "Enabling Malicious Software Removal Tool through Windows Update - " -NoNewline
 			LogInfo "Enabling Offering of Malicious Software Removal Tool through Windows Update"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontOfferThroughWUAU" -ErrorAction SilentlyContinue
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontOfferThroughWUAU" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontOfferThroughWUAU" -ErrorAction Stop
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable MSRT through Windows Update: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Malicious Software Removal Tool through Windows Update - " -NoNewline
 			LogInfo "Disabling Offering of Malicious Software Removal Tool through Windows Update"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontOfferThroughWUAU" -Type DWord -Value 1 -ErrorAction Stop
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontOfferThroughWUAU" -Type DWord -Value 1
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable MSRT through Windows Update: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -709,28 +783,53 @@ function UpdateDriver
 		{
 			Write-Host "Enabling Offering of drivers through Windows Update - " -NoNewline
 			LogInfo "Enabling Offering of drivers through Windows Update"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Name "PreventDeviceMetadataFromNetwork" -ErrorAction SilentlyContinue
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Name "SearchOrderConfig" -ErrorAction SilentlyContinue
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -ErrorAction SilentlyContinue
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Name "PreventDeviceMetadataFromNetwork" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Name "PreventDeviceMetadataFromNetwork" -ErrorAction Stop
+				}
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Name "SearchOrderConfig" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Name "SearchOrderConfig" -ErrorAction Stop
+				}
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -ErrorAction Stop
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable offering of drivers through Windows Update: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Offering of drivers through Windows Update - " -NoNewline
 			LogInfo "Disabling Offering of drivers through Windows Update"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Name "PreventDeviceMetadataFromNetwork" -Type DWord -Value 1 -ErrorAction Stop
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Name "SearchOrderConfig" -Type DWord -Value 0 -ErrorAction Stop
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -Type DWord -Value 1 -ErrorAction Stop
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" -Name "PreventDeviceMetadataFromNetwork" -Type DWord -Value 1
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Force | Out-Null
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable offering of drivers through Windows Update: $($_.Exception.Message)"
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DriverSearching" -Name "SearchOrderConfig" -Type DWord -Value 0
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" | Out-Null
-			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -Type DWord -Value 1
-			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -838,18 +937,37 @@ function UpdateAutoDownload
 		{
 			Write-Host "Enabling Automatic Windows Updates - " -NoNewline
 			LogInfo "Enabling Automatic Windows Updates"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUOptions" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUOptions" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUOptions" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Automatic Windows Updates: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Automatic Windows Updates - " -NoNewline
 			LogInfo "Disabling Automatic Windows Updates"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUOptions" -Type DWord -Value 2 -ErrorAction Stop
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUOptions" -Type DWord -Value 2
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Automatic Windows Updates: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -902,18 +1020,37 @@ function UpdateRestart
 		{
 			Write-Host "Enabling Automatic restart after Windows Update - " -NoNewline
 			LogInfo "Enabling Automatic restart after Windows Update"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Name "Debugger" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Name "Debugger" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Name "Debugger" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable automatic restart after Windows Update: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Automatic restart after Windows Update - " -NoNewline
 			LogInfo "Disabling Automatic restart after Windows Update"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe")) {
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Name "Debugger" -Type String -Value "cmd.exe" -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\MusNotification.exe" -Name "Debugger" -Type String -Value "cmd.exe" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable automatic restart after Windows Update: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -962,20 +1099,42 @@ function MaintenanceWakeUp
 		{
 			Write-Host "Enabling Nightly wake-up for Automatic Maintenance and Windows Updates - " -NoNewline
 			LogInfo "Enabling Nightly wake-up for Automatic Maintenance and Windows Updates"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUPowerManagement" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" -Name "WakeUp" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUPowerManagement" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUPowerManagement" -ErrorAction Stop | Out-Null
+				}
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" -Name "WakeUp" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" -Name "WakeUp" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable nightly wake-up for maintenance and updates: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Nightly wake-up for Automatic Maintenance and Windows Updates - " -NoNewline
 			LogInfo "Disabling Nightly wake-up for Automatic Maintenance and Windows Updates"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUPowerManagement" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" -Name "WakeUp" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUPowerManagement" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" -Name "WakeUp" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable nightly wake-up for maintenance and updates: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1024,18 +1183,34 @@ function SharedExperiences
 		{
 			Write-Host "Enabling Shared Experiences - " -NoNewline
 			LogInfo "Enabling Shared Experiences"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -Name "RomeSdkChannelUserAuthzPolicy" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -Name "RomeSdkChannelUserAuthzPolicy" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Shared Experiences: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Shared Experiences - " -NoNewline
 			LogInfo "Disabling Shared Experiences"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -Name "RomeSdkChannelUserAuthzPolicy" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -Name "RomeSdkChannelUserAuthzPolicy" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Shared Experiences: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1084,18 +1259,37 @@ function ClipboardHistory
 		{
 			Write-Host "Enabling Clipboard History - " -NoNewline
 			LogInfo "Enabling Clipboard History"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Clipboard History: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Clipboard History - " -NoNewline
 			LogInfo "Disabling Clipboard History"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -ErrorAction Stop | Out-Null
+				}
+				if ((Get-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Clipboard History: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1144,17 +1338,33 @@ function Superfetch
 		{
 			Write-Host "Enabling Superfetch service - " -NoNewline
 			LogInfo "Enabling Superfetch service"
-			Set-Service "SysMain" -StartupType Automatic | Out-Null
-			Start-Service "SysMain" -WarningAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-Service "SysMain" -StartupType Automatic -ErrorAction Stop | Out-Null
+				Start-Service "SysMain" -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Superfetch service: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Superfetch service - " -NoNewline
 			LogInfo "Disabling Superfetch service"
-			Stop-Service "SysMain" -WarningAction SilentlyContinue | Out-Null
-			Set-Service "SysMain" -StartupType Disabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Stop-Service "SysMain" -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
+				Set-Service "SysMain" -StartupType Disabled -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Superfetch service: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1203,15 +1413,31 @@ function NTFSLongPaths
 		{
 			Write-Host "Enabling NTFS Long Paths - " -NoNewline
 			LogInfo "Enabling NTFS Long Paths"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable NTFS Long Paths: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling NTFS Long Paths - " -NoNewline
 			LogInfo "Disabling NTFS Long Paths"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable NTFS Long Paths: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1260,21 +1486,43 @@ function NTFSLastAccess
 		{
 			Write-Host "Enable Updating of NTFS last access timestamps - " -NoNewline
 			LogInfo "Enable Updating of NTFS last access timestamps"
-			If ([System.Environment]::OSVersion.Version.Build -ge 17134) {
-				# System Managed, Last Access Updates Enabled
-				fsutil behavior set DisableLastAccess 2 | Out-Null
-			} Else {
-				# Last Access Updates Enabled
-				fsutil behavior set DisableLastAccess 0 | Out-Null
+			try
+			{
+				If ([System.Environment]::OSVersion.Version.Build -ge 17134) {
+					fsutil behavior set DisableLastAccess 2 | Out-Null
+				} Else {
+					fsutil behavior set DisableLastAccess 0 | Out-Null
+				}
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "fsutil returned exit code $LASTEXITCODE"
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable updating of NTFS last access timestamps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disable Updating of NTFS last access timestamps - " -NoNewline
 			LogInfo "Disable Updating of NTFS last access timestamps"
-			fsutil behavior set DisableLastAccess 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				fsutil behavior set DisableLastAccess 1 | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "fsutil returned exit code $LASTEXITCODE"
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable updating of NTFS last access timestamps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1323,25 +1571,45 @@ function SleepButton
 		{
 			Write-Host "Enabling Sleep start menu and keyboard button - " -NoNewline
 			LogInfo "Enabling Sleep start menu and keyboard button"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings")) {
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowSleepOption" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 1 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /SETDCVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 1 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowSleepOption" -Type DWord -Value 1 | Out-Null
-			powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 1 | Out-Null
-			powercfg /SETDCVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the Sleep Start menu and keyboard button: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Sleep start menu and keyboard button - " -NoNewline
 			LogInfo "Disabling Sleep start menu and keyboard button"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings")) {
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowSleepOption" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /SETDCVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FlyoutMenuSettings" -Name "ShowSleepOption" -Type DWord -Value 0 | Out-Null
-			powercfg /SETACVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 0 | Out-Null
-			powercfg /SETDCVALUEINDEX SCHEME_CURRENT SUB_BUTTONS SBUTTONACTION 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the Sleep Start menu and keyboard button: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1390,21 +1658,45 @@ function SleepTimeout
 		{
 			Write-Host "Enabling sleep mode timeouts - " -NoNewline
 			LogInfo "Enabling sleep mode timeouts"
-			powercfg /X monitor-timeout-ac 10 | Out-Null
-			powercfg /X monitor-timeout-dc 5 | Out-Null
-			powercfg /X standby-timeout-ac 30 | Out-Null
-			powercfg /X standby-timeout-dc 15 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				powercfg /X monitor-timeout-ac 10 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /X monitor-timeout-dc 5 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /X standby-timeout-ac 30 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /X standby-timeout-dc 15 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable sleep mode timeouts: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling sleep mode timeouts - " -NoNewline
 			LogInfo "Disabling sleep mode timeouts"
-			powercfg /X monitor-timeout-ac 0 | Out-Null
-			powercfg /X monitor-timeout-dc 0 | Out-Null
-			powercfg /X standby-timeout-ac 0 | Out-Null
-			powercfg /X standby-timeout-dc 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				powercfg /X monitor-timeout-ac 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /X monitor-timeout-dc 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /X standby-timeout-ac 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				powercfg /X standby-timeout-dc 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable sleep mode timeouts: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1453,15 +1745,31 @@ function FastStartup
 		{
 			Write-Host "Enabling Fast Startup - " -NoNewline
 			LogInfo "Enabling Fast Startup"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Fast Startup: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Fast Startup - " -NoNewline
 			LogInfo "Disabling Fast Startup"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Fast Startup: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1510,15 +1818,31 @@ function AutoRebootOnCrash
 		{
 			Write-Host "Enabling Automatically reboot on BSOD - " -NoNewline
 			LogInfo "Enabling Automatically reboot on BSOD"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "AutoReboot" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "AutoReboot" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable automatic reboot on BSOD: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Automatically reboot on BSOD - " -NoNewline
 			LogInfo "Disabling Automatically reboot on BSOD"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "AutoReboot" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "AutoReboot" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable automatic reboot on BSOD: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1571,21 +1895,40 @@ function SigninInfo
 		{
 			Write-Host "Disabling sign-in info to automatically finish setting up device after an update - " -NoNewline
 			LogInfo "Disabling sign-in info to automatically finish setting up device after an update"
-			$SID = (Get-CimInstance -ClassName Win32_UserAccount | Where-Object -FilterScript {$_.Name -eq $env:USERNAME}).SID
-			if (-not (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID"))
+			try
 			{
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Force | Out-Null
+				$SID = (Get-CimInstance -ClassName Win32_UserAccount | Where-Object -FilterScript {$_.Name -eq $env:USERNAME}).SID
+				if (-not (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID"))
+				{
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Name OptOut -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Name OptOut -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable sign-in info after updates: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling sign-in info to automatically finish setting up device after an update - " -NoNewline
 			LogInfo "Enabling sign-in info to automatically finish setting up device after an update"
-			$SID = (Get-CimInstance -ClassName Win32_UserAccount | Where-Object -FilterScript {$_.Name -eq $env:USERNAME}).SID
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Name OptOut -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				$SID = (Get-CimInstance -ClassName Win32_UserAccount | Where-Object -FilterScript {$_.Name -eq $env:USERNAME}).SID
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Name OptOut -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\UserARSO\$SID" -Name OptOut -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable sign-in info after updates: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1634,15 +1977,34 @@ function LanguageListAccess
 		{
 			Write-Host "Disabling websites showing locally relevant content by accessing language list - " -NoNewline
 			LogInfo "Disabling websites showing locally relevant content by accessing language list"
-			New-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name HttpAcceptLanguageOptOut -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name HttpAcceptLanguageOptOut -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable language list access for websites: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling websites to show locally relevant content by accessing language list - " -NoNewline
 			LogInfo "Enabling websites to show locally relevant content by accessing language list"
-			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name HttpAcceptLanguageOptOut -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name HttpAcceptLanguageOptOut -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name HttpAcceptLanguageOptOut -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable language list access for websites: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1700,15 +2062,31 @@ function AdvertisingID
 		{
 			Write-Host "Disabling apps showing personalized ads by using advertising ID - " -NoNewline
 			LogInfo "Disabling apps showing personalized ads by using advertising ID"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Name Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Name Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable personalized ads by using advertising ID: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling apps showing personalized ads by using advertising ID - " -NoNewline
 			LogInfo "Enabling apps showing personalized ads by using advertising ID"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Name Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo -Name Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable personalized ads by using advertising ID: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1757,15 +2135,31 @@ function WindowsWelcomeExperience
 		{
 			Write-Host "Enabling Windows welcome experience - " -NoNewline
 			LogInfo "Enabling Windows welcome experience"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows welcome experience: $($_.Exception.Message)"
+			}
 		}
 		"Hide"
 		{
 			Write-Host "Disabling Windows welcome experience - " -NoNewline
 			LogInfo "Disabling Windows welcome experience"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-310093Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows welcome experience: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1871,15 +2265,31 @@ function WindowsTips
 		{
 			Write-Host "Enabling tip and suggestions when I use Windows - " -NoNewline
 			LogInfo "Enabling tip and suggestions when I use Windows"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows tips and suggestions: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling tip and suggestions when I use Windows - " -NoNewline
 			LogInfo "Disabling tip and suggestions when I use Windows"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338389Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows tips and suggestions: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1928,19 +2338,35 @@ function SettingsSuggestedContent
 		{
 			Write-Host "Disabling suggested content in the Settings app - " -NoNewline
 			LogInfo "Disabling suggested content in the Settings app"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable suggested content in the Settings app: $($_.Exception.Message)"
+			}
 		}
 		"Show"
 		{
 			Write-Host "Enabling suggested content in the Settings app - " -NoNewline
 			LogInfo "Enabling suggested content in the Settings app"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-338393Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353694Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SubscribedContent-353696Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable suggested content in the Settings app: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1993,15 +2419,31 @@ function AppsSilentInstalling
 		{
 			Write-Host "Disabling Automatic installing of suggested apps - " -NoNewline
 			LogInfo "Disabling Automatic installing of suggested apps"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable automatic installing of suggested apps: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Automatic installing of suggested apps - " -NoNewline
 			LogInfo "Enabling Automatic installing of suggested apps"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager -Name SilentInstalledAppsEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable automatic installing of suggested apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2055,15 +2497,31 @@ function WhatsNewInWindows
 		{
 			Write-Host 'Disabling "suggest ways to get the most out of Windows and finish setting up this device" - ' -NoNewline
 			LogInfo 'Disabling "suggest ways to get the most out of Windows and finish setting up this device"'
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError 'Failed to disable "suggest ways to get the most out of Windows and finish setting up this device": $($_.Exception.Message)'
+			}
 		}
 		"Enable"
 		{
 			Write-Host 'Enabling "suggest ways to get the most out of Windows and finish setting up this device" - ' -NoNewline
 			LogInfo 'Enabling "suggest ways to get the most out of Windows and finish setting up this device"'
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement -Name ScoobeSystemSettingEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError 'Failed to enable "suggest ways to get the most out of Windows and finish setting up this device": $($_.Exception.Message)'
+			}
 		}
 	}
 }
@@ -2116,15 +2574,31 @@ function TailoredExperiences
 		{
 			Write-Host "Disabling Diagnostic data for personalized tips, ads, and recommendations - " -NoNewline
 			LogInfo "Disabling Diagnostic data for personalized tips, ads, and recommendations"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable tailored experiences: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Diagnostic data for personalized tips, ads, and recommendations - " -NoNewline
 			LogInfo "Enabling Diagnostic data for personalized tips, ads, and recommendations"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy -Name TailoredExperiencesWithDiagnosticDataEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable tailored experiences: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2173,22 +2647,41 @@ function BingSearch
 		{
 			Write-Host "Disabling Bing search in Start Menu - " -NoNewline
 			LogInfo "Disabling Bing search in Start Menu"
-			if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
+			try
 			{
-				New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force | Out-Null
-			}
-			New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -PropertyType DWord -Value 1 -Force | Out-Null
+				if (-not (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer))
+				{
+					New-Item -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type DWORD -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+				Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type DWORD -Value 1 | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Bing search in Start Menu: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Bing search in Start Menu - " -NoNewline
 			LogInfo "Enabling Bing search in Start Menu"
-			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Ignore | Out-Null
-			Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type CLEAR | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer)
+				{
+					Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Stop | Out-Null
+				}
+				Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Type CLEAR | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Bing search in Start Menu: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2237,15 +2730,34 @@ function StartRecommendationsTips
 		{
 			Write-Host "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
 			LogInfo "Disabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to hide Start menu recommendations for tips, shortcuts, new apps, and more: $($_.Exception.Message)"
+			}
 		}
 		"Show"
 		{
 			Write-Host "Enabling Recommendations for tips, shortcuts, new apps, and more in Start menu - " -NoNewline
 			LogInfo "Enabling Recommendations for tips, shortcuts, new apps, and more in Start menu"
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_IrisRecommendations -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to show Start menu recommendations for tips, shortcuts, new apps, and more: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2294,15 +2806,34 @@ function StartAccountNotifications
 		{
 			Write-Host "Disabling Microsoft account-related notifications on Start Menu in Start menu - " -NoNewline
 			LogInfo "Disabling Microsoft account-related notifications on Start Menu in Start menu"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to hide Microsoft account-related notifications in Start menu: $($_.Exception.Message)"
+			}
 		}
 		"Show"
 		{
 			Write-Host "Enabling Microsoft account-related notifications on Start Menu in Start menu - " -NoNewline
 			LogInfo "Enabling Microsoft account-related notifications on Start Menu in Start menu"
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_AccountNotifications -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to show Microsoft account-related notifications in Start menu: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2429,22 +2960,44 @@ function WebSearch
 		{
 			Write-Host "Enabling Web Search in the Start Menu - " -NoNewline
 			LogInfo "Enabling Web Search in the Start Menu"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -ErrorAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 1 | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search")
+				{
+					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -ErrorAction Stop | Out-Null
+					Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				}
+				if (Test-Path -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search")
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Web Search in the Start Menu: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Web Search in the Start Menu - " -NoNewline
 			LogInfo "Disabling Web Search in the Start Menu"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 0 | Out-Null
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force | Out-Null
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "CortanaConsent" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				if (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Web Search in the Start Menu: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2490,19 +3043,41 @@ function ActivityHistory
 		{
 			Write-Host "Enabling Activity History related notifications in Task View - " -NoNewline
 			LogInfo "Enabling Activity History-related notifications in Task View"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System")
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction Stop | Out-Null
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction Stop | Out-Null
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Activity History-related notifications in Task View: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Activity History related notifications in Task View - " -NoNewline
 			LogInfo "Disabling Activity History-related notifications in Task View"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Activity History-related notifications in Task View: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2551,19 +3126,35 @@ function ActivityHistory
 		{
 			Write-Host "Enabling Activity History related notifications in Task View - " -NoNewline
 			LogInfo "Enabling Activity History-related notifications in Task View"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -ErrorAction SilentlyContinue | Out-Null
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -ErrorAction SilentlyContinue | Out-Null
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Activity History notifications in Task View: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Activity History related notifications in Task View - " -NoNewline
 			LogInfo "Disabling Activity History-related notifications in Task View"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "UploadUserActivities" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Activity History notifications in Task View: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2612,18 +3203,37 @@ function Sensors
 		{
 			Write-Host "Enabling sensor-related features, such as screen auto-rotation - " -NoNewline
 			LogInfo "Enabling sensor-related features, such as screen auto-rotation"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable sensor-related features: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling sensor-related features, such as screen auto-rotation - " -NoNewline
 			LogInfo "Disabling sensor-related features, such as screen auto-rotation"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableSensors" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable sensor-related features: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2672,20 +3282,39 @@ function LocationService
 		{
 			Write-Host "Enabling location features - " -NoNewline
 			LogInfo "Enabling the location feature for the current user"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -ErrorAction Stop | Out-Null
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable location features: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling location features - " -NoNewline
 			LogInfo "Disabling the location feature for the current user"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Type DWord -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocationScripting" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable location features: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2734,15 +3363,34 @@ function MapUpdates
 		{
 			Write-Host "Enabling automatic map updates - " -NoNewline
 			LogInfo "Enabling automatic map updates for the current user"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKLM:\SYSTEM\Maps")
+				{
+					Remove-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable automatic map updates: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling automatic map updates - " -NoNewline
 			LogInfo "Disabling automatic map updates for the current user"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0 -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\Maps" -Name "AutoUpdateEnabled" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable automatic map updates: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2791,15 +3439,34 @@ function WebLangList
 		{
 			Write-Host "Enabling websites to show relevant content by accessing my language list - " -NoNewline
 			LogInfo "Enabling websites to show relevant content by accessing my language list"
-			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKCU:\Control Panel\International\User Profile")
+				{
+					Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable websites accessing the user's language list: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling websites to show relevant content by accessing my language list - " -NoNewline
 			LogInfo "Disabling websites to show relevant content by accessing my language list"
-			Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name "HttpAcceptLanguageOptOut" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable websites accessing the user's language list: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2851,18 +3518,37 @@ function Camera
 		{
 			Write-Host "Enabling Access to use the camera - " -NoNewline
 			LogInfo "Enabling Access to use the camera"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable camera access: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Access to use the camera - " -NoNewline
 			LogInfo "Disabling Access to use the camera"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCamera" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable camera access: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2914,18 +3600,37 @@ function Microphone
 		{
 			Write-Host "Enabling Access to use the microphone - " -NoNewline
 			LogInfo "Enabling Access to use the microphone"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable microphone access: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Access to use the microphone - " -NoNewline
 			LogInfo "Disabling Access to use the microphone"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMicrophone" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable microphone access: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -2977,18 +3682,34 @@ function WAPPush
 		{
 			Write-Host "Enabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
 			LogInfo "Enabling Device Management Wireless Application Protocol (WAP) Push Service"
-			Set-Service "dmwappushservice" -StartupType Automatic | Out-Null
-			Start-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-Service "dmwappushservice" -StartupType Automatic -ErrorAction Stop | Out-Null
+				Start-Service "dmwappushservice" -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\dmwappushservice" -Name "DelayedAutoStart" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the WAP Push Service: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Device Management Wireless Application Protocol (WAP) Push Service - " -NoNewline
 			LogInfo "Disabling Device Management Wireless Application Protocol (WAP) Push Service"
-			Stop-Service "dmwappushservice" -WarningAction SilentlyContinue | Out-Null
-			Set-Service "dmwappushservice" -StartupType Disabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Stop-Service "dmwappushservice" -WarningAction SilentlyContinue -ErrorAction Stop | Out-Null
+				Set-Service "dmwappushservice" -StartupType Disabled -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the WAP Push Service: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3040,18 +3761,37 @@ function ClearRecentFiles
 		{
 			Write-Host "Enabling the clearing of recent files on exit - " -NoNewline
 			LogInfo "Enabling the clearing of recent files on exit"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable clearing of recent files on exit: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the clearing of recent files on exit - " -NoNewline
 			LogInfo "Disabling the clearing of recent files on exit"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ClearRecentDocsOnExit" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable clearing of recent files on exit: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3103,18 +3843,37 @@ function RecentFiles
 		{
 			Write-Host "Enabling the recent files lists - " -NoNewline
 			LogInfo "Enabling the recent files lists"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable recent files lists: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the recent files lists - " -NoNewline
 			LogInfo "Disabling the recent files lists"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoRecentDocsHistory" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable recent files lists: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3163,20 +3922,36 @@ function UWPVoiceActivation
 		{
 			Write-Host "Enabling access to voice activation from UWP apps - " -NoNewline
 			LogInfo "Enabling access to voice activation from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -ErrorAction SilentlyContinue | Out-Null
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable voice activation for UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to voice activation from UWP apps - " -NoNewline
 			LogInfo "Disabling access to voice activation from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoice" -Type DWord -Value 2 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsActivateWithVoiceAboveLock" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable voice activation for UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3225,18 +4000,41 @@ function UWPNotifications
 		{
 			Write-Host "Enabling access to notifications from UWP apps - " -NoNewline
 			LogInfo "Enabling access to notifications from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")
+				{
+					$property = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction Ignore
+					if ($null -ne $property)
+					{
+						Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -ErrorAction Stop | Out-Null
+					}
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to notifications from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to notifications from UWP apps - " -NoNewline
 			LogInfo "Disabling access to notifications from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessNotifications" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to notifications from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3285,18 +4083,37 @@ function UWPAccountInfo
 		{
 			Write-Host "Enabling access to account info from UWP apps - " -NoNewline
 			LogInfo "Enabling access to account info from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to account info from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to account info from UWP apps - " -NoNewline
 			LogInfo "Disabling access to account info from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessAccountInfo" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to account info from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3345,18 +4162,37 @@ function UWPContacts
 		{
 			Write-Host "Enabling access to contacts from UWP apps - " -NoNewline
 			LogInfo "Enabling access to contacts from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to contacts from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to contacts from UWP apps - " -NoNewline
 			LogInfo "Disabling access to contacts from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessContacts" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to contacts from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3405,18 +4241,37 @@ function UWPCalendar
 		{
 			Write-Host "Enabling access to calendar from UWP apps - " -NoNewline
 			LogInfo "Enabling access to calendar from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to calendar from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to calendar from UWP apps - " -NoNewline
 			LogInfo "Disabling access to calendar from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCalendar" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to calendar from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3465,18 +4320,37 @@ function UWPPhoneCalls
 		{
 			Write-Host "Enabling access to phone calls from UWP apps - " -NoNewline
 			LogInfo "Enabling access to phone calls from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to phone calls from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to phone calls from UWP apps - " -NoNewline
 			LogInfo "Disabling access to phone calls from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessPhone" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to phone calls from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3525,18 +4399,37 @@ function UWPCallHistory
 		{
 			Write-Host "Enabling access to call history from UWP apps - " -NoNewline
 			LogInfo "Enabling access to call history from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to call history from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to call history from UWP apps - " -NoNewline
 			LogInfo "Disabling access to call history from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessCallHistory" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to call history from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3585,18 +4478,37 @@ function UWPEmail
 		{
 			Write-Host "Enabling access to email from UWP apps - " -NoNewline
 			LogInfo "Enabling access to email from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to email from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to email from UWP apps - " -NoNewline
 			LogInfo "Disabling access to email from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessEmail" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to email from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3645,18 +4557,37 @@ function UWPTasks
 		{
 			Write-Host "Enabling access to tasks from UWP apps - " -NoNewline
 			LogInfo "Enabling access to tasks from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to tasks from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to tasks from UWP apps - " -NoNewline
 			LogInfo "Disabling access to tasks from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessTasks" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to tasks from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3705,18 +4636,37 @@ function UWPMessaging
 		{
 			Write-Host "Enabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
 			LogInfo "Enabling access to messaging (SMS, MMS) from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to messaging from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to messaging (SMS, MMS) from UWP apps - " -NoNewline
 			LogInfo "Disabling access to messaging (SMS, MMS) from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessMessaging" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to messaging from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3765,18 +4715,37 @@ function UWPRadios
 		{
 			Write-Host "Enabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
 			LogInfo "Enabling access to radios (e.g. Bluetooth) from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to radios from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to radios (e.g. Bluetooth) from UWP apps - " -NoNewline
 			LogInfo "Disabling access to radios (e.g. Bluetooth) from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsAccessRadios" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to radios from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3825,18 +4794,37 @@ function UWPOtherDevices
 		{
 			Write-Host "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
 			LogInfo "Enabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to other devices from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps - " -NoNewline
 			LogInfo "Disabling access to other devices (unpaired, beacons, TVs etc.) from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsSyncWithDevices" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to other devices from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3885,18 +4873,37 @@ function UWPDiagInfo
 		{
 			Write-Host "Enabling access to diagnostic information from UWP apps - " -NoNewline
 			LogInfo "Enabling access to diagnostic information from UWP apps"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to diagnostic information from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to diagnostic information from UWP apps - " -NoNewline
 			LogInfo "Disabling access to diagnostic information from UWP apps"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" -Name "LetAppsGetDiagnosticInfo" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to diagnostic information from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3945,21 +4952,37 @@ function UWPFileSystem
 		{
 			Write-Host "Enabling access to libraries and the file system from UWP apps - " -NoNewline
 			LogInfo "Enabling access to libraries and the file system from UWP apps"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Allow" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Allow" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Allow" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Allow" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Allow" -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable access to libraries and the file system from UWP apps: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling access to libraries and the file system from UWP apps - " -NoNewline
 			LogInfo "Disabling access to libraries and the file system from UWP apps"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Deny" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary" -Name "Value" -Type String -Value "Deny" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary" -Name "Value" -Type String -Value "Deny" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary" -Name "Value" -Type String -Value "Deny" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess" -Name "Value" -Type String -Value "Deny" -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable access to libraries and the file system from UWP apps: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -4012,15 +5035,34 @@ function UWPSwapFile
 		{
 			Write-Host "Enabling the UWP apps swap file - " -NoNewline
 			LogInfo "Enabling the UWP apps swap file"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the UWP apps swap file: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the UWP apps swap file - " -NoNewline
 			LogInfo "Disabling the UWP apps swap file"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" -Name "SwapfileControl" -Type Dword -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the UWP apps swap file: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -4069,15 +5111,31 @@ function Powershell7Telemetry
 		{
 			Write-Host "Enabling PowerShell 7 Telemetry - " -NoNewline
 			LogInfo "Enabling PowerShell 7 Telemetry"
-			[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '', 'Machine')
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '', 'Machine')
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable PowerShell 7 Telemetry: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling PowerShell 7 Telemetry - " -NoNewline
 			LogInfo "Disabling PowerShell 7 Telemetry"
-			[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '1', 'Machine')
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				[Environment]::SetEnvironmentVariable('POWERSHELL_TELEMETRY_OPTOUT', '1', 'Machine')
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable PowerShell 7 Telemetry: $($_.Exception.Message)"
+			}
 		}
 	}
 }

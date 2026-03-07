@@ -109,18 +109,27 @@ function Install-WSL
 
 	function ButtonInstallClicked
 	{
-		Write-Host "Installing $Script:CommandTag distribution - " -NoNewline
-		LogInfo "Installing $Script:CommandTag distribution"
-		Start-Process -FilePath wsl.exe -ArgumentList "--install --distribution $Script:CommandTag" -Wait
+		try
+		{
+			Write-Host "Installing $Script:CommandTag distribution - " -NoNewline
+			LogInfo "Installing $Script:CommandTag distribution"
+			$WSLProcess = Start-Process -FilePath wsl.exe -ArgumentList "--install --distribution $Script:CommandTag" -Wait -PassThru -ErrorAction Stop
+			if ($WSLProcess.ExitCode -ne 0) { throw "wsl.exe returned exit code $($WSLProcess.ExitCode)" }
 
-		$Form.Close()
+			$Form.Close()
 
-		# Receive updates for other Microsoft products when you update Windows
-		New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force | Out-Null
+			# Receive updates for other Microsoft products when you update Windows
+			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 
-		# Check for updates
-		Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan
-		Write-Host "success!" -ForegroundColor Green
+			# Check for updates
+			Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan -WindowStyle Hidden -ErrorAction Stop | Out-Null
+			Write-Host "success!" -ForegroundColor Green
+		}
+		catch
+		{
+			Write-Host "Failed! Check logs for details." -ForegroundColor Red
+			LogError "Failed to install the $Script:CommandTag WSL distribution: $($_.Exception.Message)"
+		}
 	}
 	#endregion
 

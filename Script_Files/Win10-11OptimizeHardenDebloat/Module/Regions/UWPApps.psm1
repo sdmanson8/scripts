@@ -78,7 +78,11 @@ function Copilot
 			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
 			& "$PSScriptRoot\..\..\files\RemoveWindowsAI.ps1" -nonInteractive -revertMode -AllOptions
 			Start-Sleep -Seconds 2
-			winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD | Out-Null
+			winget install -s msstore -e --silent --accept-source-agreements --accept-package-agreements --id 9NHT9RB2F4HD 2>$null | Out-Null
+			if ($LASTEXITCODE -ne 0)
+			{
+				LogError "winget failed to install Microsoft Copilot with exit code $LASTEXITCODE"
+			}
 		}
 		"Uninstall"
 		{
@@ -520,16 +524,21 @@ function UWPApps
          			if ($WingetPath)
          			{
             				$WingetID = $WingetMap[$PackageName]
-            				if ($WingetID)
+           				if ($WingetID)
             				{
            					if ($CheckBoxForAllUsers.IsChecked)
            					{
-          						$null = Start-Process -FilePath "winget" -ArgumentList "install --exact --id $WingetID --scope machine --silent --accept-package-agreements --accept-source-agreements" -Wait -WindowStyle Hidden -PassThru
+          						$WingetProcess = Start-Process -FilePath "winget" -ArgumentList "install --exact --id $WingetID --scope machine --silent --accept-package-agreements --accept-source-agreements" -Wait -WindowStyle Hidden -PassThru -ErrorAction Stop
            					}
            					else
            					{
-          						$null = Start-Process -FilePath "winget" -ArgumentList "install --exact --id $WingetID --scope user --silent --accept-package-agreements --accept-source-agreements" -Wait -WindowStyle Hidden -PassThru
+          						$WingetProcess = Start-Process -FilePath "winget" -ArgumentList "install --exact --id $WingetID --scope user --silent --accept-package-agreements --accept-source-agreements" -Wait -WindowStyle Hidden -PassThru -ErrorAction Stop
            					}
+
+								if ($WingetProcess.ExitCode -ne 0)
+								{
+									LogError "winget failed to install $PackageName with exit code $($WingetProcess.ExitCode)"
+								}
 
            					Start-Sleep -Seconds 5
            					$AfterWinget = Get-AppxPackage -Name $PackageName -AllUsers:$CheckBoxForAllUsers.IsChecked -ErrorAction SilentlyContinue
@@ -1047,7 +1056,11 @@ function UWPApps
 				# & "$env:SystemRoot\System32\msiexec.exe" --% /x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn
 				if ($PackagesToRemove -match "MSTeams")
 				{
-					Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn" -Wait
+					$MSIProcess = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList "/x {A7AB73A3-CB10-4AA5-9D38-6AEFFBDE4C91} /qn" -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+					if ($MSIProcess.ExitCode -ne 0)
+					{
+						LogError "msiexec failed to remove the Teams Meeting Add-in with exit code $($MSIProcess.ExitCode)"
+					}
 				}
 
 				$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked
@@ -1229,7 +1242,7 @@ function CortanaAutostart
 
 	if (-not (Get-AppxPackage -Name Microsoft.549981C3F5F10))
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 		return
 	}
 
@@ -1581,6 +1594,7 @@ function RevertStartMenu
 	$viveToolUrl = "https://github.com/thebookisclosed/ViVe/releases/download/v0.3.4/ViVeTool-v0.3.4-IntelAmd.zip"
 	$featureId = "47205210"
 	$tempDir = "$env:TEMP\ViVeTool"
+	$SupportedMessage = "Revert Start Menu is only supported on Windows 11 build 26200.7019 and newer. Skipping."
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
@@ -1588,6 +1602,14 @@ function RevertStartMenu
 		{
 			Write-Host "Enabling Revert Start Menu - " -NoNewline
 			LogInfo "Enabling Revert Start Menu"
+
+			if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7019))
+			{
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning $SupportedMessage
+				return
+			}
+
 			try
 			{
 				# Create temp directory
@@ -1595,24 +1617,29 @@ function RevertStartMenu
 				{
 					Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 				}
-				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
 				
 				# Download ViVeTool
 				$zipPath = "$tempDir\ViVeTool.zip"
-				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction Stop | Out-Null
 				LogInfo "Downloaded ViVeTool"
 				
 				# Extract
-				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction SilentlyContinue | Out-Null
+				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction Stop | Out-Null
 				LogInfo "Extracted ViVeTool"
 				
 				# Run ViVeTool
 				$viveExe = "$tempDir\ViVeTool.exe"
-				if (Test-Path $viveExe)
+				if (-not (Test-Path $viveExe))
 				{
-					Start-Process $viveExe -ArgumentList "/disable /id:$featureId" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue | Out-Null
-					LogInfo "Applied ViVeTool setting to disable feature $featureId"
+					throw "ViVeTool.exe was not found after extraction"
 				}
+				$ViVeProcess = Start-Process $viveExe -ArgumentList "/disable /id:$featureId" -Wait -WindowStyle Hidden -PassThru -ErrorAction Stop
+				if ($ViVeProcess.ExitCode -ne 0)
+				{
+					throw "ViVeTool returned exit code $($ViVeProcess.ExitCode)"
+				}
+				LogInfo "Applied ViVeTool setting to disable feature $featureId"
 				
 				# Cleanup
 				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
@@ -1622,14 +1649,22 @@ function RevertStartMenu
 			}
 			catch
 			{
-				LogError "Failed to enable Revert Start Menu: $_"
-				Write-Host "failed!" -ForegroundColor Red
+				LogError "Failed to enable Revert Start Menu: $($_.Exception.Message)"
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
 			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Revert Start Menu - " -NoNewline
 			LogInfo "Disabling Revert Start Menu"
+
+			if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7019))
+			{
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning $SupportedMessage
+				return
+			}
+
 			try
 			{
 				# Create temp directory
@@ -1637,24 +1672,29 @@ function RevertStartMenu
 				{
 					Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 				}
-				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+				New-Item -Path $tempDir -ItemType Directory -Force -ErrorAction Stop | Out-Null
 				
 				# Download ViVeTool
 				$zipPath = "$tempDir\ViVeTool.zip"
-				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+				Invoke-WebRequest $viveToolUrl -OutFile $zipPath -UseBasicParsing -ErrorAction Stop | Out-Null
 				LogInfo "Downloaded ViVeTool"
 				
 				# Extract
-				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction SilentlyContinue | Out-Null
+				Expand-Archive $zipPath -DestinationPath $tempDir -Force -ErrorAction Stop | Out-Null
 				LogInfo "Extracted ViVeTool"
 				
 				# Run ViVeTool
 				$viveExe = "$tempDir\ViVeTool.exe"
-				if (Test-Path $viveExe)
+				if (-not (Test-Path $viveExe))
 				{
-					Start-Process $viveExe -ArgumentList "/enable /id:$featureId" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue | Out-Null
-					LogInfo "Applied ViVeTool setting to enable feature $featureId"
+					throw "ViVeTool.exe was not found after extraction"
 				}
+				$ViVeProcess = Start-Process $viveExe -ArgumentList "/enable /id:$featureId" -Wait -WindowStyle Hidden -PassThru -ErrorAction Stop
+				if ($ViVeProcess.ExitCode -ne 0)
+				{
+					throw "ViVeTool returned exit code $($ViVeProcess.ExitCode)"
+				}
+				LogInfo "Applied ViVeTool setting to enable feature $featureId"
 				
 				# Cleanup
 				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
@@ -1664,8 +1704,8 @@ function RevertStartMenu
 			}
 			catch
 			{
-				LogError "Failed to disable Revert Start Menu: $_"
-				Write-Host "failed!" -ForegroundColor Red
+				LogError "Failed to disable Revert Start Menu: $($_.Exception.Message)"
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
 			}
 		}
 	}

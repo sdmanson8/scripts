@@ -40,21 +40,61 @@ function CrossDeviceResume
 		$Disable
 	)
 
+	$SupportedMessage = "Cross-Device Resume is only supported on Windows 11 build 26200.7705 / 26H1 and newer. Skipping."
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
 			Write-Host "Enabling Cross-Device Resume - " -NoNewline
 			LogInfo "Enabling Cross-Device Resume"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" -Name "IsResumeAllowed" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+
+			if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7705 -MinimumDisplayVersion '26H1'))
+			{
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning $SupportedMessage
+				return
+			}
+
+			try
+			{
+				if (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" -Name "IsResumeAllowed" -Type DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Cross-Device Resume: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Cross-Device Resume - " -NoNewline
 			LogInfo "Disabling Cross-Device Resume"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" -Name "IsResumeAllowed" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+
+			if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7705 -MinimumDisplayVersion '26H1'))
+			{
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning $SupportedMessage
+				return
+			}
+
+			try
+			{
+				if (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" -Name "IsResumeAllowed" -Type DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Cross-Device Resume: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -103,15 +143,34 @@ function MultiplaneOverlay
 		{
 			Write-Host "Enabling Multiplane Overlay - " -NoNewline
 			LogInfo "Enabling Multiplane Overlay"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Multiplane Overlay: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Multiplane Overlay - " -NoNewline
 			LogInfo "Disabling Multiplane Overlay"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Type DWord -Value 5 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Type DWord -Value 5 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Multiplane Overlay: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -160,19 +219,38 @@ function StandbyFix
 		{
 			Write-Host "Enabling Modern Standby fix - " -NoNewline
 			LogInfo "Enabling Modern Standby fix"
-			if (-not (Test-Path -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9"))
+			try
 			{
-				New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Force -ErrorAction SilentlyContinue | Out-Null
+				if (-not (Test-Path -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9"))
+				{
+					New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Name "ACSettingIndex" -Type DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Name "ACSettingIndex" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the Modern Standby fix: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Modern Standby fix - " -NoNewline
 			LogInfo "Disabling Modern Standby fix"
-			Remove-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Name "ACSettingIndex" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Name "ACSettingIndex" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKCU:\SOFTWARE\Policies\Microsoft\Power\PowerSettings\f15576e8-98b7-4186-b944-eafa664402d9" -Name "ACSettingIndex" -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the Modern Standby fix: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -221,15 +299,34 @@ function S3Sleep
 		{
 			Write-Host "Enabling S3 Sleep - " -NoNewline
 			LogInfo "Enabling S3 Sleep"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power" -Name "PlatformAoAcOverride" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power" -Name "PlatformAoAcOverride" -Type DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable S3 Sleep: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling S3 Sleep - " -NoNewline
 			LogInfo "Disabling S3 Sleep"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power" -Name "PlatformAoAcOverride" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power" -Name "PlatformAoAcOverride" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power" -Name "PlatformAoAcOverride" -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable S3 Sleep: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -282,26 +379,54 @@ function ExplorerAutoDiscovery
 		{
 			Write-Host "Enabling Explorer Automatic Folder Discovery - " -NoNewline
 			LogInfo "Enabling Explorer Automatic Folder Discovery"
-			Remove-Item -Path $bags -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-Item -Path $bagMRU -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-			LogInfo "Please sign out and back in, or restart your computer to apply the changes."
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Test-Path $bags)
+				{
+					Remove-Item -Path $bags -Recurse -Force -ErrorAction Stop | Out-Null
+				}
+				if (Test-Path $bagMRU)
+				{
+					Remove-Item -Path $bagMRU -Recurse -Force -ErrorAction Stop | Out-Null
+				}
+				LogInfo "Please sign out and back in, or restart your computer to apply the changes."
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Explorer Automatic Folder Discovery: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Explorer Automatic Folder Discovery - " -NoNewline
 			LogInfo "Disabling Explorer Automatic Folder Discovery"
-			Remove-Item -Path $bags -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-Item -Path $bagMRU -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
-
-			if (-not (Test-Path $allFolders))
+			try
 			{
-				New-Item -Path $allFolders -Force -ErrorAction SilentlyContinue | Out-Null
-			}
+				if (Test-Path $bags)
+				{
+					Remove-Item -Path $bags -Recurse -Force -ErrorAction Stop | Out-Null
+				}
+				if (Test-Path $bagMRU)
+				{
+					Remove-Item -Path $bagMRU -Recurse -Force -ErrorAction Stop | Out-Null
+				}
 
-			Set-ItemProperty -Path $allFolders -Name "FolderType" -Value "NotSpecified" -Type String -Force -ErrorAction SilentlyContinue | Out-Null
-			LogInfo "Please sign out and back in, or restart your computer to apply the changes."
-			Write-Host "success!" -ForegroundColor Green
+				if (-not (Test-Path $allFolders))
+				{
+					New-Item -Path $allFolders -Force -ErrorAction Stop | Out-Null
+				}
+
+				Set-ItemProperty -Path $allFolders -Name "FolderType" -Value "NotSpecified" -Type String -Force -ErrorAction Stop | Out-Null
+				LogInfo "Please sign out and back in, or restart your computer to apply the changes."
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Explorer Automatic Folder Discovery: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -350,15 +475,34 @@ function WPBT
 		{
 			Write-Host "Enabling Windows Platform Binary Table (WPBT) - " -NoNewline
 			LogInfo "Enabling Windows Platform Binary Table (WPBT)"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "DisableWpbtExecution" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if ((Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "DisableWpbtExecution" -ErrorAction SilentlyContinue))
+				{
+					Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "DisableWpbtExecution" -Force -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable WPBT: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Windows Platform Binary Table (WPBT) - " -NoNewline
 			LogInfo "Disabling Windows Platform Binary Table (WPBT)"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "DisableWpbtExecution" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager" -Name "DisableWpbtExecution" -Type DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable WPBT: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -578,7 +722,11 @@ function ServicesManual
 			if (($PSVersionTable.PSVersion.Major -lt 7) -and
 				($TargetType -eq "AutomaticDelayedStart"))
 			{
-				sc.exe config $Name start= delayed-auto | Out-Null
+				sc.exe config $Name start= delayed-auto 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "sc.exe returned exit code $LASTEXITCODE while configuring service $Name"
+				}
 				LogInfo "Service $Name configured with delayed auto start"
 			}
 			else
@@ -661,19 +809,23 @@ function AdobeNetworkBlock
 			{
 				if (Test-Path $hosts)
 				{
-					Copy-Item $hosts "$hosts.bak" -Force -ErrorAction SilentlyContinue | Out-Null
+					Copy-Item $hosts "$hosts.bak" -Force -ErrorAction Stop | Out-Null
 					LogInfo "Backed up original hosts file to $hosts.bak"
 				}
-				Invoke-WebRequest $hostsUrl -OutFile $hosts -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+				Invoke-WebRequest $hostsUrl -OutFile $hosts -UseBasicParsing -ErrorAction Stop | Out-Null
 				LogInfo "Downloaded and applied Adobe block list"
-				ipconfig /flushdns | Out-Null
+				ipconfig /flushdns 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "ipconfig returned exit code $LASTEXITCODE while flushing DNS"
+				}
 				LogInfo "Flushed DNS cache"
 				Write-Host "success!" -ForegroundColor Green
 			}
 			catch
 			{
 				LogError "Failed to enable Adobe Network Block: $_"
-				Write-Host "failed!" -ForegroundColor Red
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
 			}
 		}
 		"Disable"
@@ -684,18 +836,22 @@ function AdobeNetworkBlock
 			{
 				if (Test-Path "$hosts.bak")
 				{
-					Remove-Item $hosts -Force -ErrorAction SilentlyContinue | Out-Null
-					Move-Item "$hosts.bak" $hosts -Force -ErrorAction SilentlyContinue | Out-Null
+					Remove-Item $hosts -Force -ErrorAction Stop | Out-Null
+					Move-Item "$hosts.bak" $hosts -Force -ErrorAction Stop | Out-Null
 					LogInfo "Restored original hosts file from backup"
 				}
-				ipconfig /flushdns | Out-Null
+				ipconfig /flushdns 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "ipconfig returned exit code $LASTEXITCODE while flushing DNS"
+				}
 				LogInfo "Flushed DNS cache"
 				Write-Host "success!" -ForegroundColor Green
 			}
 			catch
 			{
 				LogError "Failed to disable Adobe Network Block: $_"
-				Write-Host "failed!" -ForegroundColor Red
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
 			}
 		}
 	}
@@ -752,31 +908,35 @@ function RazerBlock
 			try
 			{
 				# Registry changes
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" -Name "SearchOrderConfig" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" -Name "SearchOrderConfig" -Type DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				LogInfo "Set DriverSearching SearchOrderConfig to 0"
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer" -Name "DisableCoInstallers" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer" -Name "DisableCoInstallers" -Type DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				LogInfo "Set DisableCoInstallers to 1"
 
 				# Block Razer installer directory
 				if (Test-Path $RazerPath)
 				{
-					Remove-Item "$RazerPath\*" -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+					Remove-Item "$RazerPath\*" -Recurse -Force -ErrorAction Stop | Out-Null
 					LogInfo "Cleared Razer installer directory"
 				}
 				else
 				{
-					New-Item -Path $RazerPath -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+					New-Item -Path $RazerPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
 					LogInfo "Created Razer installer directory"
 				}
 
-				icacls $RazerPath /deny "Everyone:(W)" | Out-Null
+				icacls $RazerPath /deny "Everyone:(W)" 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "icacls returned exit code $LASTEXITCODE while applying deny permissions to $RazerPath"
+				}
 				LogInfo "Set deny write permission on Razer directory"
 				Write-Host "success!" -ForegroundColor Green
 			}
 			catch
 			{
 				LogError "Failed to enable Razer Software Block: $_"
-				Write-Host "failed!" -ForegroundColor Red
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
 			}
 		}
 		"Disable"
@@ -786,20 +946,24 @@ function RazerBlock
 			try
 			{
 				# Restore registry values
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" -Name "SearchOrderConfig" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" -Name "SearchOrderConfig" -Type DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				LogInfo "Restored DriverSearching SearchOrderConfig to 1"
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer" -Name "DisableCoInstallers" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Device Installer" -Name "DisableCoInstallers" -Type DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				LogInfo "Restored DisableCoInstallers to 0"
 
 				# Remove directory deny permission
-				icacls $RazerPath /remove:d Everyone | Out-Null
+				icacls $RazerPath /remove:d Everyone 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "icacls returned exit code $LASTEXITCODE while removing deny permissions from $RazerPath"
+				}
 				LogInfo "Removed deny write permission from Razer directory"
 				Write-Host "success!" -ForegroundColor Green
 			}
 			catch
 			{
 				LogError "Failed to disable Razer Software Block: $_"
-				Write-Host "failed!" -ForegroundColor Red
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
 			}
 		}
 	}
@@ -964,19 +1128,37 @@ function Teredo
 		{
 			Write-Host "Enabling Teredo - " -NoNewline
 			LogInfo "Enabling Teredo"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -Name "DisabledComponents" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			netsh interface teredo set state default | Out-Null
-			LogInfo "Teredo enabled and set to default state"
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -Name "DisabledComponents" -Type DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				netsh interface teredo set state default 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "netsh returned exit code $LASTEXITCODE" }
+				LogInfo "Teredo enabled and set to default state"
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Teredo: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Teredo - " -NoNewline
 			LogInfo "Disabling Teredo"
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -Name "DisabledComponents" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			netsh interface teredo set state disabled | Out-Null
-			LogInfo "Teredo disabled"
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip6\Parameters" -Name "DisabledComponents" -Type DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				netsh interface teredo set state disabled 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "netsh returned exit code $LASTEXITCODE" }
+				LogInfo "Teredo disabled"
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Teredo: $($_.Exception.Message)"
+			}
 		}
 	}
 }

@@ -535,7 +535,6 @@ function SoftwareDistributionTask
 				if ($TaskUserAccount -ne $env:USERNAME)
 				{
 					LogError ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
-
 					return
 				}
 			}
@@ -860,7 +859,6 @@ function TempTask
 					#Write-Information -MessageData "" -InformationAction Continue
 					#LogWarning ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
 					LogError ($Localization.ScheduledTaskPresented -f $MyInvocation.Line.Trim(), $TaskUserAccount)
-
 					return
 				}
 			}

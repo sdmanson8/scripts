@@ -54,10 +54,19 @@ function LockScreen
 		{
 			Write-Host "Enabling the Windows lockscreen - " -NoNewline
 			LogInfo "Enabling the Windows lockscreen"
-
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction SilentlyContinue | Out-Null
-
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the Windows lock screen: $($_.Exception.Message)"
+			}
 		}
 
 		"Disable"
@@ -65,14 +74,20 @@ function LockScreen
 			Write-Host "Disabling the Windows lockscreen - " -NoNewline
 			LogInfo "Disabling the Windows lockscreen"
 
-			if (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"))
+			try
 			{
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force | Out-Null
+				if (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"))
+				{
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -Type DWord -Value 1 | Out-Null
-
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the Windows lock screen: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -125,10 +140,20 @@ function LockScreenRS1
 		{
 			Write-Host "Enabling the Windows lockscreen - " -NoNewline
 			LogInfo "Enabling the Windows lockscreen"
-
-			Unregister-ScheduledTask -TaskName "Disable LockScreen" -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				$scheduledTask = Get-ScheduledTask -TaskName "Disable LockScreen" -ErrorAction Ignore
+				if ($null -ne $scheduledTask)
+				{
+					Unregister-ScheduledTask -TaskName "Disable LockScreen" -Confirm:$false -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the Windows lock screen scheduled task workaround: $($_.Exception.Message)"
+			}
 		}
 
 		"Disable"
@@ -136,30 +161,38 @@ function LockScreenRS1
 			Write-Host "Disabling the Windows lockscreen - " -NoNewline
 			LogInfo "Disabling the Windows lockscreen"
 
-			$service = New-Object -ComObject Schedule.Service
-			$service.Connect()
+			try
+			{
+				$service = New-Object -ComObject Schedule.Service
+				$service.Connect()
 
-			$task = $service.NewTask(0)
-			$task.Settings.DisallowStartIfOnBatteries = $false
+				$task = $service.NewTask(0)
+				$task.Settings.DisallowStartIfOnBatteries = $false
 
-			$trigger = $task.Triggers.Create(9)
-			$trigger = $task.Triggers.Create(11)
-			$trigger.StateChange = 8
+				$trigger = $task.Triggers.Create(9)
+				$trigger = $task.Triggers.Create(11)
+				$trigger.StateChange = 8
 
-			$action = $task.Actions.Create(0)
-			$action.Path = "reg.exe"
-			$action.Arguments = "add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData /t REG_DWORD /v AllowLockScreen /d 0 /f"
+				$action = $task.Actions.Create(0)
+				$action.Path = "reg.exe"
+				$action.Arguments = "add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\SessionData /t REG_DWORD /v AllowLockScreen /d 0 /f"
 
-			$service.GetFolder("\").RegisterTaskDefinition(
-				"Disable LockScreen",
-				$task,
-				6,
-				"NT AUTHORITY\SYSTEM",
-				$null,
-				4
-			) | Out-Null
+				$service.GetFolder("\").RegisterTaskDefinition(
+					"Disable LockScreen",
+					$task,
+					6,
+					"NT AUTHORITY\SYSTEM",
+					$null,
+					4
+				) | Out-Null
 
-			Write-Host "success!" -ForegroundColor Green
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the Windows lock screen scheduled task workaround: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -212,15 +245,34 @@ function NetworkFromLockScreen
 		{
 			Write-Host "Enabling the Network options on the lockscreen - " -NoNewline
 			LogInfo "Enabling the Network options on the lockscreen"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable network options on the lock screen: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the Network options on the lockscreen - " -NoNewline
 			LogInfo "Disabling the Network options on the lockscreen"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable network options on the lock screen: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -272,15 +324,31 @@ function ShutdownFromLockScreen
 		{
 			Write-Host "Enabling the shutdown options on the lockscreen - " -NoNewline
 			LogInfo "Enabling the shutdown options on the lockscreen"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable shutdown options on the lock screen: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling the shutdown options on the lockscreen - " -NoNewline
 			LogInfo "Disabling the shutdown options on the lockscreen"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable shutdown options on the lock screen: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -333,15 +401,34 @@ function LockScreenBlur
 		{
 			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
 			LogInfo "Enabling blurring of the lockscreen"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable lock screen blur: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
 			LogInfo "Enabling blurring of the lockscreen"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable lock screen blur: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -565,31 +652,47 @@ function TaskManagerDetails
 		{
 			Write-Host "Enabling Task Manager detailed view - " -NoNewline
 			LogInfo "Enabling Task Manager detailed view"
-			$taskmgr = Start-Process -WindowStyle Hidden -FilePath taskmgr.exe -PassThru
-			$timeout = 30000
-			$sleep = 100
-			Do {
-				Start-Sleep -Milliseconds $sleep
-				$timeout -= $sleep
-				$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
-			} Until ($preferences -or $timeout -le 0)
-			Stop-Process $taskmgr | Out-Null
-			If ($preferences) {
-				$preferences.Preferences[28] = 0
-				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences | Out-Null
+			try
+			{
+				$taskmgr = Start-Process -WindowStyle Hidden -FilePath taskmgr.exe -PassThru -ErrorAction Stop
+				$timeout = 30000
+				$sleep = 100
+				Do {
+					Start-Sleep -Milliseconds $sleep
+					$timeout -= $sleep
+					$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
+				} Until ($preferences -or $timeout -le 0)
+				Stop-Process $taskmgr -ErrorAction SilentlyContinue | Out-Null
+				If ($preferences) {
+					$preferences.Preferences[28] = 0
+					Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Task Manager detailed view: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Task Manager detailed view - " -NoNewline
 			LogInfo "Disabling Task Manager detailed view"
-			$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
-			If ($preferences) {
-				$preferences.Preferences[28] = 1
-				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences | Out-Null
+			try
+			{
+				$preferences = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -ErrorAction SilentlyContinue
+				If ($preferences) {
+					$preferences.Preferences[28] = 1
+					Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Task Manager detailed view: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -638,18 +741,37 @@ function FileOperationsDetails
 		{
 			Write-Host "Enabling detailed file progress information - " -NoNewline
 			LogInfo "Enabling detailed file progress information"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable detailed file operation information: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling detailed file progress information - " -NoNewline
 			LogInfo "Disabling detailed file progress information"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable detailed file operation information: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -698,18 +820,37 @@ function FileDeleteConfirm
 		{
 			Write-Host "Enabling confirmation dialog when deleting files - " -NoNewline
 			LogInfo "Enabling confirmation dialog when deleting files"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable file delete confirmation: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling confirmation dialog when deleting files - " -NoNewline
 			LogInfo "Disabling confirmation dialog when deleting files"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable file delete confirmation: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -758,18 +899,37 @@ function TrayIcons
 		{
 			Write-Host "Enabling all notification area tray icons - " -NoNewline
 			LogInfo "Enabling all notification area tray icons"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable all notification area tray icons: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling all notification area tray icons - " -NoNewline
 			LogInfo "Disabling all notification area tray icons"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable all notification area tray icons: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -818,18 +978,37 @@ function SearchAppInStore
 		{
 			Write-Host "Enabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
 			LogInfo "Enabling searching for apps in Microsoft Store from Open with dialog"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable searching for apps in Microsoft Store from Open with dialog: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
 			LogInfo "Disabling searching for apps in Microsoft Store from Open with dialog"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable searching for apps in Microsoft Store from Open with dialog: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -878,18 +1057,37 @@ function NewAppPrompt
 		{
 			Write-Host "Enabling 'How do you want to open this file?' prompt - " -NoNewline
 			LogInfo "Enabling 'How do you want to open this file?' prompt"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the 'How do you want to open this file?' prompt: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling 'How do you want to open this file?' prompt - " -NoNewline
 			LogInfo "Disabling 'How do you want to open this file?' prompt"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the 'How do you want to open this file?' prompt: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -938,18 +1136,37 @@ function RecentlyAddedApps
 		{
 			Write-Host "Enabling recently added apps list in Start Menu - " -NoNewline
 			LogInfo "Enabling recently added apps list in Start Menu"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable recently added apps in Start Menu: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling recently added apps list in Start Menu - " -NoNewline
 			LogInfo "Disabling recently added apps list in Start Menu"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable recently added apps in Start Menu: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -998,18 +1215,37 @@ function MostUsedApps
 		{
 			Write-Host "Enabling most used apps list in Start Menu - " -NoNewline
 			LogInfo "Enabling most used apps list in Start Menu"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable most used apps in Start Menu: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling most used apps list in Start Menu - " -NoNewline
 			LogInfo "Disabling most used apps list in Start Menu"
-			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
+					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable most used apps in Start Menu: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1059,34 +1295,50 @@ function VisualFX
 		{
 			Write-Host "Adjusting visual effects for performance - " -NoNewline
 			LogInfo "Adjusting visual effects for performance"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](144,18,3,128,16,0,0,0)) | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](144,18,3,128,16,0,0,0)) -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to adjust visual effects for performance: $($_.Exception.Message)"
+			}
 		}
 		"Appearance"
 		# Adjusts visual effects for appearance
 		{
 			Write-Host "Adjusting visual effects for appearance - " -NoNewline
 			LogInfo "Adjusting visual effects for appearance"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 400 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](158,30,7,128,18,0,0,0)) | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 1 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 | Out-Null
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "DragFullWindows" -Type String -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Type String -Value 400 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "UserPreferencesMask" -Type Binary -Value ([byte[]](158,30,7,128,18,0,0,0)) -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Type String -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewAlphaSelect" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ListviewShadow" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to adjust visual effects for appearance: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1135,15 +1387,31 @@ function TitleBarColor
 		{
 			Write-Host "Enabling title bar color adaptation to background - " -NoNewline
 			LogInfo "Enabling title bar color adaptation to background"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable title bar color adaptation: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling title bar color adaptation to background - " -NoNewline
 			LogInfo "Disabling title bar color adaptation to background"
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable title bar color adaptation: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1192,19 +1460,35 @@ function EnhPointerPrecision
 		{
 			Write-Host "Enabling enhanced pointer precision - " -NoNewline
 			LogInfo "Enabling enhanced pointer precision"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "1" | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "6" | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "10" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "1" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "6" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "10" -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable enhanced pointer precision: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling enhanced pointer precision - " -NoNewline
 			LogInfo "Disabling enhanced pointer precision"
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "0" | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "0" | Out-Null
-			Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "0" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "0" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "0" -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "0" -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable enhanced pointer precision: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1253,15 +1537,31 @@ function StartupSound
 		{
 			Write-Host "Enabling Windows startup sound - " -NoNewline
 			LogInfo "Enabling Windows startup sound"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows startup sound: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Windows startup sound - " -NoNewline
 			LogInfo "Disabling Windows startup sound"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows startup sound: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1310,18 +1610,37 @@ function ChangingSoundScheme
 		{
 			Write-Host "Enabling changing Windows sound scheme - " -NoNewline
 			LogInfo "Enabling changing Windows sound scheme"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -ErrorAction SilentlyContinue)
+				{
+					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable changing Windows sound scheme: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling changing Windows sound scheme - " -NoNewline
 			LogInfo "Disabling changing Windows sound scheme"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable changing Windows sound scheme: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1370,23 +1689,39 @@ function VerboseStatus
 		{
 			Write-Host "Enabling verbose Shutdown/Startup status messages - " -NoNewline
 			LogInfo "Enabling verbose Shutdown/Startup status messages"
-			If ((Get-CimInstance -Class "Win32_OperatingSystem").ProductType -eq 1) {
-				Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 1 | Out-Null
-			} Else {
-				Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
+			try
+			{
+				If ((Get-CimInstance -Class "Win32_OperatingSystem").ProductType -eq 1) {
+					Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				} Else {
+					Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable verbose startup and shutdown status messages: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling verbose Shutdown/Startup status messages - " -NoNewline
 			LogInfo "Disabling verbose Shutdown/Startup status messages"
-			If ((Get-CimInstance -Class "Win32_OperatingSystem").ProductType -eq 1) {
-				Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
-			} Else {
-				Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 0 | Out-Null
+			try
+			{
+				If ((Get-CimInstance -Class "Win32_OperatingSystem").ProductType -eq 1) {
+					Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
+				} Else {
+					Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				}
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable verbose startup and shutdown status messages: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1444,29 +1779,35 @@ function StorageSense
 		{
 			Write-Host "Enabling Storage Sense - " -NoNewline
 			LogInfo "Enabling Storage Sense"
-			# Turn on Storage Sense
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 1 -Force | Out-Null
-
-			# Turn on automatic cleaning up temporary system and app files
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force | Out-Null
-
-			# Run Storage Sense every month
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Storage Sense: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Storage Sense - " -NoNewline
 			LogInfo "Disabling Storage Sense"
-			# Turn off Storage Sense
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 0 -Force | Out-Null
-
-			# Turn off automatic cleaning up temporary system and app files
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force | Out-Null
-
-			# Run Storage Sense during low free disk space
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Storage Sense: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1518,15 +1859,33 @@ function Hibernation
 		{
 			Write-Host "Disabling Hibernation - " -NoNewline
 			LogInfo "Disabling Hibernation"
-			POWERCFG /HIBERNATE OFF 2>$null | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				POWERCFG /HIBERNATE OFF 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable hibernation: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Hibernation - " -NoNewline
 			LogInfo "Enabling Hibernation"
-			POWERCFG /HIBERNATE ON 2>$null | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				POWERCFG /HIBERNATE ON 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable hibernation: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1575,15 +1934,31 @@ function Win32LongPathLimit
 		{
 			Write-Host "Disabling Windows 260 character path limit - " -NoNewline
 			LogInfo "Disabling Windows 260 character path limit"
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the Windows 260 character path limit: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Windows 260 character path limit - " -NoNewline
 			LogInfo "Enabling Windows 260 character path limit"
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the Windows 260 character path limit: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1632,15 +2007,31 @@ function BSoDStopError
 		{
 			Write-Host "Enabling BSoD Stop Error - " -NoNewline
 			LogInfo "Enabling BSoD Stop Error"
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable BSoD stop error details: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling BSoD Stop Error - " -NoNewline
 			LogInfo "Disabling BSoD Stop Error"
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable BSoD stop error details: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1709,15 +2100,31 @@ function AdminApprovalMode
 		{
 			Write-Host "Setting UAC to 'Never notify' - " -NoNewline
 			LogInfo "Setting UAC to 'Never notify'"
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set UAC to 'Never notify': $($_.Exception.Message)"
+			}
 		}
 		"Default"
 		{
 			Write-Host "Setting UAC to 'Notify me only when apps try to make changes to my computer' - " -NoNewline
 			LogInfo "Setting UAC to 'Notify me only when apps try to make changes to my computer'"
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 5 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 5 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set UAC to the default notification level: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1770,24 +2177,40 @@ function DeliveryOptimization
 		{
 			Write-Host "Disabling Delivery Optimization - " -NoNewline
 			LogInfo "Disabling Delivery Optimization"
-			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force | Out-Null
-			& {
-    			$temp = [Console]::Out
-    			[Console]::SetOut([System.IO.StreamWriter]::Null)
-    			try {
-        				Delete-DeliveryOptimizationCache -Force
-    				} finally {
-        		[Console]::SetOut($temp)
-    			}
-} *>$null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				& {
+    				$temp = [Console]::Out
+    				[Console]::SetOut([System.IO.StreamWriter]::Null)
+    				try {
+        					Delete-DeliveryOptimizationCache -Force -ErrorAction Stop
+    					} finally {
+        				[Console]::SetOut($temp)
+    				}
+				} *>$null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Delivery Optimization: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Delivery Optimization - " -NoNewline
 			LogInfo "Enabling Delivery Optimization"
-			New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Delivery Optimization: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1838,15 +2261,31 @@ function WindowsManageDefaultPrinter
 		{
 			Write-Host "Disabling 'Let Windows manage my default printer' - " -NoNewline
 			LogInfo "Disabling 'Let Windows manage my default printer'"
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable 'Let Windows manage my default printer': $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling 'Let Windows manage my default printer' - " -NoNewline
 			LogInfo "Enabling 'Let Windows manage my default printer'"
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable 'Let Windows manage my default printer': $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -3655,7 +4094,7 @@ function NetworkAdaptersSavePower
 	$Adapters = Get-NetAdapter -Physical | Where-Object -FilterScript {$_.MacAddress} | Get-NetAdapterPowerManagement | Where-Object -FilterScript {$_.AllowComputerToTurnOffDevice -ne "Unsupported"}
 	if (-not $Adapters)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -3706,7 +4145,11 @@ function NetworkAdaptersSavePower
 		{
 			#Write-Verbose -Message $SSID -Verbose
 			# Connect to it
-			netsh wlan connect name=$SSID | Out-Null
+			netsh wlan connect name="$SSID" 2>$null | Out-Null
+			if ($LASTEXITCODE -ne 0)
+			{
+				LogWarning "Failed to reconnect to Wi-Fi network '$SSID' after adapter changes. netsh exit code: $LASTEXITCODE"
+			}
 		}
 
 		while
@@ -4029,7 +4472,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4053,7 +4496,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4077,7 +4520,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4101,7 +4544,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4125,7 +4568,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4149,7 +4592,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4196,7 +4639,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4239,7 +4682,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4282,7 +4725,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4325,7 +4768,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4368,7 +4811,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4411,7 +4854,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4440,7 +4883,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4465,7 +4908,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4490,7 +4933,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4515,7 +4958,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4540,7 +4983,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4565,7 +5008,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 					}
 					$Skip
 					{
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 					$KeyboardArrows {}
 				}
@@ -4687,7 +5130,7 @@ function WinPrtScrFolder
 			if ($UserEmail)
 			{
 				LogError $Localization.OneDriveWarning
-				LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+				LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 				return
 			}
@@ -4714,7 +5157,7 @@ function WinPrtScrFolder
 					else
 					{
 						LogError ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 				}
 			}
@@ -4734,7 +5177,7 @@ function WinPrtScrFolder
 					else
 					{
 						LogError ($Localization.OneDriveWarning -f $MyInvocation.Line.Trim())
-						LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+						LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					}
 				}
 			}
@@ -5365,14 +5808,23 @@ function Set-Association
 		$Icon
 	)
 
+	$TempPowerShellPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe"
+	$AssociationFailed = $false
+
 	# Suppress all output from the entire function
+	try
+	{
 	$null = @(
 		Write-Host "Associating $Extension files with $ProgramPath - " -NoNewline
 		LogInfo "Associating $Extension files with $ProgramPath"
 
 		# Microsoft has blocked write access to UserChoice key for .pdf extention and http/https protocols with KB5034765 release, so we have to write values with a copy of powershell.exe to bypass a UCPD driver restrictions
 		# UCPD driver tracks all executables to block the access to the registry so all registry records will be made within powershell_temp.exe in this function just in case
-		Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force -ErrorAction SilentlyContinue 2>&1 | Out-Null
+		Copy-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Destination $TempPowerShellPath -Force -ErrorAction Stop 2>&1 | Out-Null
+		if (-not (Test-Path -Path $TempPowerShellPath))
+		{
+			throw "powershell_temp.exe was not created"
+		}
 
 		$ProgramPath = [System.Environment]::ExpandEnvironmentVariables($ProgramPath)
 
@@ -5391,6 +5843,7 @@ function Set-Association
 				{
 					LogError ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension $Extension")
 				}
+				throw "Program path was not found: $ProgramPath"
 			}
 		}
 		else
@@ -5407,6 +5860,7 @@ function Set-Association
 				{
 					LogError ($Localization.RestartFunction -f "Set-Association -ProgramPath `"$ProgramPath`" -Extension `"$Extension`"")
 				}
+				throw "Program path or ProgID was not found: $ProgramPath"
 			}
 		}
 
@@ -5721,7 +6175,11 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 				$Key.SetAccessControl($ACL)
 
 				# We need to use here an approach with "-Command & {}" as there's a variable inside
-				& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice' -Name ProgId -PropertyType String -Value $ProgID -Force -ErrorAction SilentlyContinue}" 2>&1 | Out-Null
+				& $TempPowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice' -Name ProgId -PropertyType String -Value '$ProgID' -Force -ErrorAction Stop | Out-Null }" 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "powershell_temp.exe returned exit code $LASTEXITCODE while setting ProgId for $Extension"
+				}
 			}
 			else
 			{
@@ -5739,7 +6197,11 @@ public static int UnloadHive(RegistryHives hive, string subKey)
 			if (@(".pdf", "http", "https") -contains $Extension)
 			{
 				# We need to use here an approach with "-Command & {}" as there's a variable inside
-				& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice' -Name Hash -PropertyType String -Value $ProgHash -Force -ErrorAction SilentlyContinue}" 2>&1 | Out-Null
+				& $TempPowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\$Extension\UserChoice' -Name Hash -PropertyType String -Value '$ProgHash' -Force -ErrorAction Stop | Out-Null }" 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "powershell_temp.exe returned exit code $LASTEXITCODE while setting Hash for $Extension"
+				}
 			}
 			else
 			{
@@ -6174,8 +6636,16 @@ public static long MakeLong(uint left, uint right)
 				$Key.SetAccessControl($ACL)
 
 				# We need to use here an approach with "-Command & {}" as there's a variable inside
-				& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice' -Name ProgId -PropertyType String -Value $ProgID -Force -ErrorAction SilentlyContinue}" 2>&1 | Out-Null
-				& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command "& {New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice' -Name Hash -PropertyType String -Value $ProgHash -Force -ErrorAction SilentlyContinue}" 2>&1 | Out-Null
+				& $TempPowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice' -Name ProgId -PropertyType String -Value '$ProgID' -Force -ErrorAction Stop | Out-Null }" 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "powershell_temp.exe returned exit code $LASTEXITCODE while setting URL ProgId for $Extension"
+				}
+				& $TempPowerShellPath -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "& { New-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\$Extension\UserChoice' -Name Hash -PropertyType String -Value '$ProgHash' -Force -ErrorAction Stop | Out-Null }" 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					throw "powershell_temp.exe returned exit code $LASTEXITCODE while setting URL Hash for $Extension"
+				}
 			}
 			else
 			{
@@ -6210,12 +6680,26 @@ public static void Refresh()
 		}
 
 		[WinAPI.Signature]::Refresh()
-
-		Remove-Item -Path "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Force -ErrorAction SilentlyContinue 2>&1 | Out-Null
 	) 2>&1 | Out-Null
+	}
+	catch
+	{
+		$AssociationFailed = $true
+		LogError "Failed to associate $Extension files with ${ProgramPath}: $($_.Exception.Message)"
+	}
+	finally
+	{
+		Remove-Item -Path $TempPowerShellPath -Force -ErrorAction SilentlyContinue 2>&1 | Out-Null
+	}
 
-	# Always show success regardless of what happened
-	Write-Host "success!" -ForegroundColor Green
+	if ($AssociationFailed)
+	{
+		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+	}
+	else
+	{
+		Write-Host "success!" -ForegroundColor Green
+	}
 }
 
 <#
@@ -6238,7 +6722,17 @@ function Export-Associations
 {
 	Write-Host "Exporting associations - " -NoNewline
 	LogInfo "Exporting associations"
-	Dism.exe /Online /Export-DefaultAppAssociations:"$env:TEMP\Application_Associations.xml" | Out-Null
+	try
+	{
+		Dism.exe /Online /Export-DefaultAppAssociations:"$env:TEMP\Application_Associations.xml" 2>$null | Out-Null
+		if ($LASTEXITCODE -ne 0) { throw "Dism.exe returned exit code $LASTEXITCODE" }
+	}
+	catch
+	{
+		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		LogError "Failed to export application associations: $($_.Exception.Message)"
+		return
+	}
 
 	Clear-Variable -Name AllJSON, ProgramPath, Icon -ErrorAction SilentlyContinue | Out-Null
 
@@ -6559,6 +7053,168 @@ function DefaultTerminalApp
 	.NOTES
 	Machine-wide
 #>
+function ConvertTo-NormalizedVersion
+{
+	param
+	(
+		[AllowNull()]
+		[string]
+		$Version
+	)
+
+	if ([string]::IsNullOrWhiteSpace($Version))
+	{
+		return $null
+	}
+
+	$Match = [regex]::Match($Version.Trim(), "\d+(?:\.\d+){1,3}")
+	if (-not $Match.Success)
+	{
+		return $null
+	}
+
+	$Parts = $Match.Value.Split(".")
+	while ($Parts.Count -lt 4)
+	{
+		$Parts += "0"
+	}
+	if ($Parts.Count -gt 4)
+	{
+		$Parts = $Parts[0..3]
+	}
+
+	try
+	{
+		return [System.Version]($Parts -join ".")
+	}
+	catch
+	{
+		return $null
+	}
+}
+
+function Get-InstalledVCRedistVersion
+{
+	param
+	(
+		[ValidateSet("x86", "x64")]
+		[string]
+		$Architecture
+	)
+
+	$RegistryPaths = @(
+		"HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\$Architecture",
+		"HKLM:\SOFTWARE\WOW6432Node\Microsoft\VisualStudio\14.0\VC\Runtimes\$Architecture"
+	)
+
+	foreach ($RegistryPath in $RegistryPaths)
+	{
+		try
+		{
+			$Runtime = Get-ItemProperty -Path $RegistryPath -ErrorAction Stop
+		}
+		catch
+		{
+			continue
+		}
+
+		if ($Runtime.Installed -eq 1)
+		{
+			return ConvertTo-NormalizedVersion -Version $Runtime.Version
+		}
+	}
+
+	return $null
+}
+
+function Get-InstalledDotNetRuntimeVersion
+{
+	param
+	(
+		[ValidateRange(1, 99)]
+		[int]
+		$MajorVersion
+	)
+
+	$RegistryPaths = @(
+		"HKLM:\SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App",
+		"HKLM:\SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App",
+		"HKLM:\SOFTWARE\WOW6432Node\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.NETCore.App",
+		"HKLM:\SOFTWARE\WOW6432Node\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App"
+	)
+
+	$InstalledVersions = foreach ($RegistryPath in $RegistryPaths)
+	{
+		if (-not (Test-Path -Path $RegistryPath))
+		{
+			continue
+		}
+
+		Get-ChildItem -Path $RegistryPath -ErrorAction SilentlyContinue | ForEach-Object {
+			ConvertTo-NormalizedVersion -Version $_.PSChildName
+		}
+	}
+
+	$InstalledVersions = $InstalledVersions |
+		Where-Object -FilterScript {$null -ne $_ -and $_.Major -eq $MajorVersion} |
+		Sort-Object -Descending -Unique
+
+	if ($InstalledVersions)
+	{
+		return $InstalledVersions[0]
+	}
+
+	return $null
+}
+
+function Get-LatestDotNetRuntimeRelease
+{
+	param
+	(
+		[ValidateRange(1, 99)]
+		[int]
+		$MajorVersion
+	)
+
+	$ReleaseMetadataUri = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/$MajorVersion.0/releases.json"
+	$ReleaseMetadata = Invoke-RestMethod -Uri $ReleaseMetadataUri -UseBasicParsing
+	$LatestReleaseVersion = [string]$ReleaseMetadata."latest-release"
+	$Release = $null
+
+	if (-not [string]::IsNullOrWhiteSpace($LatestReleaseVersion))
+	{
+		$Release = $ReleaseMetadata.releases | Where-Object -FilterScript {$_."release-version" -eq $LatestReleaseVersion} | Select-Object -First 1
+	}
+
+	if ($null -eq $Release)
+	{
+		$Release = $ReleaseMetadata.releases | Select-Object -First 1
+	}
+
+	if ($null -eq $Release -or $null -eq $Release.runtime)
+	{
+		return $null
+	}
+
+	$RuntimeFile = $Release.runtime.files | Where-Object -FilterScript {$_.name -eq "dotnet-runtime-win-x64.exe"} | Select-Object -First 1
+	$DownloadUrl = [string]$RuntimeFile.url
+
+	if ([string]::IsNullOrWhiteSpace($DownloadUrl))
+	{
+		return $null
+	}
+
+	$DownloadUri = [uri]$DownloadUrl
+
+	[pscustomobject]@{
+		Version     = ConvertTo-NormalizedVersion -Version $Release.runtime.version
+		DownloadUrl = $DownloadUrl
+		FileName    = [System.IO.Path]::GetFileName($DownloadUri.AbsolutePath)
+		SourceHost  = $DownloadUri.GetLeftPart([System.UriPartial]::Authority)
+		MetadataUri = $ReleaseMetadataUri
+	}
+}
+
 function Install-VCRedist
 {
 	[CmdletBinding()]
@@ -6573,6 +7229,8 @@ function Install-VCRedist
 		$Redistributables
 	)
 
+	$vcredistVersion = $null
+
 	# Get latest build version
 	# https://github.com/ScoopInstaller/Extras/blob/master/bucket/vcredist2022.json
 	try
@@ -6582,29 +7240,11 @@ function Install-VCRedist
 			UseBasicParsing = $true
 			#Verbose         = $true
 		}
-		$vcredistVersion = (Invoke-RestMethod @Parameters).version
+		$vcredistVersion = ConvertTo-NormalizedVersion -Version (Invoke-RestMethod @Parameters).version
 	}
 	catch [System.Net.WebException]
 	{
-		$vcredistVersion = "0.0"
-	}
-
-	# Checking whether VC_redist builds installed
-	if (Test-Path -Path "$env:ProgramData\Package Cache\{e7802eac-3305-4da0-9378-e55d1ed05518}\VC_redist.x86.exe")
-	{
-		$msvcpx86Version = (Get-Item -Path "$env:ProgramData\Package Cache\{e7802eac-3305-4da0-9378-e55d1ed05518}\VC_redist.x86.exe").VersionInfo.FileVersion
-	}
-	else
-	{
-		$msvcpx86Version = "0.0"
-	}
-	if (Test-Path -Path "$env:ProgramData\Package Cache\{804e7d66-ccc2-4c12-84ba-476da31d103d}\VC_redist.x64.exe")
-	{
-		$msvcpx64Version = (Get-Item -Path "$env:ProgramData\Package Cache\{804e7d66-ccc2-4c12-84ba-476da31d103d}\VC_redist.x64.exe").VersionInfo.FileVersion
-	}
-	else
-	{
-		$msvcpx64Version = "0.0"
+		LogWarning "Unable to determine the latest Visual C++ Redistributable version. Installed packages will be left unchanged unless missing."
 	}
 
 	$DownloadsFolder = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{374DE290-123F-4565-9164-39C4925E467B}"
@@ -6615,73 +7255,115 @@ function Install-VCRedist
 		{
 			2015_2022_x86
 			{
-				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or redistributable is not installed
-				if (([System.Version]$vcredistVersion -gt [System.Version]$msvcpx86Version) -or (($vcredistVersion -eq "0.0") -or ($msvcpx86Version -eq "0.0")))
+				$DisplayName = "Visual C++ Redistributable (2015 - 2022) x86"
+				$InstalledVersion = Get-InstalledVCRedistVersion -Architecture "x86"
+				$ShouldInstall = $null -eq $InstalledVersion
+
+				if ($null -ne $InstalledVersion -and $null -ne $vcredistVersion)
 				{
-					try
-					{
-						$Parameters = @{
-							Uri             = "https://aka.ms/vs/17/release/VC_redist.x86.exe"
-							OutFile         = "$DownloadsFolder\VC_redist.x86.exe"
-							UseBasicParsing = $true
-							#Verbose         = $true
-						}
-						Invoke-WebRequest @Parameters
-
-						Write-Host "Installing Visual C++ Redistributable (2015 - 2022) x86 - " -NoNewline
-						LogInfo "Installing Visual C++ Redistributable (2015 - 2022)x86"
-
-						Start-Process -FilePath "$DownloadsFolder\VC_redist.x86.exe" -ArgumentList "/install /passive /norestart" -Wait
-
-						# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
-						# https://github.com/PowerShell/PowerShell/issues/21070
-						$Paths = @(
-							"$DownloadsFolder\VC_redist.x86.exe",
-							"$env:TEMP\dd_vcredist_x86_*.log"
-						)
-						Get-ChildItem -Path $Paths -Force | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
-					}
-					catch [System.Net.WebException]
-					{
-						LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-
-						return
-					}
+					$ShouldInstall = $vcredistVersion -gt $InstalledVersion
 				}
-				else
+
+				if (-not $ShouldInstall)
 				{
-					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_))
+					LogInfo "$DisplayName already installed (version $InstalledVersion)."
+					Write-Host "Checking $DisplayName - " -NoNewline
+					Write-Host "success!" -ForegroundColor Green
+					continue
 				}
-				Write-Host "success!" -ForegroundColor Green
+
+				if ($null -eq $InstalledVersion)
+				{
+					LogInfo "$DisplayName not detected. Installing it."
+				}
+				elseif ($null -ne $vcredistVersion)
+				{
+					LogInfo "$DisplayName version $InstalledVersion detected. Updating to $vcredistVersion."
+				}
+
+				try
+				{
+					Write-Host "Installing $DisplayName - " -NoNewline
+					LogInfo "Installing $DisplayName"
+
+					$Parameters = @{
+						Uri             = "https://aka.ms/vs/17/release/VC_redist.x86.exe"
+						OutFile         = "$DownloadsFolder\VC_redist.x86.exe"
+						UseBasicParsing = $true
+						#Verbose         = $true
+					}
+					Invoke-WebRequest @Parameters
+
+					$VCx86Process = Start-Process -FilePath "$DownloadsFolder\VC_redist.x86.exe" -ArgumentList "/install /passive /norestart" -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+					if ($VCx86Process.ExitCode -ne 0) { throw "VC_redist.x86.exe returned exit code $($VCx86Process.ExitCode)" }
+
+					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
+					# https://github.com/PowerShell/PowerShell/issues/21070
+					$Paths = @(
+						"$DownloadsFolder\VC_redist.x86.exe",
+						"$env:TEMP\dd_vcredist_x86_*.log"
+					)
+					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
+					Write-Host "success!" -ForegroundColor Green
+				}
+				catch [System.Net.WebException]
+				{
+					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+
+					return
+				}
+				catch
+				{
+					LogError "Failed to install ${DisplayName}: $($_.Exception.Message)"
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					continue
+				}
 			}
 			2015_2022_x64
 			{
-				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or redistributable is not installed
-				if (([System.Version]$vcredistVersion -gt [System.Version]$msvcpx64Version) -or (($vcredistVersion -eq "0.0") -or ($msvcpx64Version -eq "0.0")))
+				$DisplayName = "Visual C++ Redistributable (2015 - 2022) x64"
+				$InstalledVersion = Get-InstalledVCRedistVersion -Architecture "x64"
+				$ShouldInstall = $null -eq $InstalledVersion
+
+				if ($null -ne $InstalledVersion -and $null -ne $vcredistVersion)
 				{
-					try
-					{
-						$Parameters = @{
-							Uri             = "https://aka.ms/vs/17/release/VC_redist.x64.exe"
-							OutFile         = "$DownloadsFolder\VC_redist.x64.exe"
-							UseBasicParsing = $true
-							#Verbose         = $true
-						}
-						Invoke-WebRequest @Parameters
+					$ShouldInstall = $vcredistVersion -gt $InstalledVersion
+				}
+
+				if (-not $ShouldInstall)
+				{
+					LogInfo "$DisplayName already installed (version $InstalledVersion)."
+					Write-Host "Checking $DisplayName - " -NoNewline
+					Write-Host "success!" -ForegroundColor Green
+					continue
+				}
+
+				if ($null -eq $InstalledVersion)
+				{
+					LogInfo "$DisplayName not detected. Installing it."
+				}
+				elseif ($null -ne $vcredistVersion)
+				{
+					LogInfo "$DisplayName version $InstalledVersion detected. Updating to $vcredistVersion."
+				}
+
+				try
+				{
+					Write-Host "Installing $DisplayName - " -NoNewline
+					LogInfo "Installing $DisplayName"
+
+					$Parameters = @{
+						Uri             = "https://aka.ms/vs/17/release/VC_redist.x64.exe"
+						OutFile         = "$DownloadsFolder\VC_redist.x64.exe"
+						UseBasicParsing = $true
+						#Verbose         = $true
 					}
-					catch [System.Net.WebException]
-					{
-						LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+					Invoke-WebRequest @Parameters
 
-						return
-					}
-
-					Write-Host "Installing Visual C++ Redistributable (2015 - 2022) x64 - " -NoNewline
-					LogInfo "Installing Visual C++ Redistributable (2015 - 2022) x64"
-
-					Start-Process -FilePath "$DownloadsFolder\VC_redist.x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+					$VCx64Process = Start-Process -FilePath "$DownloadsFolder\VC_redist.x64.exe" -ArgumentList "/install /passive /norestart" -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+					if ($VCx64Process.ExitCode -ne 0) { throw "VC_redist.x64.exe returned exit code $($VCx64Process.ExitCode)" }
 
 					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
 					# https://github.com/PowerShell/PowerShell/issues/21070
@@ -6689,13 +7371,23 @@ function Install-VCRedist
 						"$DownloadsFolder\VC_redist.x64.exe",
 						"$env:TEMP\dd_vcredist_amd64_*.log"
 					)
-					Get-ChildItem -Path $Paths -Force | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
+					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
+					Write-Host "success!" -ForegroundColor Green
 				}
-				else
+				catch [System.Net.WebException]
 				{
-					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_))
+					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+
+					return
 				}
-				Write-Host "success!" -ForegroundColor Green
+				catch
+				{
+					LogError "Failed to install ${DisplayName}: $($_.Exception.Message)"
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					continue
+				}
 			}
 		}
 	}
@@ -6742,152 +7434,223 @@ function Install-DotNetRuntimes
 		{
 			NET8x64
 			{
+				$DisplayName = ".NET 8 x64"
+				$InstalledVersion = Get-InstalledDotNetRuntimeVersion -MajorVersion 8
+				$NET8Version = $null
+				$NET8DownloadUrl = $null
+				$NET8FileName = $null
+				$NET8SourceHost = "https://builds.dotnet.microsoft.com"
+
 				try
 				{
-					# Get latest build version
-					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
-					$Parameters = @{
-						Uri             = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/8.0/releases.json"
-						#Verbose         = $true
-						UseBasicParsing = $true
+					$NET8Release = Get-LatestDotNetRuntimeRelease -MajorVersion 8
+					if ($null -ne $NET8Release)
+					{
+						$NET8Version = $NET8Release.Version
+						$NET8DownloadUrl = $NET8Release.DownloadUrl
+						$NET8FileName = $NET8Release.FileName
+						$NET8SourceHost = $NET8Release.SourceHost
 					}
-					$NET8Version = (Invoke-RestMethod @Parameters)."latest-release"
 				}
 				catch [System.Net.WebException]
 				{
-					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
-					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-
-					return
-				}
-
-				# Checking whether .NET 8 installed
-				if (Test-Path -Path "$env:ProgramData\Package Cache\{e883dae5-a63d-4a45-afb9-257f64d5a59b}\dotnet-runtime-*-win-x64.exe")
-				{
-					# FileVersion has four properties while $NET8Version has only three, unless the [System.Version] accelerator fails
-					$dotnet8Version = (Get-Item -Path "$env:ProgramData\Package Cache\{e883dae5-a63d-4a45-afb9-257f64d5a59b}\dotnet-runtime-*-win-x64.exe").VersionInfo.FileVersion
-					$dotnet8Version = "{0}.{1}.{2}" -f $dotnet8Version.Split(".")
-				}
-				else
-				{
-					$dotnet8Version = "0.0"
-				}
-
-				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or .NET 8 is not installed at all
-				if (([System.Version]$NET8Version -gt [System.Version]$dotnet8Version) -or ($dotnet8Version -eq "0.0"))
-				{
-					try
+					if ($null -ne $InstalledVersion)
 					{
-						# .NET Desktop Runtime 8 x64
-						$Parameters = @{
-							Uri             = "https://builds.dotnet.microsoft.com/dotnet/Runtime/$NET8Version/dotnet-runtime-$NET8Version-win-x64.exe"
-							OutFile         = "$DownloadsFolder\dotnet-runtime-$NET8Version-win-x64.exe"
-							UseBasicParsing = $true
-							#Verbose         = $true
-						}
-						Invoke-WebRequest @Parameters
+						LogWarning "Unable to determine the latest $DisplayName version. Detected installed version $InstalledVersion, so the install will be skipped."
 					}
-					catch [System.Net.WebException]
+					else
 					{
-						#LogWarning ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
 						LogError ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
 						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+						Write-Host "Installing $DisplayName - " -NoNewline
+						Write-Host "Failed! Check logs for details." -ForegroundColor Red
 
 						return
 					}
+				}
 
+				$ShouldInstall = $null -eq $InstalledVersion
+
+				if ($null -ne $InstalledVersion -and $null -ne $NET8Version)
+				{
+					$ShouldInstall = $NET8Version -gt $InstalledVersion
+				}
+
+				if (-not $ShouldInstall)
+				{
+					LogInfo "$DisplayName already installed (version $InstalledVersion)."
+					Write-Host "Checking $DisplayName - " -NoNewline
+					Write-Host "success!" -ForegroundColor Green
+					continue
+				}
+
+				if ($null -eq $NET8Version)
+				{
+					LogError "Unable to determine the latest $DisplayName version."
+					Write-Host "Installing $DisplayName - " -NoNewline
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					return
+				}
+
+				if ($null -eq $InstalledVersion)
+				{
+					LogInfo "$DisplayName not detected. Installing version $NET8Version."
+				}
+				else
+				{
+					LogInfo "$DisplayName version $InstalledVersion detected. Updating to $NET8Version."
+				}
+
+				try
+				{
 					Write-Host "Installing .NET $NET8Version x64 - " -NoNewline
 					LogInfo "Installing .NET $NET8Version x64"
 
-					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$NET8Version-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+					# Download the runtime from the release metadata entry rather than constructing the URL.
+					$Parameters = @{
+						Uri             = $NET8DownloadUrl
+						OutFile         = "$DownloadsFolder\$NET8FileName"
+						UseBasicParsing = $true
+						#Verbose         = $true
+					}
+					Invoke-WebRequest @Parameters
+
+					$NET8Process = Start-Process -FilePath "$DownloadsFolder\$NET8FileName" -ArgumentList "/install /passive /norestart" -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+					if ($NET8Process.ExitCode -ne 0) { throw "$NET8FileName returned exit code $($NET8Process.ExitCode)" }
 
 					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
 					# https://github.com/PowerShell/PowerShell/issues/21070
 					$Paths = @(
-						"$DownloadsFolder\dotnet-runtime-$NET8Version-win-x64.exe",
+						"$DownloadsFolder\$NET8FileName",
 						"$env:TEMP\Microsoft_.NET_Runtime*.log"
 					)
 					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
-				}
-				else
-				{
-					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_))
-				}
-				Write-Host "success!" -ForegroundColor Green
-			}
-			NET9x64
-			{
-				try
-				{
-					# Get latest build version
-					# https://github.com/dotnet/core/blob/main/release-notes/releases-index.json
-					$Parameters = @{
-						Uri             = "https://builds.dotnet.microsoft.com/dotnet/release-metadata/9.0/releases.json"
-						#Verbose         = $true
-						UseBasicParsing = $true
-					}
-					$NET9Version = (Invoke-RestMethod @Parameters)."latest-release"
+					Write-Host "success!" -ForegroundColor Green
 				}
 				catch [System.Net.WebException]
 				{
-					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
+					LogError ($Localization.NoResponse -f $NET8SourceHost)
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
 
 					return
 				}
-
-				# Checking whether .NET 9 installed
-				if (Test-Path -Path "$env:ProgramData\Package Cache\{72922c3b-f4df-4f93-9e3b-5b9c8a5ffb42}\dotnet-runtime-*-win-x64.exe")
+				catch
 				{
-					# FileVersion has four properties while $NET9Version has only three, unless the [System.Version] accelerator fails
-					$dotnet9Version = (Get-Item -Path "$env:ProgramData\Package Cache\{72922c3b-f4df-4f93-9e3b-5b9c8a5ffb42}\dotnet-runtime-*-win-x64.exe").VersionInfo.FileVersion
-					$dotnet9Version = "{0}.{1}.{2}" -f $dotnet9Version.Split(".")
+					LogError "Failed to install .NET $NET8Version x64: $($_.Exception.Message)"
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					continue
 				}
-				else
-				{
-					$dotnet9Version = "0.0"
-				}
+			}
+			NET9x64
+			{
+				$DisplayName = ".NET 9 x64"
+				$InstalledVersion = Get-InstalledDotNetRuntimeVersion -MajorVersion 9
+				$NET9Version = $null
+				$NET9DownloadUrl = $null
+				$NET9FileName = $null
+				$NET9SourceHost = "https://builds.dotnet.microsoft.com"
 
-				# Proceed if currently installed build is lower than available from Microsoft or json file is unreachable, or .NET 9 is not installed at all
-				if (([System.Version]$NET9Version -gt [System.Version]$dotnet9Version) -or ($dotnet9Version -eq "0.0"))
+				try
 				{
-					try
+					$NET9Release = Get-LatestDotNetRuntimeRelease -MajorVersion 9
+					if ($null -ne $NET9Release)
 					{
-						# Downloading .NET Desktop Runtime 9 x64
-						$Parameters = @{
-							Uri             = "https://builds.dotnet.microsoft.com/dotnet/Runtime/$NET9Version/dotnet-runtime-$NET9Version-win-x64.exe"
-							OutFile         = "$DownloadsFolder\dotnet-runtime-$NET9Version-win-x64.exe"
-							UseBasicParsing = $true
-							#Verbose         = $true
-						}
-						Invoke-WebRequest @Parameters
+						$NET9Version = $NET9Release.Version
+						$NET9DownloadUrl = $NET9Release.DownloadUrl
+						$NET9FileName = $NET9Release.FileName
+						$NET9SourceHost = $NET9Release.SourceHost
 					}
-					catch [System.Net.WebException]
+				}
+				catch [System.Net.WebException]
+				{
+					if ($null -ne $InstalledVersion)
+					{
+						LogWarning "Unable to determine the latest $DisplayName version. Detected installed version $InstalledVersion, so the install will be skipped."
+					}
+					else
 					{
 						LogError ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
 						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+						Write-Host "Installing $DisplayName - " -NoNewline
+						Write-Host "Failed! Check logs for details." -ForegroundColor Red
 
 						return
 					}
+				}
 
+				$ShouldInstall = $null -eq $InstalledVersion
+
+				if ($null -ne $InstalledVersion -and $null -ne $NET9Version)
+				{
+					$ShouldInstall = $NET9Version -gt $InstalledVersion
+				}
+
+				if (-not $ShouldInstall)
+				{
+					LogInfo "$DisplayName already installed (version $InstalledVersion)."
+					Write-Host "Checking $DisplayName - " -NoNewline
+					Write-Host "success!" -ForegroundColor Green
+					continue
+				}
+
+				if ($null -eq $NET9Version)
+				{
+					LogError "Unable to determine the latest $DisplayName version."
+					Write-Host "Installing $DisplayName - " -NoNewline
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					return
+				}
+
+				if ($null -eq $InstalledVersion)
+				{
+					LogInfo "$DisplayName not detected. Installing version $NET9Version."
+				}
+				else
+				{
+					LogInfo "$DisplayName version $InstalledVersion detected. Updating to $NET9Version."
+				}
+
+				try
+				{
 					Write-Host "Installing .NET $NET9Version x64 - " -NoNewline
 					LogInfo "Installing .NET $NET9Version x64"
 
-					Start-Process -FilePath "$DownloadsFolder\dotnet-runtime-$NET9Version-win-x64.exe" -ArgumentList "/install /passive /norestart" -Wait
+					# Download the runtime from the release metadata entry rather than constructing the URL.
+					$Parameters = @{
+						Uri             = $NET9DownloadUrl
+						OutFile         = "$DownloadsFolder\$NET9FileName"
+						UseBasicParsing = $true
+						#Verbose         = $true
+					}
+					Invoke-WebRequest @Parameters
+
+					$NET9Process = Start-Process -FilePath "$DownloadsFolder\$NET9FileName" -ArgumentList "/install /passive /norestart" -Wait -PassThru -WindowStyle Hidden -ErrorAction Stop
+					if ($NET9Process.ExitCode -ne 0) { throw "$NET9FileName returned exit code $($NET9Process.ExitCode)" }
 
 					# PowerShell 5.1 (7.5 too) interprets 8.3 file name literally, if an environment variable contains a non-Latin word
 					# https://github.com/PowerShell/PowerShell/issues/21070
 					$Paths = @(
-						"$DownloadsFolder\dotnet-runtime-$NET9Version-win-x64.exe",
+						"$DownloadsFolder\$NET9FileName",
 						"$env:TEMP\Microsoft_.NET_Runtime*.log"
 					)
 					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
+					Write-Host "success!" -ForegroundColor Green
 				}
-				else
+				catch [System.Net.WebException]
 				{
-					LogError ($Localization.Skipped -f ("{0} -{1} {2}" -f $MyInvocation.MyCommand.Name, $MyInvocation.BoundParameters.Keys.Trim(), $_))
+					LogError ($Localization.NoResponse -f $NET9SourceHost)
+					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+
+					return
 				}
-				Write-Host "success!" -ForegroundColor Green
+				catch
+				{
+					LogError "Failed to install .NET $NET9Version x64: $($_.Exception.Message)"
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					continue
+				}
 			}
 		}
 	}
@@ -6935,7 +7698,7 @@ function PreventEdgeShortcutCreation
 
 	if (-not (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction Ignore))
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 		return
 	}
 

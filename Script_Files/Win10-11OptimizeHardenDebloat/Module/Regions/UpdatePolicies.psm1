@@ -21,7 +21,7 @@ function UpdateLGPEPolicies
 {
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -159,7 +159,7 @@ function ScanRegistryPolicies
 	LogInfo "Scanning registry for policies to display in the Local Group Policy Editor snap-in"
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
 	{
-		LogError ($Localization.gpeditNotSupported, ($Localization.Skipped -f $MyInvocation.Line.Trim()) -join " ")
+		LogWarning ($Localization.gpeditNotSupported, ($Localization.Skipped -f $MyInvocation.Line.Trim()) -join " ")
 
 		return
 	}

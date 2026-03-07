@@ -42,7 +42,7 @@ function NetworkProtection
 
 	if (-not $Script:DefenderEnabled)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 		return
 	}
 
@@ -52,15 +52,31 @@ function NetworkProtection
 		{
 			Write-Host "Enabling Microsoft Defender Exploit Guard network protection - " -NoNewline
 			LogInfo "Enabling Microsoft Defender Exploit Guard network protection"
-			Set-MpPreference -EnableNetworkProtection Enabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-MpPreference -EnableNetworkProtection Enabled -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Microsoft Defender Exploit Guard network protection: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Microsoft Defender Exploit Guard network protection - " -NoNewline
 			LogInfo "Disabling Microsoft Defender Exploit Guard network protection"
-			Set-MpPreference -EnableNetworkProtection Disabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-MpPreference -EnableNetworkProtection Disabled -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Microsoft Defender Exploit Guard network protection: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -105,7 +121,7 @@ function PUAppsDetection
 
 	if (-not $Script:DefenderEnabled)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -116,15 +132,31 @@ function PUAppsDetection
 		{
 			Write-Host "Enabling detection for potentially unwanted applications and blocking them - " -NoNewline
 			LogInfo "Enabling detection for potentially unwanted applications and blocking them"
-			Set-MpPreference -PUAProtection Enabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-MpPreference -PUAProtection Enabled -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable detection for potentially unwanted applications: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling detection for potentially unwanted applications and blocking them - " -NoNewline
 			LogInfo "Disabling detection for potentially unwanted applications and blocking them"
-			Set-MpPreference -PUAProtection Disabled | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-MpPreference -PUAProtection Disabled -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable detection for potentially unwanted applications: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -169,7 +201,7 @@ function DefenderSandbox
 
 	if (-not $Script:DefenderEnabled)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -180,15 +212,33 @@ function DefenderSandbox
 		{
 			Write-Host "Enabling sandboxing for Microsoft Defender - " -NoNewline
 			LogInfo "Enabling sandboxing for Microsoft Defender"
-			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 1 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "setx.exe returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable sandboxing for Microsoft Defender: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling sandboxing for Microsoft Defender - " -NoNewline
 			LogInfo "Disabling sandboxing for Microsoft Defender"
-			& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				& "$env:SystemRoot\System32\setx.exe" /M MP_FORCE_USE_SANDBOX 0 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "setx.exe returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable sandboxing for Microsoft Defender: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -211,15 +261,23 @@ function DismissMSAccount
 {
 	if (-not $Script:DefenderEnabled)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
 
 	Write-Host "Dismissing Microsoft Defender offer in the Windows Security about signing in Microsoft account - " -NoNewline
 	LogInfo "Dismissing Microsoft Defender offer in the Windows Security about signing in Microsoft account"
-	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AccountProtection_MicrosoftAccount_Disconnected -PropertyType DWord -Value 1 -Force | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+	try
+	{
+		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AccountProtection_MicrosoftAccount_Disconnected -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+	}
+	catch
+	{
+		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		LogError "Failed to dismiss the Microsoft account warning in Windows Security: $($_.Exception.Message)"
+	}
 }
 
 <#
@@ -240,15 +298,23 @@ function DismissSmartScreenFilter
 {
 	if (-not $Script:DefenderEnabled)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
 
 	Write-Host "Disabling the SmartScreen filter for Microsoft Edge - " -NoNewline
 	LogInfo "Disabling the SmartScreen filter for Microsoft Edge"
-	New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AppAndBrowser_EdgeSmartScreenOff -PropertyType DWord -Value 0 -Force | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+	try
+	{
+		New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Name AppAndBrowser_EdgeSmartScreenOff -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+		Write-Host "success!" -ForegroundColor Green
+	}
+	catch
+	{
+		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		LogError "Failed to dismiss the Edge SmartScreen warning in Windows Security: $($_.Exception.Message)"
+	}
 }
 
 <#
@@ -298,15 +364,17 @@ function EventViewerCustomView
 		{
 			Write-Host "Creating the 'Process Creation' custom view in the Event Viewer to log executed processes and their arguments - " -NoNewline
 			LogInfo "Creating the 'Process Creation' custom view in the Event Viewer to log executed processes and their arguments"
-			# Enable events auditing generated when a process is created (starts)
-			auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable | Out-Null
+			try
+			{
+				# Enable events auditing generated when a process is created (starts)
+				auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable /failure:enable 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "auditpol returned exit code $LASTEXITCODE" }
 
-			# Include command line in process creation events
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -PropertyType DWord -Value 1 -Force | Out-Null
+				# Include command line in process creation events
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type DWORD -Value 1 | Out-Null
 
-			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type DWORD -Value 1 | Out-Null
-
-			$XML = @"
+				$XML = @"
 <ViewerConfig>
 	<QueryConfig>
 		<QueryParams>
@@ -325,23 +393,37 @@ function EventViewerCustomView
 </ViewerConfig>
 "@
 
-			if (-not (Test-Path -Path "$env:ProgramData\Microsoft\Event Viewer\Views"))
-			{
-				New-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views" -ItemType Directory -Force | Out-Null
-			}
+				if (-not (Test-Path -Path "$env:ProgramData\Microsoft\Event Viewer\Views"))
+				{
+					New-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views" -ItemType Directory -Force -ErrorAction Stop | Out-Null
+				}
 
-			# Save ProcessCreation.xml in the UTF-8 without BOM encoding
-			Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Encoding Default -NoNewline -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+				# Save ProcessCreation.xml in the UTF-8 without BOM encoding
+				Set-Content -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Value $XML -Encoding Default -NoNewline -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to create the 'Process Creation' Event Viewer custom view: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Removing the 'Process Creation' custom view in the Event Viewer - " -NoNewline
 			LogInfo "Removing the 'Process Creation' custom view in the Event Viewer"
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type CLEAR | Out-Null
-			Remove-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit -Name ProcessCreationIncludeCmdLine_Enabled -Type CLEAR | Out-Null
+				Remove-Item -Path "$env:ProgramData\Microsoft\Event Viewer\Views\ProcessCreation.xml" -Force -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to remove the 'Process Creation' Event Viewer custom view: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -390,26 +472,40 @@ function PowerShellModulesLogging
 		{
 			Write-Host "Enabling logging for all Windows PowerShell modules - " -NoNewline
 			LogInfo "Enabling logging for all Windows PowerShell modules"
-			if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames))
+			try
 			{
-				New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Force | Out-Null
+				if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames))
+				{
+					New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -PropertyType String -Value * -Force -ErrorAction Stop | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type DWORD -Value 1 | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Type SZ -Value * | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -PropertyType DWord -Value 1 -Force | Out-Null
-			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -PropertyType String -Value * -Force | Out-Null
-
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type DWORD -Value 1 | Out-Null
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Type SZ -Value * | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable PowerShell module logging: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling logging for all Windows PowerShell modules - " -NoNewline
 			LogInfo "Disabling logging for all Windows PowerShell modules"
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Force -ErrorAction SilentlyContinue | Out-Null
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Force -ErrorAction SilentlyContinue | Out-Null
-
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type CLEAR | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Force -ErrorAction SilentlyContinue | Out-Null
+				Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames -Name * -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging -Name EnableModuleLogging -Type CLEAR | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable PowerShell module logging: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -458,22 +554,37 @@ function PowerShellScriptsLogging
 		{
 			Write-Host "Enabling logging for all PowerShell scripts input to the Windows PowerShell event log - " -NoNewline
 			LogInfo "Enabling logging for all PowerShell scripts input to the Windows PowerShell event log"
-			if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging))
+			try
 			{
-				New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Force | Out-Null
+				if (-not (Test-Path -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging))
+				{
+					New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type DWORD -Value 1 | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -PropertyType DWord -Value 1 -Force | Out-Null
-
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type DWORD -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable PowerShell script block logging: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling logging for all PowerShell scripts input to the Windows PowerShell event log - " -NoNewline
 			LogInfo "Disabling logging for all PowerShell scripts input to the Windows PowerShell event log"
-			Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type CLEAR | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Type CLEAR | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable PowerShell script block logging: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -518,7 +629,7 @@ function AppsSmartScreen
 
 	if (-not $Script:DefenderEnabled)
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -529,15 +640,31 @@ function AppsSmartScreen
 		{
 			Write-Host "Disabling apps and files checking within Microsoft Defender SmartScreen - " -NoNewline
 			LogInfo "Disabling apps and files checking within Microsoft Defender SmartScreen"
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Off -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Off -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Microsoft Defender SmartScreen for apps and files: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling apps and files checking within Microsoft Defender SmartScreen - " -NoNewline
 			LogInfo "Enabling apps and files checking within Microsoft Defender SmartScreen"
-			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Warn -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer -Name SmartScreenEnabled -PropertyType String -Value Warn -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Microsoft Defender SmartScreen for apps and files: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -590,22 +717,37 @@ function SaveZoneInformation
 		{
 			Write-Host "Disabling marking downloaded files from the Internet as unsafe - " -NoNewline
 			LogInfo "Disabling marking downloaded files from the Internet as unsafe"
-			if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments))
+			try
 			{
-				New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Force | Out-Null
+				if (-not (Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments))
+				{
+					New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type DWORD -Value 1 | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -PropertyType DWord -Value 1 -Force | Out-Null
-
-			Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type DWORD -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable saving zone information on downloaded files: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling marking downloaded files from the Internet as unsafe - " -NoNewline
 			LogInfo "Enabling marking downloaded files from the Internet as unsafe"
-			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction SilentlyContinue | Out-Null
-			Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Force -ErrorAction SilentlyContinue | Out-Null
+				Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Attachments -Name SaveZoneInformation -Type CLEAR | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable saving zone information on downloaded files: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -662,25 +804,41 @@ function WindowsScriptHost
 				# Skip if a scheduled task exists
 				if ($_.State -eq "Ready")
 				{
-					LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+					LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
 					Write-Host "success!" -ForegroundColor Green
 					break
 				}
 			}
 
-			if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings"))
+			try
 			{
-				New-Item -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Force | Out-Null
+				if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings"))
+				{
+					New-Item -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows Script Host: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
 			Write-Host "Enabling Windows Script Host - " -NoNewline
 			LogInfo "Enabling Windows Script Host"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows Script Host\Settings" -Name Enabled -Force -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows Script Host: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -728,7 +886,7 @@ function WindowsSandbox
 
 	if (($Edition -notmatch "Pro") -and ($Edition -notmatch "Enterprise") -and ($Edition -notmatch "Education"))
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -742,9 +900,16 @@ function WindowsSandbox
 			# Checking whether x86 virtualization is enabled in the firmware
 			if ((Get-CimInstance -ClassName CIM_Processor).VirtualizationFirmwareEnabled)
 			{
-				Write-Host "Disabling Windows Sandbox - " -NoNewline
-				LogInfo "Disabling Windows Sandbox"
-				Disable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online -NoRestart -ErrorAction SilentlyContinue | Out-Null
+				try
+				{
+					Disable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online -NoRestart -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+					Write-Host "success!" -ForegroundColor Green
+				}
+				catch
+				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					LogError "Failed to disable Windows Sandbox: $($_.Exception.Message)"
+				}
 			}
 			else
 			{
@@ -753,16 +918,17 @@ function WindowsSandbox
 					# Determining whether Hyper-V is enabled
 					if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 					{
-						Disable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online -NoRestart
+						Disable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -Online -NoRestart -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+						Write-Host "success!" -ForegroundColor Green
 					}
 				}
 				catch [System.Exception]
 				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
 					LogError $Localization.EnableHardwareVT
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
 		}
 		"Enable"
 		{
@@ -771,7 +937,16 @@ function WindowsSandbox
 			# Checking whether x86 virtualization is enabled in the firmware
 			if ((Get-CimInstance -ClassName CIM_Processor).VirtualizationFirmwareEnabled)
 			{
-				Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+				try
+				{
+					Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+					Write-Host "success!" -ForegroundColor Green
+				}
+				catch
+				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					LogError "Failed to enable Windows Sandbox: $($_.Exception.Message)"
+				}
 			}
 			else
 			{
@@ -780,16 +955,17 @@ function WindowsSandbox
 					# Determining whether Hyper-V is enabled
 					if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 					{
-						Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+						Enable-WindowsOptionalFeature -FeatureName Containers-DisposableClientVM -All -Online -NoRestart -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+						Write-Host "success!" -ForegroundColor Green
 					}
 				}
 				catch [System.Exception]
 				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
 					LogError $Localization.EnableHardwareVT
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
 		}
 	}
 }
@@ -983,8 +1159,17 @@ function LocalSecurityAuthority
 			# Checking whether x86 virtualization is enabled in the firmware
 			if ((Get-CimInstance -ClassName CIM_Processor).VirtualizationFirmwareEnabled)
 			{
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force | Out-Null
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force | Out-Null
+				try
+				{
+					New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
+					New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
+					Write-Host "success!" -ForegroundColor Green
+				}
+				catch
+				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					LogError "Failed to enable Local Security Authority protection: $($_.Exception.Message)"
+				}
 			}
 			else
 			{
@@ -993,23 +1178,32 @@ function LocalSecurityAuthority
 					# Determining whether Hyper-V is enabled
 					if ((Get-CimInstance -ClassName CIM_ComputerSystem).HypervisorPresent)
 					{
-						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force | Out-Null
-						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force | Out-Null
+						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
+						New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPLBoot -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
+						Write-Host "success!" -ForegroundColor Green
 					}
 				}
 				catch [System.Exception]
 				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
 					LogError $Localization.EnableHardwareVT
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Local Security Authority protection - " -NoNewline
 			LogInfo "Disabling Local Security Authority protection"
-			Remove-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL, RunAsPPLBoot -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name RunAsPPL, RunAsPPLBoot -Force -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Local Security Authority protection: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1058,15 +1252,31 @@ function SharingMappedDrives
 		{
 			Write-Host "Enabling sharing mapped drives between users - " -NoNewline
 			LogInfo "Enabling sharing mapped drives between users"
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable sharing mapped drives between users: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling sharing mapped drives between users - " -NoNewline
 			LogInfo "Disabling sharing mapped drives between users"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLinkedConnections" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable sharing mapped drives between users: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1115,18 +1325,34 @@ function Firewall
 		{
 			Write-Host "Enabling Windows Firewall - " -NoNewline
 			LogInfo "Enabling Windows Firewall"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows Firewall: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Windows Firewall - " -NoNewline
 			LogInfo "Disabling Windows Firewall"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\WindowsFirewall\StandardProfile" -Name "EnableFirewall" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows Firewall: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1247,20 +1473,36 @@ function DefenderCloud
 		{
 			Write-Host "Enabling Windows Defender Cloud - " -NoNewline
 			LogInfo "Enabling Windows Defender Cloud"
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -ErrorAction SilentlyContinue	| Out-Null
-			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -ErrorAction SilentlyContinue | Out-Null
+				Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Windows Defender Cloud protection: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Windows Defender Cloud - " -NoNewline
 			LogInfo "Disabling Windows Defender Cloud"
-			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet")) {
-				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet")) {
+					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
+				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Type DWord -Value 2 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpynetReporting" -Type DWord -Value 0 | Out-Null
-			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Windows Defender Cloud protection: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1311,18 +1553,34 @@ function CIMemoryIntegrity
 		{
 			Write-Host "Enabling Core Isolation Memory Integrity (HVCI) - " -NoNewline
 			LogInfo "Enabling Core Isolation Memory Integrity (HVCI)"
-			If (!(Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity")) {
-				New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity")) {
+					New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Core Isolation Memory Integrity: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Core Isolation Memory Integrity (HVCI) - " -NoNewline
 			LogInfo "Disabling Core Isolation Memory Integrity (HVCI)"
-			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Core Isolation Memory Integrity: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1374,18 +1632,25 @@ function DefenderAppGuard
 	{
 		"Enable"
 		{
+			Write-Host "Enabling Windows Defender Application Guard - " -NoNewline
+			LogInfo "Enabling Windows Defender Application Guard"
 			$feature = Get-WindowsOptionalFeature -Online -FeatureName "Windows-Defender-ApplicationGuard" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 
-			if ($feature -and $feature.State -ne "Disabled") {
+			if (-not $feature) {
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning "WDAG feature is not available on this system. Skipping."
+			}
+			elseif ($feature.State -eq "Disabled") {
 				$null = Enable-WindowsOptionalFeature -Online `
         			-FeatureName "Windows-Defender-ApplicationGuard" `
         			-NoRestart `
-        			-ErrorAction SilentlyContinue `
+        			-ErrorAction Stop `
         			-WarningAction SilentlyContinue
 				Write-Host "success!" -ForegroundColor Green
 			}
 			else {
-				LogError "WDAG feature not available on this system or already enabled."
+				Write-Host "success!" -ForegroundColor Green
+				LogInfo "WDAG feature is already enabled."
 			}
 		}
 		"Disable"
@@ -1395,16 +1660,21 @@ function DefenderAppGuard
 			# Check if feature exists without throwing error
 			$feature = Get-WindowsOptionalFeature -Online -FeatureName "Windows-Defender-ApplicationGuard" -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 
-			if ($feature -and $feature.State -ne "Disabled") {
+			if (-not $feature) {
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning "WDAG feature is not available on this system. Skipping."
+			}
+			elseif ($feature.State -ne "Disabled") {
 				$null = Disable-WindowsOptionalFeature -Online `
         			-FeatureName "Windows-Defender-ApplicationGuard" `
         			-NoRestart `
-        			-ErrorAction SilentlyContinue `
+        			-ErrorAction Stop `
         			-WarningAction SilentlyContinue
 				Write-Host "success!" -ForegroundColor Green
 			}
 			else {
-				LogError "WDAG feature not available on this system or already disabled."
+				Write-Host "success!" -ForegroundColor Green
+				LogInfo "WDAG feature is already disabled."
 			}
 		}
 	}
@@ -1454,18 +1724,34 @@ function AccountProtectionWarn
 		{
 			Write-Host "Enabling account protection warning for Microsoft accounts - " -NoNewline
 			LogInfo "Enabling account protection warning for Microsoft accounts"
-			Remove-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable account protection warnings: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling account protection warning for Microsoft accounts - " -NoNewline
 			LogInfo "Disabling account protection warning for Microsoft accounts"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows Security Health\State")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Force | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows Security Health\State")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows Security Health\State" -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty "HKCU:\Software\Microsoft\Windows Security Health\State" -Name "AccountProtection_MicrosoftAccount_Disconnected" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable account protection warnings: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1514,18 +1800,34 @@ function DownloadBlocking
 		{
 			Write-Host "Enabling blocking of file downloads from the internet - " -NoNewline
 			LogInfo "Enabling blocking of file downloads from the internet"
-			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -ErrorAction SilentlyContinue | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable download blocking: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling blocking of file downloads from the internet - " -NoNewline
 			LogInfo "Disabling blocking of file downloads from the internet"
-			If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments")) {
-				New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" | Out-Null
+			try
+			{
+				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments")) {
+					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
 			}
-			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments" -Name "SaveZoneInformation" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable download blocking: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1574,15 +1876,33 @@ function F8BootMenu
 		{
 			Write-Host "Enabling legacy F8 boot menu - " -NoNewline
 			LogInfo "Enabling legacy F8 boot menu"
-			bcdedit /set `{current`} BootMenuPolicy Legacy | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				bcdedit /set `{current`} BootMenuPolicy Legacy 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "bcdedit returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable the legacy F8 boot menu: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling legacy F8 boot menu - " -NoNewline
 			LogInfo "Disabling legacy F8 boot menu"
-			bcdedit /set `{current`} BootMenuPolicy Standard | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				bcdedit /set `{current`} BootMenuPolicy Standard 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "bcdedit returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable the legacy F8 boot menu: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1631,16 +1951,41 @@ function BootRecovery
 		{
 			Write-Host "Enabling automatic recovery mode on startup errors - " -NoNewline
 			LogInfo "Enabling automatic recovery mode on startup errors"
-			# This allows the boot process to automatically enter recovery mode when it detects startup errors (default behavior)
-			bcdedit /deletevalue `{current`} BootStatusPolicy | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				# This allows the boot process to automatically enter recovery mode when it detects startup errors (default behavior)
+				bcdedit /deletevalue `{current`} BootStatusPolicy 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0)
+				{
+					$bootStatusPolicy = (bcdedit /enum `{current`} 2>$null | Out-String)
+					if ($bootStatusPolicy -match "BootStatusPolicy")
+					{
+						throw "bcdedit returned exit code $LASTEXITCODE"
+					}
+				}
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable automatic recovery mode during boot: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling automatic recovery mode on startup errors - " -NoNewline
 			LogInfo "Disabling automatic recovery mode on startup errors"
-			bcdedit /set `{current`} BootStatusPolicy IgnoreAllFailures | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				bcdedit /set `{current`} BootStatusPolicy IgnoreAllFailures 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "bcdedit returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable automatic recovery mode during boot: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -1689,17 +2034,35 @@ function DEPOptOut
 		{
 			Write-Host "Disabling Data Execution Prevention (DEP) policy to OptIn - " -NoNewline
 			LogInfo "Disabling Data Execution Prevention (DEP) policy to OptIn"
-			# Setting Data Execution Prevention (DEP) policy to OptIn...
-			bcdedit /set `{current`} nx OptIn | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				# Setting Data Execution Prevention (DEP) policy to OptIn...
+				bcdedit /set `{current`} nx OptIn 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "bcdedit returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set DEP policy to OptIn: $($_.Exception.Message)"
+			}
 		}
 		"Disable"
 		{
 			Write-Host "Disabling Data Execution Prevention (DEP) policy to OptOut - " -NoNewline
 			LogInfo "Disabling Data Execution Prevention (DEP) policy to OptOut"
-			# Setting Data Execution Prevention (DEP) policy to OptOut...
-			bcdedit /set `{current`} nx OptOut | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				# Setting Data Execution Prevention (DEP) policy to OptOut...
+				bcdedit /set `{current`} nx OptOut 2>$null | Out-Null
+				if ($LASTEXITCODE -ne 0) { throw "bcdedit returned exit code $LASTEXITCODE" }
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to set DEP policy to OptOut: $($_.Exception.Message)"
+			}
 		}
 	}
 }

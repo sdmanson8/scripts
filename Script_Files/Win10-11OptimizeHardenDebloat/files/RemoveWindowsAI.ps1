@@ -2,6 +2,17 @@
     .SYNOPSIS
     Disables and removes Windows AI features such as Copilot, Recall, and related packages.
 
+    .VERSION
+	2.0.2
+
+	.DATE
+	03.10.2021 - initial version
+	24.02.2026 - updated to v2.0.0 with new functions and improvements
+	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
+	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
+
+	Copyright (c) 2021 - 2026 sdmanson8
+
     .DESCRIPTION
     Validates the local Win10_11Util files, enforces Windows PowerShell 5.1,
     relaunches as administrator when needed, initializes logging, and then
@@ -18,7 +29,13 @@
     powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1
 
     .EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1 -revertMode
+    
+    .EXAMPLE
     powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1 -nonInteractive -AllOptions
+
+    .EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1 -nonInteractive -AllOptions -backupMode
 
     .EXAMPLE
     powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1 -nonInteractive -Options RemoveAIFiles,RemoveRecallTasks
@@ -54,10 +71,12 @@ $Host.UI.RawUI.WindowTitle = "Remove Windows AI - Win10_11Util"
 
 # Resolve the local files this script depends on before any removal work begins.
 $LocalizationRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Localizations"))
+$HelpersModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Helpers.psm1"))
 $ModulePath       = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Win10_11Util.psm1"))
 $ManifestPath     = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Manifest\Win10_11Util.psd1"))
 
 $ScriptFiles = @(
+	$HelpersModulePath,
 	$ModulePath,
 	$ManifestPath
 )
@@ -86,7 +105,7 @@ Import-Module -Name $ManifestPath -ErrorAction Stop
 Remove-Module -Name Win10_11Util -Force -ErrorAction Ignore
 try
 {
-	Import-LocalizedData -BindingVariable Global:Localization -UICulture $PSUICulture -BaseDirectory $PSScriptRoot\Localizations -FileName Win10_11Util -ErrorAction Stop
+	Import-LocalizedData -BindingVariable Global:Localization -UICulture $PSUICulture -BaseDirectory $LocalizationRoot -FileName Win10_11Util -ErrorAction Stop
 }
 catch
 {
@@ -103,6 +122,8 @@ catch [System.InvalidOperationException]
 	Write-Warning -Message $Localization.UnsupportedPowerShell
 	exit
 }
+
+Import-Module -Name $HelpersModulePath -Force
 
 # Track whether the host is Windows PowerShell 5.1 or PowerShell 7+.
 $version = $PSVersionTable.PSVersion
@@ -290,6 +311,7 @@ function RunTrusted {
     # lean & mean snippet by AveYo; refined by RapidOS [haslate]
 
     $psexe = 'PowerShell.exe'
+    $loggingModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Logging.psm1"))
 
     # If log file not provided, use current
     if (!$logFile -and (Get-LogFilePath)) {
@@ -300,7 +322,7 @@ function RunTrusted {
     if ($logFile) {
         $command = @"
 `$env:REMOVE_WINDOWS_AI_LOG = '$logFile'
-Import-Module '$scriptPath\Logging.psm1' -Force
+Import-Module '$loggingModulePath' -Force
 Set-LogFile -Path `$env:REMOVE_WINDOWS_AI_LOG
 $command
 "@
@@ -374,31 +396,23 @@ function Write-Status {
 $LoggingModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Logging.psm1"))
 Import-Module -Name $LoggingModulePath -Force
 
-# Log file priority: explicit parameter, environment variable, global value,
-# then a temporary fallback file.
+# Track the active log path locally so standalone runs do not inherit WinUtil's
+# global log unless WinUtil passes it explicitly.
+$script:ActiveLogFilePath = Join-Path $env:TEMP "Remove Windows AI.txt"
+
+# Log file priority: explicit parameter, environment variable, then the
+# standalone fallback file.
 if ($LogFilePath) {
-    Set-LogFile -Path $LogFilePath
-    #LogInfo "Using log file from parameter: $LogFilePath"
+    $script:ActiveLogFilePath = $LogFilePath
 } elseif ($env:REMOVE_WINDOWS_AI_LOG) {
-    Set-LogFile -Path $env:REMOVE_WINDOWS_AI_LOG
-    #LogInfo "Using log file from environment: $env:REMOVE_WINDOWS_AI_LOG"
-} elseif ($global:LogFilePath) {
-    Set-LogFile -Path $global:LogFilePath
-    #LogInfo "Using log file from global: $global:LogFilePath"
-} else {
-    $defaultLog = Join-Path $env:TEMP "Remove Windows AI.txt"
-    Set-LogFile -Path $defaultLog
-    #LogInfo "Using default log file: $defaultLog"
+    $script:ActiveLogFilePath = $env:REMOVE_WINDOWS_AI_LOG
 }
 
-#LogInfo "Child script started with PID: $pid"
-#LogInfo "Parameters: nonInteractive=$nonInteractive, revertMode=$revertMode, AllOptions=$AllOptions"
+Set-LogFile -Path $script:ActiveLogFilePath
 
 # Return the active log file path for helper functions that need it.
 function Get-LogFilePath {
-    if ($global:LogFilePath) { return $global:LogFilePath }
-    if ($env:REMOVE_WINDOWS_AI_LOG) { return $env:REMOVE_WINDOWS_AI_LOG }
-    return $null
+    return $script:ActiveLogFilePath
 }
 
 # Write shared files under a mutex so concurrent operations do not corrupt them.
@@ -552,9 +566,10 @@ function Set-UwpAppRegistryEntry {
 
     begin {
         $AppSettingsRegPath = 'HKEY_USERS\APP_SETTINGS'
+        $AppSettingsRegMountPath = 'HKU\APP_SETTINGS'
         $RegContent = "Windows Registry Editor Version 5.00`n"
 
-        reg.exe UNLOAD $AppSettingsRegPath 2>&1 | Out-Null
+        cmd.exe /d /c "reg.exe UNLOAD $AppSettingsRegMountPath >nul 2>&1" | Out-Null
 
         $max = 30
         $attempts = 0
@@ -574,7 +589,7 @@ function Set-UwpAppRegistryEntry {
 
         # since we are trying multiple times while the processes are stopping this will work as soon as the file is freed 
         do {
-            reg.exe LOAD $AppSettingsRegPath $FilePath *>$null
+            cmd.exe /d /c "reg.exe LOAD $AppSettingsRegMountPath ""$FilePath"" >nul 2>&1" | Out-Null
             $attempts++
         } while ($LASTEXITCODE -ne 0 -and $attempts -lt $max)
     
@@ -635,11 +650,115 @@ function Set-UwpAppRegistryEntry {
         $SettingRegFilePath = "$($tempDir)uwp_app_settings.reg"
         $RegContent | Out-File -FilePath $SettingRegFilePath
 
-        reg.exe IMPORT $SettingRegFilePath 2>&1 | Out-Null
-        reg.exe UNLOAD $AppSettingsRegPath | Out-Null
+        cmd.exe /d /c "reg.exe IMPORT ""$SettingRegFilePath"" >nul 2>&1" | Out-Null
+        cmd.exe /d /c "reg.exe UNLOAD $AppSettingsRegMountPath >nul 2>&1" | Out-Null
 
-        Remove-Item -Path $SettingRegFilePath
+        Remove-Item -Path $SettingRegFilePath -Force -ErrorAction SilentlyContinue
     }
+}
+
+# Retry protected registry writes through TrustedInstaller when the current token
+# is blocked by ACLs on newer Windows builds.
+function Invoke-TrustedRegistryWrite {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [object]$Value,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('DWord', 'String')]
+        [string]$Type
+    )
+
+    $nativePath = ConvertTo-NativeRegistryPath -Path $Path
+    $regType = ConvertTo-RegExeValueType -Type $Type
+    $escapedPath = $nativePath.Replace("'", "''")
+    $escapedName = $Name.Replace("'", "''")
+    $escapedValue = ([string]$Value).Replace("'", "''")
+    $logFile = Get-LogFilePath
+    $resultMarkerPath = Join-Path $env:TEMP ("RemoveWindowsAI_TI_{0}.marker" -f ([guid]::NewGuid().ToString('N')))
+    $escapedMarkerPath = $resultMarkerPath.Replace("'", "''")
+
+    Remove-Item -Path $resultMarkerPath -Force -ErrorAction SilentlyContinue
+
+    $command = @"
+& reg.exe add '$escapedPath' /v '$escapedName' /t $regType /d '$escapedValue' /f *>`$null
+if (`$LASTEXITCODE -eq 0) {
+    Set-Content -Path '$escapedMarkerPath' -Value 'ok' -Encoding ASCII -Force
+}
+"@
+
+    RunTrusted -command $command -psversion $Global:psversion -logFile $logFile
+    Start-Sleep -Milliseconds 300
+
+    if (Test-Path -Path $resultMarkerPath) {
+        Remove-Item -Path $resultMarkerPath -Force -ErrorAction SilentlyContinue
+        return $true
+    }
+
+    try {
+        $currentValue = (Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop).$Name
+
+        if ($Type -eq 'DWord') {
+            return ([int]$currentValue -eq [int]$Value)
+        }
+
+        return ([string]$currentValue -eq [string]$Value)
+    }
+    catch {
+        return $false
+    }
+}
+
+# Apply RemoveWindowsAI-specific access denied handling on top of the shared
+# safe registry setter from Helpers.psm1.
+function Set-RemoveWindowsAIRegistryValue {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [object]$Value,
+
+        [Parameter(Mandatory)]
+        [ValidateSet('DWord', 'String')]
+        [string]$Type,
+
+        [switch]$TryTrustedInstallerOnAccessDenied,
+        [switch]$SkipOnAccessDenied
+    )
+
+    $params = @{
+        Path = $Path
+        Name = $Name
+        Value = $Value
+        Type = $Type
+        SkipOnAccessDenied = $SkipOnAccessDenied
+    }
+
+    if ($TryTrustedInstallerOnAccessDenied) {
+        $params.AccessDeniedFallback = {
+            param($DeniedPath, $DeniedName, $DeniedValue, $DeniedType)
+            Invoke-TrustedRegistryWrite -Path $DeniedPath -Name $DeniedName -Value $DeniedValue -Type $DeniedType
+        }
+    }
+
+    if ($SkipOnAccessDenied) {
+        $params.OnAccessDenied = {
+            param($DeniedPath, $DeniedName)
+            LogWarning "Skipping registry value '$DeniedName' at '$DeniedPath' because access was denied."
+        }
+    }
+
+    Set-RegistryValueSafe @params
 }
 
 # Disable AI-related registry settings for Windows, Edge, Search, and privacy features.
@@ -862,17 +981,17 @@ function Disable-Registry-Keys {
     Reg.exe add 'HKLM\SYSTEM\ControlSet001\Control\FeatureManagement\Overrides\8\2283032206' /v 'EnabledState' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
     Reg.exe add 'HKLM\SYSTEM\ControlSet001\Control\FeatureManagement\Overrides\8\502943886' /v 'EnabledState' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
     #disable ask copilot (taskbar search)
-    Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' /v 'TaskbarCompanion' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-    Reg.exe add 'HKCU\Software\Microsoft\Windows\Shell\BrandedKey' /v 'BrandedKeyChoiceType' /t REG_SZ /d @('Search', 'App')[$revert] /f *>$null
-    Reg.exe add 'HKCU\Software\Microsoft\Windows\Shell\BrandedKey' /v 'AppAumid' /t REG_SZ /d @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert] /f *>$null
-    Reg.exe add 'HKCU\SOFTWARE\Policies\Microsoft\Windows\CopilotKey' /v 'SetCopilotHardwareKey' /t REG_SZ /d @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert] /f *>$null
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' -Name 'TaskbarCompanion' -Type DWord -Value @([int]0, [int]1)[$revert]
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\Windows\Shell\BrandedKey' -Name 'BrandedKeyChoiceType' -Type String -Value @('Search', 'App')[$revert] -TryTrustedInstallerOnAccessDenied -SkipOnAccessDenied | Out-Null
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\Windows\Shell\BrandedKey' -Name 'AppAumid' -Type String -Value @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert] -TryTrustedInstallerOnAccessDenied -SkipOnAccessDenied | Out-Null
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\CopilotKey' -Name 'SetCopilotHardwareKey' -Type String -Value @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert]
     #disable recall customized homepage 
-    Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\SettingSync\WindowsSettingHandlers' /v 'A9HomeContentEnabled' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\SettingSync\WindowsSettingHandlers' -Name 'A9HomeContentEnabled' -Type DWord -Value @([int]0, [int]1)[$revert]
     #disable typing data harvesting for ai training 
-    Reg.exe add 'HKCU\Software\Microsoft\InputPersonalization' /v 'RestrictImplicitInkCollection' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-    Reg.exe add 'HKCU\Software\Microsoft\InputPersonalization' /v 'RestrictImplicitTextCollection' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-    Reg.exe add 'HKCU\Software\Microsoft\InputPersonalization\TrainedDataStore' /v 'HarvestContacts' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-    Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization' /v 'Value' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\InputPersonalization' -Name 'RestrictImplicitInkCollection' -Type DWord -Value @([int]1, [int]0)[$revert]
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\InputPersonalization' -Name 'RestrictImplicitTextCollection' -Type DWord -Value @([int]1, [int]0)[$revert]
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\InputPersonalization\TrainedDataStore' -Name 'HarvestContacts' -Type DWord -Value @([int]0, [int]1)[$revert]
+    Set-RemoveWindowsAIRegistryValue -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization' -Name 'Value' -Type DWord -Value @([int]0, [int]1)[$revert]
     #hide copilot ads in settings home page 
     Reg.exe add 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent' /v 'DisableConsumerAccountStateContent' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
     #disable office hub startup
@@ -890,61 +1009,63 @@ function Disable-Registry-Keys {
     # Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\IsoEnvBroker" /v "Enabled" /t REG_DWORD /d "0" /f
     # Reg.exe add "HKLM\SYSTEM\ControlSet001\Services\IsoEnvBroker" /v "Enabled" /t REG_DWORD /d "0" /f
     # leaving commented since its still only in preview builds
-
-    #apply reg keys for default user to disable for any new users created
-    #unload just incase
-    [GC]::Collect()
-    reg.exe unload 'HKU\DefaultUser' *>$null
-    try {
-        reg.exe load 'HKU\DefaultUser' "$env:SystemDrive\Users\Default\NTUSER.DAT" >$null
-        $hiveloaded = $true
-    }
-    catch {
-        LogError 'Unable to Load Default User Hive'
-        $hiveloaded = $false
-    }
     Write-Host "success!" -ForegroundColor Green
-    if ($hiveloaded) {
-        Write-Status -msg "$(@('Disabling', 'Enabling')[$revert]) AI for new users - " 
-        LogInfo "$(@('Disabling', 'Enabling')[$revert]) AI for new users"
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot' /v 'TurnOffWindowsCopilot' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'DisableAIDataAnalysis' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'AllowRecallEnablement' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'DisableClickToDo' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'TurnOffSavingSnapshots' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'DisableSettingsAgent' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'DisableAgentConnectors' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'DisableAgentWorkspaces' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\WindowsAI' /v 'DisableRemoteAgentConnectors' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Microsoft\Windows\Shell\Copilot\BingChat' /v 'IsUserEligible' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Microsoft\Windows\Shell\Copilot' /v 'IsCopilotAvailable' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Microsoft\Windows\Shell\Copilot' /v 'CopilotDisabledReason' /t REG_SZ /d @('FeatureIsDisabled', ' ')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone\Microsoft.Copilot_8wekyb3d8bbwe' /v 'Value' /t REG_SZ /d @('Deny', 'Prompt')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Speech_OneCore\Settings\VoiceActivation\UserPreferenceForAllApps' /v 'AgentActivationEnabled' /t REG_DWORD /d @('0', '1')[$revert]  /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' /v 'ShowCopilotButton' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\input\Settings' /v 'InsightsEnabled' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\Shell\ClickToDo' /v 'DisableClickToDo' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\Explorer' /v 'DisableSearchBoxSuggestions' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsCopilot' /v 'AllowCopilotRuntime' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins' /v 'CopilotPWAPin' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins' /v 'RecallPin' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' /v 'TaskbarCompanion' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\Shell\BrandedKey' /v 'BrandedKeyChoiceType' /t REG_SZ /d @('Search', 'App')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\Shell\BrandedKey' /v 'AppAumid' /t REG_SZ /d @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\SOFTWARE\Policies\Microsoft\Windows\CopilotKey' /v 'SetCopilotHardwareKey' /t REG_SZ /d @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\SettingSync\WindowsSettingHandlers' /v 'A9HomeContentEnabled' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\InputPersonalization' /v 'RestrictImplicitInkCollection' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\InputPersonalization' /v 'RestrictImplicitTextCollection' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\InputPersonalization\TrainedDataStore' /v 'HarvestContacts' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        Reg.exe add 'HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization' /v 'Value' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
-        if ($revert) {
-            Reg.exe delete 'HKU\DefaultUser\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked' /v '{CB3B0003-8088-4EDE-8769-8B354AB2FF8C}' /f *>$null
-        }
-        else {
-            Reg.exe add 'HKU\DefaultUser\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked' /v '{CB3B0003-8088-4EDE-8769-8B354AB2FF8C}' /t REG_SZ /d 'Ask Copilot' /f *>$null
-        }
+    
+    # Apply the same defaults to future users via the default profile hive.
+    $defaultUserHiveFile = Join-Path $env:SystemDrive 'Users\Default\NTUSER.DAT'
+    $defaultUserHiveMount = 'HKU\RemoveWindowsAI_DefaultUser'
+    $defaultUserHivePsPath = 'Registry::HKEY_USERS\RemoveWindowsAI_DefaultUser'
 
-        reg.exe unload 'HKU\DefaultUser' *>$null
+    [GC]::Collect()
+    $hiveloaded = Mount-RegistryHive -MountPath $defaultUserHiveMount -PsPath $defaultUserHivePsPath -HiveFile $defaultUserHiveFile
+    if (-not $hiveloaded) {
+        LogWarning 'Unable to load the default user hive'
+    }
+
+    if ($hiveloaded) {
+        try {
+            Write-Status -msg "$(@('Disabling', 'Enabling')[$revert]) AI for new users - " 
+            LogInfo "$(@('Disabling', 'Enabling')[$revert]) AI for new users"
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot" /v 'TurnOffWindowsCopilot' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'DisableAIDataAnalysis' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'AllowRecallEnablement' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'DisableClickToDo' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'TurnOffSavingSnapshots' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'DisableSettingsAgent' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'DisableAgentConnectors' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'DisableAgentWorkspaces' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v 'DisableRemoteAgentConnectors' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Microsoft\Windows\Shell\Copilot\BingChat" /v 'IsUserEligible' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Microsoft\Windows\Shell\Copilot" /v 'IsCopilotAvailable' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Microsoft\Windows\Shell\Copilot" /v 'CopilotDisabledReason' /t REG_SZ /d @('FeatureIsDisabled', ' ')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone\Microsoft.Copilot_8wekyb3d8bbwe" /v 'Value' /t REG_SZ /d @('Deny', 'Prompt')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\Speech_OneCore\Settings\VoiceActivation\UserPreferenceForAllApps" /v 'AgentActivationEnabled' /t REG_DWORD /d @('0', '1')[$revert]  /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v 'ShowCopilotButton' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\input\Settings" /v 'InsightsEnabled' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\Windows\Shell\ClickToDo" /v 'DisableClickToDo' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v 'DisableSearchBoxSuggestions' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsCopilot" /v 'AllowCopilotRuntime' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins" /v 'CopilotPWAPin' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Reg.exe add "$defaultUserHiveMount\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins" /v 'RecallPin' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name 'TaskbarCompanion' -Type DWord -Value @([int]0, [int]1)[$revert]
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\Windows\Shell\BrandedKey" -Name 'BrandedKeyChoiceType' -Type String -Value @('Search', 'App')[$revert] -TryTrustedInstallerOnAccessDenied -SkipOnAccessDenied | Out-Null
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\Windows\Shell\BrandedKey" -Name 'AppAumid' -Type String -Value @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert] -TryTrustedInstallerOnAccessDenied -SkipOnAccessDenied | Out-Null
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\SOFTWARE\Policies\Microsoft\Windows\CopilotKey" -Name 'SetCopilotHardwareKey' -Type String -Value @(' ', 'Microsoft.Copilot_8wekyb3d8bbwe!App')[$revert]
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\Windows\CurrentVersion\SettingSync\WindowsSettingHandlers" -Name 'A9HomeContentEnabled' -Type DWord -Value @([int]0, [int]1)[$revert]
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\InputPersonalization" -Name 'RestrictImplicitInkCollection' -Type DWord -Value @([int]1, [int]0)[$revert]
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\InputPersonalization" -Name 'RestrictImplicitTextCollection' -Type DWord -Value @([int]1, [int]0)[$revert]
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\InputPersonalization\TrainedDataStore" -Name 'HarvestContacts' -Type DWord -Value @([int]0, [int]1)[$revert]
+            Set-RemoveWindowsAIRegistryValue -Path "$defaultUserHivePsPath\Software\Microsoft\Windows\CurrentVersion\CPSS\Store\InkingAndTypingPersonalization" -Name 'Value' -Type DWord -Value @([int]0, [int]1)[$revert]
+            if ($revert) {
+                Reg.exe delete "$defaultUserHiveMount\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" /v '{CB3B0003-8088-4EDE-8769-8B354AB2FF8C}' /f *>$null
+            }
+            else {
+                Reg.exe add "$defaultUserHiveMount\SOFTWARE\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" /v '{CB3B0003-8088-4EDE-8769-8B354AB2FF8C}' /t REG_SZ /d 'Ask Copilot' /f *>$null
+            }
+        }
+        finally {
+            Dismount-RegistryHive -MountPath $defaultUserHiveMount -PsPath $defaultUserHivePsPath | Out-Null
+        }
     }
 
     #disable ask copilot in context menu
@@ -1273,12 +1394,12 @@ function Install-NOAIPackage {
                          -PackagePath "$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" `
                          -NoRestart `
                          -IgnoreCheck `
-                         -ErrorAction SilentlyContinue `
+                         -ErrorAction Stop `
                          *> $null
                 }
                 catch {
                     #user is using powershell 7 use dism command as fallback
-                    dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                    dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck *>$null
                 }
             }
             else {
@@ -1287,10 +1408,10 @@ function Install-NOAIPackage {
 
                 $ProgressPreference = 'SilentlyContinue'
                 try {
-                    Invoke-WebRequest -Uri "https://github.com/sdmanson8/scripts/tree/main/Script_Files/Win10-11OptimizeHardenDebloat/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction SilentlyContinue | Out-Null
+                    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/sdmanson8/scripts/main/Script_Files/Win10-11OptimizeHardenDebloat/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -OutFile "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -UseBasicParsing -ErrorAction Stop | Out-Null
                 }
                 catch {
-                    LogError "Unable to Download Package at: https://github.com/sdmanson8/scripts/tree/main/Script_Files/Win10-11OptimizeHardenDebloat/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" 
+                    LogError "Unable to Download Package at: https://raw.githubusercontent.com/sdmanson8/scripts/main/Script_Files/Win10-11OptimizeHardenDebloat/RemoveWindowsAIPackage/$arch/SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" 
                     return
                 }
 
@@ -1302,11 +1423,11 @@ function Install-NOAIPackage {
                          -PackagePath "$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" `
                          -NoRestart `
                          -IgnoreCheck `
-                         -ErrorAction SilentlyContinue `
+                         -ErrorAction Stop `
                          *> $null
                 }
                 catch {
-                    dism.exe /Online /Add-Package /PackagePath:"$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                    dism.exe /Online /Add-Package /PackagePath:"$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -IgnoreCheck *>$null
                 }
             }
         }
@@ -1320,10 +1441,10 @@ function Install-NOAIPackage {
         if ($package.PackageState -eq 'InstallPending') {
             LogError 'Package installed incorrectly -  Uninstalling!'
             try {
-                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -IgnoreCheck -ErrorAction Stop >$null
             }
             catch {
-                dism.exe /Online /remove-package /PackageName:$($package.PackageName) -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                dism.exe /Online /remove-package /PackageName:$($package.PackageName) -NoRestart -IgnoreCheck *>$null
             }
             #remove reg install location 
             $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages'
@@ -1342,10 +1463,10 @@ function Install-NOAIPackage {
             Write-Status 'Removing Custom Windows Update Package - ' 
             LogInfo 'Removing Custom Windows Update Package'
             try {
-                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                Remove-WindowsPackage -Online -PackageName $package.PackageName -NoRestart -IgnoreCheck -ErrorAction Stop >$null
             }
             catch {
-                dism.exe /Online /remove-package /PackageName:$($package.PackageName) -NoRestart -IgnoreCheck -ErrorAction SilentlyContinue >$null
+                dism.exe /Online /remove-package /PackageName:$($package.PackageName) -NoRestart -IgnoreCheck *>$null
             }
             #remove reg install location 
             $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages'
@@ -1375,8 +1496,8 @@ function Disable-Copilot-Policies {
         LogInfo "$(@('Disabling','Enabling')[$revert]) CoPilot Policies in [$JSONPath]"
 
         #takeownership
-        takeown /f $JSONPath *>$null
-        icacls $JSONPath /grant *S-1-5-32-544:F /t *>$null
+        cmd.exe /d /c "takeown /f ""$JSONPath"" >nul 2>&1" | Out-Null
+        cmd.exe /d /c "icacls ""$JSONPath"" /grant *S-1-5-32-544:F /t >nul 2>&1" | Out-Null
 
         #edit the content
         $jsonContent = Get-Content $JSONPath | ConvertFrom-Json
@@ -2285,7 +2406,7 @@ function Remove-AI-Files {
     
         #remove additional installers
         $inboxapps = 'C:\Windows\InboxApps'
-        $installers = Get-ChildItem -Path $inboxapps -Filter '*Copilot*' -ErrorAction SilentlyContinue | Out-Null
+        $installers = Get-ChildItem -Path $inboxapps -Filter '*Copilot*' -ErrorAction SilentlyContinue
         foreach ($installer in $installers) {
             takeown /f $installer.FullName *>$null
             icacls $installer.FullName /grant *S-1-5-32-544:F /t *>$null
@@ -2504,14 +2625,16 @@ function Remove-AI-Files {
         New-Item "$($tempDir)PathsToDelete.txt" -ItemType File -Force | Out-Null
         foreach ($keyword in $aiKeyWords) {
             foreach ($location in $regLocations) {
-                Get-ChildItem $location -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -like "*$keyword*" } | ForEach-Object {
-                    try {
-                        Remove-Item $_.PSPath -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+                if (Test-Path $location) {
+                    Get-ChildItem $location -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -like "*$keyword*" } | ForEach-Object {
+                        try {
+                            Remove-Item $_.PSPath -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+                        }
+                        catch {
+                            #ignore when path is null
+                        }
+                        
                     }
-                    catch {
-                        #ignore when path is null
-                    }
-                    
                 }
             }
 
@@ -3277,7 +3400,7 @@ else {
 
     start-process msedge.exe 
     Start-Sleep 2
-    get-process msedge | Stop-Process | Out-Null 
+    Get-Process -Name msedge -ErrorAction SilentlyContinue | Stop-Process -ErrorAction SilentlyContinue | Out-Null 
 
             $aiProcesses = @(
                 'ai.exe'

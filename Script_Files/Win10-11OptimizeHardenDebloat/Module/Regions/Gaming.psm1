@@ -47,19 +47,35 @@ function XboxGameBar
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Xbox Game Bar - " -NoNewline
-			LogInfo "Disabling Xbox Game Bar"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Write-Host "Disabling Xbox Game Bar - " -NoNewline
+				LogInfo "Disabling Xbox Game Bar"
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Xbox Game Bar: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Xbox Game Bar - " -NoNewline
-			LogInfo "Enabling Xbox Game Bar"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Write-Host "Enabling Xbox Game Bar - " -NoNewline
+				LogInfo "Enabling Xbox Game Bar"
+				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Xbox Game Bar: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -104,7 +120,7 @@ function XboxGameTips
 
 	if (-not (Get-AppxPackage -Name Microsoft.GamingApp))
 	{
-		LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+		LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 
 		return
 	}
@@ -113,17 +129,33 @@ function XboxGameTips
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Xbox Game Bar tips - " -NoNewline
-			LogInfo "Disabling Xbox Game Bar tips"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Write-Host "Disabling Xbox Game Bar tips - " -NoNewline
+				LogInfo "Disabling Xbox Game Bar tips"
+				New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable Xbox Game Bar tips: $($_.Exception.Message)"
+			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Xbox Game Bar tips - " -NoNewline
-			LogInfo "Enabling Xbox Game Bar tips"
-			New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Write-Host "Enabling Xbox Game Bar tips - " -NoNewline
+				LogInfo "Enabling Xbox Game Bar tips"
+				New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to enable Xbox Game Bar tips: $($_.Exception.Message)"
+			}
 		}
 	}
 }
@@ -176,7 +208,7 @@ function Set-AppGraphicsPerformance
 				}
 				$Skip
 				{
-					LogError ($Localization.Skipped -f $MyInvocation.Line.Trim())
+					LogWarning ($Localization.Skipped -f $MyInvocation.Line.Trim())
 				}
 				$KeyboardArrows {}
 			}
@@ -242,16 +274,37 @@ function GPUScheduling
 
 			if ($AdapterDACType -and ($ComputerSystemModel -notmatch "Virtual") -and ($WddmVersion_Min -ge 2700))
 			{
-				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 2 -Force | Out-Null
+				try
+				{
+					New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
+					Write-Host "success!" -ForegroundColor Green
+				}
+				catch
+				{
+					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					LogError "Failed to enable hardware-accelerated GPU scheduling: $($_.Exception.Message)"
+				}
 			}
-			Write-Host "success!" -ForegroundColor Green
+			else
+			{
+				Write-Host "success!" -ForegroundColor Green
+				LogWarning "Hardware-accelerated GPU scheduling is not supported on this system. Skipping."
+			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling hardware-accelerated GPU scheduling - " -NoNewline
-			LogInfo "Disabling hardware-accelerated GPU scheduling"
-			New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			try
+			{
+				Write-Host "Disabling hardware-accelerated GPU scheduling - " -NoNewline
+				LogInfo "Disabling hardware-accelerated GPU scheduling"
+				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				Write-Host "success!" -ForegroundColor Green
+			}
+			catch
+			{
+				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				LogError "Failed to disable hardware-accelerated GPU scheduling: $($_.Exception.Message)"
+			}
 		}
 	}
 }
