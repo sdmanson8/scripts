@@ -2,11 +2,24 @@ using module ..\Logging.psm1
 using module ..\Helpers.psm1
 
 #region Post Actions
+<#
+	.SYNOPSIS
+	Run the post-change refresh and cleanup actions after tweaks finish.
+
+	.DESCRIPTION
+	Refreshes shell state, applies any generated Local Group Policy text files,
+	cleans up temporary policy files, restores previously opened folders where
+	possible, and performs the extra post-run fixes expected by this preset.
+
+	.EXAMPLE
+	PostActions
+#>
 function PostActions
 {
 	Write-Host "Performing post actions - " -NoNewline
 	LogInfo "Performing post actions"
 	#region Refresh Environment
+	# Refresh the shell so desktop, taskbar, and environment changes are visible immediately.
 	$Signature = @{
 		Namespace          = "WinAPI"
 		Name               = "UpdateEnvironment"
@@ -69,6 +82,7 @@ public static void PostMessage()
 	#endregion Refresh Environment
 
 	#region Other actions
+	# Rebuild Local Group Policy data if this run generated LGPO input files.
 	# Apply policies found in registry to re-build database database because gpedit.msc relies in its own database
 	if ((Test-Path -Path "$env:TEMP\Computer.txt") -or (Test-Path -Path "$env:TEMP\User.txt"))
 	{
@@ -161,7 +175,7 @@ public static void PostMessage()
 	Pause
 #>
 
-	#Fix Guest Auth
+	# Restore guest SMB access and the Print Management console expected by this preset.
 	New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" `
                  -Name "AllowInsecureGuestAuth" `
                  -PropertyType DWord `

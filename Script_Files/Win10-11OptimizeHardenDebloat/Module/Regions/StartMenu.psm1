@@ -7,7 +7,7 @@ using module ..\Helpers.psm1
 	Configure Start layout
 
 	.PARAMETER Default
-	Show default Start layout
+	Show default Start layout (default value)
 
 	.PARAMETER ShowMorePins
 	Show more pins on Start

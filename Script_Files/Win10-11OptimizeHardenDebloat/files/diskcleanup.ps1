@@ -1,8 +1,25 @@
-#Log file
-# Import logging module
+<#
+    .SYNOPSIS
+    Runs Windows disk cleanup tasks and writes progress to the Win10_11Util log.
+
+    .DESCRIPTION
+    Imports the shared logging module, selects a log file, runs Disk Cleanup in
+    very low disk mode, and then runs DISM component cleanup to remove
+    superseded component store files.
+
+    .NOTES
+    This script is intended to be called by Win10_11Util. If no log path is
+    provided, it falls back to a temporary log file.
+
+    .EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\files\diskcleanup.ps1
+#>
+
+# Import the shared logging module used by Win10_11Util child scripts.
 Import-Module -Name "$PSScriptRoot\..\Module\Logging.psm1" -Force
 
-# Set up logging - priority: parameter > environment > global > default
+# Select the log file in this order: explicit parameter, environment variable,
+# existing global log path, then a temporary fallback file.
 if ($LogFilePath) {
     Set-LogFile -Path $LogFilePath
     #LogInfo "Using log file from parameter: $LogFilePath"
@@ -18,16 +35,15 @@ if ($LogFilePath) {
     #LogInfo "Using default log file: $defaultLog"
 }
 
-#LogInfo "Child script started with PID: $pid"
-#LogInfo "Parameters: nonInteractive=$nonInteractive, revertMode=$revertMode, AllOptions=$AllOptions"
-
-# Helper function to get current log file path
+# Return the active log file path if one has already been configured.
 function Get-LogFilePath {
     if ($global:LogFilePath) { return $global:LogFilePath }
     if ($env:diskcleanup) { return $env:diskcleanup }
     return $null
 }
 
+# Write file content under a mutex so concurrent cleanup operations do not
+# corrupt the log or any temporary output file.
 function Write-FileSafely {
     param(
         [string]$Path,
@@ -53,26 +69,17 @@ function Write-FileSafely {
     }
 }
 
-if ($revertMode) {
-    $Global:revert = 1
-}
-else {
-    $Global:revert = 0
-}
-
-if ($backupMode) {
-    $Global:backup = 1
-}
-else {
-    $Global:backup = 0
-}
-
 $Global:tempDir = ([System.IO.Path]::GetTempPath())
 
-
+<#
+.SYNOPSIS
+Removes temporary and unnecessary Windows files, then cleans up superseded system components.
+#>
 LogInfo "Running Disk Cleanup"
 Write-Host "Running Disk Cleanup... Please Wait"
 Start-Process -FilePath cleanmgr.exe -ArgumentList "/d C: /VERYLOWDISK" -Wait -NoNewWindow -ErrorAction SilentlyContinue | Out-Null
 LogInfo "Running cleanmgr.exe completed"
+
+# Run DISM component cleanup to remove superseded Windows component store data.
 Start-Process -FilePath Dism.exe -ArgumentList "/online /Cleanup-Image /StartComponentCleanup /ResetBase" -Wait -NoNewWindow -ErrorAction SilentlyContinue | Out-Null
 LogInfo "Running DISM Component Cleanup completed"

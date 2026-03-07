@@ -10,7 +10,7 @@ using module ..\Helpers.psm1
 	Disable the Connected User Experiences and Telemetry (DiagTrack) service, and block connection for the Unified Telemetry Client Outbound Traffic
 
 	.PARAMETER Enable
-	Enable the Connected User Experiences and Telemetry (DiagTrack) service, and allow connection for the Unified Telemetry Client Outbound Traffic
+	Enable the Connected User Experiences and Telemetry (DiagTrack) service, and allow connection for the Unified Telemetry Client Outbound Traffic (default value)
 
 	.EXAMPLE
 	DiagTrackService -Disable
@@ -87,7 +87,7 @@ function DiagTrackService
 	Set the diagnostic data collection to minimum
 
 	.PARAMETER Default
-	Set the diagnostic data collection to default
+	Set the diagnostic data collection to default (default value)
 
 	.EXAMPLE
 	DiagnosticDataLevel -Minimal
@@ -166,7 +166,7 @@ function DiagnosticDataLevel
 	Turn off Windows Error Reporting
 
 	.PARAMETER Enable
-	Turn on Windows Error Reporting
+	Turn on Windows Error Reporting (default value)
 
 	.EXAMPLE
 	ErrorReporting -Disable
@@ -234,7 +234,7 @@ function ErrorReporting
 	Change the feedback frequency to "Never"
 
 	.PARAMETER Automatically
-	Change feedback frequency to "Automatically"
+	Change feedback frequency to "Automatically" (default value)
 
 	.EXAMPLE
 	FeedbackFrequency -Never
@@ -300,7 +300,7 @@ function FeedbackFrequency
 	Turn off the diagnostics tracking scheduled tasks
 
 	.PARAMETER Enable
-	Turn on the diagnostics tracking scheduled tasks
+	Turn on the diagnostics tracking scheduled tasks (default value)
 
 	.EXAMPLE
 	ScheduledTasks -Disable
@@ -601,7 +601,7 @@ function ScheduledTasks
     Manage the offering of Malicious Software Removal Tool through Windows Update settings
 
     .PARAMETER Enable
-    Enable the offering of Malicious Software Removal Tool through Windows Update
+    Enable the offering of Malicious Software Removal Tool through Windows Update (default value)
 
     .PARAMETER Disable
     Disable the offering of Malicious Software Removal Tool through Windows Update
@@ -670,7 +670,7 @@ function UpdateMSRT
     even if you use this tweak
 
     .PARAMETER Enable
-    Enable the Offering of drivers through Windows Update
+    Enable the Offering of drivers through Windows Update (default value)
 
     .PARAMETER Disable
     Disable the Offering of drivers through Windows Update
@@ -743,7 +743,7 @@ Configure the setting to receive updates for other Microsoft products via Window
 Enable receiving updates for other Microsoft products via Windows Update
 
 .PARAMETER Disable
-Disable receiving updates for other Microsoft products via Windows Update
+Disable receiving updates for other Microsoft products via Windows Update (default value)
 
 .EXAMPLE
 UpdateMSProducts -Enable
@@ -799,7 +799,7 @@ function UpdateMSProducts
     Windows Update automatic downloads settings
 
     .PARAMETER Enable
-    Enable Windows Update automatic downloads
+    Enable Windows Update automatic downloads (default value)
 
     .PARAMETER Disable
     Disable Windows Update automatic downloads
@@ -863,7 +863,7 @@ function UpdateAutoDownload
     It works by registering a dummy debugger for MusNotification.exe, which effectively blocks the restart prompt executable from running. This prevents the system from scheduling the automatic restart after a Windows Update installation, potentially avoiding unwanted restarts.
 
     .PARAMETER Enable
-    Enable automatic restart after Windows Update installation
+    Enable automatic restart after Windows Update installation (default value)
 
     .PARAMETER Disable
     Disable automatic restart after Windows Update installation
@@ -923,7 +923,7 @@ function UpdateRestart
     Nightly wake-up for Automatic Maintenance and Windows Updates
 
     .PARAMETER Enable
-    Enable the nightly wake-up for automatic maintenance and Windows updates
+    Enable the nightly wake-up for automatic maintenance and Windows updates (default value)
 
     .PARAMETER Disable
     Disable the nightly wake-up for automatic maintenance and Windows updates
@@ -1048,7 +1048,7 @@ function SharedExperiences
     Enable the Clipboard History feature
 
     .PARAMETER Disable
-    Disable the Clipboard History feature
+    Disable the Clipboard History feature (default value)
 
     .EXAMPLE
     ClipboardHistory -Enable
@@ -1105,7 +1105,7 @@ function ClipboardHistory
     Superfetch service settings
 
     .PARAMETER Enable
-    Enable the Superfetch service
+    Enable the Superfetch service (default value)
 
     .PARAMETER Disable
     Disable the Superfetch service
@@ -1167,7 +1167,7 @@ NTFS paths with length over 260 characters settings
 Enable NTFS paths with length over 260 characters
 
 .PARAMETER Disable
-Disable NTFS paths with length over 260 characters
+Disable NTFS paths with length over 260 characters (default value)
 
 .EXAMPLE
 NTFSLongPaths -Enable
@@ -1221,7 +1221,7 @@ function NTFSLongPaths
     Updating of NTFS last access timestamps settings
 
     .PARAMETER Enable
-    Enable updating of NTFS last access timestamps
+    Enable updating of NTFS last access timestamps (default value)
 
     .PARAMETER Disable
     Disable updating of NTFS last access timestamps
@@ -1284,7 +1284,7 @@ function NTFSLastAccess
     Sleep start menu and keyboard button feature settings
 
     .PARAMETER Enable
-    Enable the Sleep start menu and keyboard button
+    Enable the Sleep start menu and keyboard button (default value)
 
     .PARAMETER Disable
     Disable the Sleep start menu and keyboard button
@@ -1351,7 +1351,7 @@ function SleepButton
     Display and sleep mode timeouts
 
     .PARAMETER Enable
-    Enable the display and sleep mode timeouts
+    Enable the display and sleep mode timeouts (default value)
 
     .PARAMETER Disable
     Disable the display and sleep mode timeouts
@@ -1414,7 +1414,7 @@ function SleepTimeout
     Fast Startup feature settings
 
     .PARAMETER Enable
-    Enable the Fast Startup feature
+    Enable the Fast Startup feature (default value)
 
     .PARAMETER Disable
     Disable the Fast Startup feature
@@ -1474,7 +1474,7 @@ function FastStartup
     Enable automatic reboot on crash
 
     .PARAMETER Disable
-    Disable automatic reboot on crash
+    Disable automatic reboot on crash (default value)
 
     .EXAMPLE
     AutoRebootOnCrash -Enable
@@ -1531,7 +1531,7 @@ function AutoRebootOnCrash
 	Do not use sign-in info to automatically finish setting up device after an update
 
 	.PARAMETER Enable
-	Use sign-in info to automatically finish setting up device after an update
+	Use sign-in info to automatically finish setting up device after an update (default value)
 
 	.EXAMPLE
 	SigninInfo -Disable
@@ -1598,7 +1598,7 @@ function SigninInfo
 	Do not let websites show me locally relevant content by accessing my language list
 
 	.PARAMETER Enable
-	Let websites show me locally relevant content by accessing my language list
+	Let websites show me locally relevant content by accessing my language list (default value)
 
 	.EXAMPLE
 	LanguageListAccess -Disable
@@ -1655,7 +1655,7 @@ function LanguageListAccess
 	Do not let apps show me personalized ads by using my advertising ID
 
 	.PARAMETER Enable
-	Let apps show me personalized ads by using my advertising ID
+	Let apps show me personalized ads by using my advertising ID (default value)
 
 	.EXAMPLE
 	AdvertisingID -Disable
@@ -1721,7 +1721,7 @@ function AdvertisingID
 	Hide the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
 
 	.PARAMETER Show
-	Show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested
+	Show the Windows welcome experiences after updates and occasionally when I sign in to highlight what's new and suggested (default value)
 
 	.EXAMPLE
 	WindowsWelcomeExperience -Hide
@@ -1828,7 +1828,7 @@ function LockWidgets {
 	Getting tip and suggestions when I use Windows
 
 	.PARAMETER Enable
-	Get tip and suggestions when using Windows
+	Get tip and suggestions when using Windows (default value)
 
 	.PARAMETER Disable
 	Do not get tip and suggestions when I use Windows
@@ -1892,7 +1892,7 @@ function WindowsTips
 	Hide from me suggested content in the Settings app
 
 	.PARAMETER Show
-	Show me suggested content in the Settings app
+	Show me suggested content in the Settings app (default value)
 
 	.EXAMPLE
 	SettingsSuggestedContent -Hide
@@ -1953,7 +1953,7 @@ function SettingsSuggestedContent
 	Turn off automatic installing suggested apps
 
 	.PARAMETER Enable
-	Turn on automatic installing suggested apps
+	Turn on automatic installing suggested apps (default value)
 
 	.EXAMPLE
 	AppsSilentInstalling -Disable
@@ -2014,7 +2014,7 @@ function AppsSilentInstalling
 	Do not suggest ways to get the most out of Windows and finish setting up this device
 
 	.PARAMETER Enable
-	Suggest ways to get the most out of Windows and finish setting up this device
+	Suggest ways to get the most out of Windows and finish setting up this device (default value)
 
 	.EXAMPLE
 	WhatsNewInWindows -Disable
@@ -2076,7 +2076,7 @@ function WhatsNewInWindows
 	Do not let Microsoft use your diagnostic data for personalized tips, ads, and recommendations
 
 	.PARAMETER Enable
-	Let Microsoft use your diagnostic data for personalized tips, ads, and recommendations
+	Let Microsoft use your diagnostic data for personalized tips, ads, and recommendations (default value)
 
 	.EXAMPLE
 	TailoredExperiences -Disable
@@ -2137,7 +2137,7 @@ function TailoredExperiences
 	Disable Bing search in Start Menu
 
 	.PARAMETER Enable
-	Enable Bing search in Start Menu
+	Enable Bing search in Start Menu (default value)
 
 	.EXAMPLE
 	BingSearch -Disable
@@ -2201,7 +2201,7 @@ function BingSearch
 	Do not show recommendations for tips, shortcuts, new apps, and more in Start menu
 
 	.PARAMETER Show
-	Show recommendations for tips, shortcuts, new apps, and more in Start menu
+	Show recommendations for tips, shortcuts, new apps, and more in Start menu (default value)
 
 	.EXAMPLE
 	StartRecommendationsTips -Hide
@@ -2258,7 +2258,7 @@ function StartRecommendationsTips
 	Do not show Microsoft account-related notifications on Start Menu in Start menu
 
 	.PARAMETER Show
-	Show Microsoft account-related notifications on Start Menu in Start menu
+	Show Microsoft account-related notifications on Start Menu in Start menu (default value)
 
 	.EXAMPLE
 	StartAccountNotifications -Hide
@@ -2393,7 +2393,7 @@ function WiFiSense
 	Disable Web Search in the Start Menu
 
 	.PARAMETER Enable
-	Enable Web Search in the Start Menu
+	Enable Web Search in the Start Menu (default value)
 
 	.EXAMPLE
 	WebSearch -Disable
@@ -2449,6 +2449,22 @@ function WebSearch
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enable or disable Activity History-related notifications in Task View.
+
+	.PARAMETER Enable
+	Show Activity History-related notifications in Task View.
+
+	.PARAMETER Disable
+	Hide Activity History-related notifications in Task View.
+
+	.EXAMPLE
+	ActivityHistory -Enable
+
+	.EXAMPLE
+	ActivityHistory -Disable
+#>
 function ActivityHistory
 {
 	param
@@ -2560,7 +2576,7 @@ function ActivityHistory
 	Disable sensor-related features, such as screen auto-rotation
 
 	.PARAMETER Enable
-	Enable sensor-related features, such as screen auto-rotation
+	Enable sensor-related features, such as screen auto-rotation (default value)
 
 	.EXAMPLE
 	Sensors -Disable
@@ -2796,7 +2812,7 @@ function WebLangList
     Note: This disables access using standard Windows API. Direct access to device will still be allowed.
 
     .PARAMETER Enable
-    Enable access to camera
+    Enable access to camera (default value)
 
     .PARAMETER Disable
     Disable access to camera
@@ -2859,7 +2875,7 @@ function Camera
     Note: This disables access using standard Windows API. Direct access to device will still be allowed.
 
     .PARAMETER Enable
-    Enable access to microphone
+    Enable access to microphone (default value)
 
     .PARAMETER Disable
     Disable access to microphone
@@ -2988,7 +3004,7 @@ function WAPPush
     Enable the clearing of recent files on exit
 
     .PARAMETER Disable
-    Disable the clearing of recent files on exit
+    Disable the clearing of recent files on exit (default value)
 
     .EXAMPLE
     ClearRecentFiles -Enable
@@ -3048,7 +3064,7 @@ function ClearRecentFiles
     Most recently used (MRU) items lists such as 'Recent Items' menu on the Start menu, jump lists, and shortcuts at the bottom of the 'File' menu in applications
 
     .PARAMETER Enable
-    Enable the recent files lists
+    Enable the recent files lists (default value)
 
     .PARAMETER Disable
     Disable the recent files lists
@@ -4014,7 +4030,7 @@ function UWPSwapFile
 Enable or disable PowerShell 7 Telemetry
 
 .PARAMETER Enable
-Enable PowerShell 7 Telemetry
+Enable PowerShell 7 Telemetry (default value)
 
 .PARAMETER Disable
 Disable PowerShell 7 Telemetry

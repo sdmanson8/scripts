@@ -7,7 +7,7 @@ using module ..\Helpers.psm1
 Enable or disable Cross-Device Resume
 
 .PARAMETER Enable
-Enable Cross-Device Resume
+Enable Cross-Device Resume (default value)
 
 .PARAMETER Disable
 Disable Cross-Device Resume
@@ -64,7 +64,7 @@ function CrossDeviceResume
 Enable or disable Multiplane Overlay
 
 .PARAMETER Enable
-Enable Multiplane Overlay
+Enable Multiplane Overlay (default value)
 
 .PARAMETER Disable
 Disable Multiplane Overlay
@@ -121,7 +121,7 @@ function MultiplaneOverlay
 Enable or disable Modern Standby fix
 
 .PARAMETER Enable
-Enable Modern Standby fix
+Enable Modern Standby fix (default value)
 
 .PARAMETER Disable
 Disable Modern Standby fix
@@ -185,7 +185,7 @@ Enable or disable S3 Sleep
 Enable S3 Sleep
 
 .PARAMETER Disable
-Disable S3 Sleep
+Disable S3 Sleep (default value)
 
 .EXAMPLE
 S3Sleep -Enable
@@ -242,7 +242,7 @@ Enable or disable Explorer Automatic Folder Discovery
 Enable Explorer Automatic Folder Discovery
 
 .PARAMETER Disable
-Disable Explorer Automatic Folder Discovery
+Disable Explorer Automatic Folder Discovery (default value)
 
 .EXAMPLE
 ExplorerAutoDiscovery -Enable
@@ -311,7 +311,7 @@ function ExplorerAutoDiscovery
 Enable or disable Windows Platform Binary Table (WPBT)
 
 .PARAMETER Enable
-Enable Windows Platform Binary Table (WPBT)
+Enable Windows Platform Binary Table (WPBT) (default value)
 
 .PARAMETER Disable
 Disable Windows Platform Binary Table (WPBT)
@@ -395,7 +395,7 @@ Enable or disable recommended Windows service startup configuration
 Apply recommended startup types to Windows services
 
 .PARAMETER Disable
-Restore Windows services to their original startup types
+Restore Windows services to their original startup types (default value)
 
 .EXAMPLE
 ServicesManual -Enable
@@ -615,7 +615,7 @@ function ServicesManual
 	Enable Adobe Network Block
 
 	.PARAMETER Disable
-	Disable Adobe Network Block
+	Disable Adobe Network Block (default value)
 
 	.EXAMPLE
 	AdobeNetworkBlock -Enable
@@ -709,7 +709,7 @@ function AdobeNetworkBlock
 	Enable Block Razer Software Installs
 
 	.PARAMETER Disable
-	Disable Block Razer Software Installs
+	Disable Block Razer Software Installs (default value)
 
 	.EXAMPLE
 	RazerBlock -Enable
@@ -813,7 +813,7 @@ Enable or disable Brave Debloat
 Enable Brave Debloat
 
 .PARAMETER Disable
-Disable Brave Debloat
+Disable Brave Debloat (default value)
 
 .EXAMPLE
 BraveDebloat -Enable
@@ -876,7 +876,7 @@ function BraveDebloat
 Enable or disable Fullscreen Optimizations
 
 .PARAMETER Enable
-Enable Fullscreen Optimizations
+Enable Fullscreen Optimizations (default value)
 
 .PARAMETER Disable
 Disable Fullscreen Optimizations
@@ -926,7 +926,7 @@ function FullscreenOptimizations
 Enable or disable Teredo
 
 .PARAMETER Enable
-Enable Teredo
+Enable Teredo (default value)
 
 .PARAMETER Disable
 Disable Teredo

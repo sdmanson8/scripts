@@ -1,6 +1,28 @@
-﻿$script:LogFilePath = $null
+﻿<#
+    .SYNOPSIS
+    Logging module for Win10_11Util.
+
+    .DESCRIPTION
+    Initializes the log file used by the script and provides helper functions for writing
+    informational, warning, and error messages to that log.
+#>
+
+$script:LogFilePath = $null
 $script:LogLock = New-Object System.Threading.Mutex($false, "Global\RemoveWindowsAILogLock")
 
+<#
+    .SYNOPSIS
+    Set the log file path used by the logging module.
+
+    .PARAMETER Path
+    Path to the log file that should receive log output.
+
+    .PARAMETER Clear
+    Clear the existing log file and start a new log header.
+
+    .EXAMPLE
+    Set-LogFile -Path $global:LogFilePath
+#>
 function Set-LogFile {
     param(
         [Parameter(Mandatory=$true)]
@@ -25,6 +47,25 @@ function Set-LogFile {
     }
 }
 
+<#
+    .SYNOPSIS
+    Write a formatted message to the current log file.
+
+    .PARAMETER Message
+    Message text to write to the log.
+
+    .PARAMETER Level
+    Severity level to include in the log entry.
+
+    .PARAMETER AddGap
+    Add a blank line after the log entry.
+
+    .PARAMETER ShowConsole
+    Also display the message in the console.
+
+    .EXAMPLE
+    Write-LogMessage -Message "Import started" -Level INFO
+#>
 function Write-LogMessage {
     param(
         [string]$Message,
@@ -33,8 +74,6 @@ function Write-LogMessage {
         [switch]$AddGap,
         [switch]$ShowConsole  # Changed from NoConsole to ShowConsole (default off)
     )
-    
-    if (!$script:LogFilePath) { return }
     
     if (-not $script:LogFilePath) { return }
 
@@ -46,7 +85,7 @@ function Write-LogMessage {
     $logMessage = "$timestamp $Level`: $Message"
     if ($AddGap) { $logMessage += "`n" }
     
-    # Write to console ONLY if explicitly requested with -ShowConsole
+    # Show log output in the console only when explicitly requested.
     if ($ShowConsole) {
         switch ($Level) {
             'ERROR'   { Write-Host "ERROR: $Message" -ForegroundColor Red }
@@ -55,7 +94,7 @@ function Write-LogMessage {
         }
     }
     
-    # Thread-safe file writing with mutex
+    # Use a mutex so multiple log writes do not corrupt the log file.
     $acquired = $script:LogLock.WaitOne(5000)  # 5 second timeout
     try {
         if ($acquired) {
@@ -74,7 +113,22 @@ function Write-LogMessage {
     }
 }
 
-# Convenience functions - by default, NO console output
+<#
+    .SYNOPSIS
+    Write an informational message to the log.
+
+    .PARAMETER Message
+    Informational message text to log.
+
+    .PARAMETER AddGap
+    Add a blank line after the log entry.
+
+    .PARAMETER ShowConsole
+    Also display the message in the console.
+
+    .EXAMPLE
+    LogInfo -Message "Region modules imported"
+#>
 function LogInfo {
     param(
         [Parameter(Mandatory=$true)]
@@ -85,6 +139,22 @@ function LogInfo {
     Write-LogMessage -Message $Message -Level 'INFO' -AddGap:$AddGap -ShowConsole:$ShowConsole
 }
 
+<#
+    .SYNOPSIS
+    Write a warning message to the log.
+
+    .PARAMETER Message
+    Warning message text to log.
+
+    .PARAMETER AddGap
+    Add a blank line after the log entry.
+
+    .PARAMETER ShowConsole
+    Also display the message in the console.
+
+    .EXAMPLE
+    LogWarning -Message "Optional file was not found"
+#>
 function LogWarning {
     param(
         [Parameter(Mandatory=$true)]
@@ -95,6 +165,22 @@ function LogWarning {
     Write-LogMessage -Message $Message -Level 'WARNING' -AddGap:$AddGap -ShowConsole:$ShowConsole
 }
 
+<#
+    .SYNOPSIS
+    Write an error message to the log.
+
+    .PARAMETER Message
+    Error message text to log.
+
+    .PARAMETER AddGap
+    Add a blank line after the log entry.
+
+    .PARAMETER ShowConsole
+    Also display the message in the console.
+
+    .EXAMPLE
+    LogError -Message "PowerShell 5.1 not found."
+#>
 function LogError {
     param(
         [Parameter(Mandatory=$true)]
@@ -105,5 +191,5 @@ function LogError {
     Write-LogMessage -Message $Message -Level 'ERROR' -AddGap:$AddGap -ShowConsole:$ShowConsole
 }
 
-# Export functions
+# Export the logging functions used by the loader and region modules.
 Export-ModuleMember -Function Set-LogFile, LogInfo, LogWarning, LogError, Write-LogMessage

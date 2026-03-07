@@ -2,6 +2,21 @@
 using module ..\Helpers.psm1
 
 #region InitialActions
+<#
+	.SYNOPSIS
+	Run the shared startup checks and runtime setup used before applying tweaks.
+
+	.DESCRIPTION
+	Prepares the Win10_11Util session by clearing previous errors, unblocking
+	script files, setting network and compiler prerequisites, and initializing
+	the runtime helpers used by other region modules.
+
+	.PARAMETER Warning
+	Show the warning prompt during startup checks.
+
+	.EXAMPLE
+	InitialActions
+#>
 function InitialActions
 {
 	param

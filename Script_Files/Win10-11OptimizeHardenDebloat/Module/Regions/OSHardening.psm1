@@ -2,6 +2,20 @@ using module ..\Logging.psm1
 using module ..\Helpers.psm1
 
 #region OS Hardening
+<#
+    .SYNOPSIS
+    Disable legacy remote command surfaces and device metadata handlers.
+
+    .DESCRIPTION
+    Disables DCOM remote activation behavior and removes the device metadata
+    file associations this preset treats as unnecessary remote command paths.
+
+    .EXAMPLE
+    Disable-RemoteCommands
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-RemoteCommands {
     Write-Host "Disable Remote Commands - " -NoNewline
 	LogInfo "Disabling Remote Commands"
@@ -20,6 +34,20 @@ function Disable-RemoteCommands {
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Restrict wireless sign-in options on the lock screen.
+
+    .DESCRIPTION
+    Hides the network selection UI from the sign-in screen to reduce wireless
+    attack surface before a user signs in.
+
+    .EXAMPLE
+    Suspend-AirstrikeAttack
+
+    .NOTES
+    Machine-wide
+#>
 function Suspend-AirstrikeAttack
 {
     Write-Host "Restrict local Windows wireless exploitation - " -NoNewline
@@ -28,6 +56,20 @@ function Suspend-AirstrikeAttack
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Disable SMBv3 compression.
+
+    .DESCRIPTION
+    Turns off SMB compression at the server service level as part of the
+    module's network hardening preset.
+
+    .EXAMPLE
+    Disable-SMBv3Compression
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-SMBv3Compression
 {
     Write-Host "Disable SMB version 3 Compression - " -NoNewline
@@ -36,6 +78,20 @@ function Disable-SMBv3Compression
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Apply hardened Microsoft Office security settings.
+
+    .DESCRIPTION
+    Sets Office macro and content execution policies for supported Office
+    versions to reduce document-based attack surface in Word and Publisher.
+
+    .EXAMPLE
+    Protect-MSOffice
+
+    .NOTES
+    Current user
+#>
 function Protect-MSOffice
 {
     Write-Host "Configure Office to be Hardened - " -NoNewline
@@ -76,6 +132,20 @@ function Protect-MSOffice
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Apply core operating system hardening settings.
+
+    .DESCRIPTION
+    Enables the OS-wide registry values used by this preset for credential,
+    UAC, virtualization, and TCP/IP hardening.
+
+    .EXAMPLE
+    Protect-OS
+
+    .NOTES
+    Machine-wide
+#>
 function Protect-OS
 {
     Write-Host "Configure OS to be Hardened - " -NoNewline
@@ -112,6 +182,20 @@ function Protect-OS
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Enable DLL hijacking prevention settings.
+
+    .DESCRIPTION
+    Configures the Session Manager DLL search order protections used by this
+    preset to reduce common DLL hijacking paths.
+
+    .EXAMPLE
+    Set-DLLHijackingPrevention
+
+    .NOTES
+    Machine-wide
+#>
 function Set-DLLHijackingPrevention
 {
     Write-Host "Configure DLL Hijacking Prevention - " -NoNewline
@@ -122,6 +206,16 @@ function Set-DLLHijackingPrevention
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Disable IPv6.
+
+    .EXAMPLE
+    Disable-IPv6
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-IPv6
 {
     Write-Host "Disable IPv6 - " -NoNewline
@@ -130,6 +224,16 @@ function Disable-IPv6
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Disable TCP timestamps.
+
+    .EXAMPLE
+    Disable-TCPTimestamps
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-TCPTimestamps
 {
     Write-Host "Disable TCP Timestamps - " -NoNewline
@@ -138,6 +242,20 @@ function Disable-TCPTimestamps
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Enable anti-spoofing protection for Windows Hello biometrics.
+
+    .DESCRIPTION
+    Creates the required policy path if necessary and enables enhanced
+    anti-spoofing for supported biometric sign-in hardware.
+
+    .EXAMPLE
+    Enable-BiometricsAntiSpoofing
+
+    .NOTES
+    Machine-wide
+#>
 function Enable-BiometricsAntiSpoofing
 {
     Write-Host "Enable Biometrics Anti-Spoofing - " -NoNewline
@@ -161,6 +279,19 @@ function Enable-BiometricsAntiSpoofing
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Ensure a registry path exists before other hardening settings use it.
+
+    .PARAMETER path
+    The registry path to create if it does not already exist.
+
+    .EXAMPLE
+    Update-RegistryPaths -path 'HKLM:\Software\Example'
+
+    .NOTES
+    Machine-wide
+#>
 function Update-RegistryPaths
 {
     param (
@@ -186,6 +317,20 @@ function Update-RegistryPaths
     }
 }
 
+<#
+    .SYNOPSIS
+    Disable AutoRun for current-user and machine-wide Explorer policies.
+
+    .DESCRIPTION
+    Creates the Explorer policy paths if needed and sets the AutoRun block
+    value used by this preset for both HKLM and HKCU.
+
+    .EXAMPLE
+    Disable-AutoRun
+
+    .NOTES
+    Current user, Machine-wide
+#>
 function Disable-AutoRun
 {
     Write-Host "Disable AutoRun - " -NoNewline
@@ -209,6 +354,16 @@ function Disable-AutoRun
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Disable SCHANNEL cipher entries defined in this preset.
+
+    .EXAMPLE
+    Disable-AESCiphers
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-AESCiphers
 {
     Write-Host "Disable AES Ciphers - " -NoNewline
@@ -230,6 +385,16 @@ function Disable-AESCiphers
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Disable RC2 and RC4 SCHANNEL ciphers.
+
+    .EXAMPLE
+    Disable-RC2RC4Ciphers
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-RC2RC4Ciphers
 {
     Write-Host "Disable RC2 and RC4 Ciphers - " -NoNewline
@@ -249,6 +414,16 @@ function Disable-RC2RC4Ciphers
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Disable the Triple DES SCHANNEL cipher.
+
+    .EXAMPLE
+    Disable-TripleDESCipher
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-TripleDESCipher
 {
     Write-Host "Disable Triple DES Ciphers - " -NoNewline
@@ -264,6 +439,16 @@ function Disable-TripleDESCipher
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Configure SCHANNEL hash algorithm settings.
+
+    .EXAMPLE
+    Disable-HashAlgorithms
+
+    .NOTES
+    Machine-wide
+#>
 function Disable-HashAlgorithms
 {
     Write-Host "Disable Hash Algorithms - " -NoNewline
@@ -286,6 +471,16 @@ function Disable-HashAlgorithms
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Configure SCHANNEL key exchange algorithm settings.
+
+    .EXAMPLE
+    Update-KeyExchanges
+
+    .NOTES
+    Machine-wide
+#>
 function Update-KeyExchanges
 {
     Write-Host "Configure Key Exchanges - " -NoNewline
@@ -308,6 +503,20 @@ function Update-KeyExchanges
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Configure SSL and TLS protocol settings in SCHANNEL.
+
+    .DESCRIPTION
+    Creates and updates the SCHANNEL protocol keys used by this preset to
+    disable older protocols and define the preferred TLS configuration.
+
+    .EXAMPLE
+    Update-Protocols
+
+    .NOTES
+    Machine-wide
+#>
 function Update-Protocols
 {
     Write-Host "Configure SSL/TLS Protocols - " -NoNewline
@@ -346,6 +555,16 @@ function Update-Protocols
     }
 }
 
+<#
+    .SYNOPSIS
+    Configure the SCHANNEL cipher suite list used by this preset.
+
+    .EXAMPLE
+    Update-CipherSuites
+
+    .NOTES
+    Machine-wide
+#>
 function Update-CipherSuites
 {
     Write-Host "Configure Cipher Suites - " -NoNewline
@@ -355,6 +574,16 @@ function Update-CipherSuites
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Enable strong .NET authentication behavior.
+
+    .EXAMPLE
+    Update-DotNetStrongAuth
+
+    .NOTES
+    Machine-wide
+#>
 function Update-DotNetStrongAuth
 {
     Write-Host "Use Strong .Net Authentication - " -NoNewline
@@ -363,6 +592,16 @@ function Update-DotNetStrongAuth
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+    .SYNOPSIS
+    Increase the Security event log size.
+
+    .EXAMPLE
+    Update-EventLogSize
+
+    .NOTES
+    Machine-wide
+#>
 function Update-EventLogSize
 {
     Write-Host "Configure Event Log Sizes - " -NoNewline
@@ -378,6 +617,20 @@ function Update-EventLogSize
     }
 }
 
+<#
+    .SYNOPSIS
+    Apply the Adobe Reader DC security settings used by this preset.
+
+    .DESCRIPTION
+    Updates the Adobe Reader DC policy path used by this preset when that
+    product is installed for the current user.
+
+    .EXAMPLE
+    Update-AdobereaderDCSTIG
+
+    .NOTES
+    Current user
+#>
 function Update-AdobereaderDCSTIG
 {
     Write-Host "Configure Adobe Reader Security - " -NoNewline

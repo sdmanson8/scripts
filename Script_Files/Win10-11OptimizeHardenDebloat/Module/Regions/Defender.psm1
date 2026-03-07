@@ -10,7 +10,7 @@ using module ..\Helpers.psm1
 	Enable Microsoft Defender Exploit Guard network protection
 
 	.PARAMETER Disable
-	Disable Microsoft Defender Exploit Guard network protection
+	Disable Microsoft Defender Exploit Guard network protection (default value)
 
 	.EXAMPLE
 	NetworkProtection -Enable
@@ -73,7 +73,7 @@ function NetworkProtection
 	Enable detection for potentially unwanted applications and block them
 
 	.PARAMETER Disable
-	Disable detection for potentially unwanted applications and block them
+	Disable detection for potentially unwanted applications and block them (default value)
 
 	.EXAMPLE
 	PUAppsDetection -Enable
@@ -137,7 +137,7 @@ function PUAppsDetection
 	Enable sandboxing for Microsoft Defender
 
 	.PARAMETER Disable
-	Disable sandboxing for Microsoft Defender
+	Disable sandboxing for Microsoft Defender (default value)
 
 	.EXAMPLE
 	DefenderSandbox -Enable
@@ -193,6 +193,20 @@ function DefenderSandbox
 	}
 }
 
+<#
+	.SYNOPSIS
+	Dismiss the Windows Security warning about not signing in with a Microsoft account.
+
+	.DESCRIPTION
+	Sets the Windows Security Health state value that suppresses the Account
+	Protection prompt about signing in with a Microsoft account.
+
+	.EXAMPLE
+	DismissMSAccount
+
+	.NOTES
+	Current user
+#>
 function DismissMSAccount
 {
 	if (-not $Script:DefenderEnabled)
@@ -208,6 +222,20 @@ function DismissMSAccount
 	Write-Host "success!" -ForegroundColor Green
 }
 
+<#
+	.SYNOPSIS
+	Dismiss the Windows Security warning about Microsoft Edge SmartScreen.
+
+	.DESCRIPTION
+	Sets the Windows Security Health state value that marks the Edge SmartScreen
+	warning as dismissed.
+
+	.EXAMPLE
+	DismissSmartScreenFilter
+
+	.NOTES
+	Current user
+#>
 function DismissSmartScreenFilter
 {
 	if (-not $Script:DefenderEnabled)
@@ -231,7 +259,7 @@ function DismissSmartScreenFilter
 	Create the "Process Creation" сustom view in the Event Viewer to log executed processes and their arguments
 
 	.PARAMETER Disable
-	Remove the "Process Creation" custom view in the Event Viewer
+	Remove the "Process Creation" custom view in the Event Viewer (default value)
 
 	.EXAMPLE
 	EventViewerCustomView -Enable
@@ -326,7 +354,7 @@ function EventViewerCustomView
 	Enable logging for all Windows PowerShell modules
 
 	.PARAMETER Disable
-	Disable logging for all Windows PowerShell modules
+	Disable logging for all Windows PowerShell modules (default value)
 
 	.EXAMPLE
 	PowerShellModulesLogging -Enable
@@ -394,7 +422,7 @@ function PowerShellModulesLogging
 	Enable logging for all PowerShell scripts input to the Windows PowerShell event log
 
 	.PARAMETER Disable
-	Disable logging for all PowerShell scripts input to the Windows PowerShell event log
+	Disable logging for all PowerShell scripts input to the Windows PowerShell event log (default value)
 
 	.EXAMPLE
 	PowerShellScriptsLogging -Enable
@@ -458,7 +486,7 @@ function PowerShellScriptsLogging
 	Disable apps and files checking within Microsoft Defender SmartScreen
 
 	.PARAMETER Enable
-	Enable apps and files checking within Microsoft Defender SmartScreen
+	Enable apps and files checking within Microsoft Defender SmartScreen (default value)
 
 	.EXAMPLE
 	AppsSmartScreen -Disable
@@ -522,7 +550,7 @@ function AppsSmartScreen
 	Microsoft Defender SmartScreen doesn't marks downloaded files from the Internet as unsafe
 
 	.PARAMETER Enable
-	Microsoft Defender SmartScreen marks downloaded files from the Internet as unsafe
+	Microsoft Defender SmartScreen marks downloaded files from the Internet as unsafe (default value)
 
 	.EXAMPLE
 	SaveZoneInformation -Disable
@@ -590,7 +618,7 @@ function SaveZoneInformation
 	Disable Windows Script Host
 
 	.PARAMETER Enable
-	Enable Windows Script Host
+	Enable Windows Script Host (default value)
 
 	.EXAMPLE
 	WindowsScriptHost -Disable
@@ -662,7 +690,7 @@ function WindowsScriptHost
 	Windows Sandbox
 
 	.PARAMETER Disable
-	Disable Windows Sandbox
+	Disable Windows Sandbox (default value)
 
 	.PARAMETER Enable
 	Enable Windows Sandbox
@@ -774,7 +802,7 @@ function WindowsSandbox
 	Enable DNS-over-HTTPS for IPv4
 
 	.PARAMETER Disable
-	Disable DNS-over-HTTPS for IPv4
+	Disable DNS-over-HTTPS for IPv4 (default value)
 
 	.EXAMPLE
 	DNSoverHTTPS -Enable -PrimaryDNS 1.0.0.1 -SecondaryDNS 1.1.1.1
@@ -994,7 +1022,7 @@ function LocalSecurityAuthority
 	Enable sharing mapped drives between users
 
 	.PARAMETER Disable
-	Disable sharing mapped drives between users
+	Disable sharing mapped drives between users (default value)
 
 	.EXAMPLE
 	SharingMappedDrives -Enable
@@ -1048,7 +1076,7 @@ function SharingMappedDrives
 	Windows Firewall configuration
 
 	.PARAMETER Enable
-	Enable Windows Firewall
+	Enable Windows Firewall (default value)
 
 	.PARAMETER Disable
 	Disable Windows Firewall
@@ -1108,7 +1136,7 @@ function Firewall
 	Windows Defender notification area (system tray) icon configuration
 
 	.PARAMETER Enable
-	Show Windows Defender (Windows Security) system tray icon
+	Show Windows Defender (Windows Security) system tray icon (default value)
 
 	.PARAMETER Disable
 	Hide Windows Defender (Windows Security) system tray icon
@@ -1180,7 +1208,7 @@ function DefenderTrayIcon
 	Windows Defender Cloud-delivered protection configuration
 
 	.PARAMETER Enable
-	Enable Windows Defender cloud protection (MAPS reporting and automatic sample submission default behavior)
+	Enable Windows Defender cloud protection (MAPS reporting and automatic sample submission default behavior) (default value)
 
 	.PARAMETER Disable
 	Disable Windows Defender cloud protection (disable MAPS reporting and prevent automatic sample submission)
@@ -1307,7 +1335,7 @@ function CIMemoryIntegrity
 	Enable Windows Defender Application Guard optional feature
 
 	.PARAMETER Disable
-	Disable Windows Defender Application Guard optional feature
+	Disable Windows Defender Application Guard optional feature (default value)
 
 	.EXAMPLE
 	DefenderAppGuard -Enable
@@ -1447,7 +1475,7 @@ function AccountProtectionWarn
 	Blocks or allows file downloads from the internet
 
 	.PARAMETER Enable
-	Enable blocking of file downloads
+	Enable blocking of file downloads (default value)
 
 	.PARAMETER Disable
 	Disable blocking of file downloads
@@ -1510,7 +1538,7 @@ function DownloadBlocking
 	Enable the legacy F8 boot menu
 
 	.PARAMETER Disable
-	Disable the legacy F8 boot menu
+	Disable the legacy F8 boot menu (default value)
 
 	.EXAMPLE
 	F8BootMenu -Enable
@@ -1564,7 +1592,7 @@ function F8BootMenu
 	Enables or disables automatic recovery mode during boot
 
 	.PARAMETER Enable
-	Enable automatic recovery mode on startup errors
+	Enable automatic recovery mode on startup errors (default value)
 
 	.PARAMETER Disable
 	Disable automatic recovery mode on startup errors
@@ -1622,7 +1650,7 @@ function BootRecovery
 	Enables or disables Data Execution Prevention (DEP) policy
 
 	.PARAMETER Enable
-	Sets DEP to OptIn (default for most apps)
+	Sets DEP to OptIn (default for most apps) (default value)
 
 	.PARAMETER Disable
 	Sets DEP to OptOut (allows all apps without DEP)

@@ -1,3 +1,34 @@
+<#
+    .SYNOPSIS
+    Helper module for Win10_11Util.
+
+    .DESCRIPTION
+    Provides shared utility functions used by the loader and region modules.
+    This module currently exposes a helper for setting or clearing registry-based policy values.
+#>
+
+<#
+    .SYNOPSIS
+    Create, update, or clear a registry-based policy value.
+
+    .PARAMETER Scope
+    Registry root to use for the policy value: `Computer` maps to `HKLM:` and `User` maps to `HKCU:`.
+
+    .PARAMETER Path
+    Registry subkey path under the selected scope.
+
+    .PARAMETER Name
+    Name of the registry value to create, update, or remove.
+
+    .PARAMETER Type
+    Registry value type to write, or `CLEAR` to remove the value.
+
+    .PARAMETER Value
+    Value to write when `Type` is not `CLEAR`.
+
+    .EXAMPLE
+    Set-Policy -Scope User -Path 'Software\\Policies\\Microsoft\\Windows\\Explorer' -Name NoUseStoreOpenWith -Type DWord -Value 1
+#>
 function Set-Policy
 {
 	param
@@ -30,6 +61,7 @@ function Set-Policy
 		"User"     { $Root = "HKCU:\" }
 	}
 
+	# Normalize common registry type aliases so callers can use either PowerShell or registry-style names.
 	switch ($Type.ToUpperInvariant())
 	{
 		"CLEAR"    { $MappedType = "CLEAR" }
@@ -62,4 +94,5 @@ function Set-Policy
 	New-ItemProperty -Path $FullPath -Name $Name -PropertyType $MappedType -Value $Value -Force | Out-Null
 }
 
+# Export the shared helper functions used across the module set.
 Export-ModuleMember -Function Set-Policy

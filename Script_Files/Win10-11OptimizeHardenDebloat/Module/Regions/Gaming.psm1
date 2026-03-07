@@ -10,7 +10,7 @@ using module ..\Helpers.psm1
 	Disable Xbox Game Bar
 
 	.PARAMETER Enable
-	Enable Xbox Game Bar
+	Enable Xbox Game Bar (default value)
 
 	.EXAMPLE
 	XboxGameBar -Disable
@@ -194,7 +194,7 @@ function Set-AppGraphicsPerformance
 	Enable hardware-accelerated GPU scheduling
 
 	.PARAMETER Disable
-	Disable hardware-accelerated GPU scheduling
+	Disable hardware-accelerated GPU scheduling (default value)
 
 	.EXAMPLE
 	GPUScheduling -Enable

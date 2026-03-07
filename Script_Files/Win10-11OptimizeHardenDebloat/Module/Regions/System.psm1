@@ -7,7 +7,7 @@ using module ..\Helpers.psm1
 	Enable or disable the Windows lock screen
 
 	.PARAMETER Enable
-	Enable the Windows lock screen
+	Enable the Windows lock screen (default value)
 
 	.PARAMETER Disable
 	Disable the Windows lock screen
@@ -77,6 +77,29 @@ function LockScreen
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enable or disable the Windows 10 RS1-style lock screen task workaround.
+
+	.DESCRIPTION
+	On supported Windows 10 systems, registers or removes the scheduled task
+	workaround used by this preset to keep the lock screen disabled.
+
+	.PARAMETER Enable
+	Enable the Windows lock screen on supported Windows 10 systems.
+
+	.PARAMETER Disable
+	Disable the Windows lock screen on supported Windows 10 systems.
+
+	.EXAMPLE
+	LockScreenRS1 -Enable
+
+	.EXAMPLE
+	LockScreenRS1 -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function LockScreenRS1
 {
 	param
@@ -141,6 +164,29 @@ function LockScreenRS1
 	}
 }
 
+<#
+	.SYNOPSIS
+	Show or hide the network selector on the lock screen.
+
+	.DESCRIPTION
+	Controls whether the sign-in screen shows network connection options before
+	a user signs in.
+
+	.PARAMETER Enable
+	Show the network selector on the lock screen.
+
+	.PARAMETER Disable
+	Hide the network selector on the lock screen.
+
+	.EXAMPLE
+	NetworkFromLockScreen -Enable
+
+	.EXAMPLE
+	NetworkFromLockScreen -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function NetworkFromLockScreen
 {
 	param
@@ -179,6 +225,28 @@ function NetworkFromLockScreen
 	}
 }
 
+<#
+	.SYNOPSIS
+	Show or hide shutdown options on the lock screen.
+
+	.DESCRIPTION
+	Controls whether the power menu is available from the sign-in or lock screen.
+
+	.PARAMETER Enable
+	Show shutdown options on the lock screen.
+
+	.PARAMETER Disable
+	Hide shutdown options on the lock screen.
+
+	.EXAMPLE
+	ShutdownFromLockScreen -Enable
+
+	.EXAMPLE
+	ShutdownFromLockScreen -Disable
+
+	.NOTES
+	Machine-wide
+#>
 function ShutdownFromLockScreen
 {
 	param
@@ -217,6 +285,29 @@ function ShutdownFromLockScreen
 	}
 }
 
+<#
+	.SYNOPSIS
+	Enable or disable the acrylic blur effect on the lock screen.
+
+	.DESCRIPTION
+	Controls the Windows setting that adds or removes the acrylic blur visual
+	effect behind the sign-in screen.
+
+	.PARAMETER Enable
+	Enable the acrylic blur effect on the lock screen.
+
+	.PARAMETER Disable
+	Disable the acrylic blur effect on the lock screen.
+
+	.EXAMPLE
+	LockScreenBlur -Enable
+
+	.EXAMPLE
+	LockScreenBlur -Disable
+
+	.NOTES
+	Current user
+#>
 function LockScreenBlur
 {
 	param
@@ -260,7 +351,7 @@ function LockScreenBlur
 	Show or hide network options on the lock screen
 
 	.PARAMETER Enable
-	Allow network selection from the lock screen
+	Allow network selection from the lock screen (default value)
 
 	.PARAMETER Disable
 	Prevent network selection from the lock screen
@@ -318,7 +409,7 @@ function NetworkFromLockScreen
 	Shutdown option on the lock screen
 
 	.PARAMETER Enable
-	Allow shutdown from the lock screen
+	Allow shutdown from the lock screen (default value)
 
 	.PARAMETER Disable
 	Do not allow shutdown from the lock screen
@@ -376,7 +467,7 @@ function ShutdownFromLockScreen
     Lock screen blur effect
 
     .PARAMETER Enable
-    Enable lock screen blur effect
+    Enable lock screen blur effect (default value)
 
     .PARAMETER Disable
     Disable lock screen blur effect
@@ -571,7 +662,7 @@ function FileOperationsDetails
 	Show confirmation dialog when deleting files
 
 	.PARAMETER Disable
-	Do not show confirmation dialog when deleting files
+	Do not show confirmation dialog when deleting files (default value)
 
 	.EXAMPLE
 	FileDeleteConfirm -Enable
@@ -631,7 +722,7 @@ function FileDeleteConfirm
 	Always show all notification area tray icons
 
 	.PARAMETER Disable
-	Allow Windows to hide inactive notification area tray icons
+	Allow Windows to hide inactive notification area tray icons (default value)
 
 	.EXAMPLE
 	TrayIcons -Enable
@@ -931,7 +1022,7 @@ function MostUsedApps
 	Adjust visual effects for best performance
 
 	.PARAMETER Appearance
-	Adjust visual effects for best appearance
+	Adjust visual effects for best appearance (default value)
 
 	.EXAMPLE
 	VisualFX -Performance
@@ -1008,7 +1099,7 @@ function VisualFX
 	Enable title bar color to match prevalent background color
 
 	.PARAMETER Disable
-	Disable title bar color adaptation to background
+	Disable title bar color adaptation to background (default value)
 
 	.EXAMPLE
 	TitleBarColor -Enable
@@ -1065,7 +1156,7 @@ function TitleBarColor
 	Enable enhanced pointer precision
 
 	.PARAMETER Disable
-	Disable enhanced pointer precision
+	Disable enhanced pointer precision (default value)
 
 	.EXAMPLE
 	EnhPointerPrecision -Enable
@@ -1126,7 +1217,7 @@ function EnhPointerPrecision
 	Play Windows startup sound
 
 	.PARAMETER Disable
-	Do not play Windows startup sound
+	Do not play Windows startup sound (default value)
 
 	.EXAMPLE
 	StartupSound -Enable
@@ -1180,7 +1271,7 @@ function StartupSound
 	Allow or prevent changing Windows sound scheme
 
 	.PARAMETER Enable
-	Allow changing Windows sound scheme
+	Allow changing Windows sound scheme (default value)
 
 	.PARAMETER Disable
 	Prevent changing Windows sound scheme
@@ -1243,7 +1334,7 @@ function ChangingSoundScheme
 	Show detailed status messages during startup and shutdown
 
 	.PARAMETER Disable
-	Hide detailed status messages during startup and shutdown
+	Hide detailed status messages during startup and shutdown (default value)
 
 	.EXAMPLE
 	VerboseStatus -Enable
@@ -1388,7 +1479,7 @@ function StorageSense
 	Disable hibernation
 
 	.PARAMETER Enable
-	Enable hibernation
+	Enable hibernation (default value)
 
 	.EXAMPLE
 	Hibernation -Enable
@@ -1448,7 +1539,7 @@ function Hibernation
 	Disable the Windows 260 character path limit
 
 	.PARAMETER Enable
-	Enable the Windows 260 character path limit
+	Enable the Windows 260 character path limit (default value)
 
 	.EXAMPLE
 	Win32LongPathLimit -Disable
@@ -1505,7 +1596,7 @@ function Win32LongPathLimit
 	Display Stop error code when BSoD occurs
 
 	.PARAMETER Disable
-	Do not display stop error code when BSoD occurs
+	Do not display stop error code when BSoD occurs (default value)
 
 	.EXAMPLE
 	BSoDStopError -Enable
@@ -1562,7 +1653,7 @@ function BSoDStopError
 	Never notify
 
 	.PARAMETER Default
-	Notify me only when apps try to make changes to my computer
+	Notify me only when apps try to make changes to my computer (default value)
 
 	.EXAMPLE
 	AdminApprovalMode -Never
@@ -1639,7 +1730,7 @@ function AdminApprovalMode
 	Turn off Delivery Optimization
 
 	.PARAMETER Enable
-	Turn on Delivery Optimization
+	Turn on Delivery Optimization (default value)
 
 	.EXAMPLE
 	DeliveryOptimization -Disable
@@ -1709,7 +1800,7 @@ function DeliveryOptimization
 	Do not let Windows manage my default printer
 
 	.PARAMETER Enable
-	Let Windows manage my default printer
+	Let Windows manage my default printer (default value)
 
 	.EXAMPLE
 	WindowsManageDefaultPrinter -Disable
@@ -2479,7 +2570,7 @@ function CurrentNetwork
 	Set unidentified networks to Private profile
 
 	.PARAMETER Public
-	Set unidentified networks to Public profile
+	Set unidentified networks to Public profile (default value)
 
 	.EXAMPLE
 	UnknownNetworks -Private
@@ -2536,7 +2627,7 @@ function UnknownNetworks
 	Automatic installation of network devices
 
 	.PARAMETER Enable
-	Allow automatic installation of network devices
+	Allow automatic installation of network devices (default value)
 
 	.PARAMETER Disable
 	Prevent automatic installation of network devices
@@ -2599,7 +2690,7 @@ function NetDevicesAutoInst
 	Enable HomeGroup services
 
 	.PARAMETER Disable
-	Disable HomeGroup services
+	Disable HomeGroup services (default value)
 
 	.EXAMPLE
 	HomeGroups -Enable
@@ -2683,7 +2774,7 @@ function HomeGroups
 	Enable SMB 1.0 protocol
 
 	.PARAMETER Disable
-	Disable SMB 1.0 protocol
+	Disable SMB 1.0 protocol (default value)
 
 	.EXAMPLE
 	SMB1 -Enable
@@ -2856,7 +2947,7 @@ function NetBIOS
 	Link-Local Multicast Name Resolution (LLMNR) protocol configuration
 
 	.PARAMETER Enable
-	Enable LLMNR protocol
+	Enable LLMNR protocol (default value)
 
 	.PARAMETER Disable
 	Disable LLMNR protocol
@@ -2916,7 +3007,7 @@ function LLMNR
 	Client for Microsoft Networks configuration on all network interfaces
 
 	.PARAMETER Enable
-	Enable Client for Microsoft Networks on all installed network interfaces
+	Enable Client for Microsoft Networks on all installed network interfaces (default value)
 
 	.PARAMETER Disable
 	Disable Client for Microsoft Networks on all installed network interfaces
@@ -2973,7 +3064,7 @@ function MSNetClient
 	Quality of Service (QoS) packet scheduler configuration on all network interfaces
 
 	.PARAMETER Enable
-	Enable QoS packet scheduler on all installed network interfaces
+	Enable QoS packet scheduler on all installed network interfaces (default value)
 
 	.PARAMETER Disable
 	Disable QoS packet scheduler on all installed network interfaces
@@ -3030,7 +3121,7 @@ function QoS
 	Network Connectivity Status Indicator (NCSI) active probe configuration
 
 	.PARAMETER Enable
-	Enable NCSI active probe
+	Enable NCSI active probe (default value)
 
 	.PARAMETER Disable
 	Disable NCSI active probe to reduce certain zero-click attack exposure
@@ -3092,7 +3183,7 @@ function NCSIProbe
 	Allow Internet Connection Sharing
 
 	.PARAMETER Disable
-	Prevent Internet Connection Sharing
+	Prevent Internet Connection Sharing (default value)
 
 	.EXAMPLE
 	ConnectionSharing -Enable
@@ -3149,7 +3240,7 @@ function ConnectionSharing
 	Receive updates for other Microsoft products
 
 	.PARAMETER Disable
-	Do not receive updates for other Microsoft products
+	Do not receive updates for other Microsoft products (default value)
 
 	.EXAMPLE
 	UpdateMicrosoftProducts -Enable
@@ -3210,7 +3301,7 @@ function UpdateMicrosoftProducts
 	Notify me when a restart is required to finish updating
 
 	.PARAMETER Hide
-	Do not notify me when a restart is required to finish updating
+	Do not notify me when a restart is required to finish updating (default value)
 
 	.EXAMPLE
 	RestartNotification -Show
@@ -3271,7 +3362,7 @@ function RestartNotification
 	Restart as soon as possible to finish updating
 
 	.PARAMETER Disable
-	Don't restart as soon as possible to finish updating
+	Don't restart as soon as possible to finish updating (default value)
 
 	.EXAMPLE
 	DeviceRestartAfterUpdate -Enable
@@ -3334,7 +3425,7 @@ function RestartDeviceAfterUpdate
 	Automatically adjust active hours for me based on daily usage
 
 	.PARAMETER Manually
-	Manually adjust active hours for me based on daily usage
+	Manually adjust active hours for me based on daily usage (default value)
 
 	.EXAMPLE
 	ActiveHours -Automatically
@@ -3398,7 +3489,7 @@ function ActiveHours
 	Windows latest updates
 
 	.PARAMETER Disable
-	Do not get the latest updates as soon as they're available
+	Do not get the latest updates as soon as they're available (default value)
 
 	.PARAMETER Enable
 	Get the latest updates as soon as they're available
@@ -3463,7 +3554,7 @@ function WindowsLatestUpdate
 	Set power plan on "High performance"
 
 	.PARAMETER Balanced
-	Set power plan on "Balanced"
+	Set power plan on "Balanced" (default value)
 
 	.EXAMPLE
 	PowerPlan -High
@@ -3527,7 +3618,7 @@ function PowerPlan
 	Do not allow the computer to turn off the network adapters to save power
 
 	.PARAMETER Enable
-	Allow the computer to turn off the network adapters to save power
+	Allow the computer to turn off the network adapters to save power (default value)
 
 	.EXAMPLE
 	NetworkAdaptersSavePower -Disable
@@ -3636,7 +3727,7 @@ function NetworkAdaptersSavePower
 	Override for default input method: English
 
 	.PARAMETER Default
-	Override for default input method: use language list
+	Override for default input method: use language list (default value)
 
 	.EXAMPLE
 	InputMethod -English
@@ -4492,7 +4583,7 @@ public extern static int SHSetKnownFolderPath(ref Guid folderId, uint flags, Int
 	Use the latest installed .NET runtime for all apps
 
 	.PARAMETER Disable
-	Do not use the latest installed .NET runtime for all apps
+	Do not use the latest installed .NET runtime for all apps (default value)
 
 	.EXAMPLE
 	LatestInstalled.NET -Enable
@@ -4551,7 +4642,7 @@ function LatestInstalled.NET
 	Save screenshots by pressing Win+PrtScr on the Desktop
 
 	.PARAMETER Default
-	Save screenshots by pressing Win+PrtScr in the Pictures folder
+	Save screenshots by pressing Win+PrtScr in the Pictures folder (default value)
 
 	.EXAMPLE
 	WinPrtScrFolder -Desktop
@@ -4667,7 +4758,7 @@ function WinPrtScrFolder
 	Run troubleshooter automatically, then notify me
 
 	.PARAMETER Default
-	Ask me before running troubleshooter
+	Ask me before running troubleshooter (default value)
 
 	.EXAMPLE
 	RecommendedTroubleshooting -Automatically
@@ -4812,7 +4903,7 @@ function ReservedStorage
 	Disable help lookup via F1
 
 	.PARAMETER Enable
-	Enable help lookup via F1
+	Enable help lookup via F1 (default value)
 
 	.EXAMPLE
 	F1HelpPage -Disable
@@ -4873,7 +4964,7 @@ function F1HelpPage
 	Enable Num Lock at startup
 
 	.PARAMETER Disable
-	Disable Num Lock at startup
+	Disable Num Lock at startup (default value)
 
 	.EXAMPLE
 	NumLock -Enable
@@ -4930,7 +5021,7 @@ function NumLock
 	Disable Caps Lock
 
 	.PARAMETER Enable
-	Enable Caps Lock
+	Enable Caps Lock (default value)
 
 	.EXAMPLE
 	CapsLock -Disable
@@ -4989,7 +5080,7 @@ function CapsLock
 	Turn off Sticky keys by pressing the Shift key 5 times
 
 	.PARAMETER Enable
-	Turn on Sticky keys by pressing the Shift key 5 times
+	Turn on Sticky keys by pressing the Shift key 5 times (default value)
 
 	.EXAMPLE
 	StickyShift -Disable
@@ -5046,7 +5137,7 @@ function StickyShift
 	Don't use AutoPlay for all media and devices
 
 	.PARAMETER Enable
-	Use AutoPlay for all media and devices
+	Use AutoPlay for all media and devices (default value)
 
 	.EXAMPLE
 	Autoplay -Disable
@@ -5108,7 +5199,7 @@ function Autoplay
 	Automatically saving my restartable apps and restart them when I sign back in
 
 	.PARAMETER Disable
-	Turn off automatically saving my restartable apps and restart them when I sign back in
+	Turn off automatically saving my restartable apps and restart them when I sign back in (default value)
 
 	.EXAMPLE
 	SaveRestartableApps -Enable
@@ -5165,7 +5256,7 @@ function SaveRestartableApps
 	Enable "Network Discovery" and "File and Printers Sharing" for workgroup networks
 
 	.PARAMETER Disable
-	Disable "Network Discovery" and "File and Printers Sharing" for workgroup networks
+	Disable "Network Discovery" and "File and Printers Sharing" for workgroup networks (default value)
 
 	.EXAMPLE
 	NetworkDiscovery -Enable
@@ -5224,6 +5315,29 @@ function NetworkDiscovery
 	}
 }
 
+<#
+	.SYNOPSIS
+	Associate a file extension with a desktop program or ProgID.
+
+	.DESCRIPTION
+	Creates or updates the file association data for the requested extension and
+	optionally sets a custom icon for the associated program.
+
+	.PARAMETER ProgramPath
+	The executable path or ProgID to associate with the file extension.
+
+	.PARAMETER Extension
+	The file extension to associate, including the leading dot.
+
+	.PARAMETER Icon
+	Optional icon resource to use for the file association.
+
+	.EXAMPLE
+	Set-Association -ProgramPath '%ProgramFiles%\\Notepad++\\notepad++.exe' -Extension .txt
+
+	.NOTES
+	Current user
+#>
 function Set-Association
 {
 	[CmdletBinding()]
@@ -6357,7 +6471,7 @@ function Import-Associations
 	Set Windows Terminal as default terminal app to host the user interface for command-line applications
 
 	.PARAMETER ConsoleHost
-	Set Windows Console Host as default terminal app to host the user interface for command-line applications
+	Set Windows Console Host as default terminal app to host the user interface for command-line applications (default value)
 
 	.EXAMPLE
 	DefaultTerminalApp -WindowsTerminal
@@ -6787,7 +6901,7 @@ function Install-DotNetRuntimes
 	List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 
 	.PARAMETER Disable
-	Do not prevent desktop shortcut creation upon Microsoft Edge update
+	Do not prevent desktop shortcut creation upon Microsoft Edge update (default value)
 
 	.EXAMPLE
 	PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
@@ -6909,7 +7023,7 @@ function PreventEdgeShortcutCreation
 	Back up the system registry to %SystemRoot%\System32\config\RegBack folder
 
 	.PARAMETER Disable
-	Do not back up the system registry to %SystemRoot%\System32\config\RegBack folder
+	Do not back up the system registry to %SystemRoot%\System32\config\RegBack folder (default value)
 
 	.EXAMPLE
 	RegistryBackup -Enable

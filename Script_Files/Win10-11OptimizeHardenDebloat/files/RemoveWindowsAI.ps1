@@ -1,3 +1,29 @@
+<#
+    .SYNOPSIS
+    Disables and removes Windows AI features such as Copilot, Recall, and related packages.
+
+    .DESCRIPTION
+    Validates the local Win10_11Util files, enforces Windows PowerShell 5.1,
+    relaunches as administrator when needed, initializes logging, and then
+    removes or restores AI-related components depending on the selected mode.
+    The script supports both a non-interactive command-line workflow and a
+    graphical selection window focused on Windows AI features only.
+
+    .NOTES
+    This script makes system-wide changes, including registry edits, package
+    removal, optional feature removal, scheduled task cleanup, and file
+    deletion. Some actions use elevated or TrustedInstaller-level operations.
+
+    .EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1
+
+    .EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1 -nonInteractive -AllOptions
+
+    .EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\files\RemoveWindowsAI.ps1 -nonInteractive -Options RemoveAIFiles,RemoveRecallTasks
+#>
+
 param(
     [switch]$nonInteractive,
     [ValidateSet('DisableRegKeys',          
@@ -14,13 +40,11 @@ param(
     [switch]$AllOptions,
     [switch]$revertMode,
     [switch]$backupMode,
-    [ValidateSet('photoviewer', 'mspaint', 'snippingtool', 'notepad', 'photoslegacy')]
-    [array]$InstallClassicApps,
     [string]$LogFilePath
 )
 
 if ($nonInteractive) {
-    if (!($AllOptions) -and (!$Options -or $Options.Count -eq 0) -and !($InstallClassicApps)) {
+    if (!($AllOptions) -and (!$Options -or $Options.Count -eq 0)) {
         throw 'Non-Interactive mode was supplied without any options -  Please use -Options or -AllOptions when using Non-Interactive Mode'
         exit
     }
@@ -28,7 +52,7 @@ if ($nonInteractive) {
 
 $Host.UI.RawUI.WindowTitle = "Remove Windows AI - Win10_11Util"
 
-# Checking whether all files were expanded before running
+# Resolve the local files this script depends on before any removal work begins.
 $LocalizationRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Localizations"))
 $ModulePath       = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Win10_11Util.psm1"))
 $ManifestPath     = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Manifest\Win10_11Util.psd1"))
@@ -55,6 +79,7 @@ if (($ScriptFiles | Test-Path) -contains $false)
 	exit
 }
 
+# Load localized strings and the root module used by the script.
 Import-LocalizedData -BindingVariable Global:Localization -UICulture "en-US" -FileName "Win10_11Util.psd1" -BaseDirectory $LocalizationRoot
 Import-Module -Name $ManifestPath -ErrorAction Stop
 
@@ -68,7 +93,7 @@ catch
 	Import-LocalizedData -BindingVariable Global:Localization -UICulture $PSUICulture -BaseDirectory $LocalizationRoot -FileName "Win10_11Util"
 }
 
-# Checking whether script is the correct PowerShell version
+# Validate that the module can be loaded by the current PowerShell runtime.
 try
 {
 	Import-Module -Name $ManifestPath -PassThru -Force -ErrorAction Stop | Out-Null
@@ -79,7 +104,7 @@ catch [System.InvalidOperationException]
 	exit
 }
 
-#get powershell version to ensure RunTrusted doesnt enter an infinite loop
+# Track whether the host is Windows PowerShell 5.1 or PowerShell 7+.
 $version = $PSVersionTable.PSVersion
 if ($version -like '7*') {
     $Global:psversion = 7
@@ -107,6 +132,7 @@ if ($psversion -ge 7) {
     exit 1
 }
 
+# Relaunch as administrator before making system changes.
 If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]'Administrator')) {
     #leave out the trailing " to add supplied params first 
     $arglist = "-NoProfile -ExecutionPolicy Bypass -C `"& ([scriptblock]::Create((irm 'https://raw.githubusercontent.com/sdmanson8/scripts/refs/heads/main/Script_Files/Win10-11OptimizeHardenDebloat/Win11/RemoveWindowsAI.ps1')))"
@@ -139,10 +165,6 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
                 $arglist = $arglist + " -Options $Options"
             }
         }
-
-        if ($InstallClassicApps -and $InstallClassicApps.Count -ne 0) {
-            $arglist = $arglist + " -InstallClassicApps $InstallClassicApps"
-        }
     }
 
     #add the trailing quote 
@@ -154,6 +176,7 @@ If (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
 
+# Run commands as TrustedInstaller when standard elevation is not enough.
 function RunTrusted {
     param(
         [String]$command, 
@@ -325,9 +348,11 @@ $command
     }
 }
 
-#setup script
+#=====================================================================================
+# Script setup, status output, logging, and shared runtime state
 #=====================================================================================
 
+# Write short progress text for the interactive workflow.
 function Write-Status {
     param(
         [string]$msg,
@@ -345,12 +370,12 @@ function Write-Status {
     }
 }
 
-#Log file
-# Import logging module
+# Import the shared logging module and choose the active log file path.
 $LoggingModulePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\Module\Logging.psm1"))
 Import-Module -Name $LoggingModulePath -Force
 
-# Set up logging - priority: parameter > environment > global > default
+# Log file priority: explicit parameter, environment variable, global value,
+# then a temporary fallback file.
 if ($LogFilePath) {
     Set-LogFile -Path $LogFilePath
     #LogInfo "Using log file from parameter: $LogFilePath"
@@ -369,13 +394,14 @@ if ($LogFilePath) {
 #LogInfo "Child script started with PID: $pid"
 #LogInfo "Parameters: nonInteractive=$nonInteractive, revertMode=$revertMode, AllOptions=$AllOptions"
 
-# Helper function to get current log file path
+# Return the active log file path for helper functions that need it.
 function Get-LogFilePath {
     if ($global:LogFilePath) { return $global:LogFilePath }
     if ($env:REMOVE_WINDOWS_AI_LOG) { return $env:REMOVE_WINDOWS_AI_LOG }
     return $null
 }
 
+# Write shared files under a mutex so concurrent operations do not corrupt them.
 function Write-FileSafely {
     param(
         [string]$Path,
@@ -419,6 +445,7 @@ $Global:tempDir = ([System.IO.Path]::GetTempPath())
 
 #=====================================================================================
 
+# Create a restore point before making destructive changes when backup mode is enabled.
 function CreateRestorePoint {
     param(
         [switch]$nonInteractive
@@ -497,6 +524,7 @@ function CreateRestorePoint {
 
 }
 
+ # Update per-app UWP settings by loading and editing the app's settings.dat hive.
 function Set-UwpAppRegistryEntry {
     # modified to work in windows powershell from https://github.com/agadiffe/WindowsMize/blob/fe78912ccb1c83d440bd2123f5e43a6156fab31a/src/modules/applications/settings/public/Set-UwpAppSetting.ps1
     <# 
@@ -614,6 +642,7 @@ function Set-UwpAppRegistryEntry {
     }
 }
 
+# Disable AI-related registry settings for Windows, Edge, Search, and privacy features.
 function Disable-Registry-Keys {
     #maybe add params for particular parts
 
@@ -1216,6 +1245,7 @@ Windows Registry Editor Version 5.00
 
 }
 
+# Install or remove a custom update package that blocks AI package reinstallation.
 function Install-NOAIPackage {
     
     if (!$revert) {
@@ -1333,8 +1363,9 @@ function Install-NOAIPackage {
         
     }
 
-}  
-    
+}
+
+# Change Windows region policy JSON files so Copilot and related AI policies default to disabled.
 function Disable-Copilot-Policies {
     #disable copilot policies in region policy json
     $JSONPath = "$env:windir\System32\IntegratedServicesRegionPolicySet.json"
@@ -1398,7 +1429,8 @@ function Disable-Copilot-Policies {
     
 }
 
-#function from: https://github.com/Andrew-J-Larson/OS-Scripts/blob/main/Windows/Wrapper-Functions/DownloadAppxPackage-Function.ps1
+# Download Store packages and dependencies for backup or restore scenarios.
+# Original wrapper source: https://github.com/Andrew-J-Larson/OS-Scripts/blob/main/Windows/Wrapper-Functions/DownloadAppxPackage-Function.ps1
 function DownloadAppxPackage {
     param(
         # there has to be an alternative, as sometimes the API fails on PackageFamilyName
@@ -1584,7 +1616,7 @@ function DownloadAppxPackage {
     return $DownloadedFiles
 }
 
-
+# Remove or restore AI-related AppX packages such as Copilot, CoreAI, and Office AI components.
 function Remove-AI-Appx-Packages {
 
     if ($revert) {
@@ -1875,6 +1907,7 @@ foreach ($choice in $aipackages) {
     }
 }
 
+# Remove the Recall optional feature and its payload from the operating system.
 function Remove-Recall-Optional-Feature {
     if (!$revert) {
         #doesnt seem to work just gets stuck (does anyone really want this shit lol)
@@ -1911,7 +1944,8 @@ function Remove-Recall-Optional-Feature {
     }
 }
 
-# not restoring for now shouldnt cause any issues (also may not even be possible to restore)
+# Remove hidden CBS packages related to AI features that do not appear in normal package lists.
+# Restoring these packages is intentionally not implemented here.
 function Remove-AI-CBS-Packages {
     if (!$revert) {
         #additional hidden packages
@@ -1958,7 +1992,7 @@ function Remove-AI-CBS-Packages {
     }
 }
 
-
+# Remove or restore AI-related files, URI handlers, and selected Office AI assets.
 function Remove-AI-Files {
     #prob add params here for each file removal 
 
@@ -2547,7 +2581,7 @@ function Remove-AI-Files {
     #>
 }
 
-
+# Hide or unhide AI-related pages in the Settings app.
 function Hide-AI-Components {
     #hide ai components in immersive settings
     Write-Status -msg "$(@('Hiding','Unhiding')[$revert]) Ai Components in Settings - "
@@ -2592,6 +2626,7 @@ function Hide-AI-Components {
         Write-Host "success!" -ForegroundColor Green
 }
 
+# Disable or re-enable the Notepad Rewrite AI feature through policy settings.
 function Disable-Notepad-Rewrite {
     #disable rewrite for notepad
     Write-Status -msg "$(@('Disabling','Enabling')[$revert]) Rewrite Ai Feature for Notepad - "
@@ -2619,7 +2654,7 @@ Windows Registry Editor Version 5.00
 }
 
 
-
+# Remove Recall and Office AI scheduled tasks that can recreate or trigger AI components.
 function Remove-Recall-Tasks {
     if (!$revert) {
         #remove recall tasks
@@ -2664,394 +2699,7 @@ Get-ScheduledTask -TaskName "*Office Actions Server*" -ErrorAction SilentlyConti
     }
 }
 
-function install-photoviewer {
-    
-    #restore classic photoviewer
-    $extensions = @('.Bmp', '.Cr2', '.Dib', '.Gif', '.JFIF', '.Jpe', '.Jpeg', '.Jpg', '.Jxr', '.Png', '.Tif', '.Tiff', '.Wdp')
-
-    foreach ($ext in $extensions) {
-        if ($ext -in @('.JFIF', '.Jpeg', '.Gif', '.Png', '.Wdp')) {
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext" /v 'EditFlags' /t REG_DWORD /d 65536 /f >$null
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext" /v 'ImageOptionFlags' /t REG_DWORD /d 1 /f >$null
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext" /v 'FriendlyTypeName' /t REG_EXPAND_SZ /d '@%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll,-3055' /f >$null
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext\DefaultIcon" /ve /t REG_SZ /d '%SystemRoot%\System32\imageres.dll,-72' /f >$null
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext\shell\open" /v 'MuiVerb' /t REG_EXPAND_SZ /d '@%ProgramFiles%\Windows Photo Viewer\photoviewer.dll,-3043' /f >$null
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext\shell\open\command" /ve /t REG_EXPAND_SZ /d "%SystemRoot%\System32\rundll32.exe \`"%ProgramFiles%\Windows Photo Viewer\PhotoViewer.dll\`", ImageView_Fullscreen %1" /f >$null
-            reg.exe add "HKLM\SOFTWARE\Classes\PhotoViewer.FileAssoc$ext\shell\open\DropTarget" /v 'Clsid' /t REG_SZ /d '{FFE2A43C-56B9-4bf5-9A79-CC6D4285608A}' /f >$null
-        }
-    
-        if ($ext -in @('.Cr2', '.Tif')) {
-            reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations' /v $ext.ToLower() /t REG_SZ /d 'PhotoViewer.FileAssoc.Tiff' /f >$null
-        }
-        elseif ($ext -in @('.Dib', '.Bmp')) {
-            reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations' /v $ext.ToLower() /t REG_SZ /d 'PhotoViewer.FileAssoc.Bitmap' /f >$null
-        }
-        elseif ($ext -in @('.Jpg', '.Jpe', '.Jpeg')) {
-            reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations' /v $ext.ToLower() /t REG_SZ /d 'PhotoViewer.FileAssoc.Jpeg' /f >$null
-        }
-        else {
-            reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations' /v $ext.ToLower() /t REG_SZ /d "PhotoViewer.FileAssoc$ext" /f >$null
-        }
-    }
-}
-
-function install-paint {
-    param(
-        [string]$path
-    )
-
-    get-appxpackage '*Microsoft.Paint*' | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    
-    $command = "
-    copy-item `"$path\paint\mspaint.exe`" -Destination `"$env:systemroot\system32\mspaint.exe`" -Force
-    copy-item `"$path\paint\mspaint.exe.mui`" -Destination `"$env:systemroot\System32\en-US\mspaint.exe.mui`" -Force
-    copy-item `"$path\paint\mspaint.exe.mun`" -Destination `"$env:systemroot\SystemResources`" -Force
-"
-    RunTrusted -command $command
-    Start-Sleep 1
-
-    $command = "regedit.exe /s `"$path\paint\paint.reg`""
-    RunTrusted -command $command
-    
-    $langID = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\Language' -Name 'InstallLanguage').InstallLanguage
-    $languageMap = @{
-        '0804' = @{PAD = 'zh-CN'; Name = 'Chinese (Simplified)' }
-        '0412' = @{PAD = 'ko-KR'; Name = 'Korean' }
-        '0404' = @{PAD = 'zh-TW'; Name = 'Chinese (Traditional)' }
-        '0422' = @{PAD = 'uk-UA'; Name = 'Ukrainian' }
-        '041f' = @{PAD = 'tr-TR'; Name = 'Turkish' }
-        '041e' = @{PAD = 'th-TH'; Name = 'Thai' }
-        '241a' = @{PAD = 'sr-Latn-RS'; Name = 'Serbian (Latin)' }
-        '0424' = @{PAD = 'sl-SI'; Name = 'Slovenian' }
-        '041b' = @{PAD = 'sk-SK'; Name = 'Slovak' }
-        '0419' = @{PAD = 'ru-RU'; Name = 'Russian' }
-        '0418' = @{PAD = 'ro-RO'; Name = 'Romanian' }
-        '0816' = @{PAD = 'pt-PT'; Name = 'Portuguese (Portugal)' }
-        '0416' = @{PAD = 'pt-BR'; Name = 'Portuguese (Brazil)' }
-        '0415' = @{PAD = 'pl-PL'; Name = 'Polish' }
-        '0413' = @{PAD = 'nl-NL'; Name = 'Dutch' }
-        '0414' = @{PAD = 'nb-NO'; Name = 'Norwegian' }
-        '0426' = @{PAD = 'lv-LV'; Name = 'Latvian' }
-        '0427' = @{PAD = 'lt-LT'; Name = 'Lithuanian' }
-        '0411' = @{PAD = 'ja-JP'; Name = 'Japanese' }
-        '0410' = @{PAD = 'it-IT'; Name = 'Italian' }
-        '040e' = @{PAD = 'hu-HU'; Name = 'Hungarian' }
-        '041a' = @{PAD = 'hr-HR'; Name = 'Croatian' }
-        '040d' = @{PAD = 'he-IL'; Name = 'Hebrew' }
-        '040c' = @{PAD = 'fr-FR'; Name = 'French (France)' }
-        '0c0c' = @{PAD = 'fr-CA'; Name = 'French (Canada)' }
-        '040b' = @{PAD = 'fi-FI'; Name = 'Finnish' }
-        '0425' = @{PAD = 'et-EE'; Name = 'Estonian' }
-        '080a' = @{PAD = 'es-MX'; Name = 'Spanish (Mexico)' }
-        '040a' = @{PAD = 'es-ES'; Name = 'Spanish (Spain)' }
-        '0809' = @{PAD = 'en-GB'; Name = 'English (UK)' }
-        '0408' = @{PAD = 'el-GR'; Name = 'Greek' }
-        '0407' = @{PAD = 'de-DE'; Name = 'German' }
-        '0406' = @{PAD = 'da-DK'; Name = 'Danish' }
-        '0405' = @{PAD = 'cs-CZ'; Name = 'Czech' }
-        '0402' = @{PAD = 'bg-BG'; Name = 'Bulgarian' }
-        '0401' = @{PAD = 'ar-SA'; Name = 'Arabic' }
-        '041d' = @{PAD = 'sv-SE'; Name = 'Swedish' }
-    }
-
-    if ($languageMap.ContainsKey($langID)) {
-        $lang = $languageMap[$langID]
-        $pad = $lang.PAD
-    
-        # Copy language specific MUI file
-        $command = "Copy-Item -Path `"$path\paint\paint_lang_files\$pad\mspaint.exe.mui`" -Destination `"$env:SYSTEMROOT\System32\$pad\mspaint.exe.mui`" -Force"
-        RunTrusted -command $command
-
-        Write-Status -msg "Copied $pad language file"
-        LogInfo "Copied $pad language file"
-    }
-   
-    
-    #create start shortcut
-    $WshShell = New-Object -comObject WScript.Shell
-    $Shortcut = $WshShell.CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Paint.lnk')
-    $Shortcut.TargetPath = 'C:\Windows\System32\mspaint.exe'
-    $Shortcut.Save()
-
-}
-
-function install-snipping {
-    param(
-        [string]$path
-    )
-    # uninstall uwp
-    Get-AppxPackage '*ScreenSketch*' -ErrorAction SilentlyContinue | Remove-AppxPackage -ErrorAction SilentlyContinue
-
-    $command = "
-    copy-item `"$path\snipping\SnippingTool.exe`" -Destination `"$env:systemroot\system32\SnippingTool.exe`" -Force
-    copy-item `"$path\snipping\SnippingTool.exe.mui`" -Destination `"$env:systemroot\System32\en-US\SnippingTool.exe.mui`" -Force
-"
-    RunTrusted -command $command
-    Start-Sleep 1
-
-    $langID = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\Language' -Name 'InstallLanguage').InstallLanguage
-    $languageMap = @{
-        '0804' = @{PAD = 'zh-CN'; Name = 'Chinese (Simplified)' }
-        '0412' = @{PAD = 'ko-KR'; Name = 'Korean' }
-        '0404' = @{PAD = 'zh-TW'; Name = 'Chinese (Traditional)' }
-        '0422' = @{PAD = 'uk-UA'; Name = 'Ukrainian' }
-        '041f' = @{PAD = 'tr-TR'; Name = 'Turkish' }
-        '041e' = @{PAD = 'th-TH'; Name = 'Thai' }
-        '241a' = @{PAD = 'sr-Latn-RS'; Name = 'Serbian (Latin)' }
-        '0424' = @{PAD = 'sl-SI'; Name = 'Slovenian' }
-        '041b' = @{PAD = 'sk-SK'; Name = 'Slovak' }
-        '0419' = @{PAD = 'ru-RU'; Name = 'Russian' }
-        '0418' = @{PAD = 'ro-RO'; Name = 'Romanian' }
-        '0816' = @{PAD = 'pt-PT'; Name = 'Portuguese (Portugal)' }
-        '0416' = @{PAD = 'pt-BR'; Name = 'Portuguese (Brazil)' }
-        '0415' = @{PAD = 'pl-PL'; Name = 'Polish' }
-        '0413' = @{PAD = 'nl-NL'; Name = 'Dutch' }
-        '0414' = @{PAD = 'nb-NO'; Name = 'Norwegian' }
-        '0426' = @{PAD = 'lv-LV'; Name = 'Latvian' }
-        '0427' = @{PAD = 'lt-LT'; Name = 'Lithuanian' }
-        '0411' = @{PAD = 'ja-JP'; Name = 'Japanese' }
-        '0410' = @{PAD = 'it-IT'; Name = 'Italian' }
-        '040e' = @{PAD = 'hu-HU'; Name = 'Hungarian' }
-        '041a' = @{PAD = 'hr-HR'; Name = 'Croatian' }
-        '040d' = @{PAD = 'he-IL'; Name = 'Hebrew' }
-        '040c' = @{PAD = 'fr-FR'; Name = 'French (France)' }
-        '0c0c' = @{PAD = 'fr-CA'; Name = 'French (Canada)' }
-        '040b' = @{PAD = 'fi-FI'; Name = 'Finnish' }
-        '0425' = @{PAD = 'et-EE'; Name = 'Estonian' }
-        '080a' = @{PAD = 'es-MX'; Name = 'Spanish (Mexico)' }
-        '040a' = @{PAD = 'es-ES'; Name = 'Spanish (Spain)' }
-        '0809' = @{PAD = 'en-GB'; Name = 'English (UK)' }
-        '0408' = @{PAD = 'el-GR'; Name = 'Greek' }
-        '0407' = @{PAD = 'de-DE'; Name = 'German' }
-        '0406' = @{PAD = 'da-DK'; Name = 'Danish' }
-        '0405' = @{PAD = 'cs-CZ'; Name = 'Czech' }
-        '0402' = @{PAD = 'bg-BG'; Name = 'Bulgarian' }
-        '0401' = @{PAD = 'ar-SA'; Name = 'Arabic' }
-        '041d' = @{PAD = 'sv-SE'; Name = 'Swedish' }
-    }
-
-    if ($languageMap.ContainsKey($langID)) {
-        $lang = $languageMap[$langID]
-        $pad = $lang.PAD
-    
-        # Copy language specific MUI file
-        $command = "Copy-Item -Path `"$path\snipping\snipping_lang_files\$pad\SnippingTool.exe.mui`" -Destination `"$env:SYSTEMROOT\System32\$pad\SnippingTool.exe.mui`" -Force"
-        RunTrusted -command $command
-
-        Write-Status -msg "Copied $pad language file"
-        LogInfo "Copied $pad language file"
-    
-    }
-   
-
-    $WshShell = New-Object -comObject WScript.Shell
-    $Shortcut = $WshShell.CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories\SnippingTool.lnk')
-    $Shortcut.TargetPath = ('C:\Windows\System32\SnippingTool.exe')
-    $Shortcut.Save()
-
-}
-
-
-function install-notepad {
-
-    #uninstall new notepad 
-    taskkill.exe /im notepad.exe /f *>$null
-    taskkill.exe /im dllhost.exe /f *>$null
-    get-appxpackage '*notepad*' | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
-    #enable win10 notepad
-    Add-WindowsCapability -Online -Name Microsoft.Windows.Notepad.System~~~~0.0.1.0 -LimitAccess | Out-Null
-    # fix registry 
-    Remove-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\App Paths\notepad.exe' -Force -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path 'HKLM:\SOFTWARE\Classes\Applications\notepad.exe' -Name NoOpenWith -Force -ErrorAction SilentlyContinue
-    reg.exe add 'HKLM\SOFTWARE\Classes\*\OpenWithList\notepad.exe' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.htm\OpenWithList' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.htm\OpenWithList\notepad.exe' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.inf' /ve /t REG_SZ /d 'inffile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.ini' /ve /t REG_SZ /d 'inifile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.log' /ve /t REG_SZ /d 'txtfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.ps1' /ve /t REG_SZ /d 'Microsoft.PowerShellScript.1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.psd1' /ve /t REG_SZ /d 'Microsoft.PowerShellData.1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.psm1' /ve /t REG_SZ /d 'Microsoft.PowerShellModule.1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.scp' /ve /t REG_SZ /d 'txtfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.txt' /ve /t REG_SZ /d 'txtfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.txt\ShellNew' /v 'ItemName' /t REG_EXPAND_SZ /d '@%SystemRoot%\system32\notepad.exe,-470' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.txt\ShellNew' /v 'NullFile' /t REG_SZ /d ' ' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\.wtx' /ve /t REG_SZ /d 'txtfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Applications\notepad.exe' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Applications\notepad.exe\shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Applications\notepad.exe\shell\edit' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Applications\notepad.exe\shell\edit\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Applications\notepad.exe\shell\open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Applications\notepad.exe\shell\open\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile' /ve /t REG_SZ /d 'Setup Information' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile' /v 'FriendlyTypeName' /t REG_EXPAND_SZ /d '@%SystemRoot%\System32\setupapi.dll,-2000' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile\DefaultIcon' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\System32\imageres.dll,-69' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile\shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile\shell\open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile\shell\open\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile\shell\print' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inffile\shell\print\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE /p %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile' /ve /t REG_SZ /d 'Configuration Settings' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile' /v 'EditFlags' /t REG_DWORD /d 0x00200000 /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile' /v 'FriendlyTypeName' /t REG_SZ /d '@shell32.dll,-10151' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile\DefaultIcon' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\imageres.dll,-69' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile\shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile\shell\open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile\shell\open\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile\shell\print' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\inifile\shell\print\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE /p %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellData.1' /v 'EditFlags' /t REG_DWORD /d 0x00020000 /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellData.1' /v 'FriendlyTypeName' /t REG_EXPAND_SZ /d "@\`"%systemroot%\system32\windowspowershell\v1.0\powershell.exe\`",-104" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellData.1\Shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellData.1\Shell\Open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellData.1\Shell\Open\Command' /ve /t REG_SZ /d "\`"C:\Windows\System32\notepad.exe\`" \`"%1\`"" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellModule.1' /v 'EditFlags' /t REG_DWORD /d 0x00020000 /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellModule.1' /v 'FriendlyTypeName' /t REG_EXPAND_SZ /d "@\`"%systemroot%\system32\windowspowershell\v1.0\powershell.exe\`",-106" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellModule.1\Shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellModule.1\Shell\Open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellModule.1\Shell\Open\Command' /ve /t REG_SZ /d "\`"C:\Windows\System32\notepad.exe\`" \`"%1\`"" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellScript.1' /v 'EditFlags' /t REG_DWORD /d 0x00020000 /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellScript.1' /v 'FriendlyTypeName' /t REG_EXPAND_SZ /d "@\`"%systemroot%\system32\windowspowershell\v1.0\powershell.exe\`",-103" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellScript.1\DefaultIcon' /ve /t REG_SZ /d "\`"C:\Windows\System32\WindowsPowerShell\v1.0\powershell_ise.exe\`",1" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellScript.1\Shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellScript.1\Shell\Open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\Microsoft.PowerShellScript.1\Shell\Open\Command' /ve /t REG_SZ /d "\`"C:\Windows\System32\notepad.exe\`" \`"%1\`"" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\OpenWithList' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\OpenWithList\Notepad.exe' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\shell\edit' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\shell\edit\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\shell\open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\SystemFileAssociations\text\shell\open\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile' /ve /t REG_SZ /d 'Text Document' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile' /v 'EditFlags' /t REG_DWORD /d 0x00210000 /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile' /v 'FriendlyTypeName' /t REG_EXPAND_SZ /d '@%SystemRoot%\system32\notepad.exe,-469' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\DefaultIcon' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\imageres.dll,-102' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell\open' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell\open\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell\print' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell\print\command' /ve /t REG_EXPAND_SZ /d '%SystemRoot%\system32\NOTEPAD.EXE /p %1' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell\printto' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Classes\txtfile\shell\printto\command' /ve /t REG_EXPAND_SZ /d "%SystemRoot%\system32\notepad.exe /pt \`"%1\`" \`"%2\`" \`"%3\`" \`"%4\`"" /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities' /v 'ApplicationDescription' /t REG_EXPAND_SZ /d '@%SystemRoot%\system32\NOTEPAD.EXE,-9' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities' /v 'ApplicationName' /t REG_EXPAND_SZ /d '@%SystemRoot%\system32\NOTEPAD.EXE,-9' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities\FileAssociations' /v '.ini' /t REG_SZ /d 'inifile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities\FileAssociations' /v '.log' /t REG_SZ /d 'logfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities\FileAssociations' /v '.scp' /t REG_SZ /d 'scpfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities\FileAssociations' /v '.txt' /t REG_SZ /d 'txtfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\Notepad\Capabilities\FileAssociations' /v '.wtx' /t REG_SZ /d 'wtxfile' /f >$null
-    reg.exe add 'HKLM\SOFTWARE\RegisteredApplications' /v 'Notepad' /t REG_SZ /d 'Software\Microsoft\Windows\Notepad\Capabilities' /f >$null
-    reg.exe add 'HKCU\Software\Microsoft\Notepad' /v 'ShowStoreBanner' /t REG_DWORD /d 0x00000000 /f >$null
-
-    #create start shortcut
-    $WshShell = New-Object -comObject WScript.Shell
-    $Shortcut = $WshShell.CreateShortcut('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Notepad.lnk')
-    $Shortcut.TargetPath = 'C:\Windows\System32\Notepad.exe'
-    $Shortcut.Save()
-
-}
-
-function install-photoslegacy {
-
-    $appx = Get-AppxPackage -AllUsers | Where-Object { $_.PackageFullName -like '*PhotosLegacy*' }
-
-    if (!$appx) {
-
-        try {
-            Get-Command store -ErrorAction SilentlyContinue | Out-Null
-            #install photos legacy using new store cmdlet
-            store install 9NV2L4XVMCXM
-        }
-        catch {
-            Remove-Item "$($tempDir)Microsoft.PhotosLegacy_8wekyb3d8bbwe*" -Force -Recurse -ErrorAction SilentlyContinue
-            $downloadedfiles = DownloadAppxPackage -PackageFamilyName 'Microsoft.PhotosLegacy_8wekyb3d8bbwe' -outputDir "$tempDir"
-            $package = $downloadedfiles | Where-Object { $_ -match '\.appxbundle$' } | Select-Object -First 1
-            $dependencies = $downloadedfiles | Where-Object { $_ -match '\.appx$' } 
-            if ($package) {
-                try {
-                    Add-AppPackage $package -DependencyPath $dependencies -ForceApplicationShutdown
-                }
-                catch {
-                    LogError "Can't install PhotosLegacy via appxbundle -  make sure you have the appx service enabled"
-                }
-                
-            }
-            else {
-                LogError "Can't find PhotosLegacy Installer"
-            }
-        }
-        
-    }
-}
-
-function install-classicapps {
-    param(
-        [ValidateSet('photoviewer', 'mspaint', 'snippingtool', 'notepad', 'photoslegacy')]
-        [array]$app
-    )
-
-    #check if files are downloaded locally
-    if (Test-Path "$PSScriptroot\ClassicApps") {
-        Write-Status -msg 'Classic Apps Files Found Locally'
-        LogInfo 'Classic Apps Files Found Locally'
-        $classicApps = "$PSScriptroot\ClassicApps"
-    }
-    else {
-        #check if they are already downloaded if not download them
-        
-        if (!(Test-Path "$($tempDir)ClassicApps")) {
-            $ProgressPreference = 'SilentlyContinue'
-            Write-Status -msg 'Downloading Classic Apps Files from Github - '
-            $url = 'https://github.com/sdmanson8/scripts/archive/refs/heads/main.zip'
-            try {
-                Invoke-WebRequest -Uri $url -OutFile "$($tempDir)main.zip" -ErrorAction SilentlyContinue | Out-Null
-            }
-            catch {
-                LogError 'Unable to Download Github Repo'
-                return
-            }
-            Expand-Archive -Path "$($tempDir)main.zip" -DestinationPath "$tempDir" -Force
-            $sourceDir = "$($tempDir)RemoveWindowsAI-main\ClassicApps"
-            $destDir = "$($tempDir)ClassicApps"
-            Copy-Item -Path $sourceDir -Destination $destDir -Recurse -Force
-            Remove-Item "$($tempDir)RemoveWindowsAI-main" -Recurse -Force -ErrorAction SilentlyContinue
-            Remove-Item "$($tempDir)main.zip" -Recurse -Force -ErrorAction SilentlyContinue
-        }
-
-        $classicApps = "$($tempDir)ClassicApps"
-    }
-
-
-    switch ($app) {
-        'photoviewer' {  
-            Write-Status -msg 'Installing Classic Photo Viewer - '
-            install-photoviewer
-        }
-        'mspaint' {
-            Write-Status -msg 'Installing Classic Paint - '
-            install-paint -path $classicApps
-        }
-        'snippingtool' {
-            Write-Status -msg 'Installing Classic Snipping Tool - '
-            install-snipping -path $classicApps
-        }
-        'notepad' {
-            Write-Status -msg 'Installing Classic Notepad - '
-            install-notepad
-        }
-        'photoslegacy' {
-            Write-Status -msg 'Installing Photos Legacy - '
-            install-photoslegacy
-        }
-        Default {
-            LogError 'Unknown Classic App Option'
-        }
-    }
-}
-
-
+# Run selected actions directly from the command line without showing the GUI.
 if ($nonInteractive) {
     if ($backup) {
         CreateRestorePoint -nonInteractive
@@ -3083,17 +2731,11 @@ if ($nonInteractive) {
             'RemoveRecallTasks' { Remove-Recall-Tasks }
         }
     }
-
-    if ($InstallClassicApps) {
-        foreach ($app in $InstallClassicApps) {
-            install-classicapps -app $app
-        }
-    }
 }
 else {
 
     #===============================================================================
-    #BEGIN UI
+    # Build the interactive selection window used for guided AI removal.
     #===============================================================================
 
     $functionDescriptions = @{
@@ -3314,7 +2956,7 @@ else {
         $stackPanel.Children.Add($optionContainer) | Out-Null
     }
 
-    #add switches for backup and revert modes
+    # Add toggle controls for backup and revert mode.
     function Add-iOSToggleToUI {
         param(
             [Parameter(Mandatory = $true)]
@@ -3429,99 +3071,6 @@ else {
                 
         return $toggleButton
     }
-    
-    $divider = New-Object System.Windows.Controls.Separator
-    $divider.Margin = '0,10,0,10'
-    $divider.Background = [System.Windows.Media.Brushes]::DarkGray
-    $stackPanel.Children.Add($divider) | Out-Null
-
-    $classicAppsHeader = New-Object System.Windows.Controls.TextBlock
-    $classicAppsHeader.Text = 'Install Classic Windows Apps'
-    $classicAppsHeader.FontSize = 16
-    $classicAppsHeader.FontWeight = 'Bold'
-    $classicAppsHeader.Foreground = [System.Windows.Media.Brushes]::Cyan
-    $classicAppsHeader.Margin = '0,10,0,10'
-    $stackPanel.Children.Add($classicAppsHeader) | Out-Null
-
-    $classicAppsFunctions = @(
-        'Install-Classic-Photoviewer'
-        'Install-Classic-Mspaint'
-        'Install-Classic-SnippingTool'
-        'Install-Classic-Notepad'
-        'Install-Photos-Legacy'
-    )
-
-    $classicAppsDescriptions = @{
-        'Install-Classic-Photoviewer'  = 'Installs the classic Windows Photo Viewer from Windows 7/8, allowing you to view images with the traditional viewer instead of the modern Photos app.'
-        'Install-Classic-Mspaint'      = 'Installs the classic Microsoft Paint application from older Windows versions.'
-        'Install-Classic-SnippingTool' = 'Installs the classic Snipping Tool, replacing the modern Snip & Sketch app.'
-        'Install-Classic-Notepad'      = 'Installs the classic Notepad from Windows 10, replacing the modern uwp version.'
-        'Install-Photos-Legacy'        = 'Installs the legacy Windows Photos app from the Microsoft Store.'
-    }
-
-    $functionDescriptions += $classicAppsDescriptions
-    foreach ($func in $classicAppsFunctions) {
-        $optionContainer = New-Object System.Windows.Controls.DockPanel
-        $optionContainer.Margin = '0,5,0,5'
-        $optionContainer.LastChildFill = $false
-    
-        $checkbox = New-Object System.Windows.Controls.CheckBox
-        $checkbox.Content = $func.Replace('-', ' ')
-        $checkbox.FontSize = 14
-        $checkbox.Foreground = [System.Windows.Media.Brushes]::White
-        $checkbox.Margin = '0,0,10,0'
-        $checkbox.VerticalAlignment = 'Center'
-        $checkbox.IsChecked = $false  
-        [System.Windows.Controls.DockPanel]::SetDock($checkbox, 'Left')
-        $checkboxes[$func] = $checkbox
-    
-        $infoButton = New-Object System.Windows.Controls.Button
-        $infoButton.Content = '?'
-        $infoButton.Width = 25
-        $infoButton.Height = 25
-        $infoButton.FontSize = 12
-        $infoButton.FontWeight = 'Bold'
-        $infoButton.Background = [System.Windows.Media.Brushes]::DarkBlue
-        $infoButton.Foreground = [System.Windows.Media.Brushes]::White
-        $infoButton.BorderBrush = [System.Windows.Media.Brushes]::Transparent
-        $infoButton.BorderThickness = 0
-        $infoButton.VerticalAlignment = 'Center'
-        $infoButton.Cursor = 'Hand'
-        [System.Windows.Controls.DockPanel]::SetDock($infoButton, 'Right')
-    
-        $infoTemplate = @'
-<ControlTemplate xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" TargetType="Button">
-    <Border Background="{TemplateBinding Background}" 
-            BorderBrush="{TemplateBinding BorderBrush}" 
-            BorderThickness="{TemplateBinding BorderThickness}" 
-            CornerRadius="12">
-        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-    </Border>
-</ControlTemplate>
-'@
-        $infoButton.Template = [System.Windows.Markup.XamlReader]::Parse($infoTemplate)
-    
-        $infoButton.Add_Click({
-                param($sender, $e)
-        
-                # Find the correct function name
-                foreach ($f in $classicAppsFunctions) {
-                    if ($checkboxes[$f].Parent -eq $sender.Parent) {
-                        $funcName = $f
-                        break
-                    }
-                }
-        
-                $description = $functionDescriptions[$funcName]
-                [System.Windows.MessageBox]::Show($description, $funcName, [System.Windows.MessageBoxButton]::OK, [System.Windows.MessageBoxImage]::Information)
-            })
-    
-        $optionContainer.Children.Add($checkbox) | Out-Null
-        $optionContainer.Children.Add($infoButton) | Out-Null
-        $stackPanel.Children.Add($optionContainer) | Out-Null
-    }
-
-    $allFunctions = $functions + $classicAppsFunctions
     
     $toggleGrid = New-Object System.Windows.Controls.Grid
     [System.Windows.Controls.Grid]::SetRow($toggleGrid, 2)  
@@ -3638,7 +3187,7 @@ else {
 
     $togglePanel2.Children.Add($backupInfoButton) | Out-Null
     $toggleGrid.Children.Add($togglePanel2) | Out-Null
-    # ensure that backup mode and revert mode arent both selected at the same time (cant believe i have to do this - .)
+    # Keep backup mode and revert mode mutually exclusive.
     $backupModeToggle.Add_Checked({ 
             $Global:backup = 1
             $revertModeToggle.IsChecked = $false
@@ -3724,7 +3273,7 @@ else {
     $applyButton.Template = [System.Windows.Markup.XamlReader]::Parse($applyTemplate)
     $applyButton.Add_Click({
             Write-Status -msg 'Killing AI Processes - '
-            #kill ai processes to ensure script runs smoothly
+            # Stop running AI-related processes before changing packages and files.
 
     start-process msedge.exe 
     Start-Sleep 2
@@ -3772,7 +3321,7 @@ else {
             $progressWindow.Show()
     
             $selectedFunctions = @()
-            foreach ($func in $allFunctions) {
+            foreach ($func in $functions) {
                 if ($checkboxes[$func].IsChecked) {
                     $selectedFunctions += $func
                 }
@@ -3804,11 +3353,6 @@ else {
                         'Hide-AI-Components' { Hide-AI-Components }
                         'Disable-Notepad-Rewrite' { Disable-Notepad-Rewrite }
                         'Remove-Recall-Tasks' { Remove-Recall-Tasks }
-                        'Install-Classic-Photoviewer' { install-classicapps -app 'photoviewer' }
-                        'Install-Classic-Mspaint' { install-classicapps -app 'mspaint' }
-                        'Install-Classic-SnippingTool' { install-classicapps -app 'snippingtool' }
-                        'Install-Classic-Notepad' { install-classicapps -app 'notepad' }
-                        'Install-Photos-Legacy' { install-classicapps -app 'photoslegacy' }
                     }
             
                     Start-Sleep -Milliseconds 500
@@ -3821,7 +3365,7 @@ else {
                 $result = [System.Windows.MessageBox]::Show("AI removal process completed successfully!`n`nWould you like to restart your computer now to ensure all changes take effect?", 'Process Complete', [System.Windows.MessageBoxButton]::YesNo, [System.Windows.MessageBoxImage]::Question)
         
                 if ($result -eq [System.Windows.MessageBoxResult]::Yes) {
-                    #cleanup code
+                    # Remove temporary helper files before restart.
                     try {
                         Remove-Item "$($tempDir)aiPackageRemoval.ps1" -Force -ErrorAction SilentlyContinue
                     }
@@ -3839,7 +3383,7 @@ else {
                     }
                     catch {}
 
-                    #set executionpolicy back to what it was
+                    # Restore the original execution policy if the script changed it.
                     if ($ogExecutionPolicy) {
                         if ($Global:executionPolicyUser) {
                             Reg.exe add 'HKCU\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' /v 'ExecutionPolicy' /t REG_SZ /d $ogExecutionPolicy /f >$null
@@ -3878,7 +3422,7 @@ else {
     $window.ShowDialog() | Out-Null
 }
 
-#cleanup code
+# Clean up temporary helper files created during package and task removal.
 try {
     Remove-Item "$($tempDir)aiPackageRemoval.ps1" -Force -ErrorAction SilentlyContinue
 }
@@ -3896,7 +3440,7 @@ try {
 }
 catch {}
 
-#set executionpolicy back to what it was
+# Restore the original execution policy if the script changed it.
 if ($ogExecutionPolicy) {
     if ($Global:executionPolicyUser) {
         Reg.exe add 'HKCU\Software\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell' /v 'ExecutionPolicy' /t REG_SZ /d $ogExecutionPolicy /f >$null
@@ -3914,5 +3458,3 @@ if ($ogExecutionPolicy) {
         Reg.exe add 'HKLM\SOFTWARE\Policies\Microsoft\Windows\PowerShell' /v 'ExecutionPolicy' /t REG_SZ /d $ogExecutionPolicy /f >$null
     }
 }
-
-

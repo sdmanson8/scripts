@@ -2,7 +2,21 @@ using module ..\Logging.psm1
 using module ..\Helpers.psm1
 
 #region Protection
-# Create a restore point for the system drive
+<#
+	.SYNOPSIS
+	Create a restore point for the system drive before changes are applied.
+
+	.DESCRIPTION
+	Ensures System Restore is available on the system drive, temporarily allows
+	immediate restore point creation, creates a restore point named for the
+	current Windows version, and restores the prior System Restore state.
+
+	.EXAMPLE
+	CreateRestorePoint
+
+	.NOTES
+	Machine-wide
+#>
 function CreateRestorePoint
 {
 	LogInfo "Creating Restore Point"

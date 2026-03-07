@@ -2,11 +2,23 @@ using module ..\Logging.psm1
 using module ..\Helpers.psm1
 
 #region Initial Setup
+<#
+	.SYNOPSIS
+	Check whether WinGet is installed and install it if needed.
+
+	.DESCRIPTION
+	Validates that WinGet is present and functional. If it is missing or broken,
+	the function downloads a bootstrap installer script, executes it, and
+	validates the WinGet installation again before continuing.
+
+	.EXAMPLE
+	CheckWinGet
+
+	.NOTES
+	Machine-wide
+#>
 function CheckWinGet
-{
-	Write-Host "Checking WinGet - " -NoNewline
-    LogInfo "Checking WinGet:"
-    
+{   
     # Get OS information for compatibility checks
     $osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
     $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
@@ -24,6 +36,8 @@ function CheckWinGet
     try {
         $wingetVersion = winget --version 2>$null
     if ($LASTEXITCODE -eq 0) {
+        Write-Host "Checking WinGet - " -NoNewline
+        LogInfo "Checking WinGet"
         LogInfo "Winget is already installed and working. Version: $wingetVersion"
         Write-Host "success!" -ForegroundColor Green
         return
@@ -33,7 +47,8 @@ function CheckWinGet
     }
     
     # If not working, use the asheroto installer script
-    LogInfo "Preparing to download and install Winget using asheroto installer..."
+    Write-Host "Installing WinGet:" -NoNewline
+    LogInfo "Installing WinGet:"
     
     try {
         # Download the asheroto installer script from direct GitHub URL
@@ -104,6 +119,20 @@ function CheckWinGet
     }
 }
 
+<#
+	.SYNOPSIS
+	Install or update PowerShell 7 by using WinGet.
+
+	.DESCRIPTION
+	Checks the current PowerShell version and uses WinGet to install the latest
+	Microsoft PowerShell package when PowerShell 7 is not already installed.
+
+	.EXAMPLE
+	Update-Powershell
+
+	.NOTES
+	Machine-wide
+#>
 Function Update-Powershell
 {
     # Check if PowerShell 7 is installed
@@ -130,16 +159,33 @@ Function Update-Powershell
         }
 		else
 		{
-            LogError "Failed to install PowerShell $latestVersion. Please check the logs and try again." -ForegroundColor Red
+            LogError "Failed to install PowerShell $latestVersion. Please check the logs and try again."
+            Write-Host "Failed! Check logs for details." -ForegroundColor Red
         }
     }
 	else
 	{
+        Write-Host "Checking Powershell Installation - " -NoNewline
         $currentPSVersion = $psVersion.ToString()
-        LogWarning "PowerShell 7 is already installed (Version: $currentPSVersion)."
+        LogInfo "PowerShell 7 is already installed (Version: $currentPSVersion)."
+        Write-Host "success!" -ForegroundColor Green
 	}
 }
 
+<#
+	.SYNOPSIS
+	Hide the Spotlight "About this picture" desktop icon.
+
+	.DESCRIPTION
+	Removes the Spotlight namespace entry from the desktop and sets the matching
+	HideDesktopIcons value so the icon stays hidden for the current user.
+
+	.EXAMPLE
+	Update-DesktopRegistry
+
+	.NOTES
+	Current user
+#>
 function Update-DesktopRegistry
 {
 	Write-Host 'Removing "About this Picture" from Desktop - ' -NoNewline
@@ -176,6 +222,20 @@ function Update-DesktopRegistry
     }
 }
 
+<#
+	.SYNOPSIS
+	Restart File Explorer so desktop and shell changes apply immediately.
+
+	.DESCRIPTION
+	Stops the Explorer foreground process so desktop, taskbar, and File Explorer
+	changes can be reloaded by the shell.
+
+	.EXAMPLE
+	Stop-Foreground
+
+	.NOTES
+	Current user
+#>
 function Stop-Foreground
 {
     Stop-Process -Name "explorer" -Force | Out-Null

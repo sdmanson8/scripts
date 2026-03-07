@@ -10,7 +10,7 @@ Enable or disable displaying full path in Explorer window title
 Enable displaying full path in Explorer title
 
 .PARAMETER Disable
-Disable displaying full path in Explorer title
+Disable displaying full path in Explorer title (default value)
 
 .EXAMPLE
 ExplorerTitleFullPath -Enable
@@ -73,15 +73,15 @@ Enable showing folder merge conflict notifications
 Disable showing folder merge conflict notifications
 
 .EXAMPLE
-FolderMergeConflicts -Enable
+MergeConflicts -Enable
 
 .EXAMPLE
-FolderMergeConflicts -Disable
+MergeConflicts -Disable
 
 .NOTES
 Current user
 #>
-function FolderMergeConflicts
+function MergeConflicts
 {
 	param
 	(
@@ -127,7 +127,7 @@ Enable or disable showing all folders in Explorer navigation pane
 Enable showing all folders in navigation pane
 
 .PARAMETER Disable
-Disable showing all folders in navigation pane
+Disable showing all folders in navigation pane (default value)
 
 .EXAMPLE
 NavPaneAllFolders -Enable
@@ -184,7 +184,7 @@ Enable or disable showing Libraries in Explorer navigation pane
 Enable showing Libraries in navigation pane
 
 .PARAMETER Disable
-Disable showing Libraries in navigation pane
+Disable showing Libraries in navigation pane (default value)
 
 .EXAMPLE
 NavPaneLibraries -Enable
@@ -244,7 +244,7 @@ Enable or disable launching folder windows in a separate process
 Enable launching folder windows in a separate process
 
 .PARAMETER Disable
-Disable launching folder windows in a separate process
+Disable launching folder windows in a separate process (default value)
 
 .EXAMPLE
 FldrSeparateProcess -Enable
@@ -301,7 +301,7 @@ Enable or disable restoring previous folder windows at logon
 Enable restoring previous folder windows at logon
 
 .PARAMETER Disable
-Disable restoring previous folder windows at logon
+Disable restoring previous folder windows at logon (default value)
 
 .EXAMPLE
 RestoreFldrWindows -Enable
@@ -355,7 +355,7 @@ function RestoreFldrWindows
 Enable or disable coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed)
 
 .PARAMETER Enable
-Enable coloring of encrypted or compressed NTFS files
+Enable coloring of encrypted or compressed NTFS files (default value)
 
 .PARAMETER Disable
 Disable coloring of encrypted or compressed NTFS files
@@ -415,7 +415,7 @@ Enable or disable Sharing Wizard in Explorer
 Enable Sharing Wizard
 
 .PARAMETER Disable
-Disable Sharing Wizard
+Disable Sharing Wizard (default value)
 
 .EXAMPLE
 SharingWizard -Enable
@@ -472,7 +472,7 @@ Enable or disable item selection checkboxes in Explorer
 Enable item selection checkboxes
 
 .PARAMETER Disable
-Disable item selection checkboxes
+Disable item selection checkboxes (default value)
 
 .EXAMPLE
 SelectCheckboxes -Enable
@@ -529,7 +529,7 @@ Enable or disable sync provider notifications in Explorer
 Enable sync provider notifications
 
 .PARAMETER Disable
-Disable sync provider notifications
+Disable sync provider notifications (default value)
 
 .EXAMPLE
 SyncNotifications -Enable
@@ -589,7 +589,7 @@ Note: This is only a UI tweak to hide the shortcuts. In order to stop creating m
 Enable hiding recently and frequently used item shortcuts
 
 .PARAMETER Disable
-Disable hiding recently and frequently used item shortcuts
+Disable hiding recently and frequently used item shortcuts (default value)
 
 .EXAMPLE
 RecentShortcuts -Enable
@@ -648,7 +648,7 @@ function RecentShortcuts
     Enable the build number and edition display
 
     .PARAMETER Disable
-    Disable the build number and edition display
+    Disable the build number and edition display (default value)
 
     .EXAMPLE
     BuildNumberOnDesktop -Enable
@@ -702,7 +702,7 @@ function BuildNumberOnDesktop
     Share context menu item
 
     .PARAMETER Enable
-    Enable the Share context menu item
+    Enable the Share context menu item (default value)
 
     .PARAMETER Disable
     Disable the Share context menu item
@@ -769,7 +769,7 @@ function ShareMenu
     Show thumbnails for files
 
     .PARAMETER Disable
-    Show only file extension icons
+    Show only file extension icons (default value)
 
     .EXAMPLE
     Thumbnails -Enable
@@ -826,7 +826,7 @@ function Thumbnails
     Enable creation of thumbnail cache files
 
     .PARAMETER Disable
-    Disable creation of thumbnail cache files
+    Disable creation of thumbnail cache files (default value)
 
     .EXAMPLE
     ThumbnailCache -Enable
@@ -883,7 +883,7 @@ function ThumbnailCache
     Enable creation of Thumbs.db cache on network folders
 
     .PARAMETER Disable
-    Disable creation of Thumbs.db cache on network folders
+    Disable creation of Thumbs.db cache on network folders (default value)
 
     .EXAMPLE
     ThumbsDBOnNetwork -Enable
@@ -940,7 +940,7 @@ function ThumbsDBOnNetwork
 	Show the "This PC" icon on Desktop
 
 	.PARAMETER Hide
-	Hide the "This PC" icon on Desktop
+	Hide the "This PC" icon on Desktop (default value)
 
 	.EXAMPLE
 	ThisPC -Show
@@ -1001,7 +1001,7 @@ function ThisPC
 	Do not use item check boxes
 
 	.PARAMETER Enable
-	Use check item check boxes
+	Use check item check boxes (default value)
 
 	.EXAMPLE
 	CheckBoxes -Disable
@@ -1058,7 +1058,7 @@ function CheckBoxes
 	Show hidden files, folders, and drives
 
 	.PARAMETER Disable
-	Do not show hidden files, folders, and drives
+	Do not show hidden files, folders, and drives (default value)
 
 	.EXAMPLE
 	HiddenItems -Enable
@@ -1115,7 +1115,7 @@ function HiddenItems
 	Show protected operating system files
 
 	.PARAMETER Disable
-	Do not show protected operating system files
+	Do not show protected operating system files (default value)
 
 	.EXAMPLE
 	SuperHiddenFiles -Enable
@@ -1172,7 +1172,7 @@ function SuperHiddenFiles
 	Show file name extensions
 
 	.PARAMETER Hide
-	Hide file name extensions
+	Hide file name extensions (default value)
 
 	.EXAMPLE
 	FileExtensions -Show
@@ -1229,7 +1229,7 @@ function FileExtensions
 	Show folder merge conflicts
 
 	.PARAMETER Hide
-	Hide folder merge conflicts
+	Hide folder merge conflicts (default value)
 
 	.EXAMPLE
 	MergeConflicts -Show
@@ -1286,7 +1286,7 @@ function MergeConflicts
 	Open File Explorer to "This PC"
 
 	.PARAMETER QuickAccess
-	Open File Explorer to Quick access
+	Open File Explorer to Quick access (default value)
 
 	.PARAMETER Downloads
 	Open File Explorer to Downloads
@@ -1360,7 +1360,7 @@ function OpenFileExplorerTo
 	File Explorer mode
 
 	.PARAMETER Disable
-	Disable File Explorer compact mode
+	Disable File Explorer compact mode (default value)
 
 	.PARAMETER Enable
 	Enable File Explorer compact mode
@@ -1420,7 +1420,7 @@ function FileExplorerCompactMode
 	Do not show sync provider notification within File Explorer
 
 	.PARAMETER Show
-	Show sync provider notification within File Explorer
+	Show sync provider notification within File Explorer (default value)
 
 	.EXAMPLE
 	OneDriveFileExplorerAd -Hide
@@ -1477,7 +1477,7 @@ function OneDriveFileExplorerAd
 	When I snap a window, do not show what I can snap next to it
 
 	.PARAMETER Enable
-	When I snap a window, show what I can snap next to it
+	When I snap a window, show what I can snap next to it (default value)
 
 	.EXAMPLE
 	SnapAssist -Disable
@@ -1536,7 +1536,7 @@ function SnapAssist
 	Show the file transfer dialog box in the detailed mode
 
 	.PARAMETER Compact
-	Show the file transfer dialog box in the compact mode
+	Show the file transfer dialog box in the compact mode (default value)
 
 	.EXAMPLE
 	FileTransferDialog -Detailed
@@ -1598,7 +1598,7 @@ function FileTransferDialog
 	Display the recycle bin files delete confirmation dialog
 
 	.PARAMETER Disable
-	Do not display the recycle bin files delete confirmation dialog
+	Do not display the recycle bin files delete confirmation dialog (default value)
 
 	.EXAMPLE
 	RecycleBinDeleteConfirmation -Enable
@@ -1664,7 +1664,7 @@ function RecycleBinDeleteConfirmation
 	Hide recently used files in Quick access
 
 	.PARAMETER Show
-	Show recently used files in Quick access
+	Show recently used files in Quick access (default value)
 
 	.EXAMPLE
 	QuickAccessRecentFiles -Hide
@@ -1726,7 +1726,7 @@ function QuickAccessRecentFiles
 	Hide frequently used folders in Quick access
 
 	.PARAMETER Show
-	Show frequently used folders in Quick access
+	Show frequently used folders in Quick access (default value)
 
 	.EXAMPLE
 	QuickAccessFrequentFolders -Hide
@@ -1783,7 +1783,7 @@ function QuickAccessFrequentFolders
 	Hide the Meet Now icon in the notification area
 
 	.PARAMETER Show
-	Show the Meet Now icon in the notification area
+	Show the Meet Now icon in the notification area (default value)
 
 	.EXAMPLE
 	MeetNow -Hide
@@ -1851,7 +1851,7 @@ function MeetNow
 	Disable "News and Interests" on the taskbar
 
 	.PARAMETER Enable
-	Enable "News and Interests" on the taskbar
+	Enable "News and Interests" on the taskbar (default value)
 
 	.EXAMPLE
 	NewsInterests -Disable
@@ -1971,7 +1971,7 @@ public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int ou
 	Set the taskbar alignment to the left
 
 	.PARAMETER Center
-	Set the taskbar alignment to the center
+	Set the taskbar alignment to the center (default value)
 
 	.EXAMPLE
 	TaskbarAlignment -Center
@@ -2028,7 +2028,7 @@ function TaskbarAlignment
 	Hide the widgets icon on the taskbar
 
 	.PARAMETER Show
-	Show the widgets icon on the taskbar
+	Show the widgets icon on the taskbar (default value)
 
 	.EXAMPLE
 	TaskbarWidgets -Hide
@@ -2104,7 +2104,7 @@ function TaskbarWidgets
 	Show the search icon on the taskbar
 
 	.PARAMETER SearchBox
-	Show the search box on the taskbar
+	Show the search box on the taskbar (default value)
 
 	.EXAMPLE
 	TaskbarSearch -Hide
@@ -2201,7 +2201,7 @@ function TaskbarSearch
 	Hide search highlights
 
 	.PARAMETER Show
-	Show search highlights
+	Show search highlights (default value)
 
 	.EXAMPLE
 	SearchHighlights -Hide
@@ -2277,7 +2277,7 @@ function SearchHighlights
 	Hide the Task view button on the taskbar
 
 	.PARAMETER Show
-	Show the Task View button on the taskbar
+	Show the Task View button on the taskbar (default value)
 
 	.EXAMPLE
 	TaskViewButton -Hide
@@ -2336,7 +2336,7 @@ function TaskViewButton
 	Combine taskbar buttons and hide labels
 
 	.PARAMETER Always
-	Combine taskbar buttons and always hide labels
+	Combine taskbar buttons and always hide labels (default value)
 
 	.PARAMETER Full
 	Combine taskbar buttons and hide labels when taskbar is full
@@ -2513,7 +2513,7 @@ function UnpinTaskbarShortcuts
 	Enable end task in taskbar by right click
 
 	.PARAMETER Disable
-	Disable end task in taskbar by right click
+	Disable end task in taskbar by right click (default value)
 
 	.EXAMPLE
 	TaskbarEndTask -Enable
@@ -2572,7 +2572,7 @@ function TaskbarEndTask
 	The Control Panel icons view
 
 	.PARAMETER Category
-	View the Control Panel icons by category
+	View the Control Panel icons by category (default value)
 
 	.PARAMETER LargeIcons
 	View the Control Panel icons by large icons
@@ -2664,7 +2664,7 @@ function ControlPanelView
 	Set the default Windows mode to dark
 
 	.PARAMETER Light
-	Set the default Windows mode to light
+	Set the default Windows mode to light (default value)
 
 	.EXAMPLE
 	WindowsColorScheme -Dark
@@ -2721,7 +2721,7 @@ function WindowsColorMode
 	Set the default app mode to dark
 
 	.PARAMETER Light
-	Set the default app mode to light
+	Set the default app mode to light (default value)
 
 	.EXAMPLE
 	AppColorMode -Dark
@@ -2778,7 +2778,7 @@ function AppColorMode
 	Disable first sign-in animation after the upgrade
 
 	.PARAMETER Enable
-	Enable first sign-in animation after the upgrade
+	Enable first sign-in animation after the upgrade (default value)
 
 	.EXAMPLE
 	FirstLogonAnimation -Disable
@@ -2839,7 +2839,7 @@ function FirstLogonAnimation
 	Set the quality factor of the JPEG desktop wallpapers to maximum
 
 	.PARAMETER Default
-	Set the quality factor of the JPEG desktop wallpapers to default
+	Set the quality factor of the JPEG desktop wallpapers to default (default value)
 
 	.EXAMPLE
 	JPEGWallpapersQuality -Max
@@ -2896,7 +2896,7 @@ function JPEGWallpapersQuality
 	Do not add the "- Shortcut" suffix to the file name of created shortcuts
 
 	.PARAMETER Enable
-	Add the "- Shortcut" suffix to the file name of created shortcuts
+	Add the "- Shortcut" suffix to the file name of created shortcuts (default value)
 
 	.EXAMPLE
 	ShortcutsSuffix -Disable
@@ -2956,7 +2956,7 @@ function ShortcutsSuffix
 	Controls the display of shortcut arrow overlay on icons
 
 	.PARAMETER Enable
-	Show shortcut arrow overlay on icons
+	Show shortcut arrow overlay on icons (default value)
 
 	.PARAMETER Disable
 	Remove shortcut arrow overlay on icons
@@ -3019,7 +3019,7 @@ function ShortcutArrow
 	Use the Print screen button to open screen snipping
 
 	.PARAMETER Disable
-	Do not use the Print screen button to open screen snipping
+	Do not use the Print screen button to open screen snipping (default value)
 
 	.EXAMPLE
 	PrtScnSnippingTool -Enable
@@ -3076,7 +3076,7 @@ function PrtScnSnippingTool
 	Let me use a different input method for each app window
 
 	.PARAMETER Disable
-	Do not use a different input method for each app window
+	Do not use a different input method for each app window (default value)
 
 	.EXAMPLE
 	AppsLanguageSwitch -Enable
@@ -3133,7 +3133,7 @@ function AppsLanguageSwitch
 	When I grab a windows's title bar and shake it, minimize all other windows
 
 	.PARAMETER Disable
-	When I grab a windows's title bar and shake it, don't minimize all other windows
+	When I grab a windows's title bar and shake it, don't minimize all other windows (default value)
 
 	.EXAMPLE
 	AeroShaking -Enable
@@ -3325,7 +3325,7 @@ function NavigationPaneExpand
 	Remove Recommended section in Start Menu
 
 	.PARAMETER Show
-	Do not remove Recommended section in Start Menu (default value)
+	Do not remove Recommended section in Start Menu
 
 	.EXAMPLE
 	StartRecommendedSection -Hide

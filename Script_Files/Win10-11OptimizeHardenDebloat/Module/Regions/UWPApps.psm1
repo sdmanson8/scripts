@@ -2,6 +2,17 @@ using module ..\Logging.psm1
 using module ..\Helpers.psm1
 
 #region UWP apps
+<#
+	.SYNOPSIS
+	Detect whether the current system is Windows 10 or Windows 11.
+
+	.DESCRIPTION
+	Returns a small object that indicates whether the current Windows build is
+	Windows 10 or Windows 11.
+
+	.EXAMPLE
+	Get-OSInfo
+#>
 function Get-OSInfo {
     $currentBuild = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
     if ([int]$currentBuild -ge 22000) {
@@ -11,6 +22,33 @@ function Get-OSInfo {
     }
 }
 
+<#
+	.SYNOPSIS
+	Install or uninstall Microsoft Copilot and related Windows AI components.
+
+	.DESCRIPTION
+	Calls the RemoveWindowsAI helper script to either restore or remove the
+	Windows AI components associated with Copilot, then installs or removes the
+	store Copilot app itself.
+
+	.PARAMETER Install
+	Install Microsoft Copilot and restore the AI components used by it.
+
+	.PARAMETER Uninstall
+	Uninstall Microsoft Copilot and remove the AI components used by it.
+
+	.EXAMPLE
+	Copilot -Install
+
+	.EXAMPLE
+	Copilot -Uninstall
+
+	.NOTES
+	Current user
+
+	.NOTES
+	Machine-wide
+#>
 function Copilot
 {
 	param
@@ -34,8 +72,8 @@ function Copilot
 	{
 		"Install"
 		{
-			Write-Host "Installing Microsoft Copilot and other AI apps: "
-			LogInfo "Installing Microsoft Copilot and other AI apps:"
+			Write-Host "Installing Microsoft Copilot and other AI features: "
+			LogInfo "Installing Microsoft Copilot and other AI features:"
 			# store in environment for child processes
 			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
 			& "$PSScriptRoot\..\..\files\RemoveWindowsAI.ps1" -nonInteractive -revertMode -AllOptions
@@ -44,8 +82,8 @@ function Copilot
 		}
 		"Uninstall"
 		{
-			Write-Host "Uninstalling Microsoft Copilot and other AI apps:"
-			LogInfo "Uninstalling Microsoft Copilot and other AI apps:"
+			Write-Host "Uninstalling Microsoft Copilot and other AI features:"
+			LogInfo "Uninstalling Microsoft Copilot and other AI features:"
 			# store in environment for child processes
 			[Environment]::SetEnvironmentVariable("REMOVE_WINDOWS_AI_LOG", $global:LogFilePath, "Process")
 			& "$PSScriptRoot\..\..\files\RemoveWindowsAI.ps1" -nonInteractive -AllOptions
@@ -53,6 +91,35 @@ function Copilot
 	}
 }
 
+<#
+	.SYNOPSIS
+	Install or uninstall UWP apps by using the graphical app picker.
+
+	.DESCRIPTION
+	Opens a graphical app picker that lists installable or removable Microsoft
+	Store and inbox UWP packages, then applies the selected action.
+
+	.PARAMETER Install
+	Open the app picker and install the selected UWP apps.
+
+	.PARAMETER Uninstall
+	Open the app picker and uninstall the selected UWP apps.
+
+	.PARAMETER ForAllUsers
+	Apply the selected install or uninstall action for all users where supported.
+
+	.EXAMPLE
+	UWPApps -Install
+
+	.EXAMPLE
+	UWPApps -Uninstall
+
+	.NOTES
+	Current user
+
+	.NOTES
+	Use `-ForAllUsers` for machine-wide package provisioning changes where supported
+#>
 function UWPApps
 {
 	[CmdletBinding(DefaultParameterSetName = "None")]
@@ -75,7 +142,7 @@ function UWPApps
 	{
 		"Install"
 		{
-            # Install UWP apps
+            # Show the app picker and install the packages the user selects.
             Add-Type -AssemblyName PresentationCore, PresentationFramework
             Write-Host "Installing UWP apps - " -NoNewline
             LogInfo "Installing UWP apps:"
@@ -640,7 +707,7 @@ function UWPApps
 }
 		"Uninstall"
 		{
-			# Uninstall UWP apps
+			# Show the app picker and remove the packages the user selects.
 			Add-Type -AssemblyName PresentationCore, PresentationFramework
 			Write-Host "Uninstalling UWP apps - " -NoNewline
 			LogInfo "Uninstalling UWP apps:"
@@ -1259,7 +1326,7 @@ function NewOutlook
 Enable or disable Background Apps
 
 .PARAMETER Enable
-Enable Background Apps
+Enable Background Apps (default value)
 
 .PARAMETER Disable
 Disable Background Apps
@@ -1309,7 +1376,7 @@ function BackgroundApps
 Enable or disable Notification Tray/Calendar
 
 .PARAMETER Enable
-Enable Notification Tray/Calendar
+Enable Notification Tray/Calendar (default value)
 
 .PARAMETER Disable
 Disable Notification Tray/Calendar
@@ -1373,7 +1440,7 @@ Enable or disable Edge Debloat
 Enable Edge Debloat
 
 .PARAMETER Disable
-Disable Edge Debloat
+Disable Edge Debloat (default value)
 
 .EXAMPLE
 EdgeDebloat -Enable
@@ -1485,7 +1552,7 @@ Enable or disable Revert Start Menu
 Revert to the original Start Menu from 24H2
 
 .PARAMETER Disable
-Restore the new Start Menu
+Restore the new Start Menu (default value)
 
 .EXAMPLE
 RevertStartMenu -Enable

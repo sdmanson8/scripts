@@ -10,7 +10,7 @@ using module ..\Helpers.psm1
 	Show the "Extract all" item in the Windows Installer (.msi) context menu
 
 	.PARAMETER Remove
-	Hide the "Extract all" item from the Windows Installer (.msi) context menu
+	Hide the "Extract all" item from the Windows Installer (.msi) context menu (default value)
 
 	.EXAMPLE
 	MSIExtractContext -Show
@@ -74,7 +74,7 @@ function MSIExtractContext
 	Show the "Install" item in the Cabinet (.cab) filenames extensions context menu
 
 	.PARAMETER Hide
-	Hide the "Install" item from the Cabinet (.cab) filenames extensions context menu
+	Hide the "Install" item from the Cabinet (.cab) filenames extensions context menu (default value)
 
 	.EXAMPLE
 	CABInstallContext -Show
@@ -138,7 +138,7 @@ function CABInstallContext
 	Hide the "Edit with Clipchamp" item from the media files context menu
 
 	.PARAMETER Show
-	Show the "Edit with Clipchamp" item in the media files context menu
+	Show the "Edit with Clipchamp" item in the media files context menu (default value)
 
 	.EXAMPLE
 	EditWithClipchampContext -Hide
@@ -208,7 +208,7 @@ function EditWithClipchampContext
 	Hide the "Edit with Photos" item from the media files context menu
 
 	.PARAMETER Show
-	Show the "Edit with Photos" item in the media files context menu
+	Show the "Edit with Photos" item in the media files context menu (default value)
 
 	.EXAMPLE
 	EditWithPhotosContext -Hide
@@ -278,7 +278,7 @@ function EditWithPhotosContext
 	Hide the "Edit with Paint" item from the media files context menu
 
 	.PARAMETER Show
-	Show the "Edit with Paint" item in the media files context menu
+	Show the "Edit with Paint" item in the media files context menu (default value)
 
 	.EXAMPLE
 	EditWithPaintContext -Hide
@@ -348,7 +348,7 @@ function EditWithPaintContext
 	Hide the "Print" item from the .bat and .cmd context menu
 
 	.PARAMETER Show
-	Show the "Print" item in the .bat and .cmd context menu
+	Show the "Print" item in the .bat and .cmd context menu (default value)
 
 	.EXAMPLE
 	PrintCMDContext -Hide
@@ -407,7 +407,7 @@ function PrintCMDContext
 	Hide the "Compressed (zipped) Folder" item from the "New" context menu
 
 	.PARAMETER Show
-	Show the "Compressed (zipped) Folder" item to the "New" context menu
+	Show the "Compressed (zipped) Folder" item to the "New" context menu (default value)
 
 	.EXAMPLE
 	CompressedFolderNewContext -Hide
@@ -469,7 +469,7 @@ function CompressedFolderNewContext
 	Enable the "Open", "Print", and "Edit" items if more than 15 files selected
 
 	.PARAMETER Disable
-	Disable the "Open", "Print", and "Edit" items if more than 15 files selected
+	Disable the "Open", "Print", and "Edit" items if more than 15 files selected (default value)
 
 	.EXAMPLE
 	MultipleInvokeContext -Enable
@@ -526,7 +526,7 @@ function MultipleInvokeContext
 	Hide the "Look for an app in the Microsoft Store" item in the "Open with" dialog
 
 	.PARAMETER Show
-	Show the "Look for an app in the Microsoft Store" item in the "Open with" dialog
+	Show the "Look for an app in the Microsoft Store" item in the "Open with" dialog (default value)
 
 	.EXAMPLE
 	UseStoreOpenWith -Hide
@@ -594,7 +594,7 @@ function UseStoreOpenWith
 	Hide the "Open in Windows Terminal" item in the folders context menu
 
 	.PARAMETER Show
-	Show the "Open in Windows Terminal" item in the folders context menu
+	Show the "Open in Windows Terminal" item in the folders context menu (default value)
 
 	.EXAMPLE
 	OpenWindowsTerminalContext -Show
@@ -663,7 +663,7 @@ function OpenWindowsTerminalContext
 	Open Windows Terminal in context menu as administrator by default
 
 	.PARAMETER Disable
-	Do not open Windows Terminal in context menu as administrator by default
+	Do not open Windows Terminal in context menu as administrator by default (default value)
 
 	.EXAMPLE
 	OpenWindowsTerminalAdminContext -Enable

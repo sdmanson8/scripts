@@ -58,9 +58,7 @@ param
 Clear-Host
 
 #region InitialActions
-
 # Get the OS version
-#$osVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").ReleaseId
 $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
 
 # Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
@@ -251,62 +249,57 @@ Stop-Foreground
 	Disabling the "Connected User Experiences and Telemetry" service (DiagTrack) can cause you not being able to get Xbox achievements anymore and affects Feedback Hub
 #>
 DiagTrackService -Disable
-
 # Enable the "Connected User Experiences and Telemetry" service (DiagTrack), and allow the connection for the Unified Telemetry Client Outbound Traffic (default value)
 # DiagTrackService -Enable
 
 # Set the diagnostic data collection to minimum
 DiagnosticDataLevel -Minimal
-
 # Set the diagnostic data collection to default (default value)
 # DiagnosticDataLevel -Default
 
 # Turn off the Windows Error Reporting
 ErrorReporting -Disable
-
 # Turn on the Windows Error Reporting (default value)
 # ErrorReporting -Enable
 
 # Change the feedback frequency to "Never"
 FeedbackFrequency -Never
-
 # Change the feedback frequency to "Automatically" (default value)
 # FeedbackFrequency -Automatically
 
 # Turn off the diagnostics tracking scheduled tasks
 ScheduledTasks -Disable
-
 # Turn on the diagnostics tracking scheduled tasks (default value)
 # ScheduledTasks -Enable
 
-# Enable Offering of Malicious Software Removal Tool through Windows Update
+# Enable Offering of Malicious Software Removal Tool through Windows Update (default value)
 # UpdateMSRT -Enable
 # Disable Offering of Malicious Software Removal Tool through Windows Update
 UpdateMSRT -Disable
 
-# Enable Offering of drivers through Windows Update
+# Enable Offering of drivers through Windows Update (default value)
 # Note: This doesn't work properly if you use a driver intended for another hardware model. E.g. Intel I219-V on WinServer works only with I219-LM driver.
-UpdateDriver -Enable
+# UpdateDriver -Enable
 # Disable Therefore Windows update will repeatedly try and fail to install I219-V driver indefinitely even if you use the tweak.
 # Note: This doesn't work properly if you use a driver intended for another hardware model. E.g. Intel I219-V on WinServer works only with I219-LM driver.
-# UpdateDriver -Disable
+UpdateDriver -Disable
 
 # Enable Receiving updates for other Microsoft products via Windows Update
 # UpdateMSProducts -Enable
-# Disable Receiving updates for other Microsoft products via Windows Update
+# Disable Receiving updates for other Microsoft products via Windows Update (default value)
 UpdateMSProducts -Disable
 
-# Enable Windows Update automatic downloads
+# Enable Windows Update automatic downloads (default value)
 # UpdateAutoDownload -Enable
 # Disable Windows Update automatic downloads
 UpdateAutoDownload -Disable
 
-# Enable Automatic restart after Windows Update installation
+# Enable Automatic restart after Windows Update installation (default value)
 # UpdateRestart -Enable
 # Disable Automatic restart after Windows Update installation
 UpdateRestart -Disable
 
-# Enable Nightly wake-up for Automatic Maintenance and Windows Updates
+# Enable Nightly wake-up for Automatic Maintenance and Windows Updates (default value)
 # MaintenanceWakeUp -Enable
 # Disable Nightly wake-up for Automatic Maintenance and Windows Updates
 MaintenanceWakeUp -Disable
@@ -320,42 +313,42 @@ SharedExperiences -Disable
 
 # Enable Clipboard History - Applicable since 1809. Not applicable to Server
 ClipboardHistory -Enable
-# Disable Clipboard History - Applicable since 1809. Not applicable to Server
+# Disable Clipboard History - Applicable since 1809. Not applicable to Server (default value)
 # ClipboardHistory -Disable
 
-# Enable Superfetch service
+# Enable Superfetch service (default value)
 # Superfetch -Enable
 # Disable Superfetch service
 Superfetch -Disable
 
 # Enable NTFS paths with length over 260 characters
 NTFSLongPaths -Enable
-# Disable NTFS paths with length over 260 characters
+# Disable NTFS paths with length over 260 characters (default value)
 # NTFSLongPaths -Disable
 
-# Enable Updating of NTFS last access timestamps
+# Enable Updating of NTFS last access timestamps (default value)
 NTFSLastAccess -Enable
 # Disable Updating of NTFS last access timestamps
 # NTFSLastAccess -Disable
 
-# Enable Sleep start menu and keyboard button
+# Enable Sleep start menu and keyboard button (default value)
 # SleepButton -Enable
 # Disable Sleep start menu and keyboard button
 SleepButton -Disable
 
-# Enable Display and sleep mode timeouts
+# Enable Display and sleep mode timeouts (default value)
 #SleepTimeout -Enable
 # Disable Display and sleep mode timeouts
 SleepTimeout -Disable
 
-# Enable Fast Startup
+# Enable Fast Startup (default value)
 # FastStartup -Enable
 # Disable Fast Startup
 FastStartup -Disable
 
 # Enable Automatic reboot on crash (BSOD)
 # AutoRebootOnCrash -Enable
-# Disable Automatic reboot on crash (BSOD)
+# Disable Automatic reboot on crash (BSOD) (default value)
 AutoRebootOnCrash -Disable
 
 # Do not use sign-in info to automatically finish setting up device after an update
@@ -384,9 +377,9 @@ WindowsWelcomeExperience -Hide
 LockWidgets -Disable
 
 # Get tips and suggestions when I use Windows (default value)
-WindowsTips -Enable
+# WindowsTips -Enable
 # Do not get tips and suggestions when I use Windows
-# WindowsTips -Disable
+WindowsTips -Disable
 
 # Hide from me suggested content in the Settings app
 SettingsSuggestedContent -Hide
@@ -423,12 +416,12 @@ StartAccountNotifications -Hide
 # Show Microsoft account-related notifications on Start Menu in Start menu (default value)
 # StartAccountNotifications -Show
 
-
 # Enable WiFi Sense to share WiFi networks with contacts and connect to suggested open hotspots.
 # WiFiSense -Enable
 # Disable WiFi Sense to prevent automatic connections to open hotspots and sharing of WiFi networks with contacts.
 WiFiSense -Disable
-# Enable web search integration in system search (e.g., Cortana or Windows Search).
+
+# Enable web search integration in system search (e.g., Cortana or Windows Search). (default value)
 # WebSearch -Enable
 # Disable web search to limit searches to local files, apps, and settings only.
 WebSearch -Disable
@@ -439,7 +432,7 @@ WebSearch -Disable
 # Note: The checkbox "Store my activity history on this device" ("Let Windows collect my activities from this PC" on older versions) remains checked even when the function is disabled.
 ActivityHistory -Disable
 
-# Enable device sensors such as accelerometer, gyroscope, and ambient light sensor.
+# Enable device sensors such as accelerometer, gyroscope, and ambient light sensor. (default value)
 Sensors -Enable
 # Disable device sensors to restrict apps and system components from accessing sensor data.
 # Sensors -Disable
@@ -459,13 +452,13 @@ MapUpdates -Disable
 # Disable synchronization of web languages to keep preferences local to the device.
 WebLangList -Disable
 
-# Enable access to the camera for apps and system services that use the Windows camera API.
+# Enable access to the camera for apps and system services that use the Windows camera API. (default value)
 Camera -Enable
 # Disable camera access to prevent apps and services from using the device camera via standard Windows API.
 # Note: Disabling this will not prevent direct hardware-level access by certain apps.
 # Camera -Disable
 
-# Enable microphone access for voice input and recording via the Windows audio API.
+# Enable microphone access for voice input and recording via the Windows audio API. (default value)
 Microphone -Enable
 # Disable microphone access to prevent apps and services from using the device microphone via standard Windows API.
 # Note: Disabling this will not prevent direct hardware-level access by certain apps.
@@ -479,11 +472,11 @@ WAPPush -Enable
 
 # Enable automatic clearing of recent files list upon system logout.
 ClearRecentFiles -Enable
-# Disable automatic clearing to retain recent files after logout.
+# Disable automatic clearing to retain recent files after logout. (default value)
 # Note: Empties most recently used (MRU) lists such as the 'Recent Items' menu on the Start menu, jump lists, and file shortcuts in applications upon logout.
 # ClearRecentFiles -Disable
 
-# Enable tracking of recently accessed files to maintain a list of most recently used (MRU) items.
+# Enable tracking of recently accessed files to maintain a list of most recently used (MRU) items. (default value)
 # RecentFiles -Enable
 # Disable tracking to stop the creation of most recently used (MRU) items lists.
 # Note: Prevents the creation of MRU lists such as the 'Recent Items' menu on the Start menu, jump lists, and file shortcuts in applications.
@@ -608,27 +601,27 @@ WPBT -Disable
 DiskCleanup
 
 # Apply recommended startup types to Windows services
-ServicesManual -Enable
+# ServicesManual -Enable
 # Restore Windows services to their original startup types (default value)
-# ServicesManual -Disable
+ServicesManual -Disable
 
 # CAUTION: Blocking Adobe network access may prevent license validation, disable Creative Cloud syncing, break cloud-based features, trigger subscription errors, and may violate Adobe license terms
-# Enable Adobe Network Block (default value)
-AdobeNetworkBlock -Enable
-# Disable Adobe Network Block 
-# AdobeNetworkBlock -Disable
+# Enable Adobe Network Block 
+# AdobeNetworkBlock -Enable
+# Disable Adobe Network Block (default value)
+AdobeNetworkBlock -Disable
 
 # CAUTION: Blocking Razer software installation may prevent Razer Synapse from updating, disable RGB/macro functionality, stop firmware updates, and cause limited device features
-# Enable Razer Software Block (default value)
+# Enable Razer Software Block 
 RazerBlock -Enable
-# Disable Razer Software Block 
+# Disable Razer Software Block (default value)
 # RazerBlock -Disable
 
 # CAUTION: Brave Debloat disables rewards, wallet, VPN, and AI chat features - only use if you want to remove these features completely
-# Enable Brave Debloat (default value)
-BraveDebloat -Enable
-# Disable Brave Debloat 
-# BraveDebloat -Disable
+# Enable Brave Debloat 
+# BraveDebloat -Enable
+# Disable Brave Debloat (default value)
+BraveDebloat -Disable
 
 # CAUTION: Disabling Fullscreen Optimizations may reduce gaming performance in some applications - use only for troubleshooting
 # Enable Fullscreen Optimizations (default value)
@@ -644,86 +637,80 @@ Teredo -Disable
 #endregion System Tweaks
 
 #region UI & Personalization
-
 # Enable Full directory path in Explorer title bar
 ExplorerTitleFullPath -Enable
-# Disable Full directory path in Explorer title bar
+# Disable Full directory path in Explorer title bar (default value)
 # ExplorerTitleFullPath -Disable
-
-# Enable Folder merge conflicts
-FolderMergeConflicts -Enable
-# Disable Folder merge conflicts
-# FolderMergeConflicts -Disable
 
 # Enable All folders in Explorer navigation pane
 NavPaneAllFolders -Enable
-# Disable All folders in Explorer navigation pane
+# Disable All folders in Explorer navigation pane (default value)
 # NavPaneAllFolders -Disable
 
 # Enable Libraries in Explorer navigation pane
 NavPaneLibraries -Enable
-# Disable Libraries in Explorer navigation pane
+# Disable Libraries in Explorer navigation pane (default value)
 # NavPaneLibraries -Disable
 
 # Enable Launch folder windows in a separate process
 # FldrSeparateProcess -Enable
-# Disable Launch folder windows in a separate process
+# Disable Launch folder windows in a separate process (default value)
 FldrSeparateProcess -Disable
 
 # Enable Restore previous folder windows at logon
 # RestoreFldrWindows -Enable
-# Disable Restore previous folder windows at logon
+# Disable Restore previous folder windows at logon (default value)
 RestoreFldrWindows -Disable
 
-# Enable Coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed)
+# Enable Coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed) (default value)
 EncCompFilesColor -Enable
 # Disable Coloring of encrypted or compressed NTFS files (green for encrypted, blue for compressed)
 # EncCompFilesColor -Disable
 
 # Enable Sharing Wizard
 # SharingWizard -Enable
-# Disable Sharing Wizard
+# Disable Sharing Wizard (default value)
 SharingWizard -Disable
 
 # Enable Item selection checkboxes
 # SelectCheckboxes -Enable
-# Disable Item selection checkboxes
+# Disable Item selection checkboxes (default value)
 SelectCheckboxes -Disable
 
 # Enable Sync provider notifications
 # SyncNotifications -Enable
-# Disable Sync provider notifications
+# Disable Sync provider notifications (default value)
 SyncNotifications -Disable
 
 # Enable recently and frequently used item shortcuts in Explorer
 # RecentShortcuts -Enable
-# Disable recently and frequently used item shortcuts in Explorer
+# Disable recently and frequently used item shortcuts in Explorer (default value)
 # Note: This is only UI tweak to hide the shortcuts. In order to stop creating most recently used (MRU) items lists everywhere, use privacy tweak 'DisableRecentFiles' instead.
 RecentShortcuts -Disable
 
 # Enable Windows build number and Windows edition (Home/Pro/Enterprise) from bottom right of desktop
 # BuildNumberOnDesktop -Enable
-# Disable Windows build number and Windows edition (Home/Pro/Enterprise) from bottom right of desktop
+# Disable Windows build number and Windows edition (Home/Pro/Enterprise) from bottom right of desktop (default value)
 BuildNumberOnDesktop -Disable
 
-# Enable 'Share' context menu item. Applicable since 1709
+# Enable 'Share' context menu item. Applicable since 1709 (default value)
 ShareMenu -Enable
 # Disable 'Share' context menu item. Applicable since 1709
 # ShareMenu -Disable
 
 # Enable thumbnails, show only file extension icons
 # Thumbnails -Enable
-# Disable thumbnails, show only file extension icons
+# Disable thumbnails, show only file extension icons (default value)
 Thumbnails -Disable
 
 # Enable creation of thumbnail cache files
 # ThumbnailCache -Enable
-# Disable creation of thumbnail cache files
+# Disable creation of thumbnail cache files (default value)
 ThumbnailCache -Disable
 
 # Enable creation of Thumbs.db thumbnail cache files on network folders
 # ThumbsDBOnNetwork -Enable
-# Disable creation of Thumbs.db thumbnail cache files on network folders
+# Disable creation of Thumbs.db thumbnail cache files on network folders (default value)
 ThumbsDBOnNetwork -Disable
 
 # Show the "This PC" icon on Desktop
@@ -743,7 +730,7 @@ HiddenItems -Disable
 
 # Enable Protected operating system files
 # SuperHiddenFiles -Enable
-# Disable Protected operating system files
+# Disable Protected operating system files (default value)
 SuperHiddenFiles -Disable
 
 # Show file name extensions
@@ -792,6 +779,7 @@ RecycleBinDeleteConfirmation -Enable
 QuickAccessRecentFiles -Hide
 # Show recently used files in Quick access (default value)
 # QuickAccessRecentFiles -Show
+
 # Hide frequently used folders in Quick access
 QuickAccessFrequentFolders -Hide
 # Show frequently used folders in Quick access (default value)
@@ -874,7 +862,7 @@ FirstLogonAnimation -Disable
 
 # Set the quality factor of the JPEG desktop wallpapers to maximum
 JPEGWallpapersQuality -Max
-# Set the quality factor of the JPEG desktop wallpapers to default
+# Set the quality factor of the JPEG desktop wallpapers to default (default value)
 # JPEGWallpapersQuality -Default
 
 # Do not add the "- Shortcut" suffix to the file name of created shortcuts
@@ -882,7 +870,7 @@ ShortcutsSuffix -Disable
 # Add the "- Shortcut" suffix to the file name of created shortcuts (default value)
 # ShortcutsSuffix -Enable
 
-# Enable Shortcut icon arrow
+# Enable Shortcut icon arrow (default value)
 ShortcutArrow -Enable
 # Disable Shortcut icon arrow
 # ShortcutArrow -Disable
@@ -914,42 +902,41 @@ NavigationPaneExpand -Disable
 
 # Remove Recommended section in Start Menu. Applicable only to Enterprise and Education editions, but not to IoT Enterprise
 StartRecommendedSection -Hide
-# Show Recommended section in Start Menu (default value). Applicable only to Enterprise and Education editions, but not to IoT Enterprise
+# Show Recommended section in Start Menu. Applicable only to Enterprise and Education editions, but not to IoT Enterprise
 # StartRecommendedSection -Show
 #endregion UI & Personalization
 
 #region OneDrive
 # Uninstall OneDrive. The OneDrive user folder won't be removed
 OneDrive -Uninstall
-# Install OneDrive 64-bit (default value)
+# Install OneDrive 64-bit
 # OneDrive -Install
-
 # Install OneDrive 64-bit all users to %ProgramFiles% depending which installer is triggered
 # OneDrive -Install -AllUsers
 #endregion OneDrive
 
 #region System
-# Enable Lock screen
+# Enable Lock screen (default value)
 LockScreen -Enable
 # Disable Lock screen
 # LockScreen -Disable
 
-# Enable Lock screen - Applicable since 1903
+# Enable Lock screen - Applicable since 1903 (default value)
 LockScreenRS1 -Enable
 # Disable Lock screen - Applicable since 1903
 # LockScreenRS1 -Disable
 
-# Enable Network options from Lock Screen
+# Enable Network options from Lock Screen (default value)
 NetworkFromLockScreen -Enable
 # Disable Network options from Lock Screen
 # NetworkFromLockScreen -Disable
 
-# Enable Shutdown options from Lock Screen
+# Enable Shutdown options from Lock Screen (default value)
 ShutdownFromLockScreen -Enable
 # Disable Shutdown options from Lock Screen
 # ShutdownFromLockScreen -Disable
 
-# Enable Lock screen Blur - Applicable since 1903
+# Enable Lock screen Blur - Applicable since 1903 (default value)
 LockScreenBlur -Enable
 # Disable Lock screen Blur - Applicable since 1903
 # LockScreenBlur -Disable
@@ -966,12 +953,12 @@ FileOperationsDetails -Enable
 
 # Enable File delete confirmation dialog
 FileDeleteConfirm -Enable
-# Disable File delete confirmation dialog
+# Disable File delete confirmation dialog (default value)
 # FileDeleteConfirm -Disable
 
 # Enable All tray icons
 # TrayIcons -Enable
-# Disable All tray icons
+# Disable All tray icons (default value)
 TrayIcons -Disable
 
 # Enable 'Search for app in store for unknown extensions'
@@ -989,45 +976,45 @@ NewAppPrompt -Disable
 # Disable 'Recently added' list from the Start Menu
 RecentlyAddedApps -Disable
 
-# Enable 'Most used' apps list from the Start Menu - Applicable until 1703 (hidden by default since then)
+# Enable 'Most used' apps list from the Start Menu - Applicable until 1703
 # MostUsedApps -Enable
-# Disable 'Most used' apps list from the Start Menu - Applicable until 1703 (hidden by default since then)
+# Disable 'Most used' apps list from the Start Menu - Applicable until 1703
 MostUsedApps -Disable
 
 # Adjusts visual effects to Performance
 VisualFX -Performance
-# Adjusts visual effects to Appearance
+# Adjusts visual effects to Appearance (default value)
 # VisualFX -Appearance
 
 # Enable Window title bar color according to prevalent background color
 TitleBarColor -Enable
-# Disable Window title bar color according to prevalent background color
+# Disable Window title bar color according to prevalent background color (default value)
 # TitleBarColor -Disable
 
 # Enable Enhanced pointer precision
 EnhPointerPrecision -Enable
-# Disable Enhanced pointer precision
+# Disable Enhanced pointer precision (default value)
 # EnhPointerPrecision -Disable
 
 # Enable Play Windows Startup sound
 StartupSound -Enable
-# Disable Play Windows Startup sound
+# Disable Play Windows Startup sound (default value)
 # StartupSound -Disable
 
-# Enable Change sound scheme
+# Enable Change sound scheme (default value)
 # ChangingSoundScheme -Enable
 # Disable Change sound scheme
 ChangingSoundScheme -Disable
 
 # Enable Verbose startup/shutdown status messages
-VerboseStatus -Enable
-# Disable Verbose startup/shutdown status messages
-# VerboseStatus -Disable
+# VerboseStatus -Enable
+# Disable Verbose startup/shutdown status messages (default value)
+VerboseStatus -Disable
 
 # Turn on Storage Sense
-StorageSense -Enable
-# Turn off Storage Sense (default value)
-# StorageSense -Disable
+# StorageSense -Enable
+# Turn off Storage Sense 
+StorageSense -Disable
 
 # Disable hibernation. It isn't recommended to turn off for laptops
 Hibernation -Disable
@@ -1045,9 +1032,9 @@ BSoDStopError -Enable
 # BSoDStopError -Disable
 
 # Choose when to be notified about changes to your computer: never notify
-AdminApprovalMode -Never
+# AdminApprovalMode -Never
 # Choose when to be notified about changes to your computer: notify me only when apps try to make changes to my computer (default value)
-# AdminApprovalMode -Default
+AdminApprovalMode -Default
 
 # Turn off Delivery Optimization
 DeliveryOptimization -Disable
@@ -1082,22 +1069,22 @@ CurrentNetwork -Private
 
 # Set Unknown network profile to Private
 UnknownNetworks -Private
-# Set unknown networks profile to Public
+# Set unknown networks profile to Public (default value)
 # UnknownNetworks -Public
 
-# Enable Automatic installation of network devices
+# Enable Automatic installation of network devices (default value)
 NetDevicesAutoInst -Enable
 # Disable Automatic installation of network devices
 # NetDevicesAutoInst -Disable
 
 # Enable Home Groups services - Not applicable since 1803. Not applicable to Server
 # HomeGroups -Enable
-# Disable Home Groups services - Not applicable since 1803. Not applicable to Server
+# Disable Home Groups services - Not applicable since 1803. Not applicable to Server (default value)
 HomeGroups -Disable
 
 # Enable Obsolete SMB 1.0 protocol - Disabled by default since 1709
 # SMB1 -Enable
-# Disable Obsolete SMB 1.0 protocol - Disabled by default since 1709
+# Disable Obsolete SMB 1.0 protocol - Disabled by default since 1709 (default value)
 SMB1 -Disable
 
 # Enable file and printer sharing
@@ -1111,22 +1098,22 @@ SMBServer -Enable
 # Disable NetBIOS over TCP/IP on all currently installed network interfaces
 NetBIOS -Disable
 
-# Enable Link-Local Multicast Name Resolution (LLMNR) protocol
+# Enable Link-Local Multicast Name Resolution (LLMNR) protocol (default value)
 LLMNR -Enable
 # Disable Link-Local Multicast Name Resolution (LLMNR) protocol
 # LLMNR -Disable
 
-# Enable Client for Microsoft Networks for all installed network interfaces
+# Enable Client for Microsoft Networks for all installed network interfaces (default value)
 MSNetClient -Enable
 # Disable Client for Microsoft Networks for all installed network interfaces
 # MSNetClient -Disable
 
-# Enable Quality of Service (QoS) packet scheduler for all installed network interfaces
+# Enable Quality of Service (QoS) packet scheduler for all installed network interfaces (default value)
 QoS -Enable
 # Disable Quality of Service (QoS) packet scheduler for all installed network interfaces
 # QoS -Disable
 
-# Enable Network Connectivity Status Indicator active test
+# Enable Network Connectivity Status Indicator active test (default value)
 NCSIProbe -Enable
 # Disable Network Connectivity Status Indicator active test
 # Note: This may reduce the ability of OS and other components to determine internet access, however protects against a specific type of zero-click attack.
@@ -1135,18 +1122,18 @@ NCSIProbe -Enable
 
 # Enable Internet Connection Sharing (e.g. mobile hotspot)
 ConnectionSharing -Enable
-# Disable Internet Connection Sharing (e.g. mobile hotspot)
+# Disable Internet Connection Sharing (e.g. mobile hotspot) (default value)
 # ConnectionSharing -Disable
 
 # Receive updates for other Microsoft products
-UpdateMicrosoftProducts -Enable
+# UpdateMicrosoftProducts -Enable
 # Do not receive updates for other Microsoft products (default value)
-# UpdateMicrosoftProducts -Disable
+UpdateMicrosoftProducts -Disable
 
 # Notify me when a restart is required to finish updating
-RestartNotification -Show
+# RestartNotification -Show
 # Do not notify me when a restart is required to finish updating (default value)
-# RestartNotification -Hide
+RestartNotification -Hide
 
 # Restart as soon as possible to finish updating
 # RestartDeviceAfterUpdate -Enable
@@ -1154,9 +1141,9 @@ RestartNotification -Show
 RestartDeviceAfterUpdate -Disable
 
 # Automatically adjust active hours for me based on daily usage
-ActiveHours -Automatically
+# ActiveHours -Automatically
 # Manually adjust active hours for me based on daily usage (default value)
-# ActiveHours -Manually
+ActiveHours -Manually
 
 # Do not get the latest updates as soon as they're available (default value)
 WindowsLatestUpdate -Disable
@@ -1215,16 +1202,16 @@ LatestInstalled.NET -Enable
 	Run troubleshooter automatically, then notify me
 	In order this feature to work Windows level of diagnostic data gathering will be set to "Optional diagnostic data", and the error reporting feature will be turned on
 #>
-RecommendedTroubleshooting -Automatically
+# RecommendedTroubleshooting -Automatically
 <#
 	Ask me before running troubleshooter (default value)
 	In order this feature to work Windows level of diagnostic data gathering will be set to "Optional diagnostic data"
 #>
-# RecommendedTroubleshooting -Default
+RecommendedTroubleshooting -Default
 
 # Disable and delete reserved storage after the next update installation
 ReservedStorage -Disable
-# Enable reserved storage (default value)
+# Enable reserved storage
 # ReservedStorage -Enable
 
 # Disable help lookup via F1
@@ -1240,7 +1227,7 @@ NumLock -Enable
 # Disable Caps Lock
 # CapsLock -Disable
 # Enable Caps Lock (default value)
-# CapsLock -Enable
+CapsLock -Enable
 
 # Turn off pressing the Shift key 5 times to turn Sticky keys
 StickyShift -Disable
@@ -1290,10 +1277,10 @@ DefaultTerminalApp -WindowsTerminal
 # DefaultTerminalApp -ConsoleHost
 
 # Install the latest Microsoft Visual C++ Redistributable Packages 2015–2022 (x86/x64)
-# Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64
+Install-VCRedist -Redistributables 2015_2022_x86, 2015_2022_x64
 
 # Install the latest .NET Desktop Runtime 8, 9 x64
-# Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
+Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
 
 # List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
@@ -1303,7 +1290,7 @@ PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
 # Back up the system registry to %SystemRoot%\System32\config\RegBack folder when PC restarts and create a RegIdleBackup in the Task Scheduler task to manage subsequent backups
 # RegistryBackup -Enable
 # Do not back up the system registry to %SystemRoot%\System32\config\RegBack folder (default value)
-# RegistryBackup -Disable
+RegistryBackup -Disable
 #endregion System
 
 #region WSL
@@ -1331,44 +1318,49 @@ Copilot -Uninstall
 
 # Install UWP apps using the pop-up dialog box
 # UWPApps -Install
+<#
+	Install UWP apps for all users using the pop-up dialog box
+	If the "For All Users" is checked, apps packages will be installed for new users
+#>
+# UWPApps -Install -ForAllUsers
 # Uninstall UWP apps using the pop-up dialog box
 UWPApps -Uninstall
 <#
 	Uninstall UWP apps for all users using the pop-up dialog box
-	If the "For All Users" is checked apps packages will not be installed for new users
+	If the "For All Users" is checked, apps packages will not be installed for new users
 #>
-# UWPApps -ForAllUsers
+# UWPApps -Uninstall -ForAllUsers
 
 # Disable Cortana autostarting
 CortanaAutostart -Disable
-# Enable Cortana autostarting (default value)
+# Enable Cortana autostarting
 # CortanaAutostart -Enable
 
-# Enable New Outlook (default value)
+# Enable New Outlook
 # NewOutlook -Enable
 # Disable New Outlook 
 NewOutlook -Disable
 
-# CAUTION: Disabling Background Apps prevents apps from running in the background - may affect notifications, updates, and sync functionality
 # Enable Background Apps (default value)
+# CAUTION: Disabling Background Apps prevents apps from running in the background - may affect notifications, updates, and sync functionality
 BackgroundApps -Enable
 # Disable Background Apps 
 # BackgroundApps -Disable
 
-# CAUTION: Disabling Notifications will completely turn off Windows notifications - you won't receive app alerts, system warnings, reminders, or calendar events
 # Enable Notification Tray/Calendar (default value)
+# CAUTION: Disabling Notifications will completely turn off Windows notifications - you won't receive app alerts, system warnings, reminders, or calendar events
 Notifications -Enable
 # Disable Notification Tray/Calendar 
 # Notifications -Disable
 
+# Enable Edge Debloat
 # CAUTION: Edge Debloat enforces multiple Group Policy settings that may affect Edge functionality including telemetry, personalization, shopping assistant, collections, rewards, and Copilot
-# Enable Edge Debloat (default value)
-# EdgeDebloat -Enable
-# Disable Edge Debloat 
-EdgeDebloat -Disable
+EdgeDebloat -Enable
+# Disable Edge Debloat (default value)
+# EdgeDebloat -Disable
 
-# CAUTION: Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling
 # Enable Revert Start Menu (revert to original Start Menu from 24H2)
+# CAUTION: Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling
 # RevertStartMenu -Enable
 # Disable Revert Start Menu (restore new Start Menu) (default value)
 RevertStartMenu -Disable
@@ -1386,7 +1378,7 @@ XboxGameBar -Disable
 # Disable Xbox Game Bar tips
 # Xbox Game Bar
 XboxGameTips -Disable
-# Enable Xbox Game Bar tips (default value)
+# Enable Xbox Game Bar tips
 # XboxGameTips -Enable
 
 # Choose an app and set the "High performance" graphics performance for it. Only if you have a dedicated GPU
@@ -1433,9 +1425,9 @@ NetworkProtection -Enable
 # NetworkProtection -Disable
 
 # Enable detection for potentially unwanted applications and block them
-PUAppsDetection -Enable
+# PUAppsDetection -Enable
 # Disable detection for potentially unwanted applications and block them (default value)
-# PUAppsDetection -Disable
+PUAppsDetection -Disable
 
 # Enable sandboxing for Microsoft Defender
 DefenderSandbox -Enable
@@ -1448,7 +1440,7 @@ DismissMSAccount
 # Dismiss Microsoft Defender offer in the Windows Security about turning on the SmartScreen filter for Microsoft Edge
 DismissSmartScreenFilter
 
-# Create the "Process Creation" ustom view in the Event Viewer to log executed processes and their arguments
+# Create the "Process Creation" custom view in the Event Viewer to log executed processes and their arguments
 EventViewerCustomView -Enable
 # Remove the "Process Creation" custom view in the Event Viewer to log executed processes and their arguments (default value)
 # EventViewerCustomView -Disable
@@ -1476,12 +1468,12 @@ SaveZoneInformation -Disable
 # Disable Windows Script Host. Blocks WSH from executing .js and .vbs files
 # WindowsScriptHost -Disable
 # Enable Windows Script Host (default value)
-# WindowsScriptHost -Enable
+WindowsScriptHost -Enable
 
 # Enable Windows Sandbox. Applicable only to Professional, Enterprise and Education editions
 # WindowsSandbox -Enable
 # Disable Windows Sandbox (default value). Applicable only to Professional, Enterprise and Education editions
-# WindowsSandbox -Disable
+WindowsSandbox -Disable
 
 <#
 	Enable DNS-over-HTTPS for IPv4
@@ -1493,25 +1485,25 @@ DNSoverHTTPS -Disable
 
 # Enable Local Security Authority protection to prevent code injection
 # LocalSecurityAuthority -Enable
-# Disable Local Security Authority protection (default value)
+# Disable Local Security Authority protection
 LocalSecurityAuthority -Disable
 
 # Enable sharing mapped drives between users
 SharingMappedDrives -Enable
-# Disable sharing mapped drives between users
-SharingMappedDrives -Disable
+# Disable sharing mapped drives between users (default value)
+# SharingMappedDrives -Disable
 
-# Enable Firewall
+# Enable Firewall (default value)
 Firewall -Enable
 # Disable Firewall
 # Firewall -Disable
 
-# Show Windows Defender SysTray icon
+# Show Windows Defender SysTray icon (default value)
 # DefenderTrayIcon -Enable
 # Hide Windows Defender SysTray icon
 DefenderTrayIcon -Disable
 
-# Enable Windows Defender Cloud
+# Enable Windows Defender Cloud (default value)
 DefenderCloud -Enable
 # Disable Windows Defender Cloud
 # DefenderCloud -Disable
@@ -1526,7 +1518,7 @@ CIMemoryIntegrity -Disable
 # Enable Windows Defender Application Guard - Applicable since 1709 Enterprise and 1803 Pro. Not applicable to Server
 # Not supported on VMs and VDI environment. Check requirements on https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-application-guard/reqs-wd-app-guard
 DefenderAppGuard -Enable
-# Disable Windows Defender Application Guard
+# Disable Windows Defender Application Guard (default value)
 # DefenderAppGuard -Disable
 
 # Show Account Protection warning in Defender
@@ -1534,29 +1526,27 @@ DefenderAppGuard -Enable
 # Hide Account Protection warning in Defender about not using a Microsoft account
 AccountProtectionWarn -Disable
 
-# Enable blocking of downloaded files (i.e. storing zone information)
+# Enable blocking of downloaded files (i.e. storing zone information) (default value)
 # DownloadBlocking -Enable
 # Disable blocking of downloaded files
 DownloadBlocking -Disable
 
 # Enable F8 boot menu options
 F8BootMenu -Enable
-# Disable F8 boot menu options
+# Disable F8 boot menu options (default value)
 # F8BootMenu -Disable
 
-# Enable automatic recovery mode during boot
-# BootRecovery -Enable
-
+# Enable automatic recovery mode during boot (default value)
+BootRecovery -Enable
 # Disable automatic recovery mode during boot
 # This causes boot process to always ignore startup errors and attempt to boot normally
 # It is still possible to interrupt the boot and enter recovery mode manually. In order to disable even that, apply also DisableRecoveryAndReset tweak
-BootRecovery -Disable
+# BootRecovery -Disable
 
-# Set Data Execution Prevention (DEP) policy to OptIn
+# Set Data Execution Prevention (DEP) policy to OptIn (default value)
 # DEPOptOut -Enable
 # Set Data Execution Prevention (DEP) policy to OptOut
 DEPOptOut -Disable
-
 #endregion Microsoft Defender & Security
 
 #region Context menu
@@ -1650,13 +1640,6 @@ MostUsedStartApps -Hide
 # Show most used Apps in Start
 # MostUsedStartApps -Show
 #endregion Start Menu Apps
-
-#region Explorer
-# Do not restore previous folder windows at logon (default value)
-RestorePreviousFolders -Disable
-# Restore previous folder windows at logon
-# RestorePreviousFolders -Enable
-#endregion Explorer
 
 #region Update Policies
 <#

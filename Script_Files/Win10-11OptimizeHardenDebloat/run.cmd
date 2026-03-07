@@ -2,11 +2,17 @@
 color 1f
 cls
 
-:: -------------------------- Log File Setup --------------------------------------------
+:: Helper launcher for users who want to start Win10_11Util from Command Prompt
+:: or File Explorer instead of opening PowerShell manually.
+:: This script requests administrator rights if needed, starts
+:: Win10_11Util.ps1 with ExecutionPolicy Bypass, and writes a launcher log to
+:: %TEMP%\install_log.txt.
+
+:: Set up the batch launcher log in %TEMP%.
 set LOGFILE=%TEMP%\install_log.txt
 echo Installation started at %DATE% %TIME% > %LOGFILE%
 
-:: -------------------------- BatchGotAdmin -------------------------------------------
+:: Check whether this Command Prompt already has administrator rights.
 :-------------------------------------
 cls
 REM  --> Check for permissions
@@ -24,7 +30,7 @@ if '%errorlevel%' NEQ '0' (
 )
 
 :UACPrompt
-    REM --> Create and execute UAC prompt to request admin privileges
+    REM --> Prompt for elevation and restart this launcher as administrator
     echo Creating UAC prompt... >> %LOGFILE%
     echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
     set params=%*
@@ -36,24 +42,26 @@ if '%errorlevel%' NEQ '0' (
     exit /B
 
 :gotAdmin
-    REM --> We have admin privileges now
-    echo Admin privileges confirmed. Moving to the next step. >> %LOGFILE%
+    REM --> Continue from the script folder with elevated rights
+    echo Admin privileges confirmed. Starting Win10_11Util. >> %LOGFILE%
     pushd "%CD%"
     CD /D "%~dp0"
 :--------------------------------------
 
 cls
 
-:: Run Win10_11Util.ps1 in the foreground and keep batch script running in background
+:: Remove the previous Win10_11Util PowerShell log if it exists.
 if exist "%temp%\WinUtil Script for Windows 10.txt" (
     del /f /q "%temp%\WinUtil Script for Windows 10.txt" >nul 2>&1
 )
 if exist "%temp%\WinUtil Script for Windows 11.txt" (
     del /f /q "%temp%\WinUtil Script for Windows 11.txt" >nul 2>&1
 )
+
+:: Run the main PowerShell script from this folder.
 powershell -ExecutionPolicy Bypass -File ".\Win10_11Util.ps1"
 
-:: Once Win10_11Util.ps1 finishes, log the result and exit
+:: Record when the PowerShell run has finished and exit the launcher.
 echo %DATE% %TIME% - Win10_11Util.ps1 has finished. >> %LOGFILE%
 
 exit

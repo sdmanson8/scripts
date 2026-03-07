@@ -10,7 +10,7 @@ using module ..\Helpers.psm1
 	Hide recently added apps on Start
 
 	.PARAMETER Show
-	Show recently added apps in Start
+	Show recently added apps in Start (default value)
 
 	.EXAMPLE
 	RecentlyAddedStartApps -Hide
@@ -76,7 +76,7 @@ function RecentlyAddedStartApps
 	Most used apps in Start
 
 	.PARAMETER Hide
-	Hide most used Apps in Start
+	Hide most used Apps in Start (default value)
 
 	.PARAMETER Show
 	Show most used Apps in Start

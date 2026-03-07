@@ -10,7 +10,7 @@ using module ..\Helpers.psm1
 	Show seconds on the taskbar clock
 
 	.PARAMETER Hide
-	Hide seconds on the taskbar clock
+	Hide seconds on the taskbar clock (default value)
 
 	.EXAMPLE
 	SecondsInSystemClock -Show
@@ -67,7 +67,7 @@ function SecondsInSystemClock
 	Show time in Notification Center
 
 	.PARAMETER Hide
-	Hide time in Notification Center
+	Hide time in Notification Center (default value)
 
 	.EXAMPLE
 	ClockInNotificationCenter -Show

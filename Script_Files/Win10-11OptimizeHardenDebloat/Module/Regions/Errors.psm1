@@ -2,6 +2,18 @@ using module ..\Logging.psm1
 using module ..\Helpers.psm1
 
 #region Errors
+<#
+	.SYNOPSIS
+	Log the collected script errors and show the final log file location.
+
+	.DESCRIPTION
+	Filters the accumulated PowerShell error list, formats the remaining errors
+	with file and line information, writes them to the Win10_11Util log, and
+	then shows the user where the log file was saved.
+
+	.EXAMPLE
+	Errors
+#>
 function Errors
 {
     if ($Global:Error)

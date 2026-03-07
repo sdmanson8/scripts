@@ -1,29 +1,39 @@
 ﻿<#
     .SYNOPSIS
+    Loader module for Win10_11Util.
+
+    .DESCRIPTION
+    Imports shared modules and region modules, then exports their functions.
     This Script is a PowerShell module for Windows 10 & Windows 11 for fine-tuning and automating the routine tasks
 #>
 
-# Import logging module
+# Logging and helper functions are shared across all region modules, so we import them first to ensure they are available for use in the region modules.
+# Import shared modules used by all region modules
 Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force -Global
-
-# Load shared helper functions
 Import-Module -Name "$PSScriptRoot\Helpers.psm1" -Force -Global
 
-# Get the OS version
+# Detect the OS version from the current Windows build
 $currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
-
 if ([int]$currentBuild -ge 22000) {
     $osName = "Windows 11"
 }
 else {
     $osName = "Windows 10"
 }
-
-# Set up global log file
+# Initialize logging and write to an OS-specific log file in %TEMP%
 $global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for $osName.txt"
 Set-LogFile -Path $global:LogFilePath
 
-# Restart Script in Powershell 5.1 if running Powershell 7
+<#
+    .SYNOPSIS
+    Restart the script in Windows PowerShell 5.1 when launched from PowerShell 7.
+
+    .PARAMETER ScriptPath
+    Path to the script file that should be restarted in Windows PowerShell 5.1.
+
+    .EXAMPLE
+    Restart-Script -ScriptPath $MyInvocation.MyCommand.Path
+#>
 function Restart-Script
 {
 	param
@@ -67,7 +77,14 @@ function Restart-Script
 	}
 }
 
-# Load region modules
+<#
+    .SYNOPSIS
+    Load the region modules that provide the script's functions.
+
+    .DESCRIPTION
+    Imports Errors.psm1 and InitialActions.psm1 first because other region modules may depend on them.
+    Then imports the remaining region modules from the Regions folder in name order and exports their functions through this loader module.
+#>
 $RegionDir = Join-Path $PSScriptRoot 'Regions'
 
 $coreFiles = @('Errors.psm1', 'InitialActions.psm1')

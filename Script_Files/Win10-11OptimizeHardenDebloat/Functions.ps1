@@ -1,6 +1,6 @@
 <#
 	.SYNOPSIS
-	The TAB completion for functions and their arguments
+	Provides tab completion for Win10_11Util functions and arguments.
 
 	Version: 2.0.0
 	Date: 03.10.2021 - initial version
@@ -9,7 +9,7 @@
 	Copyright (c) 2021 - 2026 sdmanson8
 
 	.DESCRIPTION
-	Dot source the script first: . .\Function.ps1 (with a dot at the beginning)
+	Dot source the script first: . .\Functions.ps1 (with a dot at the beginning)
 	Start typing any characters contained in the function's name or its arguments, and press the TAB button
 
 	.EXAMPLE
@@ -18,15 +18,24 @@
 	Win10_11Util -Functions "DiagTrackService -Disable", "DiagnosticDataLevel -Minimal", UninstallUWPApps
 
 	.NOTES
-	Use commas to separate funtions
+	Use commas to separate functions and their arguments. If a function doesn't have arguments, just type its name. You can also use the TAB button to complete only the function name or only the argument name.
 
 	.LINK
 	https://github.com/sdmanson8/scripts
 #>
 
 #Requires -RunAsAdministrator
-#Requires -Version 5.1
 
+<#
+	.SYNOPSIS
+	Run one or more Win10_11Util functions after the module has been loaded.
+
+	.PARAMETER Functions
+	One or more function calls to execute.
+
+	.EXAMPLE
+	Win10_11Util -Functions "DiagTrackService -Disable", "BingSearch -Disable"
+#>
 function Win10_11Util
 {
 	[CmdletBinding()]
@@ -50,7 +59,7 @@ Clear-Host
 
 $Host.UI.RawUI.WindowTitle = "WinUtil Script for Windows 10/11"
 
-
+# Import the Win10_11Util module and load the localization strings used by its functions.
 Remove-Module -Name Win10_11Util -Force -ErrorAction Ignore
 Import-Module -Name $PSScriptRoot\Manifest\Win10_11Util.psd1 -PassThru -Force
 
@@ -63,10 +72,11 @@ catch
 	Import-LocalizedData -BindingVariable Global:Localization -UICulture en-US -BaseDirectory $PSScriptRoot\Localizations -FileName Win10_11Util
 }
 
-# The mandatory checks. Please, do not comment out this function
+# Run the mandatory startup checks before enabling tab completion.
+# DO NOT comment out or remove this line
 InitialActions
 
-
+# Register tab completion for the -Functions parameter so users can complete function names and arguments.
 $Parameters = @{
 	CommandName   = "Win10_11Util"
 	ParameterName = "Functions"
