@@ -2,7 +2,7 @@
     .SYNOPSIS
     Disables and removes Windows AI features such as Copilot, Recall, and related packages.
 
-    .VERSION
+	.VERSION
 	2.0.2
 
 	.DATE
@@ -11,7 +11,8 @@
 	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
 	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
 
-	Copyright (c) 2021 - 2026 sdmanson8
+	.AUTHOR
+	sdmanson8 - Copyright (c) 2021 - 2026
 
     .DESCRIPTION
     Validates the local Win10_11Util files, enforces Windows PowerShell 5.1,
@@ -333,11 +334,15 @@ $command
     $base64Command = [Convert]::ToBase64String($bytes)
 
 
-    try {
-        Stop-Service -Name TrustedInstaller -Force -ErrorAction SilentlyContinue | Out-Null -WarningAction SilentlyContinue | Out-Null
-    }
-    catch {
-        taskkill /im trustedinstaller.exe /f >$null
+    $trustedInstallerService = Get-Service -Name TrustedInstaller -ErrorAction SilentlyContinue
+    if ($trustedInstallerService -and $trustedInstallerService.Status -ne [System.ServiceProcess.ServiceControllerStatus]::Stopped) {
+        try {
+            Stop-Service -Name TrustedInstaller -Force -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+        }
+        catch {
+            taskkill /im trustedinstaller.exe /f >$null 2>&1
+            Remove-HandledErrorRecord -ErrorRecord $_
+        }
     }
     
     # trusted installer proc not found (128) or access denied (1)
@@ -362,11 +367,15 @@ $command
     sc.exe start TrustedInstaller | Out-Null
     #set bin back to default
     sc.exe config TrustedInstaller binpath= "`"$DefaultBinPath`"" | Out-Null
-    try {
-        Stop-Service -Name TrustedInstaller -Force -ErrorAction SilentlyContinue | Out-Null -WarningAction SilentlyContinue | Out-Null
-    }
-    catch {
-        taskkill /im trustedinstaller.exe /f >$null
+    $trustedInstallerService = Get-Service -Name TrustedInstaller -ErrorAction SilentlyContinue
+    if ($trustedInstallerService -and $trustedInstallerService.Status -ne [System.ServiceProcess.ServiceControllerStatus]::Stopped) {
+        try {
+            Stop-Service -Name TrustedInstaller -Force -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+        }
+        catch {
+            taskkill /im trustedinstaller.exe /f >$null 2>&1
+            Remove-HandledErrorRecord -ErrorRecord $_
+        }
     }
 }
 
@@ -382,13 +391,16 @@ function Write-Status {
         [switch]$warningOutput
     )
     if ($errorOutput) {
-        #Write-Host "[ ! ERROR ] $msg" -ForegroundColor Red
+        Write-ConsoleStatus -Status failed
     }
     elseif ($warningOutput) {
-        #Write-Host "[ * WARNING ] $msg" -ForegroundColor Yellow
+        Write-ConsoleStatus -Status warning
     }
     else {
-        Write-Host "$msg" -NoNewline
+        $action = ($msg -replace '\s*-\s*$', '').Trim()
+        if (-not [string]::IsNullOrWhiteSpace($action)) {
+            Write-ConsoleStatus -Action $action
+        }
     }
 }
 
@@ -503,8 +515,8 @@ function CreateRestorePoint {
         LogInfo "Creating Restore Point: [$restorePointName]"
        # Write-Status -msg 'This may take a moment - please wait'
         Checkpoint-Computer -Description $restorePointName -RestorePointType 'MODIFY_SETTINGS' 
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     else {
       <#  #Write-Status -msg 'Opening Restore Point Dialog - '
         try {
@@ -533,8 +545,8 @@ function CreateRestorePoint {
         LogInfo "Creating Restore Point: [$restorePointName]"
        # Write-Status -msg 'This may take a moment - please wait'
         Checkpoint-Computer -Description $restorePointName -RestorePointType 'MODIFY_SETTINGS' 
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
 
 }
 
@@ -831,13 +843,13 @@ function Disable-Registry-Keys {
     Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced' /v 'ShowCopilotButton' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
     Reg.exe add 'HKCU\Software\Microsoft\input\Settings' /v 'InsightsEnabled' /t REG_DWORD /d @('0', '1')[$revert] /f *>$null
     Reg.exe add 'HKCU\Software\Microsoft\Windows\Shell\ClickToDo' /v 'DisableClickToDo' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-    Write-Host "success!" -ForegroundColor Green
-    #remove copilot from search
+    Write-ConsoleStatus -Status success
+#remove copilot from search
     Write-Status -msg "$(@('Disabling', 'Enabling')[$revert]) Copilot In Windows Search - "
     LogInfo "$(@('Disabling', 'Enabling')[$revert]) Copilot In Windows Search"
     Reg.exe add 'HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer' /v 'DisableSearchBoxSuggestions' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-    Write-Host "success!" -ForegroundColor Green
-    #disable copilot in edge
+    Write-ConsoleStatus -Status success
+#disable copilot in edge
     Write-Status -msg "$(@('Disabling', 'Enabling')[$revert]) Copilot In Edge - "
     LogInfo "$(@('Disabling', 'Enabling')[$revert]) Copilot In Edge"
     #keeping depreciated policies incase user has older versions of edge
@@ -996,8 +1008,8 @@ function Disable-Registry-Keys {
     Reg.exe add 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent' /v 'DisableConsumerAccountStateContent' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
     #disable office hub startup
     Reg.exe add 'HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.MicrosoftOfficeHub_8wekyb3d8bbwe\WebViewHostStartupId' /v 'State' /t REG_DWORD /d @('1', '2')[$revert] /f *>$null
-    Write-Host "success!" -ForegroundColor Green
-    #disable ai image creator in paint
+    Write-ConsoleStatus -Status success
+#disable ai image creator in paint
     Write-Status -msg "$(@('Disabling', 'Enabling')[$revert]) Image Creator In Paint - "
     LogInfo "$(@('Disabling', 'Enabling')[$revert]) Image Creator In Paint"
     Reg.exe add 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Paint' /v 'DisableImageCreator' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
@@ -1009,9 +1021,8 @@ function Disable-Registry-Keys {
     # Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\IsoEnvBroker" /v "Enabled" /t REG_DWORD /d "0" /f
     # Reg.exe add "HKLM\SYSTEM\ControlSet001\Services\IsoEnvBroker" /v "Enabled" /t REG_DWORD /d "0" /f
     # leaving commented since its still only in preview builds
-    Write-Host "success!" -ForegroundColor Green
-    
-    # Apply the same defaults to future users via the default profile hive.
+    Write-ConsoleStatus -Status success
+# Apply the same defaults to future users via the default profile hive.
     $defaultUserHiveFile = Join-Path $env:SystemDrive 'Users\Default\NTUSER.DAT'
     $defaultUserHiveMount = 'HKU\RemoveWindowsAI_DefaultUser'
     $defaultUserHivePsPath = 'Registry::HKEY_USERS\RemoveWindowsAI_DefaultUser'
@@ -1082,8 +1093,8 @@ function Disable-Registry-Keys {
     catch {
         #ignore error when svc is already removed
     }
-    Write-Host "success!" -ForegroundColor Green
-    $backupPath = "$PSScriptRoot\RemoveWindowsAI\Backup"
+    Write-ConsoleStatus -Status success
+$backupPath = "$PSScriptRoot\RemoveWindowsAI\Backup"
     $backupFileWSAI = 'WSAIFabricSvc.reg'
     $backupFileAAR = 'AARSVC.reg'
     if ($revert) {
@@ -1108,14 +1119,14 @@ function Disable-Registry-Keys {
             # if (!(Test-Path "$backupPath\$backupFileWSAI")) {
             Reg.exe export 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WSAIFabricSvc' "$backupPath\$backupFileWSAI" /y > $null 2>&1 #add overwrite file /y switch
             # }
-            Write-Host "success!" -ForegroundColor Green
-        }
+            Write-ConsoleStatus -Status success
+}
         Write-Status -msg 'Removing WSAIFabricSvc - '
         LogInfo 'Removing WSAIFabricSvc'
         #delete the service
         sc.exe delete WSAIFabricSvc *>$null
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     if (!$revert) {
         #remove conversational agent service (used to be used for cortana, prob going to be updated for new ai agents and copilot)
         try {
@@ -1138,8 +1149,8 @@ function Disable-Registry-Keys {
                 # if (!(Test-Path "$backupPath\$backupFileAAR")) {
                 Reg.exe export 'HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\AarSvc' "$backupPath\$backupFileAAR" /y > $null 2>&1
                 # }
-                Write-Host "success!" -ForegroundColor Green
-            }
+                Write-ConsoleStatus -Status success
+}
             Write-Status -msg 'Removing Agent Activation Runtime Service - '
             LogInfo 'Removing Agent Activation Runtime Service'
             #delete the service
@@ -1157,8 +1168,8 @@ function Disable-Registry-Keys {
             }
             
             sc.exe delete AarSvc *>$null
-            Write-Host "success!" -ForegroundColor Green
-        }
+            Write-ConsoleStatus -Status success
+}
     }
     else {
         Write-Status 'Restoring Agent Activation Runtime Service - '
@@ -1171,8 +1182,8 @@ function Disable-Registry-Keys {
         else {
             LogError "Path Not Found: $backupPath\$backupFileAAR"
         }
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
   
     #block copilot from communicating with server
     if ($revert) {
@@ -1185,8 +1196,8 @@ function Disable-Registry-Keys {
         else {
            # LogInfo -msg "Unable to Find HKCR_Copilot.reg or HKCU_Copilot.reg in [$backupPath]"  
         }
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     else {
         if ($backup) {
             #backup .copilot file extension
@@ -1197,8 +1208,8 @@ function Disable-Registry-Keys {
         LogInfo 'Removing .copilot File Extension'
         Reg.exe delete 'HKCU\Software\Classes\.copilot' /f *>$null
         Reg.exe delete 'HKCR\.copilot' /f *>$null
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
 
     #disabling and removing voice access, recently added ai powered
     Reg.exe add 'HKCU\Software\Microsoft\VoiceAccess' /v 'RunningState' /t REG_DWORD /d @('0', '1')[$revert] /f >$null
@@ -1214,8 +1225,8 @@ function Disable-Registry-Keys {
         }
         Copy-Item $voiceExe -Destination $backupPath -Force -ErrorAction SilentlyContinue | Out-Null
         Copy-Item "$startMenu\VoiceAccess.lnk" -Destination $backupPath -Force -ErrorAction SilentlyContinue | Out-Null
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     
     if ($revert) {
         if ((Test-Path "$backupPath\VoiceAccess.exe") -and (Test-Path "$backupPath\VoiceAccess.lnk")) {
@@ -1223,8 +1234,8 @@ function Disable-Registry-Keys {
            LogInfo 'Restoring Voice Access'
             Move-Item "$backupPath\VoiceAccess.exe" -Destination "$env:windir\System32" -Force | Out-Null
             Move-Item "$backupPath\VoiceAccess.lnk" -Destination $startMenu -Force | Out-Null
-            Write-Host "success!" -ForegroundColor Green
-        }
+            Write-ConsoleStatus -Status success
+}
         else {
            LogError 'Voice Access Backup NOT Found!' 
         }
@@ -1237,8 +1248,8 @@ function Disable-Registry-Keys {
         RunTrusted -command $command -psversion $psversion -logFile $logFile
         Start-Sleep 1
         Remove-Item "$startMenu\VoiceAccess.lnk" -Force -ErrorAction SilentlyContinue
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     
     $root = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\Capture'
     $allFX = (Get-ChildItem $root -Recurse).Name | Where-Object { $_ -like '*FxProperties' }
@@ -1260,8 +1271,8 @@ function Disable-Registry-Keys {
                     $command = "Reg.exe add '$regPath' /v '{1da5d803-d492-4edd-8c23-e0c0ffee7f0e},5' /t REG_DWORD /d '1' /f"
                     RunTrusted -command $command -psversion $psversion -logFile $logFile
                 }
-            Write-Host "success!" -ForegroundColor Green    
-            }
+            Write-ConsoleStatus -Status success
+}
         }
     }
 
@@ -1295,8 +1306,11 @@ function Disable-Registry-Keys {
         [GC]::Collect()
         reg.exe unload 'HKU\TEMP' *>$null
         taskkill /im photos.exe /f *>$null
-        reg.exe load HKU\TEMP $uwpPhotosSettings >$null
-        if (!$revert) {
+        cmd.exe /d /c "reg.exe LOAD HKU\TEMP \"$uwpPhotosSettings\" >nul 2>&1" | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            LogWarning "Unable to load Photos settings.dat. Skipping Photos AI preference update."
+        }
+        elseif (!$revert) {
             $regContent = @'
 Windows Registry Editor Version 5.00
 
@@ -1318,13 +1332,13 @@ Windows Registry Editor Version 5.00
   fe,c5,c4,51,dc,01
 '@
         }
-       
-        
-        New-Item "$($tempDir)DisableAIPhotos.reg" -Value $regContent -Force >$null
-        regedit.exe /s "$($tempDir)DisableAIPhotos.reg" >$null
-        Start-Sleep 1
-        reg unload HKU\TEMP >$null
-        Remove-Item "$($tempDir)DisableAIPhotos.reg" -Force -ErrorAction SilentlyContinue >$null
+		
+            New-Item "$($tempDir)DisableAIPhotos.reg" -Value $regContent -Force >$null
+            regedit.exe /s "$($tempDir)DisableAIPhotos.reg" >$null
+            Start-Sleep 1
+            cmd.exe /d /c "reg.exe UNLOAD HKU\TEMP >nul 2>&1" | Out-Null
+            Remove-Item "$($tempDir)DisableAIPhotos.reg" -Force -ErrorAction SilentlyContinue >$null
+        }
     }
 
     #disable app actions
@@ -1354,17 +1368,14 @@ Windows Registry Editor Version 5.00
             
             $setting | Set-UwpAppRegistryEntry -FilePath $settingsDat
         }
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     
 
     #force policy changes
     #Write-Status -msg 'Applying Registry Changes'
     LogInfo "Applying Registry Changes"
     gpupdate /force /wait:0 >$null
-
-
-}
 
 # Install or remove a custom update package that blocks AI package reinstallation.
 function Install-NOAIPackage {
@@ -1398,8 +1409,17 @@ function Install-NOAIPackage {
                          *> $null
                 }
                 catch {
+                    $HandledError = $_
                     #user is using powershell 7 use dism command as fallback
                     dism.exe /Online /Add-Package /PackagePath:"$PSScriptRoot\RemoveWindowsAIPackage\$arch\SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -NoRestart -IgnoreCheck *>$null
+                    if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 3010)
+                    {
+                        Remove-HandledErrorRecord -ErrorRecord $HandledError
+                    }
+                    else
+                    {
+                        LogError "Failed to install RemoveWindowsAI package: $($HandledError.Exception.Message)"
+                    }
                 }
             }
             else {
@@ -1427,7 +1447,16 @@ function Install-NOAIPackage {
                          *> $null
                 }
                 catch {
+                    $HandledError = $_
                     dism.exe /Online /Add-Package /PackagePath:"$($tempDir)SdManson8RemoveWindowsAI-$($arch)1.0.0.0.cab" -IgnoreCheck *>$null
+                    if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 3010)
+                    {
+                        Remove-HandledErrorRecord -ErrorRecord $HandledError
+                    }
+                    else
+                    {
+                        LogError "Failed to install downloaded RemoveWindowsAI package: $($HandledError.Exception.Message)"
+                    }
                 }
             }
         }
@@ -1476,8 +1505,8 @@ function Install-NOAIPackage {
                     Remove-Item -Path $value.PSPath -Recurse -Force -ErrorAction SilentlyContinue| Out-Null
                 }
             }
-            Write-Host "success!" -ForegroundColor Green
-        }
+            Write-ConsoleStatus -Status success
+}
         else {
             LogError 'Unable to Find Update Package'
         }
@@ -1523,8 +1552,8 @@ function Disable-Copilot-Policies {
             $total = ($copilotPolicies.count) + ($recallPolicies.count)
             Write-Status -msg "CoPilot Policies $(@('Disabled','Enabled')[$revert]) - " 
             LogInfo "$total CoPilot Policies $(@('Disabled','Enabled')[$revert])"
-            Write-Host "success!" -ForegroundColor Green
-        }
+            Write-ConsoleStatus -Status success
+}
         catch {
             LogError 'CoPilot Not Found in IntegratedServicesRegionPolicySet'
         }
@@ -1545,8 +1574,8 @@ function Disable-Copilot-Policies {
         $jsonContent.actions | Add-Member -MemberType NoteProperty -Name usesGenerativeAI -Value @($false, $true)[$revert] -force
         $newJSONContent = $jsonContent | ConvertTo-Json -Depth 100
         Set-Content $visualAssistPath -Value $newJSONContent -Force
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     
 }
 
@@ -1761,8 +1790,8 @@ function Remove-AI-Appx-Packages {
         else {
             LogError 'Unable to Find AppxBackup in User Directory!'
         }
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
     else {
 
         #to make this part faster make a txt file in temp with chunck of removal 
@@ -2009,8 +2038,8 @@ foreach ($choice in $aipackages) {
     
         }while ($packages -and $attempts -lt 10)
 
-        Write-Host "success!" -ForegroundColor Green
-        #tell windows copilot pwa is already installed
+        Write-ConsoleStatus -Status success
+#tell windows copilot pwa is already installed
         Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoInstalledPWAs' /v 'CopilotPWAPreinstallCompleted' /t REG_DWORD /d '1' /f *>$null
         Reg.exe add 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoInstalledPWAs' /v 'Microsoft.Copilot_8wekyb3d8bbwe' /t REG_DWORD /d '1' /f *>$null
         #incase the user is on 25h2 and is using education or enterprise (required for this policy to work)
@@ -2061,8 +2090,8 @@ function Remove-Recall-Optional-Feature {
                 }
             }
         }
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
 }
 
 # Remove hidden CBS packages related to AI features that do not appear in normal package lists.
@@ -2109,8 +2138,8 @@ function Remove-AI-CBS-Packages {
             }
             
         }
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
 }
 
 # Remove or restore AI-related files, URI handlers, and selected Office AI assets.
@@ -2147,9 +2176,8 @@ function Remove-AI-Files {
                     Move-Item $_.FullName -Destination "$env:ProgramFiles\Microsoft Office\root\Integration\Addons" -Force | Out-Null
                 }
             }
-            Write-Host "success!" -ForegroundColor Green
-
-            Write-Status -msg 'Restoring AI URIs - '
+            Write-ConsoleStatus -Status success
+Write-Status -msg 'Restoring AI URIs - '
             LogInfo 'Restoring AI URIs'
             $regs = Get-ChildItem "$PSScriptRoot\RemoveWindowsAI\Backup\AIFiles\URIHandlers"
             foreach ($reg in $regs) {
@@ -2292,17 +2320,16 @@ function Remove-AI-Files {
             
         }
 
-        Write-Host "success!" -ForegroundColor Green
-
-        if ($backup) {
+        Write-ConsoleStatus -Status success
+if ($backup) {
             Write-Status -msg 'Backing Up AI Files - '
             LogInfo 'Backing Up AI Files'
             $backupDir = "$PSScriptRoot\RemoveWindowsAI\Backup\AIFiles"
             if (!(Test-Path $backupDir)) {
                 New-Item $backupDir -Force -ItemType Directory | Out-Null
             }
-            Write-Host "success!" -ForegroundColor Green
-        }
+            Write-ConsoleStatus -Status success
+}
 
         foreach ($Path in $packagesPath) {
             #only remove dlls from photon to prevent startmenu from breaking
@@ -2475,15 +2502,13 @@ function Remove-AI-Files {
             }
         }
         
-        Write-Host "success!" -ForegroundColor Green
-
-        #remove any screenshots from recall
+        Write-ConsoleStatus -Status success
+#remove any screenshots from recall
         Write-Status -msg 'Removing Any Screenshots By Recall - '
         LogInfo 'Removing Any Screenshots By Recall'
         Remove-Item -Path "$env:LOCALAPPDATA\CoreAIPlatform*" -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
-        Write-Host "success!" -ForegroundColor Green
-
-        #remove ai uri handlers
+        Write-ConsoleStatus -Status success
+#remove ai uri handlers
         Write-Status -msg 'Removing AI URI Handlers - '
         LogInfo 'Removing AI URI Handlers'
         $uris = @(
@@ -2506,9 +2531,8 @@ function Remove-AI-Files {
             Remove-Item $uri -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
         }
 
-        Write-Host "success!" -ForegroundColor Green
-
-        #prefire copilot nudges package by deleting the registry keys 
+        Write-ConsoleStatus -Status success
+#prefire copilot nudges package by deleting the registry keys 
         Write-Status -msg 'Removing Copilot Nudges Registry Keys - '
         LogInfo 'Removing Copilot Nudges Registry Keys'
         $keys = @(
@@ -2573,9 +2597,8 @@ function Remove-AI-Files {
             "$env:windir\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\VisualAssistExe.dll"
         )
 
-        Write-Host "success!" -ForegroundColor Green
-
-        Write-Status -msg 'Removing App Actions Files - '
+        Write-ConsoleStatus -Status success
+Write-Status -msg 'Removing App Actions Files - '
         LogInfo 'Removing App Actions Files'
         foreach ($path in $paths) {
             if (Test-Path $path) {
@@ -2592,9 +2615,8 @@ function Remove-AI-Files {
             }
        
         }
-        Write-Host "success!" -ForegroundColor Green
-
-        Write-Status -msg 'Removing AI From Component Store (WinSxS) - '
+        Write-ConsoleStatus -Status success
+Write-Status -msg 'Removing AI From Component Store (WinSxS) - '
         LogInfo 'Removing AI From Component Store (WinSxS)'
        # Write-Status -msg 'This could take a while on some systems, please be patient!'
         #additional dirs and reg keys
@@ -2658,8 +2680,8 @@ function Remove-AI-Files {
         $command = "Get-Content `"$($tempDir)PathsToDelete.txt`" | ForEach-Object {Remove-Item `$_ -Force -Recurse -EA 0}"
         RunTrusted -command $command -psversion $psversion -logFile $logFile
         Start-Sleep 1
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
 
     #TEST:
     # remove ai components from component storage
@@ -2746,7 +2768,7 @@ function Hide-AI-Components {
         }
        
     }
-        Write-Host "success!" -ForegroundColor Green
+        Write-ConsoleStatus -Status success
 }
 
 # Disable or re-enable the Notepad Rewrite AI feature through policy settings.
@@ -2773,7 +2795,7 @@ Windows Registry Editor Version 5.00
     #>
     #above is old method before this policy to disable ai in notepad, [DEPRECIATED]
     Reg.exe add 'HKLM\SOFTWARE\Policies\WindowsNotepad' /v 'DisableAIFeatures' /t REG_DWORD /d @('1', '0')[$revert] /f *>$null
-        Write-Host "success!" -ForegroundColor Green
+        Write-ConsoleStatus -Status success
 }
 
 
@@ -2818,8 +2840,8 @@ Get-ScheduledTask -TaskName "*Office Actions Server*" -ErrorAction SilentlyConti
         Get-ScheduledTask -TaskPath '*WindowsAI*' | Disable-ScheduledTask -ErrorAction SilentlyContinue
         "
         RunTrusted -command $command -psversion $psversion -logFile $logFile
-        Write-Host "success!" -ForegroundColor Green
-    }
+        Write-ConsoleStatus -Status success
+}
 }
 
 # Run selected actions directly from the command line without showing the GUI.
@@ -3417,9 +3439,8 @@ else {
             foreach ($procName in $aiProcesses) {
                 taskkill /im $procName /f *>$null
             }
-            Write-Host "success!" -ForegroundColor Green
-
-            $progressWindow = New-Object System.Windows.Window
+            Write-ConsoleStatus -Status success
+$progressWindow = New-Object System.Windows.Window
             $progressWindow.Title = 'Processing - '
             $progressWindow.Width = 400
             $progressWindow.Height = 200

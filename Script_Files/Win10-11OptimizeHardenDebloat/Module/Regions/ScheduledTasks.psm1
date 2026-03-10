@@ -50,7 +50,7 @@ function CleanupTask
 	{
 		"Register"
 		{
-			Write-Host "Registering the 'Windows Cleanup' scheduled task for cleaning up Windows unused files and updates - " -NoNewline
+			Write-ConsoleStatus -Action "Registering the 'Windows Cleanup' scheduled task for cleaning up Windows unused files and updates"
 			LogInfo "Registering the 'Windows Cleanup' scheduled task for cleaning up Windows unused files and updates"
 			# Enable notifications in Action Center
 			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction Ignore | Out-Null
@@ -392,11 +392,11 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 
 			# Start Task Scheduler in the end if any scheduled task was created
 			$Script:ScheduledTasks = $true | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Delete"
 		{
-			Write-Host "Deleting the 'Windows Cleanup' and 'Windows Cleanup Notification' scheduled tasks for cleanup - " -NoNewline
+			Write-ConsoleStatus -Action "Deleting the 'Windows Cleanup' and 'Windows Cleanup Notification' scheduled tasks for cleanup"
 			LogInfo "Deleting the 'Windows Cleanup' and 'Windows Cleanup Notification' scheduled tasks for cleanup"
 			# Remove files first unless we cannot remove folder if there's no more tasks there
 			$Paths = @(
@@ -437,7 +437,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 					$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util", $null)
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -490,7 +490,7 @@ function SoftwareDistributionTask
 	{
 		"Register"
 		{
-			Write-Host "Registering the 'SoftwareDistribution' scheduled task for cleanup - " -NoNewline
+			Write-ConsoleStatus -Action "Registering the 'SoftwareDistribution' scheduled task for cleanup"
 			LogInfo "Registering the 'SoftwareDistribution' scheduled task for cleanup"
 			# Enable notifications in Action Center
 			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction SilentlyContinue | Out-Null
@@ -725,11 +725,11 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			$Task | Set-ScheduledTask | Out-Null
 
 			$Script:ScheduledTasks = $true
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Delete"
 		{
-			Write-Host "Deleting the 'SoftwareDistribution' scheduled task for cleanup - " -NoNewline
+			Write-ConsoleStatus -Action "Deleting the 'SoftwareDistribution' scheduled task for cleanup"
 			LogInfo "Deleting the 'SoftwareDistribution' scheduled task for cleanup"
 			# Remove files first unless we cannot remove folder if there's no more tasks there
 			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.vbs", "$env:SystemRoot\System32\Tasks\Win10_11Util\SoftwareDistributionTask.ps1" -Force -ErrorAction SilentlyContinue | Out-Null
@@ -759,7 +759,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 					$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util", $null)
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -812,7 +812,7 @@ function TempTask
 	{
 		"Register"
 		{
-			Write-Host "Registering the 'Temp' scheduled task for cleaning up the %TEMP% folder - " -NoNewline
+			Write-ConsoleStatus -Action "Registering the 'Temp' scheduled task for cleaning up the %TEMP% folder"
 			LogInfo "Registering the 'Temp' scheduled task for cleaning up the %TEMP% folder"
 			# Enable notifications in Action Center
 			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer, HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotificationCenter -Force -ErrorAction SilentlyContinue | Out-Null
@@ -1063,11 +1063,11 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 			$Task | Set-ScheduledTask | Out-Null
 
 			$Script:ScheduledTasks = $true
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Delete"
 		{
-			Write-Host "Deleting the 'Temp' scheduled task for cleaning up the %TEMP% folder - " -NoNewline
+			Write-ConsoleStatus -Action "Deleting the 'Temp' scheduled task for cleaning up the %TEMP% folder"
 			LogInfo "Deleting the 'Temp' scheduled task for cleaning up the %TEMP% folder"
 			# Remove files first unless we cannot remove folder if there's no more tasks there
 			Remove-Item -Path "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.vbs", "$env:SystemRoot\System32\Tasks\Win10_11Util\TempTask.ps1" -Force -ErrorAction SilentlyContinue | Out-Null
@@ -1097,7 +1097,7 @@ CreateObject("Wscript.Shell").Run "powershell.exe -ExecutionPolicy Bypass -NoPro
 					$ScheduleService.GetFolder("\").DeleteFolder("Win10_11Util", $null)
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }

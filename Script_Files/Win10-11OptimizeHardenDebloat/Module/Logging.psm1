@@ -11,7 +11,8 @@
 	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
 	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
 
-	Copyright (c) 2021 - 2026 sdmanson8
+	.AUTHOR
+	sdmanson8 - Copyright (c) 2021 - 2026
 
     .DESCRIPTION
     Initializes the log file used by the script and provides helper functions for writing
@@ -20,6 +21,19 @@
 
 $script:LogFilePath = $null
 $script:LogLock = New-Object System.Threading.Mutex($false, "Global\RemoveWindowsAILogLock")
+$script:LogStatistics = @{
+    Info = 0
+    Warning = 0
+    Error = 0
+}
+
+function Reset-LogStatistics {
+    $script:LogStatistics = @{
+        Info = 0
+        Warning = 0
+        Error = 0
+    }
+}
 
 <#
     .SYNOPSIS
@@ -42,6 +56,7 @@ function Set-LogFile {
     )
     
     $script:LogFilePath = $Path
+    Reset-LogStatistics
     
     # Create directory if needed
     $dir = Split-Path $Path -Parent
@@ -95,6 +110,12 @@ function Write-LogMessage {
     $timestamp = Get-Date -Format "dd-MM-yyyy HH:mm"
     $logMessage = "$timestamp $Level`: $Message"
     if ($AddGap) { $logMessage += "`n" }
+
+    switch ($Level) {
+        'INFO' { $script:LogStatistics.Info++ }
+        'WARNING' { $script:LogStatistics.Warning++ }
+        'ERROR' { $script:LogStatistics.Error++ }
+    }
     
     # Show log output in the console only when explicitly requested.
     if ($ShowConsole) {
@@ -202,5 +223,47 @@ function LogError {
     Write-LogMessage -Message $Message -Level 'ERROR' -AddGap:$AddGap -ShowConsole:$ShowConsole
 }
 
+function Get-LogStatistics {
+    return [PSCustomObject]@{
+        InfoCount = $script:LogStatistics.Info
+        WarningCount = $script:LogStatistics.Warning
+        ErrorCount = $script:LogStatistics.Error
+    }
+}
+
+function Write-ConsoleStatus {
+    [CmdletBinding()]
+    param(
+        [string]$Action,
+
+        [ValidateSet('success', 'failed', 'warning')]
+        [string]$Status
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Action) -and [string]::IsNullOrWhiteSpace($Status)) {
+        throw "Write-ConsoleStatus requires -Action, -Status, or both."
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($Action) -and [string]::IsNullOrWhiteSpace($Status)) {
+        Write-Host ("{0} - " -f $Action) -NoNewline
+        return
+    }
+
+    $statusText = $Status.ToLowerInvariant()
+    $color = switch ($statusText) {
+        'success' { 'Green' }
+        'failed' { 'Red' }
+        default { 'Yellow' }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($Action)) {
+        Write-Host ("{0}!" -f $statusText) -ForegroundColor $color
+        return
+    }
+
+    Write-Host ("{0} - " -f $Action) -NoNewline
+    Write-Host ("{0}!" -f $statusText) -ForegroundColor $color
+}
+
 # Export the logging functions used by the loader and region modules.
-Export-ModuleMember -Function Set-LogFile, LogInfo, LogWarning, LogError, Write-LogMessage
+Export-ModuleMember -Function Set-LogFile, Reset-LogStatistics, Get-LogStatistics, LogInfo, LogWarning, LogError, Write-LogMessage, Write-ConsoleStatus

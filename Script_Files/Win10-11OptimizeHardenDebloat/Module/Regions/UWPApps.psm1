@@ -4,26 +4,6 @@ using module ..\Helpers.psm1
 #region UWP apps
 <#
 	.SYNOPSIS
-	Detect whether the current system is Windows 10 or Windows 11.
-
-	.DESCRIPTION
-	Returns a small object that indicates whether the current Windows build is
-	Windows 10 or Windows 11.
-
-	.EXAMPLE
-	Get-OSInfo
-#>
-function Get-OSInfo {
-    $currentBuild = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
-    if ([int]$currentBuild -ge 22000) {
-        return [pscustomobject]@{ IsWindows11 = $true;  OSName = "Windows 11" }
-    } else {
-        return [pscustomobject]@{ IsWindows11 = $false; OSName = "Windows 10" }
-    }
-}
-
-<#
-	.SYNOPSIS
 	Install or uninstall Microsoft Copilot and related Windows AI components.
 
 	.DESCRIPTION
@@ -148,7 +128,7 @@ function UWPApps
 		{
             # Show the app picker and install the packages the user selects.
             Add-Type -AssemblyName PresentationCore, PresentationFramework
-            Write-Host "Installing UWP apps - " -NoNewline
+            Write-ConsoleStatus -Action "Installing UWP apps"
             LogInfo "Installing UWP apps:"
 
             # Check for admin rights when "All Users" is selected
@@ -712,13 +692,13 @@ function UWPApps
 	$Window.Add_Loaded({$Window.Activate()})
 	$Form.ShowDialog() | Out-Null
     }
-    Write-Host "success!" -ForegroundColor Green
+    Write-ConsoleStatus -Status success
 }
 		"Uninstall"
 		{
 			# Show the app picker and remove the packages the user selects.
 			Add-Type -AssemblyName PresentationCore, PresentationFramework
-			Write-Host "Uninstalling UWP apps - " -NoNewline
+			Write-ConsoleStatus -Action "Uninstalling UWP apps"
 			LogInfo "Uninstalling UWP apps:"
 			#region Variables
 			# The following UWP apps will have their checkboxes unchecked
@@ -1197,7 +1177,7 @@ function UWPApps
 				$Window.Add_Loaded({$Window.Activate()})
 				$Form.ShowDialog() | Out-Null
 			}
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -1255,17 +1235,17 @@ function CortanaAutostart
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Cortana autostarting - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Cortana autostarting"
 			LogInfo "Disabling Cortana autostarting"
 			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Cortana autostarting - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Cortana autostarting"
 			LogInfo "Enabling Cortana autostarting"
 			New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\Microsoft.549981C3F5F10_8wekyb3d8bbwe\CortanaStartupId" -Name State -PropertyType DWord -Value 2 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -1313,23 +1293,23 @@ function NewOutlook
 	{
 		"Enable"
 		{
-			Write-Host "Enabling New Outlook - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling New Outlook"
 			LogInfo "Enabling New Outlook"
 			Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Preferences" -Name "UseNewOutlook" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Options\General" -Name "HideNewOutlookToggle" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Options\General" -Name "DoNewOutlookAutoMigration" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Preferences" -Name "NewOutlookMigrationUserSetting" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling New Outlook - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling New Outlook"
 			LogInfo "Disabling New Outlook"
 			Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Office\16.0\Outlook\Preferences" -Name "UseNewOutlook" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Office\16.0\Outlook\Options\General" -Name "HideNewOutlookToggle" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Options\General" -Name "DoNewOutlookAutoMigration" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
 			Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Office\16.0\Outlook\Preferences" -Name "NewOutlookMigrationUserSetting" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -1369,17 +1349,17 @@ function BackgroundApps
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Background Apps - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Background Apps"
 			LogInfo "Enabling Background Apps"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Background Apps - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Background Apps"
 			LogInfo "Disabling Background Apps"
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -1424,15 +1404,15 @@ function Notifications
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Notification Tray/Calendar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Notification Tray/Calendar"
 			LogInfo "Enabling Notification Tray/Calendar"
 			Remove-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableNotificationCenter" -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Notification Tray/Calendar - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Notification Tray/Calendar"
 			LogInfo "Disabling Notification Tray/Calendar"
 			if (-not (Test-Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer"))
 			{
@@ -1440,7 +1420,7 @@ function Notifications
 			}
 			Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableNotificationCenter" -Type DWord -Value 1 -Force -ErrorAction SilentlyContinue | Out-Null
 			Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" -Name "ToastEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -1492,7 +1472,7 @@ function EdgeDebloat
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Edge Debloat - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Edge Debloat"
 			LogInfo "Enabling Edge Debloat"
 			
 			# Create paths if they don't exist
@@ -1527,11 +1507,11 @@ function EdgeDebloat
 			Set-ItemProperty -Path $EdgePath -Name "WalletDonationEnabled" -Type DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
 			
 			LogInfo "Edge debloat policies applied"
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Edge Debloat - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Edge Debloat"
 			LogInfo "Disabling Edge Debloat"
 			
 			Remove-ItemProperty -Path $EdgeUpdatePath -Name "CreateDesktopShortcutDefault" -Force -ErrorAction SilentlyContinue | Out-Null
@@ -1552,7 +1532,7 @@ function EdgeDebloat
 			Remove-ItemProperty -Path $EdgePath -Name "WalletDonationEnabled" -Force -ErrorAction SilentlyContinue | Out-Null
 			
 			LogInfo "Edge debloat policies removed"
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -1594,18 +1574,23 @@ function RevertStartMenu
 	$viveToolUrl = "https://github.com/thebookisclosed/ViVe/releases/download/v0.3.4/ViVeTool-v0.3.4-IntelAmd.zip"
 	$featureId = "47205210"
 	$tempDir = "$env:TEMP\ViVeTool"
-	$SupportedMessage = "Revert Start Menu is only supported on Windows 11 build 26200.7019 and newer. Skipping."
+	$SupportedMessage = "Revert Start Menu is only supported on Windows 11 24H2 build 26100.7019+ or 26H1 build 28000.1575+ and newer. Skipping."
+	$DownloadFailedMessage = "Unable to download ViVeTool from GitHub. Skipping Revert Start Menu."
+	$IsRevertStartMenuSupported = Test-Windows11FeatureBranchSupport -Thresholds @(
+		@{ DisplayVersion = "24H2"; Build = 26100; UBR = 7019 },
+		@{ DisplayVersion = "26H1"; Build = 28000; UBR = 1575 }
+	)
 
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Revert Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Revert Start Menu"
 			LogInfo "Enabling Revert Start Menu"
 
-			if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7019))
+			if (-not $IsRevertStartMenuSupported)
 			{
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 				LogWarning $SupportedMessage
 				return
 			}
@@ -1645,22 +1630,30 @@ function RevertStartMenu
 				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 				LogInfo "Cleaned up temporary files"
 				LogInfo "Please restart your computer to apply the changes."
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				LogError "Failed to enable Revert Start Menu: $($_.Exception.Message)"
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				if ($_.Exception.Message -match 'github\.com|remote name could not be resolved|The remote server returned an error|Unable to connect|connection could not be established')
+				{
+					LogWarning "$DownloadFailedMessage Error: $($_.Exception.Message)"
+					Write-Host "skipped!" -ForegroundColor Yellow
+				}
+				else
+				{
+					LogError "Failed to enable Revert Start Menu: $($_.Exception.Message)"
+					Write-ConsoleStatus -Status failed
+				}
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Revert Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Revert Start Menu"
 			LogInfo "Disabling Revert Start Menu"
 
-			if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7019))
+			if (-not $IsRevertStartMenuSupported)
 			{
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 				LogWarning $SupportedMessage
 				return
 			}
@@ -1700,12 +1693,20 @@ function RevertStartMenu
 				Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 				LogInfo "Cleaned up temporary files"
 				LogInfo "Please restart your computer to apply the changes."
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				LogError "Failed to disable Revert Start Menu: $($_.Exception.Message)"
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				if ($_.Exception.Message -match 'github\.com|remote name could not be resolved|The remote server returned an error|Unable to connect|connection could not be established')
+				{
+					LogWarning "$DownloadFailedMessage Error: $($_.Exception.Message)"
+					Write-Host "skipped!" -ForegroundColor Yellow
+				}
+				else
+				{
+					LogError "Failed to disable Revert Start Menu: $($_.Exception.Message)"
+					Write-ConsoleStatus -Status failed
+				}
 			}
 		}
 	}

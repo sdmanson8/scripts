@@ -57,46 +57,46 @@ function StartLayout
 	{
 		"Default"
 		{
-			Write-Host "Setting default Start layout - " -NoNewline
+			Write-ConsoleStatus -Action "Setting default Start layout"
 			LogInfo "Setting default Start layout"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_Layout -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set the default Start layout: $($_.Exception.Message)"
 			}
 		}
 		"ShowMorePins"
 		{
-			Write-Host "Showing more pins on Start - " -NoNewline
+			Write-ConsoleStatus -Action "Showing more pins on Start"
 			LogInfo "Showing more pins on Start"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_Layout -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show more pins on Start: $($_.Exception.Message)"
 			}
 		}
 		"ShowMoreRecommendations"
 		{
-			Write-Host "Showing more recommendations on Start - " -NoNewline
+			Write-ConsoleStatus -Action "Showing more recommendations on Start"
 			LogInfo "Showing more recommendations on Start"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Start_Layout -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show more recommendations on Start: $($_.Exception.Message)"
 			}
 		}

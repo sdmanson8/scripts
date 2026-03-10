@@ -11,7 +11,8 @@
 	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
 	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
 
-	Copyright (c) 2021 - 2026 sdmanson8
+	.AUTHOR
+	sdmanson8 - Copyright (c) 2021 - 2026
 
     .DESCRIPTION
     Imports shared modules and region modules, then exports their functions.
@@ -23,14 +24,8 @@
 Import-Module -Name "$PSScriptRoot\Logging.psm1" -Force -Global
 Import-Module -Name "$PSScriptRoot\Helpers.psm1" -Force -Global
 
-# Detect the OS version from the current Windows build
-$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
-if ([int]$currentBuild -ge 22000) {
-    $osName = "Windows 11"
-}
-else {
-    $osName = "Windows 10"
-}
+# Detect the OS version once through the shared helper so every module uses the same logic.
+$osName = (Get-OSInfo).OSName
 # Initialize logging and write to an OS-specific log file in %TEMP%
 $global:LogFilePath = Join-Path $env:TEMP "WinUtil Script for $osName.txt"
 Set-LogFile -Path $global:LogFilePath
@@ -99,6 +94,8 @@ function Restart-Script
 $RegionDir = Join-Path $PSScriptRoot 'Regions'
 
 $coreFiles = @('Errors.psm1', 'InitialActions.psm1')
+$excludedRegionFiles = @(
+)
 
 foreach ($core in $coreFiles) {
     $corePath = Join-Path $RegionDir $core
@@ -108,7 +105,7 @@ foreach ($core in $coreFiles) {
 }
 
 Get-ChildItem -Path $RegionDir -Filter '*.psm1' -File |
-    Where-Object { $_.Name -notin $coreFiles } |
+    Where-Object { $_.Name -notin $coreFiles -and $_.Name -notin $excludedRegionFiles } |
     Sort-Object Name |
     ForEach-Object {
         Import-Module -Name $_.FullName -Force -Global

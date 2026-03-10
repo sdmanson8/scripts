@@ -58,14 +58,14 @@ function RecentlyAddedStartApps
 		{
 			try
 			{
-				Write-Host "Hiding recently added apps on Start - " -NoNewline
+				Write-ConsoleStatus -Action "Hiding recently added apps on Start"
 				LogInfo "Hiding recently added apps on Start"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowRecentList -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide recently added apps on Start: $($_.Exception.Message)"
 			}
 		}
@@ -73,14 +73,14 @@ function RecentlyAddedStartApps
 		{
 			try
 			{
-				Write-Host "Showing recently added apps on Start - " -NoNewline
+				Write-ConsoleStatus -Action "Showing recently added apps on Start"
 				LogInfo "Showing recently added apps on Start"
 				Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowRecentList -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show recently added apps on Start: $($_.Exception.Message)"
 			}
 		}
@@ -149,14 +149,14 @@ function MostUsedStartApps
 		{
 			try
 			{
-				Write-Host "Hiding most used apps on Start - " -NoNewline
+				Write-ConsoleStatus -Action "Hiding most used apps on Start"
 				LogInfo "Hiding most used apps on Start"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowFrequentList -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide most used apps on Start: $($_.Exception.Message)"
 			}
 		}
@@ -164,14 +164,14 @@ function MostUsedStartApps
 		{
 			try
 			{
-				Write-Host "Showing most used apps on Start - " -NoNewline
+				Write-ConsoleStatus -Action "Showing most used apps on Start"
 				LogInfo "Showing most used apps on Start"
 				Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowFrequentList -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show most used apps on Start: $($_.Exception.Message)"
 			}
 		}
@@ -216,25 +216,29 @@ function StartMenuAllSectionCategories
 		$Show
 	)
 
-	$SupportedMessage = "Start menu All section categories is only supported on Windows 11 build 26200.7705 / 26H1 and newer. Skipping."
+	$SupportedMessage = "Start menu All section categories is only supported on Windows 11 24H2 build 26100.7705+ or 26H1 build 28000.1575+ and newer. Skipping."
+	$IsStartMenuAllSectionCategoriesSupported = Test-Windows11FeatureBranchSupport -Thresholds @(
+		@{ DisplayVersion = "24H2"; Build = 26100; UBR = 7705 },
+		@{ DisplayVersion = "26H1"; Build = 28000; UBR = 1575 }
+	)
 
-	if (-not (Test-Windows11BuildSupport -MinimumBuild 26200 -MinimumUBR 7705 -MinimumDisplayVersion '26H1'))
+	if (-not $IsStartMenuAllSectionCategoriesSupported)
 	{
 		switch ($PSCmdlet.ParameterSetName)
 		{
 			"Hide"
 			{
-				Write-Host "Hiding the All section with categories in Start - " -NoNewline
+				Write-ConsoleStatus -Action "Hiding the All section with categories in Start"
 				LogInfo "Hiding the All section with categories in Start"
 			}
 			"Show"
 			{
-				Write-Host "Showing the All section with categories in Start - " -NoNewline
+				Write-ConsoleStatus -Action "Showing the All section with categories in Start"
 				LogInfo "Showing the All section with categories in Start"
 			}
 		}
 
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 		LogWarning $SupportedMessage
 		return
 	}
@@ -252,14 +256,14 @@ function StartMenuAllSectionCategories
 		{
 			try
 			{
-				Write-Host "Hiding the All section with categories in Start - " -NoNewline
+				Write-ConsoleStatus -Action "Hiding the All section with categories in Start"
 				LogInfo "Hiding the All section with categories in Start"
 				Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoStartMenuMorePrograms -Type DWord -Value 1 | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide the All section with categories in Start: $($_.Exception.Message)"
 			}
 		}
@@ -267,14 +271,14 @@ function StartMenuAllSectionCategories
 		{
 			try
 			{
-				Write-Host "Showing the All section with categories in Start - " -NoNewline
+				Write-ConsoleStatus -Action "Showing the All section with categories in Start"
 				LogInfo "Showing the All section with categories in Start"
 				Set-Policy -Scope User -Path Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name NoStartMenuMorePrograms -Type CLEAR | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the All section with categories in Start: $($_.Exception.Message)"
 			}
 		}

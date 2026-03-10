@@ -11,7 +11,8 @@
 	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
 	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
 
-	Copyright (c) 2021 - 2026 sdmanson8
+	.AUTHOR
+	sdmanson8 - Copyright (c) 2021 - 2026
 
 	.DESCRIPTION
 	Dot source the script first: . .\Functions.ps1 (with a dot at the beginning)

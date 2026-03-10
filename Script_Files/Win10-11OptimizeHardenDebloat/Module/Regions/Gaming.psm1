@@ -49,15 +49,15 @@ function XboxGameBar
 		{
 			try
 			{
-				Write-Host "Disabling Xbox Game Bar - " -NoNewline
+				Write-ConsoleStatus -Action "Disabling Xbox Game Bar"
 				LogInfo "Disabling Xbox Game Bar"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Xbox Game Bar: $($_.Exception.Message)"
 			}
 		}
@@ -65,15 +65,15 @@ function XboxGameBar
 		{
 			try
 			{
-				Write-Host "Enabling Xbox Game Bar - " -NoNewline
+				Write-ConsoleStatus -Action "Enabling Xbox Game Bar"
 				LogInfo "Enabling Xbox Game Bar"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Xbox Game Bar: $($_.Exception.Message)"
 			}
 		}
@@ -131,14 +131,14 @@ function XboxGameTips
 		{
 			try
 			{
-				Write-Host "Disabling Xbox Game Bar tips - " -NoNewline
+				Write-ConsoleStatus -Action "Disabling Xbox Game Bar tips"
 				LogInfo "Disabling Xbox Game Bar tips"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Xbox Game Bar tips: $($_.Exception.Message)"
 			}
 		}
@@ -146,14 +146,14 @@ function XboxGameTips
 		{
 			try
 			{
-				Write-Host "Enabling Xbox Game Bar tips - " -NoNewline
+				Write-ConsoleStatus -Action "Enabling Xbox Game Bar tips"
 				LogInfo "Enabling Xbox Game Bar tips"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\GameBar -Name ShowStartupPanel -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Xbox Game Bar tips: $($_.Exception.Message)"
 			}
 		}
@@ -177,7 +177,7 @@ function Set-AppGraphicsPerformance
 {
 	if (Get-CimInstance -ClassName Win32_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)})
 	{
-		Write-Host "Selecting an app to set the 'High performance' graphics performance - " -NoNewline
+		Write-ConsoleStatus -Action "Selecting an app to set the 'High performance' graphics performance"
 		LogInfo "Selecting an app to set the 'High performance' graphics performance"
 		do
 		{
@@ -214,7 +214,7 @@ function Set-AppGraphicsPerformance
 			}
 		}
 		until ($Choice -ne $KeyboardArrows)
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 }
 
@@ -263,7 +263,7 @@ function GPUScheduling
 	{
 		"Enable"
 		{
-			Write-Host "Enabling hardware-accelerated GPU scheduling - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling hardware-accelerated GPU scheduling"
 			LogInfo "Enabling hardware-accelerated GPU scheduling"
 			# Determining whether PC has an external graphics card
 			$AdapterDACType = Get-CimInstance -ClassName CIM_VideoController | Where-Object -FilterScript {($_.AdapterDACType -ne "Internal") -and ($null -ne $_.AdapterDACType)}
@@ -277,17 +277,17 @@ function GPUScheduling
 				try
 				{
 					New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 				catch
 				{
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 					LogError "Failed to enable hardware-accelerated GPU scheduling: $($_.Exception.Message)"
 				}
 			}
 			else
 			{
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 				LogWarning "Hardware-accelerated GPU scheduling is not supported on this system. Skipping."
 			}
 		}
@@ -295,14 +295,14 @@ function GPUScheduling
 		{
 			try
 			{
-				Write-Host "Disabling hardware-accelerated GPU scheduling - " -NoNewline
+				Write-ConsoleStatus -Action "Disabling hardware-accelerated GPU scheduling"
 				LogInfo "Disabling hardware-accelerated GPU scheduling"
 				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers -Name HwSchMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable hardware-accelerated GPU scheduling: $($_.Exception.Message)"
 			}
 		}

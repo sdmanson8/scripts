@@ -11,7 +11,8 @@
 	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
 	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
 
-	Copyright (c) 2021 - 2026 sdmanson8
+	.AUTHOR
+	sdmanson8 - Copyright (c) 2021 - 2026
 
     .DESCRIPTION
     Provides shared utility functions used by the loader and region modules.
@@ -239,6 +240,40 @@ function Mount-RegistryHive
 	return $false
 }
 
+function Remove-HandledErrorRecord
+{
+	param
+	(
+		[Parameter(Mandatory = $true)]
+		[System.Management.Automation.ErrorRecord]
+		$ErrorRecord
+	)
+
+	if (-not $Global:Error)
+	{
+		return
+	}
+
+	for ($Index = $Global:Error.Count - 1; $Index -ge 0; $Index--)
+	{
+		$Candidate = $Global:Error[$Index]
+		if ($null -eq $Candidate)
+		{
+			continue
+		}
+
+		$SameType = $Candidate.Exception.GetType().FullName -eq $ErrorRecord.Exception.GetType().FullName
+		$SameMessage = $Candidate.Exception.Message -eq $ErrorRecord.Exception.Message
+		$SamePath = $Candidate.InvocationInfo.PSCommandPath -eq $ErrorRecord.InvocationInfo.PSCommandPath
+		$SameLine = $Candidate.InvocationInfo.ScriptLineNumber -eq $ErrorRecord.InvocationInfo.ScriptLineNumber
+
+		if ($SameType -and $SameMessage -and $SamePath -and $SameLine)
+		{
+			$Global:Error.RemoveAt($Index)
+		}
+	}
+}
+
 <# 
 	.SYNOPSIS
 	Create a registry key path if needed and then set the requested value.
@@ -317,21 +352,13 @@ function Set-RegistryValueSafe
 
 		if ($FallbackSucceeded)
 		{
-			if ($Global:Error -and $Global:Error.Contains($HandledError))
-			{
-				[void]$Global:Error.Remove($HandledError)
-			}
-
+			Remove-HandledErrorRecord -ErrorRecord $HandledError
 			return
 		}
 
 		if ($SkipOnAccessDenied)
 		{
-			if ($Global:Error -and $Global:Error.Contains($HandledError))
-			{
-				[void]$Global:Error.Remove($HandledError)
-			}
-
+			Remove-HandledErrorRecord -ErrorRecord $HandledError
 			if ($OnAccessDenied)
 			{
 				& $OnAccessDenied $Path $Name | Out-Null
@@ -355,8 +382,14 @@ function Set-RegistryValueSafe
 function Get-WindowsVersionData
 {
 	$CurrentVersion = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -ErrorAction Stop
+	$CurrentBuild = [string]$CurrentVersion.CurrentBuild
 	$DisplayVersion = [string]$CurrentVersion.DisplayVersion
 	$UBR = 0
+
+	if ([string]::IsNullOrWhiteSpace($CurrentBuild))
+	{
+		$CurrentBuild = [string]$CurrentVersion.CurrentBuildNumber
+	}
 
 	if ([string]::IsNullOrWhiteSpace($DisplayVersion))
 	{
@@ -369,11 +402,107 @@ function Get-WindowsVersionData
 	}
 
 	[pscustomobject]@{
-		IsWindows11    = ([int]$CurrentVersion.CurrentBuild -ge 22000)
-		CurrentBuild   = [int]$CurrentVersion.CurrentBuild
+		IsWindows11    = ([int]$CurrentBuild -ge 22000)
+		CurrentBuild   = [int]$CurrentBuild
 		UBR            = $UBR
 		DisplayVersion = $DisplayVersion
 	}
+}
+
+<#
+	.SYNOPSIS
+	Get the current OS name and whether the system is Windows 11.
+#>
+function Get-OSInfo
+{
+	$VersionData = Get-WindowsVersionData
+
+	[pscustomobject]@{
+		IsWindows11    = $VersionData.IsWindows11
+		OSName         = if ($VersionData.IsWindows11) { 'Windows 11' } else { 'Windows 10' }
+		CurrentBuild   = $VersionData.CurrentBuild
+		UBR            = $VersionData.UBR
+		DisplayVersion = $VersionData.DisplayVersion
+	}
+}
+
+
+<#
+	.SYNOPSIS
+	Convert a Windows display version like `25H2` into a comparable integer.
+#>
+function ConvertTo-WindowsDisplayVersionComparable
+{
+	param
+	(
+		[string]
+		$DisplayVersion
+	)
+
+	if ([string]::IsNullOrWhiteSpace($DisplayVersion))
+	{
+		return $null
+	}
+
+	if ($DisplayVersion -match '^(?<Year>\d{2})H(?<Half>\d)$')
+	{
+		return ([int]$Matches.Year * 10) + [int]$Matches.Half
+	}
+
+	return $null
+}
+
+<#
+	.SYNOPSIS
+	Test whether the current Windows 11 release meets one of the supplied release thresholds
+	and allow any later feature update automatically.
+
+	.PARAMETER Thresholds
+	Array of hashtables containing `DisplayVersion`, `Build`, and optional `UBR`.
+#>
+function Test-Windows11FeatureBranchSupport
+{
+	param
+	(
+		[Parameter(Mandatory = $true)]
+		[hashtable[]]
+		$Thresholds
+	)
+
+	$VersionData = Get-WindowsVersionData
+	if (-not $VersionData.IsWindows11)
+	{
+		return $false
+	}
+
+	$ParsedThresholds = $Thresholds | ForEach-Object {
+		[pscustomobject]@{
+			DisplayVersion = [string]$_.DisplayVersion
+			Build          = [int]$_.Build
+			UBR            = if ($null -ne $_.UBR) { [int]$_.UBR } else { 0 }
+		}
+	} | Sort-Object Build, UBR
+
+	if (-not $ParsedThresholds)
+	{
+		return $false
+	}
+
+	$ApplicableThreshold = $ParsedThresholds | Where-Object -FilterScript {
+		$VersionData.CurrentBuild -ge $_.Build
+	} | Select-Object -Last 1
+
+	if (-not $ApplicableThreshold)
+	{
+		return $false
+	}
+
+	if ($VersionData.CurrentBuild -gt $ApplicableThreshold.Build)
+	{
+		return $true
+	}
+
+	return ($VersionData.UBR -ge $ApplicableThreshold.UBR)
 }
 
 <#
@@ -426,19 +555,31 @@ function Test-Windows11BuildSupport
 		return $false
 	}
 
-	if ($VersionData.DisplayVersion -match '^(?<Year>\d{2})H(?<Half>\d)$')
-	{
-		$CurrentComparable = ([int]$Matches.Year * 10) + [int]$Matches.Half
+	$CurrentComparable = ConvertTo-WindowsDisplayVersionComparable -DisplayVersion $VersionData.DisplayVersion
+	$MinimumComparable = ConvertTo-WindowsDisplayVersionComparable -DisplayVersion $MinimumDisplayVersion
 
-		if ($MinimumDisplayVersion -match '^(?<Year>\d{2})H(?<Half>\d)$')
-		{
-			$MinimumComparable = ([int]$Matches.Year * 10) + [int]$Matches.Half
-			return ($CurrentComparable -ge $MinimumComparable)
-		}
+	if (($null -ne $CurrentComparable) -and ($null -ne $MinimumComparable))
+	{
+		return ($CurrentComparable -ge $MinimumComparable)
 	}
 
 	return $false
 }
 
 # Export the shared helper functions used across the module set.
-Export-ModuleMember -Function Set-Policy, ConvertTo-NativeRegistryPath, ConvertTo-RegExeValueType, Dismount-RegistryHive, Mount-RegistryHive, Set-RegistryValueSafe, Get-WindowsVersionData, Test-Windows11BuildSupport
+$ExportedFunctions = @(
+	'Set-Policy'
+	'ConvertTo-NativeRegistryPath'
+	'ConvertTo-RegExeValueType'
+	'Dismount-RegistryHive'
+	'Mount-RegistryHive'
+	'Remove-HandledErrorRecord'
+	'Set-RegistryValueSafe'
+	'Get-WindowsVersionData'
+	'Get-OSInfo'
+	'ConvertTo-WindowsDisplayVersionComparable'
+	'Test-Windows11FeatureBranchSupport'
+	'Test-Windows11BuildSupport'
+)
+
+Export-ModuleMember -Function $ExportedFunctions

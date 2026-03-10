@@ -60,7 +60,7 @@ function OneDrive
 	{
 		"Uninstall"
 		{
-			Write-Host "Uninstalling One Drive - " -NoNewline
+			Write-ConsoleStatus -Action "Uninstalling One Drive"
 			LogInfo "Uninstalling One Drive"
 			try
 			{
@@ -70,7 +70,7 @@ function OneDrive
 
 				if (-not $UninstallString) {
     				LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
    				 	return
 				}
 
@@ -111,17 +111,17 @@ function OneDrive
 				Remove-Item -Path $PathsToRemove -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
 				Remove-ItemProperty -Path HKCU:\Environment -Name OneDrive, OneDriveConsumer -Force -ErrorAction SilentlyContinue | Out-Null
 				Unregister-ScheduledTask -TaskName *OneDrive* -Confirm:$false -ErrorAction SilentlyContinue | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to uninstall OneDrive: $($_.Exception.Message)"
 			}
 		}
 		"Install"
 		{
-			Write-Host "Installing One Drive - " -NoNewline
+			Write-ConsoleStatus -Action "Installing One Drive"
 			LogInfo "Installing One Drive"
 			try
 			{
@@ -194,11 +194,11 @@ function OneDrive
 
 				Get-ScheduledTask -TaskName "Onedrive* Update*" | Enable-ScheduledTask
 				Get-ScheduledTask -TaskName "Onedrive* Update*" | Start-ScheduledTask
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to install OneDrive: $($_.Exception.Message)"
 			}
 		}

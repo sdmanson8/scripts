@@ -155,7 +155,7 @@ function UpdateLGPEPolicies
 #>
 function ScanRegistryPolicies
 {
-	Write-Host "Scanning registry for policies to display in the Local Group Policy Editor snap-in - " -NoNewline
+	Write-ConsoleStatus -Action "Scanning registry for policies to display in the Local Group Policy Editor snap-in"
 	LogInfo "Scanning registry for policies to display in the Local Group Policy Editor snap-in"
 	if (-not (Test-Path -Path "$env:SystemRoot\System32\gpedit.msc"))
 	{
@@ -233,6 +233,6 @@ function ScanRegistryPolicies
 			}
 		}
 	}
-	Write-Host "success!" -ForegroundColor Green
+	Write-ConsoleStatus -Status success
 }
 #endregion Update Policies

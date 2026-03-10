@@ -89,7 +89,7 @@ function Install-Cursors
 	{
 		"Dark"
 		{
-			Write-Host "Installing 'Windows 11 Cursors Concept' dark cursors - " -NoNewline
+			Write-ConsoleStatus -Action "Installing 'Windows 11 Cursors Concept' dark cursors"
 			LogInfo "Installing 'Windows 11 Cursors Concept' dark cursors"
 			try
 			{
@@ -153,17 +153,17 @@ function Install-Cursors
 				Start-Sleep -Seconds 1
 
 				Remove-Item -Path "$DownloadsFolder\Windows11Cursors.zip", "$env:SystemRoot\Cursors\W11 Cursor Dark Free\Install.inf" -Force -ErrorAction SilentlyContinue | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to install the dark cursor theme: $($_.Exception.Message)"
 			}
 		}
 		"Light"
 		{
-			Write-Host "Installing 'Windows 11 Cursors Concept' light cursors - " -NoNewline
+			Write-ConsoleStatus -Action "Installing 'Windows 11 Cursors Concept' light cursors"
 			LogInfo "Installing 'Windows 11 Cursors Concept' light cursors"
 			try
 			{
@@ -227,17 +227,17 @@ function Install-Cursors
 				Start-Sleep -Seconds 1
 
 				Remove-Item -Path "$DownloadsFolder\Windows11Cursors.zip", "$env:SystemRoot\Cursors\W11 Cursor Light Free\Install.inf" -Force -ErrorAction SilentlyContinue | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to install the light cursor theme: $($_.Exception.Message)"
 			}
 		}
 		"Default"
 		{
-			Write-Host "Setting default cursors - " -NoNewline
+			Write-ConsoleStatus -Action "Setting default cursors"
 			LogInfo "Setting default cursors"
 			try
 			{
@@ -260,11 +260,11 @@ function Install-Cursors
 				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name SizeWE -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_ew.cur" -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name UpArrow -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_up.cur" -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path "HKCU:\Control Panel\Cursors" -Name Wait -PropertyType ExpandString -Value "%SystemRoot%\cursors\aero_up.cur" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to restore the default cursor scheme: $($_.Exception.Message)"
 			}
 		}

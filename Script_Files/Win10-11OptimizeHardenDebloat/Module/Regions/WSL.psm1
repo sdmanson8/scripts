@@ -111,7 +111,7 @@ function Install-WSL
 	{
 		try
 		{
-			Write-Host "Installing $Script:CommandTag distribution - " -NoNewline
+			Write-ConsoleStatus -Action "Installing $Script:CommandTag distribution"
 			LogInfo "Installing $Script:CommandTag distribution"
 			$WSLProcess = Start-Process -FilePath wsl.exe -ArgumentList "--install --distribution $Script:CommandTag" -Wait -PassThru -ErrorAction Stop
 			if ($WSLProcess.ExitCode -ne 0) { throw "wsl.exe returned exit code $($WSLProcess.ExitCode)" }
@@ -123,11 +123,11 @@ function Install-WSL
 
 			# Check for updates
 			Start-Process -FilePath "$env:SystemRoot\System32\UsoClient.exe" -ArgumentList StartInteractiveScan -WindowStyle Hidden -ErrorAction Stop | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		catch
 		{
-			Write-Host "Failed! Check logs for details." -ForegroundColor Red
+			Write-ConsoleStatus -Status failed
 			LogError "Failed to install the $Script:CommandTag WSL distribution: $($_.Exception.Message)"
 		}
 	}

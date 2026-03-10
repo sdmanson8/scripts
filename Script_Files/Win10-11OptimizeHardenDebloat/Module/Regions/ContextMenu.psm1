@@ -44,7 +44,7 @@ function MSIExtractContext
 	{
 		"Show"
 		{
-			Write-Host "Showing 'Extract all' item in the Windows Installer (.msi) context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Extract all' item in the Windows Installer (.msi) context menu"
 			LogInfo "Showing 'Extract all' item in the Windows Installer (.msi) context menu"
 			try
 			{
@@ -56,17 +56,17 @@ function MSIExtractContext
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract\Command -Name "(default)" -PropertyType String -Value $Value -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name MUIVerb -PropertyType String -Value "@shell32.dll,-37514" -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Name Icon -PropertyType String -Value "shell32.dll,-16817" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Extract all' in the MSI context menu: $($_.Exception.Message)"
 			}
 		}
 		"Hide"
 		{
-			Write-Host "Hiding 'Extract all' item from the Windows Installer (.msi) context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Extract all' item from the Windows Installer (.msi) context menu"
 			LogInfo "Hiding 'Extract all' item from the Windows Installer (.msi) context menu"
 			try
 			{
@@ -74,11 +74,11 @@ function MSIExtractContext
 				{
 					Remove-Item -Path Registry::HKEY_CLASSES_ROOT\Msi.Package\shell\Extract -Recurse -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Extract all' from the MSI context menu: $($_.Exception.Message)"
 			}
 		}
@@ -127,7 +127,7 @@ function CABInstallContext
 	{
 		"Show"
 		{
-			Write-Host "Showing 'Install' item in the Cabinet (.cab) filenames extensions context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Install' item in the Cabinet (.cab) filenames extensions context menu"
 			LogInfo "Showing 'Install' item in the Cabinet (.cab) filenames extensions context menu"
 			try
 			{
@@ -139,17 +139,17 @@ function CABInstallContext
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas\Command -Name "(default)" -PropertyType String -Value $Value -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name MUIVerb -PropertyType String -Value "@shell32.dll,-10210" -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Name HasLUAShield -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Install' in the CAB context menu: $($_.Exception.Message)"
 			}
 		}
 		"Hide"
 		{
-			Write-Host "Hiding 'Install' item from the Cabinet (.cab) filenames extensions context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Install' item from the Cabinet (.cab) filenames extensions context menu"
 			LogInfo "Hiding 'Install' item from the Cabinet (.cab) filenames extensions context menu"
 			try
 			{
@@ -157,11 +157,11 @@ function CABInstallContext
 				{
 					Remove-Item -Path Registry::HKEY_CLASSES_ROOT\CABFolder\Shell\runas -Recurse -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Install' from the CAB context menu: $($_.Exception.Message)"
 			}
 		}
@@ -219,7 +219,7 @@ function EditWithClipchampContext
 	{
 		"Hide"
 		{
-			Write-Host "Hiding 'Edit with Clipchamp' item from the media files context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Edit with Clipchamp' item from the media files context menu"
 			LogInfo "Hiding 'Edit with Clipchamp' item from the media files context menu"
 			try
 			{
@@ -228,17 +228,17 @@ function EditWithClipchampContext
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force -ErrorAction Stop | Out-Null
 				}
 				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Edit with Clipchamp' from the context menu: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Showing 'Edit with Clipchamp' item in the media files context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Edit with Clipchamp' item in the media files context menu"
 			LogInfo "Showing 'Edit with Clipchamp' item in the media files context menu"
 			try
 			{
@@ -246,11 +246,11 @@ function EditWithClipchampContext
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{8AB635F8-9A67-4698-AB99-784AD929F3B4}" -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Edit with Clipchamp' in the context menu: $($_.Exception.Message)"
 			}
 		}
@@ -308,7 +308,7 @@ function EditWithPhotosContext
 	{
 		"Hide"
 		{
-			Write-Host "Hiding 'Edit with Photos' item from the media files context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Edit with Photos' item from the media files context menu"
 			LogInfo "Hiding 'Edit with Photos' item from the media files context menu"
 			try
 			{
@@ -317,17 +317,17 @@ function EditWithPhotosContext
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force -ErrorAction Stop | Out-Null
 				}
 				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Edit with Photos' from the context menu: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Showing 'Edit with Photos' item in the media files context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Edit with Photos' item in the media files context menu"
 			LogInfo "Showing 'Edit with Photos' item in the media files context menu"
 			try
 			{
@@ -335,11 +335,11 @@ function EditWithPhotosContext
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{BFE0E2A4-C70C-4AD7-AC3D-10D1ECEBB5B4}" -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Edit with Photos' in the context menu: $($_.Exception.Message)"
 			}
 		}
@@ -397,7 +397,7 @@ function EditWithPaintContext
 	{
 		"Hide"
 		{
-			Write-Host "Hiding 'Edit with Paint' item from the media files context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Edit with Paint' item from the media files context menu"
 			LogInfo "Hiding 'Edit with Paint' item from the media files context menu"
 			try
 			{
@@ -406,17 +406,17 @@ function EditWithPaintContext
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force -ErrorAction Stop | Out-Null
 				}
 				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Edit with Paint' from the context menu: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Showing 'Edit with Paint' item in the media files context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Edit with Paint' item in the media files context menu"
 			LogInfo "Showing 'Edit with Paint' item in the media files context menu"
 			try
 			{
@@ -424,11 +424,11 @@ function EditWithPaintContext
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{2430F218-B743-4FD6-97BF-5C76541B4AE9}" -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Edit with Paint' in the context menu: $($_.Exception.Message)"
 			}
 		}
@@ -477,23 +477,23 @@ function PrintCMDContext
 	{
 		"Hide"
 		{
-			Write-Host "Hiding 'Print' item from the .bat and .cmd context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Print' item from the .bat and .cmd context menu"
 			LogInfo "Hiding 'Print' item from the .bat and .cmd context menu"
 			try
 			{
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\batfile\shell\print -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Print' from the .bat and .cmd context menu: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Showing 'Print' item in the .bat and .cmd context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Print' item in the .bat and .cmd context menu"
 			LogInfo "Showing 'Print' item in the .bat and .cmd context menu"
 			try
 			{
@@ -505,11 +505,11 @@ function PrintCMDContext
 				{
 					Remove-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\cmdfile\shell\print -Name ProgrammaticAccessOnly -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Print' in the .bat and .cmd context menu: $($_.Exception.Message)"
 			}
 		}
@@ -558,7 +558,7 @@ function CompressedFolderNewContext
 	{
 		"Hide"
 		{
-			Write-Host "Hiding 'Compressed (zipped) Folder' item from the 'New' context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Compressed (zipped) Folder' item from the 'New' context menu"
 			LogInfo "Hiding 'Compressed (zipped) Folder' item from the 'New' context menu"
 			try
 			{
@@ -566,17 +566,17 @@ function CompressedFolderNewContext
 				{
 					Remove-Item -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Compressed (zipped) Folder' from the 'New' context menu: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Showing 'Compressed (zipped) Folder' item in the 'New' context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Compressed (zipped) Folder' item in the 'New' context menu"
 			LogInfo "Showing 'Compressed (zipped) Folder' item in the 'New' context menu"
 			try
 			{
@@ -586,11 +586,11 @@ function CompressedFolderNewContext
 				}
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Name Data -PropertyType Binary -Value ([byte[]](80,75,5,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)) -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path Registry::HKEY_CLASSES_ROOT\.zip\CompressedFolder\ShellNew -Name ItemName -PropertyType ExpandString -Value "@%SystemRoot%\System32\zipfldr.dll,-10194" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Compressed (zipped) Folder' in the 'New' context menu: $($_.Exception.Message)"
 			}
 		}
@@ -639,22 +639,22 @@ function MultipleInvokeContext
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'Open', 'Print', and 'Edit' items if more than 15 files selected - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'Open', 'Print', and 'Edit' items if more than 15 files selected"
 			LogInfo "Enabling 'Open', 'Print', and 'Edit' items if more than 15 files selected"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name MultipleInvokePromptMinimum -PropertyType DWord -Value 300 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable multiple invoke context menu items: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling 'Open', 'Print', and 'Edit' items if more than 15 files selected - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'Open', 'Print', and 'Edit' items if more than 15 files selected"
 			LogInfo "Disabling 'Open', 'Print', and 'Edit' items if more than 15 files selected"
 			try
 			{
@@ -662,11 +662,11 @@ function MultipleInvokeContext
 				{
 					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name MultipleInvokePromptMinimum -Force -ErrorAction Stop
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable multiple invoke context menu items: $($_.Exception.Message)"
 			}
 		}
@@ -719,7 +719,7 @@ function UseStoreOpenWith
 	{
 		"Hide"
 		{
-			Write-Host "Hiding 'Look for an app in the Microsoft Store' item in the 'Open with' dialog - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Look for an app in the Microsoft Store' item in the 'Open with' dialog"
 			LogInfo "Hiding 'Look for an app in the Microsoft Store' item in the 'Open with' dialog"
 			try
 			{
@@ -729,17 +729,17 @@ function UseStoreOpenWith
 				}
 				New-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type DWORD -Value 1 | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Look for an app in the Microsoft Store' in the 'Open with' dialog: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Showing 'Look for an app in the Microsoft Store' item in the 'Open with' dialog - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Look for an app in the Microsoft Store' item in the 'Open with' dialog"
 			LogInfo "Showing 'Look for an app in the Microsoft Store' item in the 'Open with' dialog"
 			try
 			{
@@ -748,11 +748,11 @@ function UseStoreOpenWith
 					Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Force -ErrorAction Stop | Out-Null
 				}
 				Set-Policy -Scope User -Path Software\Policies\Microsoft\Windows\Explorer -Name NoUseStoreOpenWith -Type CLEAR | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Look for an app in the Microsoft Store' in the 'Open with' dialog: $($_.Exception.Message)"
 			}
 		}
@@ -809,7 +809,7 @@ function OpenWindowsTerminalContext
 	{
 		"Show"
 		{
-			Write-Host "Showing 'Open in Windows Terminal' item in the folders context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Showing 'Open in Windows Terminal' item in the folders context menu"
 			LogInfo "Showing 'Open in Windows Terminal' item in the folders context menu"
 			try
 			{
@@ -817,17 +817,17 @@ function OpenWindowsTerminalContext
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show 'Open in Windows Terminal' in the context menu: $($_.Exception.Message)"
 			}
 		}
 		"Hide"
 		{
-			Write-Host "Hiding 'Open in Windows Terminal' item from the folders context menu - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding 'Open in Windows Terminal' item from the folders context menu"
 			LogInfo "Hiding 'Open in Windows Terminal' item from the folders context menu"
 			try
 			{
@@ -836,11 +836,11 @@ function OpenWindowsTerminalContext
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Force -ErrorAction Stop | Out-Null
 				}
 				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Shell Extensions\Blocked" -Name "{9F156763-7844-4DC4-B2B1-901F640F5155}" -PropertyType String -Value "" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide 'Open in Windows Terminal' from the context menu: $($_.Exception.Message)"
 			}
 		}
@@ -918,7 +918,7 @@ function OpenWindowsTerminalAdminContext
 	{
 		"Enable"
 		{
-			Write-Host "Enabling opening Windows Terminal in context menu as administrator by default - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling opening Windows Terminal in context menu as administrator by default"
 			LogInfo "Enabling opening Windows Terminal in context menu as administrator by default"
 			try
 			{
@@ -938,18 +938,18 @@ function OpenWindowsTerminalAdminContext
 				{
 					$Terminal.profiles.defaults | Add-Member -MemberType NoteProperty -Name elevate -Value $true -Force | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable opening Windows Terminal as administrator from the context menu: $($_.Exception.Message)"
 				return
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling opening Windows Terminal in context menu as administrator by default - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling opening Windows Terminal in context menu as administrator by default"
 			LogInfo "Disabling opening Windows Terminal in context menu as administrator by default"
 			try
 			{
@@ -961,11 +961,11 @@ function OpenWindowsTerminalAdminContext
 				{
 					$Terminal.profiles.defaults | Add-Member -MemberType NoteProperty -Name elevate -Value $false -Force | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable opening Windows Terminal as administrator from the context menu: $($_.Exception.Message)"
 				return
 			}
@@ -978,7 +978,7 @@ function OpenWindowsTerminalAdminContext
 	}
 	catch
 	{
-		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		Write-ConsoleStatus -Status failed
 		LogError "Failed to save Windows Terminal settings after updating context menu elevation: $($_.Exception.Message)"
 	}
 }

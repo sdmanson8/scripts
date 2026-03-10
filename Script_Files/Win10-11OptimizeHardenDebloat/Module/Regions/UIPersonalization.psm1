@@ -44,7 +44,7 @@ function ExplorerTitleFullPath
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the display of full paths in Explorer title - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the display of full paths in Explorer title"
 			LogInfo "Enabling the display of full paths in Explorer title"
 			try
 			{
@@ -52,17 +52,17 @@ function ExplorerTitleFullPath
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Force -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable full paths in Explorer title: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the display of full paths in Explorer title - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the display of full paths in Explorer title"
 			LogInfo "Disabling the display of full paths in Explorer title"
 			try
 			{
@@ -70,88 +70,12 @@ function ExplorerTitleFullPath
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" -Name "FullPath" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable full paths in Explorer title: $($_.Exception.Message)"
-			}
-		}
-	}
-}
-
-<#
-.SYNOPSIS
-Enable or disable showing folder merge conflict notifications
-
-.PARAMETER Enable
-Enable showing folder merge conflict notifications
-
-.PARAMETER Disable
-Disable showing folder merge conflict notifications
-
-.EXAMPLE
-MergeConflicts -Enable
-
-.EXAMPLE
-MergeConflicts -Disable
-
-.NOTES
-Current user
-#>
-function MergeConflicts
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling folder merge conflict notifications - " -NoNewline
-			LogInfo "Enabling folder merge conflict notifications"
-			try
-			{
-				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to enable folder merge conflict notifications: $($_.Exception.Message)"
-			}
-		}
-		"Disable"
-		{
-			Write-Host "Disabling folder merge conflict notifications - " -NoNewline
-			LogInfo "Disabling folder merge conflict notifications"
-			try
-			{
-				if ((Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -ErrorAction SilentlyContinue))
-				{
-					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideMergeConflicts" -ErrorAction Stop | Out-Null
-				}
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to disable folder merge conflict notifications: $($_.Exception.Message)"
 			}
 		}
 	}
@@ -199,22 +123,22 @@ function NavPaneAllFolders
 	{
 		"Enable"
 		{
-			Write-Host "Enabling all folders in the Explorer navigation pane - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling all folders in the Explorer navigation pane"
 			LogInfo "Enabling all folders in the Explorer navigation pane"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable all folders in the Explorer navigation pane: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling all folders in the Explorer navigation pane - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling all folders in the Explorer navigation pane"
 			LogInfo "Disabling all folders in the Explorer navigation pane"
 			try
 			{
@@ -222,11 +146,11 @@ function NavPaneAllFolders
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "NavPaneShowAllFolders" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable all folders in the Explorer navigation pane: $($_.Exception.Message)"
 			}
 		}
@@ -275,7 +199,7 @@ function NavPaneLibraries
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Libraries in the Explorer navigation pane - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Libraries in the Explorer navigation pane"
 			LogInfo "Enabling Libraries in the Explorer navigation pane"
 			try
 			{
@@ -283,17 +207,17 @@ function NavPaneLibraries
 					New-Item -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Force -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Libraries in the Explorer navigation pane: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Libraries in the Explorer navigation pane - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Libraries in the Explorer navigation pane"
 			LogInfo "Disabling Libraries in the Explorer navigation pane"
 			try
 			{
@@ -301,11 +225,11 @@ function NavPaneLibraries
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Classes\CLSID\{031E4825-7B94-4dc3-B131-E946B44C8DD5}" -Name "System.IsPinnedToNameSpaceTree" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Libraries in the Explorer navigation pane: $($_.Exception.Message)"
 			}
 		}
@@ -354,31 +278,31 @@ function FldrSeparateProcess
 	{
 		"Enable"
 		{
-			Write-Host "Enabling launching folder windows in a separate process - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling launching folder windows in a separate process"
 			LogInfo "Enabling launching folder windows in a separate process"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable separate folder windows: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling launching folder windows in a separate process - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling launching folder windows in a separate process"
 			LogInfo "Disabling launching folder windows in a separate process"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SeparateProcess" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable separate folder windows: $($_.Exception.Message)"
 			}
 		}
@@ -427,22 +351,22 @@ function RestoreFldrWindows
 	{
 		"Enable"
 		{
-			Write-Host "Enabling restoring previous folder windows at logon - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling restoring previous folder windows at logon"
 			LogInfo "Enabling restoring previous folder windows at logon"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable restoring previous folder windows at logon: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling restoring previous folder windows at logon - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling restoring previous folder windows at logon"
 			LogInfo "Disabling restoring previous folder windows at logon"
 			try
 			{
@@ -450,11 +374,11 @@ function RestoreFldrWindows
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "PersistBrowsers" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable restoring previous folder windows at logon: $($_.Exception.Message)"
 			}
 		}
@@ -503,22 +427,22 @@ function EncCompFilesColor
 	{
 		"Enable"
 		{
-			Write-Host "Enabling coloring of encrypted or compressed NTFS files - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling coloring of encrypted or compressed NTFS files"
 			LogInfo "Enabling coloring of encrypted or compressed NTFS files"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable coloring of encrypted or compressed NTFS files: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling coloring of encrypted or compressed NTFS files - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling coloring of encrypted or compressed NTFS files"
 			LogInfo "Disabling coloring of encrypted or compressed NTFS files"
 			try
 			{
@@ -526,11 +450,11 @@ function EncCompFilesColor
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowEncryptCompressedColor" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable coloring of encrypted or compressed NTFS files: $($_.Exception.Message)"
 			}
 		}
@@ -579,7 +503,7 @@ function SharingWizard
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the Sharing Wizard in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Sharing Wizard in Explorer"
 			LogInfo "Enabling the Sharing Wizard in Explorer"
 			try
 			{
@@ -587,26 +511,26 @@ function SharingWizard
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the Sharing Wizard in Explorer: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the Sharing Wizard in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Sharing Wizard in Explorer"
 			LogInfo "Disabling the Sharing Wizard in Explorer"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "SharingWizardOn" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the Sharing Wizard in Explorer: $($_.Exception.Message)"
 			}
 		}
@@ -655,31 +579,31 @@ function SelectCheckboxes
 	{
 		"Enable"
 		{
-			Write-Host "Enabling item selection checkboxes in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling item selection checkboxes in Explorer"
 			LogInfo "Enabling item selection checkboxes in Explorer"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable item selection checkboxes in Explorer: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling item selection checkboxes in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling item selection checkboxes in Explorer"
 			LogInfo "Enabling item selection checkboxes in Explorer"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "AutoCheckSelect" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable item selection checkboxes in Explorer: $($_.Exception.Message)"
 			}
 		}
@@ -728,31 +652,31 @@ function SyncNotifications
 	{
 		"Enable"
 		{
-			Write-Host "Enabling sync provider notifications in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling sync provider notifications in Explorer"
 			LogInfo "Enabling sync provider notifications in Explorer"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable sync provider notifications in Explorer: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling sync provider notifications in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling sync provider notifications in Explorer"
 			LogInfo "Disabling sync provider notifications in Explorer"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSyncProviderNotifications" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable sync provider notifications in Explorer: $($_.Exception.Message)"
 			}
 		}
@@ -804,7 +728,7 @@ function RecentShortcuts
 	{
 		"Enable"
 		{
-			Write-Host "Enabling recently and frequently used item shortcuts in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling recently and frequently used item shortcuts in Explorer"
 			LogInfo "Enabling recently and frequently used item shortcuts in Explorer"
 			try
 			{
@@ -816,27 +740,27 @@ function RecentShortcuts
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable recent and frequent item shortcuts in Explorer: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling recently and frequently used item shortcuts in Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling recently and frequently used item shortcuts in Explorer"
 			LogInfo "Disabling recently and frequently used item shortcuts in Explorer"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowRecent" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "ShowFrequent" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable recent and frequent item shortcuts in Explorer: $($_.Exception.Message)"
 			}
 		}
@@ -885,31 +809,31 @@ function BuildNumberOnDesktop
 	{
 		"Enable"
 		{
-			Write-Host "Enabling build number and edition display on the Desktop - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling build number and edition display on the Desktop"
 			LogInfo "Enabling build number and edition display on the Desktop"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable build number and edition display on the Desktop: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling build number and edition display on the Desktop - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling build number and edition display on the Desktop"
 			LogInfo "Disabling build number and edition display on the Desktop"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "PaintDesktopVersion" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable build number and edition display on the Desktop: $($_.Exception.Message)"
 			}
 		}
@@ -961,17 +885,17 @@ function ShareMenu
 			If (!(Test-Path "HKCR:")) {
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
-			Write-Host "Enabling the Share context menu item - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Share context menu item"
 			LogInfo "Enabling the Share context menu item"
 			try
 			{
 				New-Item -Path "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction SilentlyContinue | Out-Null
 				Set-ItemProperty -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -Name "(Default)" -Type String -Value "{e2bf9676-5f8f-435c-97eb-11607a5bedf7}" -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the Share context menu item: $($_.Exception.Message)"
 			}
 		}
@@ -980,7 +904,7 @@ function ShareMenu
 			If (!(Test-Path "HKCR:")) {
 				New-PSDrive -Name "HKCR" -PSProvider "Registry" -Root "HKEY_CLASSES_ROOT" | Out-Null
 			}
-			Write-Host "Disabling the Share context menu item - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Share context menu item"
 			LogInfo "Disabling the Share context menu item"
 			try
 			{
@@ -988,11 +912,11 @@ function ShareMenu
 				{
 					Remove-Item -LiteralPath "HKCR:\*\shellex\ContextMenuHandlers\ModernSharing" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the Share context menu item: $($_.Exception.Message)"
 			}
 		}
@@ -1041,31 +965,31 @@ function Thumbnails
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'Show thumbnails instead of icons' for file extensions - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'Show thumbnails instead of icons' for file extensions"
 			LogInfo "Enabling 'Show thumbnails instead of icons' for file extensions"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable thumbnails for file extensions: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling thumbnails, showing icons for file extensions instead - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling thumbnails, showing icons for file extensions instead"
 			LogInfo "Disabling thumbnails, showing icons for file extensions instead"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "IconsOnly" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable thumbnails for file extensions: $($_.Exception.Message)"
 			}
 		}
@@ -1114,7 +1038,7 @@ function ThumbnailCache
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the creation of thumbnail cache files - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the creation of thumbnail cache files"
 			LogInfo "Enabling the creation of thumbnail cache files"
 			try
 			{
@@ -1122,26 +1046,26 @@ function ThumbnailCache
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable thumbnail cache creation: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the creation of thumbnail cache files - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the creation of thumbnail cache files"
 			LogInfo "Disabling the creation of thumbnail cache files"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbnailCache" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable thumbnail cache creation: $($_.Exception.Message)"
 			}
 		}
@@ -1190,7 +1114,7 @@ function ThumbsDBOnNetwork
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the creation of 'Thumbs.db' cache on network folders - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the creation of 'Thumbs.db' cache on network folders"
 			LogInfo "Enabling the creation of 'Thumbs.db' cache on network folders"
 			try
 			{
@@ -1198,26 +1122,26 @@ function ThumbsDBOnNetwork
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Thumbs.db cache on network folders: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the creation of 'Thumbs.db' cache on network folders - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the creation of 'Thumbs.db' cache on network folders"
 			LogInfo "Disabling the creation of 'Thumbs.db' cache on network folders"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "DisableThumbsDBOnNetworkFolders" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Thumbs.db cache on network folders: $($_.Exception.Message)"
 			}
 		}
@@ -1266,7 +1190,7 @@ function ThisPC
 	{
 		"Show"
 		{
-			Write-Host "Enabling 'This PC' icon on Desktop - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'This PC' icon on Desktop"
 			LogInfo "Enabling 'This PC' icon on Desktop"
 			try
 			{
@@ -1275,17 +1199,17 @@ function ThisPC
 					New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Force -ErrorAction Stop | Out-Null
 				}
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the 'This PC' icon on Desktop: $($_.Exception.Message)"
 			}
 		}
 		"Hide"
 		{
-			Write-Host "Disabling 'This PC' icon on Desktop - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'This PC' icon on Desktop"
 			LogInfo "Disabling 'This PC' icon on Desktop"
 			try
 			{
@@ -1293,11 +1217,11 @@ function ThisPC
 				{
 					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide the 'This PC' icon on Desktop: $($_.Exception.Message)"
 			}
 		}
@@ -1346,31 +1270,31 @@ function CheckBoxes
 	{
 		"Enable"
 		{
-			Write-Host "Enabling item check boxes - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling item check boxes"
 			LogInfo "Enabling item check boxes"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name AutoCheckSelect -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable item check boxes: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling item check boxes - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling item check boxes"
 			LogInfo "Disabling item check boxes"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name AutoCheckSelect -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable item check boxes: $($_.Exception.Message)"
 			}
 		}
@@ -1419,31 +1343,31 @@ function HiddenItems
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Hidden files, folders, and drives - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Hidden files, folders, and drives"
 			LogInfo "Enabling Hidden files, folders, and drives"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Hidden -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show hidden files, folders, and drives: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Hidden files, folders, and drives - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Hidden files, folders, and drives"
 			LogInfo "Disabling Hidden files, folders, and drives"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name Hidden -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide hidden files, folders, and drives: $($_.Exception.Message)"
 			}
 		}
@@ -1492,31 +1416,31 @@ function SuperHiddenFiles
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'Show protected operating system files' - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'Show protected operating system files'"
 			LogInfo "Enabling 'Show protected operating system files'"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show protected operating system files: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling 'Show protected operating system files' - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'Show protected operating system files'"
 			LogInfo "Disabling 'Show protected operating system files'"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide protected operating system files: $($_.Exception.Message)"
 			}
 		}
@@ -1565,31 +1489,31 @@ function FileExtensions
 	{
 		"Show"
 		{
-			Write-Host "Enabling file name extensions - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling file name extensions"
 			LogInfo "Enabling file name extensions"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideFileExt -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show file name extensions: $($_.Exception.Message)"
 			}
 		}
 		"Hide"
 		{
-			Write-Host "Disabling file name extensions - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling file name extensions"
 			LogInfo "Disabling file name extensions"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideFileExt -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide file name extensions: $($_.Exception.Message)"
 			}
 		}
@@ -1638,31 +1562,31 @@ function MergeConflicts
 	{
 		"Show"
 		{
-			Write-Host "Enabling folder merge conflicts - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling folder merge conflicts"
 			LogInfo "Enabling folder merge conflicts"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideMergeConflicts -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show folder merge conflicts: $($_.Exception.Message)"
 			}
 		}
 		"Hide"
 		{
-			Write-Host "Disabling folder merge conflicts - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling folder merge conflicts"
 			LogInfo "Disabling folder merge conflicts"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name HideMergeConflicts -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide folder merge conflicts: $($_.Exception.Message)"
 			}
 		}
@@ -1724,46 +1648,46 @@ function OpenFileExplorerTo
 	{
 		"ThisPC"
 		{
-			Write-Host "Setting File Explorer to open to 'This PC' - " -NoNewline
+			Write-ConsoleStatus -Action "Setting File Explorer to open to 'This PC'"
 			LogInfo "Setting File Explorer to open to 'This PC'"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set File Explorer to open to 'This PC': $($_.Exception.Message)"
 			}
 		}
 		"QuickAccess"
 		{
-			Write-Host "Setting File Explorer to open to 'Quick Access' - " -NoNewline
+			Write-ConsoleStatus -Action "Setting File Explorer to open to 'Quick Access'"
 			LogInfo "Setting File Explorer to open to 'Quick Access'"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set File Explorer to open to 'Quick Access': $($_.Exception.Message)"
 			}
 		}
 		"Downloads"
 		{
-			Write-Host "Setting File Explorer to open to 'Downloads' - " -NoNewline
+			Write-ConsoleStatus -Action "Setting File Explorer to open to 'Downloads'"
 			LogInfo "Setting File Explorer to open to 'Downloads'"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name LaunchTo -PropertyType DWord -Value 3 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set File Explorer to open to 'Downloads': $($_.Exception.Message)"
 			}
 		}
@@ -1812,31 +1736,31 @@ function FileExplorerCompactMode
 	{
 		"Disable"
 		{
-			Write-Host "Disabling File Explorer compact mode - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling File Explorer compact mode"
 			LogInfo "Disabling File Explorer compact mode"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name UseCompactMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable File Explorer compact mode: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling File Explorer compact mode - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling File Explorer compact mode"
 			LogInfo "Enabling File Explorer compact mode"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name UseCompactMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable File Explorer compact mode: $($_.Exception.Message)"
 			}
 		}
@@ -1885,31 +1809,31 @@ function OneDriveFileExplorerAd
 	{
 		"Hide"
 		{
-			Write-Host "Disabling sync provider notification within File Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling sync provider notification within File Explorer"
 			LogInfo "Disabling sync provider notification within File Explorer"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide sync provider notification within File Explorer: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Enabling sync provider notification within File Explorer - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling sync provider notification within File Explorer"
 			LogInfo "Enabling sync provider notification within File Explorer"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSyncProviderNotifications -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show sync provider notification within File Explorer: $($_.Exception.Message)"
 			}
 		}
@@ -1960,31 +1884,31 @@ function SnapAssist
 	{
 		"Disable"
 		{
-			Write-Host "Disabling 'show what I can snap next' When snapping windows - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'show what I can snap next' When snapping windows"
 			LogInfo "Disabling 'show what I can snap next' When snapping windows"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable 'show what I can snap next' when snapping windows: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling 'show what I can snap next' When snapping windows - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'show what I can snap next' When snapping windows"
 			LogInfo "Enabling 'show what I can snap next' When snapping windows"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name SnapAssist -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable 'show what I can snap next' when snapping windows: $($_.Exception.Message)"
 			}
 		}
@@ -2038,31 +1962,31 @@ function FileTransferDialog
 	{
 		"Detailed"
 		{
-			Write-Host "Enabling detailed view for file transfer dialog boxes - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling detailed view for file transfer dialog boxes"
 			LogInfo "Enabling detailed view for file transfer dialog boxes"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable detailed view for file transfer dialog boxes: $($_.Exception.Message)"
 			}
 		}
 		"Compact"
 		{
-			Write-Host "Enabling compact view for file transfer dialog boxes - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling compact view for file transfer dialog boxes"
 			LogInfo "Enabling compact view for file transfer dialog boxes"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager -Name EnthusiastMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable compact view for file transfer dialog boxes: $($_.Exception.Message)"
 			}
 		}
@@ -2118,33 +2042,33 @@ function RecycleBinDeleteConfirmation
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the recycle bin files delete confirmation dialog - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the recycle bin files delete confirmation dialog"
 			LogInfo "Enabling the recycle bin files delete confirmation dialog"
 			try
 			{
 				$ShellState[4] = 51
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the recycle bin delete confirmation dialog: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the recycle bin files delete confirmation dialog - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the recycle bin files delete confirmation dialog"
 			LogInfo "Disabling the recycle bin files delete confirmation dialog"
 			try
 			{
 				$ShellState[4] = 55
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShellState -PropertyType Binary -Value $ShellState -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the recycle bin delete confirmation dialog: $($_.Exception.Message)"
 			}
 		}
@@ -2198,31 +2122,31 @@ function QuickAccessRecentFiles
 	{
 		"Hide"
 		{
-			Write-Host "Disabling recently used files in Quick access - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling recently used files in Quick access"
 			LogInfo "Disabling recently used files in Quick access"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide recently used files in Quick access: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Enabling recently used files in Quick access - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling recently used files in Quick access"
 			LogInfo "Enabling recently used files in Quick access"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowRecent -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show recently used files in Quick access: $($_.Exception.Message)"
 			}
 		}
@@ -2271,31 +2195,31 @@ function QuickAccessFrequentFolders
 	{
 		"Hide"
 		{
-			Write-Host "Disabling frequently used folders in Quick access - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling frequently used folders in Quick access"
 			LogInfo "Disabling frequently used folders in Quick access"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide frequently used folders in Quick access: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Enabling frequently used folders in Quick access - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling frequently used folders in Quick access"
 			LogInfo "Enabling frequently used folders in Quick access"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer -Name ShowFrequent -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show frequently used folders in Quick access: $($_.Exception.Message)"
 			}
 		}
@@ -2349,7 +2273,7 @@ function MeetNow
 	{
 		"Hide"
 		{
-			Write-Host "Disabling the Meet Now icon in the notification area - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Meet Now icon in the notification area"
 			LogInfo "Disabling the Meet Now icon in the notification area"
 			try
 			{
@@ -2357,17 +2281,17 @@ function MeetNow
 				$Settings = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -ErrorAction Stop
 				$Settings[9] = 128
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -PropertyType Binary -Value $Settings -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide the Meet Now icon in the notification area: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Enabling the Meet Now icon in the notification area - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Meet Now icon in the notification area"
 			LogInfo "Enabling the Meet Now icon in the notification area"
 			try
 			{
@@ -2375,11 +2299,11 @@ function MeetNow
 				$Settings = Get-ItemPropertyValue -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -ErrorAction Stop
 				$Settings[9] = 0
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3 -Name Settings -PropertyType Binary -Value $Settings -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the Meet Now icon in the notification area: $($_.Exception.Message)"
 			}
 		}
@@ -2458,50 +2382,78 @@ public static extern int HashData(byte[] pbData, int cbData, byte[] piet, int ou
 	{
 		"Disable"
 		{
-			Write-Host "Disabling 'News and Interests' on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'News and Interests' on the taskbar"
 			LogInfo "Disabling 'News and Interests' on the taskbar"
 
-			$null = {
-				$Combined = $MachineId + '_' + 2
-				$CharArray = $Combined.ToCharArray()
-				[array]::Reverse($CharArray)
-				$Reverse = -join $CharArray
-				$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
-				$bytesOut = [byte[]]::new(4)
-				[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
-				$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
+			try
+			{
+				$null = {
+					$Combined = $MachineId + '_' + 2
+					$CharArray = $Combined.ToCharArray()
+					[array]::Reverse($CharArray)
+					$Reverse = -join $CharArray
+					$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
+					$bytesOut = [byte[]]::new(4)
+					[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
+					$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
 
-				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
-								 -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 2 -Force -ErrorAction SilentlyContinue | Out-Null
-				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
-								 -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
-			}.Invoke()
+					if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds"))
+					{
+						New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Force -ErrorAction Stop | Out-Null
+					}
 
-			Write-Host "success!" -ForegroundColor Green
+					New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
+					New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction Stop | Out-Null
+				}.Invoke()
+
+				Write-ConsoleStatus -Status success
+			}
+			catch
+			{
+				Write-ConsoleStatus -Status warning
+				LogWarning "Unable to fully update 'News and Interests' taskbar settings: $($_.Exception.Message)"
+				Remove-HandledErrorRecord -ErrorRecord $_
+			}
 		}
 
 		"Enable"
 		{
-			Write-Host "Enabling 'News and Interests' on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'News and Interests' on the taskbar"
 			LogInfo "Enabling 'News and Interests' on the taskbar"
 
-			$null = {
-				$Combined = $MachineId + '_' + 0
-				$CharArray = $Combined.ToCharArray()
-				[array]::Reverse($CharArray)
-				$Reverse = -join $CharArray
-				$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
-				$bytesOut = [byte[]]::new(4)
-				[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
-				$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
+			try
+			{
+				$null = {
+					$Combined = $MachineId + '_' + 0
+					$CharArray = $Combined.ToCharArray()
+					[array]::Reverse($CharArray)
+					$Reverse = -join $CharArray
+					$bytesIn = [System.Text.Encoding]::Unicode.GetBytes($Reverse)
+					$bytesOut = [byte[]]::new(4)
+					[WinAPI.Signature]::HashData($bytesIn, 0x53, $bytesOut, $bytesOut.Count)
+					$DWordData = [System.BitConverter]::ToUInt32($bytesOut,0)
 
-				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
-								 -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 0 -Force -ErrorAction SilentlyContinue | Out-Null
-				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
-								 -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction SilentlyContinue | Out-Null
-			}.Invoke()
+					if (-not (Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds"))
+					{
+						New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Force -ErrorAction Stop | Out-Null
+					}
 
-			Write-Host "success!" -ForegroundColor Green
+					New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "ShellFeedsTaskbarViewMode" -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+					New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" `
+								 -Name "EnShellFeedsTaskbarViewMode" -PropertyType DWord -Value $DWordData -Force -ErrorAction Stop | Out-Null
+				}.Invoke()
+
+				Write-ConsoleStatus -Status success
+			}
+			catch
+			{
+				Write-ConsoleStatus -Status warning
+				LogWarning "Unable to fully update 'News and Interests' taskbar settings: $($_.Exception.Message)"
+				Remove-HandledErrorRecord -ErrorRecord $_
+			}
 		}
 	}
 }
@@ -2548,31 +2500,31 @@ function TaskbarAlignment
 	{
 		"Center"
 		{
-			Write-Host "Setting the taskbar alignment to the Center - " -NoNewline
+			Write-ConsoleStatus -Action "Setting the taskbar alignment to the Center"
 			LogInfo "Setting the taskbar alignment to the Center"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarAl -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set taskbar alignment to the center: $($_.Exception.Message)"
 			}
 		}
 		"Left"
 		{
-			Write-Host "Setting the taskbar alignment to the Left - " -NoNewline
+			Write-ConsoleStatus -Action "Setting the taskbar alignment to the Left"
 			LogInfo "Setting the taskbar alignment to the Left"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarAl -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set taskbar alignment to the left: $($_.Exception.Message)"
 			}
 		}
@@ -2635,17 +2587,17 @@ function TaskbarWidgets
 	{
 		"Hide"
 		{
-			Write-Host "Disabling the widgets icon on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the widgets icon on the taskbar"
 			LogInfo "Disabling the widgets icon on the taskbar"
 			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 0 -Force} | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Show"
 		{
-			Write-Host "Enabling the widgets icon on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the widgets icon on the taskbar"
 			LogInfo "Enabling the widgets icon on the taskbar"
 			& "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell_temp.exe" -Command {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarDa -PropertyType DWord -Value 1 -Force} | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 
@@ -2723,61 +2675,61 @@ function TaskbarSearch
 	{
 		"Hide"
 		{
-			Write-Host "Disabling the search on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the search on the taskbar"
 			LogInfo "Disabling the search on the taskbar"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide search on the taskbar: $($_.Exception.Message)"
 			}
 		}
 		"SearchIcon"
 		{
-			Write-Host "Enabling the search icon on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the search icon on the taskbar"
 			LogInfo "Enabling the search icon on the taskbar"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the search icon on the taskbar: $($_.Exception.Message)"
 			}
 		}
 		"SearchIconLabel"
 		{
-			Write-Host "Enabling the search icon label on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the search icon label on the taskbar"
 			LogInfo "Enabling the search icon label on the taskbar"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 3 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the search icon label on the taskbar: $($_.Exception.Message)"
 			}
 		}
 		"SearchBox"
 		{
-			Write-Host "Enabling the search box on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the search box on the taskbar"
 			LogInfo "Enabling the search box on the taskbar"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name SearchboxTaskbarMode -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the search box on the taskbar: $($_.Exception.Message)"
 			}
 		}
@@ -2830,7 +2782,7 @@ function SearchHighlights
 	{
 		"Hide"
 		{
-			Write-Host "Disabling search highlights - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling search highlights"
 			LogInfo "Disabling search highlights"
 			# Checking whether "Ask Copilot" and "Find results in Web" were disabled. They also disable Search Highlights automatically
 			# We have to use GetValue() due to "Set-StrictMode -Version Latest"
@@ -2845,17 +2797,17 @@ function SearchHighlights
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings -Name IsDynamicSearchBoxEnabled -PropertyType DWord -Value 0 -Force | Out-Null
 
 			}
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Show"
 		{
-			Write-Host "Enabling search highlights - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling search highlights"
 			LogInfo "Enabling search highlights"
 			# Enable "Ask Copilot" and "Find results in Web" icons in Windows Search in order to enable Search Highlights
 			Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name BingSearchEnabled -Force -ErrorAction Ignore | Out-Null
 			Remove-ItemProperty -Path HKCU:\Software\Policies\Microsoft\Windows\Explorer -Name DisableSearchBoxSuggestions -Force -ErrorAction Ignore | Out-Null
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings -Name IsDynamicSearchBoxEnabled -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -2907,31 +2859,31 @@ function TaskViewButton
 	{
 		"Hide"
 		{
-			Write-Host "Disabling the Task view button on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Task view button on the taskbar"
 			LogInfo "Disabling the Task view button on the taskbar"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowTaskViewButton -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide the Task View button on the taskbar: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Enabling the Task view button on the taskbar - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Task view button on the taskbar"
 			LogInfo "Enabling the Task view button on the taskbar"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowTaskViewButton -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the Task View button on the taskbar: $($_.Exception.Message)"
 			}
 		}
@@ -2998,46 +2950,46 @@ function TaskbarCombine
 	{
 		"Always"
 		{
-			Write-Host "Combine taskbar buttons and always hide labels - " -NoNewline
+			Write-ConsoleStatus -Action "Combine taskbar buttons and always hide labels"
 			LogInfo "Combine taskbar buttons and always hide labels"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to always combine taskbar buttons and hide labels: $($_.Exception.Message)"
 			}
 		}
 		"Full"
 		{
-			Write-Host "Combine taskbar buttons and hide labels when taskbar is full - " -NoNewline
+			Write-ConsoleStatus -Action "Combine taskbar buttons and hide labels when taskbar is full"
 			LogInfo "Combine taskbar buttons and hide labels when taskbar is full"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to combine taskbar buttons when the taskbar is full: $($_.Exception.Message)"
 			}
 		}
 		"Never"
 		{
-			Write-Host "Combine taskbar buttons and never hide labels - " -NoNewline
+			Write-ConsoleStatus -Action "Combine taskbar buttons and never hide labels"
 			LogInfo "Combine taskbar buttons and never hide labels"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name TaskbarGlomLevel -PropertyType DWord -Value 2 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to never combine taskbar buttons and labels: $($_.Exception.Message)"
 			}
 		}
@@ -3057,8 +3009,17 @@ function TaskbarCombine
 	.PARAMETER Outlook
 	Unpin Outlook shortcut from the taskbar
 
+	.PARAMETER Mail
+	Unpin Mail shortcut from the taskbar
+
+	.PARAMETER Copilot
+	Unpin Copilot shortcut from the taskbar
+
+	.PARAMETER Microsoft365
+	Unpin Microsoft 365 shortcut from the taskbar
+
 	.EXAMPLE
-	UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook
+	UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook, Mail, Copilot, Microsoft365
 
 	.NOTES
 	Current user
@@ -3069,7 +3030,7 @@ function UnpinTaskbarShortcuts
 	param
 	(
 		[Parameter(Mandatory = $true)]
-		[ValidateSet("Edge", "Store", "Outlook", "Mail")]
+		[ValidateSet("Edge", "Store", "Outlook", "Mail", "Copilot", "Microsoft365")]
 		[string[]]
 		$Shortcuts
 	)
@@ -3077,8 +3038,8 @@ function UnpinTaskbarShortcuts
 	# Extract the localized "Unpin from taskbar" string from shell32.dll
 	$LocalizedString = [WinAPI.GetStrings]::GetString(5387)
 
-	Write-Host "Unpin Microsoft Edge, Microsoft Store, Mail, and Outlook shortcuts from the taskbar - " -NoNewline
-	LogInfo "Unpin Microsoft Edge, Microsoft Store, Mail, and Outlook shortcuts from the taskbar"
+	Write-ConsoleStatus -Action "Unpin taskbar apps"
+	LogInfo "Unpin taskbar apps"
 
 	foreach ($Shortcut in $Shortcuts)
 	{
@@ -3131,9 +3092,32 @@ function UnpinTaskbarShortcuts
 					}).Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()} | Out-Null
 				}
 			}
+			Copilot
+			{
+				$CopilotPinPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins"
+
+				if (-not (Test-Path -Path $CopilotPinPath))
+				{
+					New-Item -Path $CopilotPinPath -Force | Out-Null
+				}
+
+				New-ItemProperty -Path $CopilotPinPath -Name "CopilotPWAPin" -PropertyType DWord -Value 0 -Force | Out-Null
+			}
+			Microsoft365
+			{
+				$AppsFolder = (New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}")
+				$Microsoft365App = $AppsFolder.Items() | Where-Object -FilterScript {
+					$_.Name -match "Microsoft 365"
+				}
+
+				if ($Microsoft365App)
+				{
+					$Microsoft365App.Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()} | Out-Null
+				}
+			}
 		}
 	}
-	Write-Host "success!" -ForegroundColor Green
+	Write-ConsoleStatus -Status success
 }
 
 <#
@@ -3183,22 +3167,22 @@ function TaskbarEndTask
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'End task in taskbar by right click' - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'End task in taskbar by right click'"
 			LogInfo "Enabling 'End task in taskbar by right click'"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable 'End task in taskbar by right click': $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling 'End task in taskbar by right click' - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'End task in taskbar by right click'"
 			LogInfo "Disabling 'End task in taskbar by right click'"
 			try
 			{
@@ -3206,11 +3190,11 @@ function TaskbarEndTask
 				{
 					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced\TaskbarDeveloperSettings -Name TaskbarEndTask -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable 'End task in taskbar by right click': $($_.Exception.Message)"
 			}
 		}
@@ -3281,49 +3265,49 @@ function ControlPanelView
 	{
 		"Category"
 		{
-			Write-Host "Setting Control Panel to be viewed by Category - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Control Panel to be viewed by Category"
 			LogInfo "Setting Control Panel to be viewed by Category"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set Control Panel view to Category: $($_.Exception.Message)"
 			}
 		}
 		"LargeIcons"
 		{
-			Write-Host "Setting Control Panel to be viewed by Large Icons - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Control Panel to be viewed by Large Icons"
 			LogInfo "Setting Control Panel to be viewed by Large Icons"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set Control Panel view to Large Icons: $($_.Exception.Message)"
 			}
 		}
 		"SmallIcons"
 		{
-			Write-Host "Setting Control Panel to be viewed by Small Icons - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Control Panel to be viewed by Small Icons"
 			LogInfo "Setting Control Panel to be viewed by Small Icons"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name AllItemsIconView -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel -Name StartupPage -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set Control Panel view to Small Icons: $($_.Exception.Message)"
 			}
 		}
@@ -3372,31 +3356,31 @@ function WindowsColorMode
 	{
 		"Dark"
 		{
-			Write-Host "Setting Windows to use Dark Mode - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Windows to use Dark Mode"
 			LogInfo "Setting Windows to use Dark Mode"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set Windows color mode to Dark: $($_.Exception.Message)"
 			}
 		}
 		"Light"
 		{
-			Write-Host "Setting Windows to use Light Mode - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Windows to use Light Mode"
 			LogInfo "Setting Windows to use Light Mode"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name SystemUsesLightTheme -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set Windows color mode to Light: $($_.Exception.Message)"
 			}
 		}
@@ -3445,31 +3429,31 @@ function AppColorMode
 	{
 		"Dark"
 		{
-			Write-Host "Setting Apps to use Dark Mode - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Apps to use Dark Mode"
 			LogInfo "Setting Apps to use Dark Mode"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set app color mode to Dark: $($_.Exception.Message)"
 			}
 		}
 		"Light"
 		{
-			Write-Host "Setting Apps to use Light Mode - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Apps to use Light Mode"
 			LogInfo "Setting Apps to use Light Mode"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set app color mode to Light: $($_.Exception.Message)"
 			}
 		}
@@ -3522,31 +3506,31 @@ function FirstLogonAnimation
 	{
 		"Disable"
 		{
-			Write-Host "Disabling the first sign-in animation after upgrade - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the first sign-in animation after upgrade"
 			LogInfo "Disabling the first sign-in animation after upgrade"
 			try
 			{
 				New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the first sign-in animation after upgrade: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling the first sign-in animation after upgrade - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the first sign-in animation after upgrade"
 			LogInfo "Enabling the first sign-in animation after upgrade"
 			try
 			{
 				New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name EnableFirstLogonAnimation -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the first sign-in animation after upgrade: $($_.Exception.Message)"
 			}
 		}
@@ -3595,22 +3579,22 @@ function JPEGWallpapersQuality
 	{
 		"Max"
 		{
-			Write-Host "Enabling the maximum quality factor of the JPEG desktop wallpapers - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the maximum quality factor of the JPEG desktop wallpapers"
 			LogInfo "Enabling the maximum quality factor of the JPEG desktop wallpapers"
 			try
 			{
 				New-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -PropertyType DWord -Value 100 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the maximum JPEG desktop wallpaper quality: $($_.Exception.Message)"
 			}
 		}
 		"Default"
 		{
-			Write-Host "Disabling the maximum quality factor of the JPEG desktop wallpapers - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the maximum quality factor of the JPEG desktop wallpapers"
 			LogInfo "Disabling the maximum quality factor of the JPEG desktop wallpapers"
 			try
 			{
@@ -3618,11 +3602,11 @@ function JPEGWallpapersQuality
 				{
 					Remove-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name JPEGImportQuality -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to restore the default JPEG desktop wallpaper quality: $($_.Exception.Message)"
 			}
 		}
@@ -3673,7 +3657,7 @@ function ShortcutsSuffix
 	{
 		"Disable"
 		{
-			Write-Host "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts"
 			LogInfo "Disabling the '- Shortcut' suffix adding to the name of the created shortcuts"
 			try
 			{
@@ -3682,17 +3666,17 @@ function ShortcutsSuffix
 					New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Force -ErrorAction Stop | Out-Null
 				}
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -PropertyType String -Value "%s.lnk" -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the shortcut name suffix: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts"
 			LogInfo "Enabling the '- Shortcut' suffix adding to the name of the created shortcuts"
 			try
 			{
@@ -3700,11 +3684,11 @@ function ShortcutsSuffix
 				{
 					Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\NamingTemplates -Name ShortcutNameTemplate -Force -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the shortcut name suffix: $($_.Exception.Message)"
 			}
 		}
@@ -3753,7 +3737,7 @@ function ShortcutArrow
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the display of shortcut arrow overlay on icons - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the display of shortcut arrow overlay on icons"
 			LogInfo "Enabling the display of shortcut arrow overlay on icons"
 			try
 			{
@@ -3761,17 +3745,17 @@ function ShortcutArrow
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the shortcut arrow overlay on icons: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the display of shortcut arrow overlay on icons - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the display of shortcut arrow overlay on icons"
 			LogInfo "Disabling the display of shortcut arrow overlay on icons"
 			try
 			{
@@ -3779,11 +3763,11 @@ function ShortcutArrow
 					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons" -Name "29" -Type String -Value "%SystemRoot%\System32\imageres.dll,-1015" -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the shortcut arrow overlay on icons: $($_.Exception.Message)"
 			}
 		}
@@ -3832,31 +3816,31 @@ function PrtScnSnippingTool
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the Print screen button to open screen snipping - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Print screen button to open screen snipping"
 			LogInfo "Enabling the Print screen button to open screen snipping"
 			try
 			{
 				New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Print Screen for screen snipping: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the Print screen button to open screen snipping - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Print screen button to open screen snipping"
 			LogInfo "Disabling the Print screen button to open screen snipping"
 			try
 			{
 				New-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name PrintScreenKeyForSnippingEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Print Screen for screen snipping: $($_.Exception.Message)"
 			}
 		}
@@ -3905,31 +3889,31 @@ function AppsLanguageSwitch
 	{
 		"Enable"
 		{
-			Write-Host "Enabling a different input method for each app window - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling a different input method for each app window"
 			LogInfo "Enabling a different input method for each app window"
 			try
 			{
 				Set-WinLanguageBarOption -UseLegacySwitchMode -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable a different input method for each app window: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling a different input method for each app window - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling a different input method for each app window"
 			LogInfo "Disabling a different input method for each app window"
 			try
 			{
 				Set-WinLanguageBarOption -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable a different input method for each app window: $($_.Exception.Message)"
 			}
 		}
@@ -3983,31 +3967,31 @@ function AeroShaking
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Title bar window shake - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Title bar window shake"
 			LogInfo "Enabling Title bar window shake"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Title bar window shake: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Title bar window shake - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Title bar window shake"
 			LogInfo "Disabling Title bar window shake"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name DisallowShaking -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Title bar window shake: $($_.Exception.Message)"
 			}
 		}
@@ -4056,7 +4040,7 @@ function FolderGroupBy
 	{
 		"None"
 		{
-			Write-Host "Enabling grouping of files and folder in the Downloads folder - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling grouping of files and folder in the Downloads folder"
 			LogInfo "Enabling grouping of files and folder in the Downloads folder"
 			# Clear any Common Dialog views
 			Get-ChildItem -Path "HKCU:\Software\Microsoft\Windows\Shell\Bags\*\Shell" -ErrorAction SilentlyContinue |
@@ -4075,14 +4059,14 @@ function FolderGroupBy
 			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name Order -PropertyType DWord -Value 0 -Force | Out-Null
 			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name PrimaryProperty -PropertyType String -Value "System.ItemNameDisplay" -Force | Out-Null
 			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}\TopViews\{00000000-0000-0000-0000-000000000000}" -Name SortByList -PropertyType String -Value "prop:System.ItemNameDisplay" -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Default"
 		{
-			Write-Host "Disabling grouping of files and folder in the Downloads folder - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling grouping of files and folder in the Downloads folder"
 			LogInfo "Disabling grouping of files and folder in the Downloads folder"
 			Remove-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FolderTypes\{885a186e-a440-4ada-812b-db871b942259}" -Recurse -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -4129,31 +4113,31 @@ function NavigationPaneExpand
 	{
 		"Disable"
 		{
-			Write-Host "Disabling expand to open folder on navigation pane - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling expand to open folder on navigation pane"
 			LogInfo "Disabling expand to open folder on navigation pane"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable expanding to the current folder in the navigation pane: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling expand to open folder on navigation pane - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling expand to open folder on navigation pane"
 			LogInfo "Enabling expand to open folder on navigation pane"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name NavPaneExpandToCurrentFolder -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable expanding to the current folder in the navigation pane: $($_.Exception.Message)"
 			}
 		}
@@ -4213,7 +4197,7 @@ function StartRecommendedSection
 	{
 		"Hide"
 		{
-			Write-Host "Disabling the Recommended section in the Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Recommended section in the Start Menu"
 			LogInfo "Disabling the Recommended section in the Start Menu"
 			try
 			{
@@ -4229,17 +4213,17 @@ function StartRecommendedSection
 				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Education -Name IsEducationEnvironment -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 
 				Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type DWORD -Value 1 | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide the Recommended section in the Start Menu: $($_.Exception.Message)"
 			}
 		}
 		"Show"
 		{
-			Write-Host "Enabling the Recommended section in the Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Recommended section in the Start Menu"
 			LogInfo "Enabling the Recommended section in the Start Menu"
 			try
 			{
@@ -4256,11 +4240,11 @@ function StartRecommendedSection
 					Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PolicyManager\current\device\Start -Name HideRecommendedSection -Force -ErrorAction Stop | Out-Null
 				}
 				Set-Policy -Scope User -Path SOFTWARE\Policies\Microsoft\Windows\Explorer -Name HideRecommendedSection -Type CLEAR | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show the Recommended section in the Start Menu: $($_.Exception.Message)"
 			}
 		}

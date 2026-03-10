@@ -12,7 +12,7 @@
 	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
 
 	.AUTHOR
-	sdmanson8
+	sdmanson8 - Copyright (c) 2021 - 2026
 
 	.DESCRIPTION
 	Place the "#" char before function if you don't want to run it
@@ -59,20 +59,9 @@ param
 Clear-Host
 
 #region InitialActions
-# Get the OS version
-$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
-
-# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
-if ([int]$currentBuild -ge 22000) {
-	$osName = "Windows 11"
-} else {
-	$osName = "Windows 10"
-}
-
-$Host.UI.RawUI.WindowTitle = "WinUtil Script for $osName"
-
 $RequiredFiles = @(
     "$PSScriptRoot\Localizations\Win10_11Util.psd1",
+    "$PSScriptRoot\Module\Helpers.psm1",
     "$PSScriptRoot\Module\Win10_11Util.psm1",
     "$PSScriptRoot\Manifest\Win10_11Util.psd1"
 )
@@ -96,6 +85,10 @@ if ($MissingRequired -or -not $RegionFiles) {
 
     exit
 }
+
+Import-Module -Name $PSScriptRoot\Module\Helpers.psm1 -Force -ErrorAction Stop
+$osName = (Get-OSInfo).OSName
+$Host.UI.RawUI.WindowTitle = "WinUtil Script for $osName"
 
 Remove-Module -Name Win10_11Util -Force -ErrorAction Ignore
 try
@@ -186,11 +179,13 @@ Suspend-AirstrikeAttack
 #disable SMBv3 compression
 Disable-SMBv3Compression
 
-#harden MS Office security
-Protect-MSOffice
+# Harden MS Office security.
+# CAUTION: Not universally safe. Can affect macros, automation, and downloaded Office files that rely on active content.
+# Protect-MSOffice
 
-#perform general OS hardening
-Protect-OS
+# Perform general OS hardening.
+# CAUTION: Not universally safe. Changes authentication, networking, shell, and smart card related policy values.
+# Protect-OS
 
 #Prevent Remote DLL Hijacking
 Set-DLLHijackingPrevention
@@ -237,8 +232,29 @@ Update-DotNetStrongAuth
 #configure Event Log sizes
 Update-EventLogSize
 
-#configure Adobe Reader security
-Update-AdobereaderDCSTIG
+# Configure Adobe Reader security.
+# CAUTION: Not universally safe. Can affect Adobe updates, cloud/share integrations, and some document handling features.
+# Update-AdobereaderDCSTIG
+
+# Configure Office link update hardening.
+# CAUTION: Not universally safe. Can affect documents or email workflows that intentionally rely on automatic link refresh.
+# Protect-MSOfficeLinks
+
+# Configure WinRM hardening.
+# CAUTION: Usually safe on modern systems, but can break legacy WinRM clients or management tooling that relies on digest auth or weaker transport.
+Protect-WinRM
+
+# Configure RPC surface reduction.
+# CAUTION: Not universally safe. Can break remote task scheduling, remote service control, and some management products.
+# Protect-RPCSurface
+
+# Configure ClickOnce trust prompt hardening.
+# CAUTION: Aggressive and not universally safe. Can break ClickOnce installers, updates, or internal applications that depend on trust prompts.
+# Protect-ClickOnce
+
+# Configure filesystem performance settings.
+# CAUTION: Usually safe on modern systems, but can affect legacy apps or scripts that still depend on 8.3 short path names.
+Protect-FileSystemPerformance
 
 #kill foreground applications
 Stop-Foreground
@@ -554,7 +570,7 @@ UWPFileSystem -Enable
 # UWPFileSystem -Disable
 
 # Enable UWP apps swap file
-UWPSwapFile -Enable
+# UWPSwapFile -Enable
 # Disable UWP apps swap file
 # This disables creation and use of swapfile.sys and frees 256 MB of disk space.
 # Swapfile.sys is used only by UWP apps. The tweak has no effect on the real swap in pagefile.sys.
@@ -568,9 +584,9 @@ Powershell7Telemetry -Disable
 #endregion Privacy & Telemetry
 
 #region System Tweaks
-# Enable Cross-Device Resume (Windows 11 build 26200.7705 / 26H1+ only) (default value)
+# Enable Cross-Device Resume (Windows 11 24H2 build 26100.7705+ / 26H1 build 28000.1575+) (default value)
 # CrossDeviceResume -Enable
-# Disable Cross-Device Resume (Windows 11 build 26200.7705 / 26H1+ only)
+# Disable Cross-Device Resume (Windows 11 24H2 build 26100.7705+ / 26H1 build 28000.1575+)
 CrossDeviceResume -Disable
 
 # Enable Multiplane Overlay (default value)
@@ -606,31 +622,31 @@ DiskCleanup
 # Restore Windows services to their original startup types (default value)
 ServicesManual -Disable
 
-# CAUTION: Blocking Adobe network access may prevent license validation, disable Creative Cloud syncing, break cloud-based features, trigger subscription errors, and may violate Adobe license terms
+# CAUTION: Not universally safe. Blocking Adobe network access may prevent license validation, disable Creative Cloud syncing, break cloud-based features, trigger subscription errors, and may violate Adobe license terms.
 # Enable Adobe Network Block 
 # AdobeNetworkBlock -Enable
 # Disable Adobe Network Block (default value)
 AdobeNetworkBlock -Disable
 
-# CAUTION: Blocking Razer software installation may prevent Razer Synapse from updating, disable RGB/macro functionality, stop firmware updates, and cause limited device features
+# CAUTION: Not universally safe. Blocking Razer software installation may prevent Razer Synapse from updating, disable RGB or macro functionality, stop firmware updates, and cause limited device features.
 # Enable Razer Software Block 
 RazerBlock -Enable
 # Disable Razer Software Block (default value)
 # RazerBlock -Disable
 
-# CAUTION: Brave Debloat disables rewards, wallet, VPN, and AI chat features - only use if you want to remove these features completely
+# CAUTION: Not universally safe. Brave Debloat disables rewards, wallet, VPN, and AI chat features. Only use it if you want to remove those features completely.
 # Enable Brave Debloat 
 # BraveDebloat -Enable
 # Disable Brave Debloat (default value)
 BraveDebloat -Disable
 
-# CAUTION: Disabling Fullscreen Optimizations may reduce gaming performance in some applications - use only for troubleshooting
+# CAUTION: Not universally safe. Disabling Fullscreen Optimizations may reduce gaming performance in some applications. Use only for troubleshooting.
 # Enable Fullscreen Optimizations (default value)
 FullscreenOptimizations -Enable
 # Disable Fullscreen Optimizations 
 # FullscreenOptimizations -Disable
 
-# CAUTION: Teredo is an IPv6 tunneling protocol needed for NAT traversal - disabling may break Xbox Live and certain peer-to-peer applications
+# CAUTION: Not universally safe. Teredo is an IPv6 tunneling protocol needed for NAT traversal. Disabling it may break Xbox Live and certain peer-to-peer applications.
 # Enable Teredo (default value)
 # Teredo -Enable 
 # Disable Teredo 
@@ -830,9 +846,9 @@ TaskbarCombine -Always
 # Combine taskbar buttons and never hide labels
 # TaskbarCombine -Never
 
-# Unpin Microsoft Edge, Microsoft Store, Mail, and Outlook shortcuts from the taskbar
-# Microsoft Edge, Microsoft Store Outlook
-UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook, Mail
+# Unpin taskbar apps
+# Microsoft Edge, Microsoft Store, Outlook, Mail, Copilot, Microsoft 365
+UnpinTaskbarShortcuts -Shortcuts Edge, Store, Outlook, Mail, Copilot, Microsoft365
 
 # Enable end task in taskbar by right click
 TaskbarEndTask -Enable
@@ -1094,6 +1110,14 @@ SMBServer -Enable
 # Note: Do not Disable if you plan to use Docker and Shared Drives (as it uses SMB internally), see https://github.com/Disassembler0/Win10-Initial-Setup-Script/issues/216
 # SMBServer -Disable
 
+# Repair the common Windows 11 SMB client/share issue introduced after updates
+Repair-Windows11SMBUpdateIssue
+# Preserve SMB file sharing, printer sharing, and Windows credential access
+Set-SMBSharingCompatibility
+
+# Enable guest/no-prompt SMB compatibility on non-domain machines
+Enable-SMBGuestCompatibility
+
 # Enable NetBIOS over TCP/IP on all currently installed network interfaces
 # NetBIOS -Enable
 # Disable NetBIOS over TCP/IP on all currently installed network interfaces
@@ -1283,6 +1307,15 @@ DefaultTerminalApp -WindowsTerminal
 # Install the latest .NET Desktop Runtime 8, 9 x64
 # Install-DotNetRuntimes -Runtimes NET8x64, NET9x64
 
+<#
+	Run the remaining legacy system/bootstrap optimizations
+	from the old Performance Tuning preset.
+#>
+PerformanceTuning
+
+# Apply the extra legacy service optimizations from the old performance preset
+# Invoke-AdditionalServiceOptimizations
+
 # List Microsoft Edge channels to prevent desktop shortcut creation upon its update
 PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
 # Do not prevent desktop shortcut creation upon Microsoft Edge update (default value)
@@ -1293,6 +1326,13 @@ PreventEdgeShortcutCreation -Channels Stable, Beta, Dev, Canary
 # Do not back up the system registry to %SystemRoot%\System32\config\RegBack folder (default value)
 RegistryBackup -Disable
 #endregion System
+
+#region Advanced Startup
+# Create the desktop shortcut that reboots into Advanced Startup
+# AdvancedStartupShortcut -Enable
+# Remove the desktop shortcut that reboots into Advanced Startup
+AdvancedStartupShortcut -Disable
+#endregion Advanced Startup
 
 #region WSL
 <#
@@ -1343,27 +1383,27 @@ CortanaAutostart -Disable
 NewOutlook -Disable
 
 # Enable Background Apps (default value)
-# CAUTION: Disabling Background Apps prevents apps from running in the background - may affect notifications, updates, and sync functionality
+# CAUTION: Not universally safe. Disabling Background Apps prevents apps from running in the background and may affect notifications, updates, and sync functionality.
 BackgroundApps -Enable
 # Disable Background Apps 
 # BackgroundApps -Disable
 
 # Enable Notification Tray/Calendar (default value)
-# CAUTION: Disabling Notifications will completely turn off Windows notifications - you won't receive app alerts, system warnings, reminders, or calendar events
+# CAUTION: Not universally safe. Disabling Notifications will completely turn off Windows notifications, so you will not receive app alerts, system warnings, reminders, or calendar events.
 Notifications -Enable
 # Disable Notification Tray/Calendar 
 # Notifications -Disable
 
 # Enable Edge Debloat
-# CAUTION: Edge Debloat enforces multiple Group Policy settings that may affect Edge functionality including telemetry, personalization, shopping assistant, collections, rewards, and Copilot
+# CAUTION: Not universally safe. Edge Debloat enforces multiple Group Policy settings that may affect Edge functionality including telemetry, personalization, shopping assistant, collections, rewards, and Copilot.
 EdgeDebloat -Enable
 # Disable Edge Debloat (default value)
 # EdgeDebloat -Disable
 
-# Enable Revert Start Menu (revert to original Start Menu from 24H2) (Windows 11 build 26200.7019+ only)
-# CAUTION: Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling
+# Enable Revert Start Menu (revert to original Start Menu from 24H2) (Windows 11 24H2 build 26100.7019+ / 26H1 build 28000.1575+)
+# CAUTION: Aggressive and not universally safe. Reverting the Start Menu may break future Windows updates that depend on the new layout and requires additional tooling.
 # RevertStartMenu -Enable
-# Disable Revert Start Menu (restore new Start Menu) (Windows 11 build 26200.7019+ only) (default value)
+# Disable Revert Start Menu (restore new Start Menu) (Windows 11 24H2 build 26100.7019+ / 26H1 build 28000.1575+) (default value)
 RevertStartMenu -Disable
 #endregion UWP apps
 
@@ -1417,6 +1457,10 @@ GPUScheduling -Enable
 #>
 #TempTask -Register
 # Delete the "Temp" scheduled task for cleaning up the %TEMP% folder
+# Clean temp folders, caches, and legacy leftover files immediately
+# Invoke-CleanupOperation -All
+# Show cleanup size estimate for temp and cache locations
+# Get-CleanupStats
 #endregion Scheduled tasks
 
 #region Microsoft Defender & Security
@@ -1470,6 +1514,22 @@ SaveZoneInformation -Disable
 # WindowsScriptHost -Disable
 # Enable Windows Script Host (default value)
 WindowsScriptHost -Enable
+
+# Import the Exploit Protection policy.
+# CAUTION: Aggressive and not universally safe. Imports a downloaded mitigation policy that can change exploit protection behavior system-wide.
+# Import-ExploitProtectionPolicy
+
+# Configure additional Defender Exploit Guard policies.
+# CAUTION: Aggressive and not universally safe. Can block legitimate apps, Office automation, admin tooling, or script-driven workflows.
+# Set-DefenderExploitGuardPolicy
+
+# Configure LOLBin outbound firewall block rules.
+# CAUTION: Aggressive and not universally safe. Can break admin scripts, installers, troubleshooting tools, or enterprise workflows.
+# Set-LOLBinFirewallRules
+
+# Configure Windows Firewall logging.
+# CAUTION: Usually safe, but log growth and retention should still be considered on managed systems.
+Set-WindowsFirewallLogging
 
 # Enable Windows Sandbox. Applicable only to Professional, Enterprise and Education editions
 # WindowsSandbox -Enable
@@ -1641,9 +1701,9 @@ MostUsedStartApps -Hide
 # Show most used Apps in Start
 # MostUsedStartApps -Show
 
-# Hide the All section with categories in Start (Windows 11 build 26200.7705 / 26H1+ only)
+# Hide the All section with categories in Start (Windows 11 24H2 build 26100.7705+ / 26H1 build 28000.1575+)
 StartMenuAllSectionCategories -Hide
-# Show the All section with categories in Start (Windows 11 build 26200.7705 / 26H1+ only) (default value)
+# Show the All section with categories in Start (Windows 11 24H2 build 26100.7705+ / 26H1 build 28000.1575+) (default value)
 # StartMenuAllSectionCategories -Show
 #endregion Start Menu Apps
 

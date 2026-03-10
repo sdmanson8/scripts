@@ -38,15 +38,7 @@ function CreateRestorePoint
 		# Never skip creating a restore point
 		New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name SystemRestorePointCreationFrequency -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 
-		# Get the OS version
-		$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -ErrorAction Stop).CurrentBuild
-
-		# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
-		if ([int]$currentBuild -ge 22000) {
-			$osName = "Windows 11"
-		} else {
-			$osName = "Windows 10"
-		}
+		$osName = (Get-OSInfo).OSName
 
 		Checkpoint-Computer -Description "WinUtil Script for $osName" -RestorePointType MODIFY_SETTINGS -ErrorAction Stop | Out-Null
 
@@ -59,11 +51,11 @@ function CreateRestorePoint
 			LogInfo "Disabling System Restore again"
 			Disable-ComputerRestore -Drive $env:SystemDrive -ErrorAction Stop | Out-Null
 		}
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 	catch
 	{
-		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		Write-ConsoleStatus -Status failed
 		LogError "Failed to create a restore point: $($_.Exception.Message)"
 	}
 }

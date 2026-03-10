@@ -26,15 +26,7 @@ function InitialActions
 		$Warning
 	)
 
-	# Get the OS version
-	$currentBuild = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").CurrentBuild
-
-	# Determine if it's Windows 10 or 11 based on build number (Windows 11 builds start at 22000)
-	if ([int]$currentBuild -ge 22000) {
-		$osName = "Windows 11"
-	} else {
-		$osName = "Windows 10"
-	}
+	$osName = (Get-OSInfo).OSName
 
 	LogInfo "Starting WinUtil Script for $osName" -addGap
 
@@ -328,8 +320,7 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	}
 	catch [System.Net.WebException]
 	{
-		LogWarning ($Localization.NoResponse -f "https://github.com")
-		LogError ($Localization.NoResponse -f "https://github.com")
+		LogWarning "$( $Localization.NoResponse -f 'https://github.com' ) Skipping WindowsSpyBlocker hosts cleanup."
 	}
 
 	# Checking whether Windows Feature Experience Pack was removed by harmful tweakers
@@ -503,11 +494,11 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	}
 	#endregion Defender checks
 
-	# Checking whether LGPO.exe exists in the bin folder
-	LogInfo "Checking whether LGPO.exe exists in the bin folder"
-	if (-not (Test-Path -Path "$PSScriptRoot\..\..\Binaries\LGPO.exe"))
+	# Checking whether LGPO.exe exists in the files folder
+	LogInfo "Checking whether LGPO.exe exists in the files folder"
+	if (-not (Test-Path -Path "$PSScriptRoot\..\..\files\LGPO.exe"))
 	{
-		LogWarning ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\..\Binaries"))
+		LogWarning ($Localization.Bin -f [IO.Path]::GetFullPath("$PSScriptRoot\..\..\files"))
 	}
 
 	# Enable back the SysMain service if it was disabled by harmful tweakers

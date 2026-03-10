@@ -16,7 +16,7 @@ using module ..\Helpers.psm1
 #>
 function PostActions
 {
-	Write-Host "Performing post actions - " -NoNewline
+	Write-ConsoleStatus -Action "Performing post actions"
 	LogInfo "Performing post actions"
 	try
 	{
@@ -212,12 +212,12 @@ public static void PostMessage()
 	{
 		throw "DISM.exe returned exit code $($PrintManagementProcess.ExitCode) while reinstalling Print Management Console"
 	}
-	Write-Host "success!" -ForegroundColor Green
+	Write-ConsoleStatus -Status success
 	}
 	catch
 	{
 		LogError "Post actions failed: $($_.Exception.Message)"
-		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		Write-ConsoleStatus -Status failed
 	}
 }
 #endregion Post Actions

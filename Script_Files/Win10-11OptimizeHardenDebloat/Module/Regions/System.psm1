@@ -52,7 +52,7 @@ function LockScreen
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the Windows lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Windows lockscreen"
 			LogInfo "Enabling the Windows lockscreen"
 			try
 			{
@@ -60,18 +60,18 @@ function LockScreen
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the Windows lock screen: $($_.Exception.Message)"
 			}
 		}
 
 		"Disable"
 		{
-			Write-Host "Disabling the Windows lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Windows lockscreen"
 			LogInfo "Disabling the Windows lockscreen"
 
 			try
@@ -81,11 +81,11 @@ function LockScreen
 					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoLockScreen" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the Windows lock screen: $($_.Exception.Message)"
 			}
 		}
@@ -138,7 +138,7 @@ function LockScreenRS1
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the Windows lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Windows lockscreen"
 			LogInfo "Enabling the Windows lockscreen"
 			try
 			{
@@ -147,18 +147,18 @@ function LockScreenRS1
 				{
 					Unregister-ScheduledTask -TaskName "Disable LockScreen" -Confirm:$false -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the Windows lock screen scheduled task workaround: $($_.Exception.Message)"
 			}
 		}
 
 		"Disable"
 		{
-			Write-Host "Disabling the Windows lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Windows lockscreen"
 			LogInfo "Disabling the Windows lockscreen"
 
 			try
@@ -186,248 +186,12 @@ function LockScreenRS1
 					4
 				) | Out-Null
 
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the Windows lock screen scheduled task workaround: $($_.Exception.Message)"
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Show or hide the network selector on the lock screen.
-
-	.DESCRIPTION
-	Controls whether the sign-in screen shows network connection options before
-	a user signs in.
-
-	.PARAMETER Enable
-	Show the network selector on the lock screen.
-
-	.PARAMETER Disable
-	Hide the network selector on the lock screen.
-
-	.EXAMPLE
-	NetworkFromLockScreen -Enable
-
-	.EXAMPLE
-	NetworkFromLockScreen -Disable
-
-	.NOTES
-	Machine-wide
-#>
-function NetworkFromLockScreen
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling the Network options on the lockscreen - " -NoNewline
-			LogInfo "Enabling the Network options on the lockscreen"
-			try
-			{
-				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue)
-				{
-					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction Stop | Out-Null
-				}
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to enable network options on the lock screen: $($_.Exception.Message)"
-			}
-		}
-		"Disable"
-		{
-			Write-Host "Disabling the Network options on the lockscreen - " -NoNewline
-			LogInfo "Disabling the Network options on the lockscreen"
-			try
-			{
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to disable network options on the lock screen: $($_.Exception.Message)"
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Show or hide shutdown options on the lock screen.
-
-	.DESCRIPTION
-	Controls whether the power menu is available from the sign-in or lock screen.
-
-	.PARAMETER Enable
-	Show shutdown options on the lock screen.
-
-	.PARAMETER Disable
-	Hide shutdown options on the lock screen.
-
-	.EXAMPLE
-	ShutdownFromLockScreen -Enable
-
-	.EXAMPLE
-	ShutdownFromLockScreen -Disable
-
-	.NOTES
-	Machine-wide
-#>
-function ShutdownFromLockScreen
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling the shutdown options on the lockscreen - " -NoNewline
-			LogInfo "Enabling the shutdown options on the lockscreen"
-			try
-			{
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to enable shutdown options on the lock screen: $($_.Exception.Message)"
-			}
-		}
-		"Disable"
-		{
-			Write-Host "Disabling the shutdown options on the lockscreen - " -NoNewline
-			LogInfo "Disabling the shutdown options on the lockscreen"
-			try
-			{
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to disable shutdown options on the lock screen: $($_.Exception.Message)"
-			}
-		}
-	}
-}
-
-<#
-	.SYNOPSIS
-	Enable or disable the acrylic blur effect on the lock screen.
-
-	.DESCRIPTION
-	Controls the Windows setting that adds or removes the acrylic blur visual
-	effect behind the sign-in screen.
-
-	.PARAMETER Enable
-	Enable the acrylic blur effect on the lock screen.
-
-	.PARAMETER Disable
-	Disable the acrylic blur effect on the lock screen.
-
-	.EXAMPLE
-	LockScreenBlur -Enable
-
-	.EXAMPLE
-	LockScreenBlur -Disable
-
-	.NOTES
-	Current user
-#>
-function LockScreenBlur
-{
-	param
-	(
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Enable"
-		)]
-		[switch]
-		$Enable,
-
-		[Parameter(
-			Mandatory = $true,
-			ParameterSetName = "Disable"
-		)]
-		[switch]
-		$Disable
-	)
-
-	switch ($PSCmdlet.ParameterSetName)
-	{
-		"Enable"
-		{
-			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
-			LogInfo "Enabling blurring of the lockscreen"
-			try
-			{
-				if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue)
-				{
-					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction Stop | Out-Null
-				}
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to enable lock screen blur: $($_.Exception.Message)"
-			}
-		}
-		"Disable"
-		{
-			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
-			LogInfo "Enabling blurring of the lockscreen"
-			try
-			{
-				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
-			}
-			catch
-			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
-				LogError "Failed to disable lock screen blur: $($_.Exception.Message)"
 			}
 		}
 	}
@@ -476,17 +240,17 @@ function NetworkFromLockScreen
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the Network options on the lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the Network options on the lockscreen"
 			LogInfo "Enabling the Network options on the lockscreen"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the Network options on the lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the Network options on the lockscreen"
 			LogInfo "Disabling the Network options on the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DontDisplayNetworkSelectionUI" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -534,17 +298,17 @@ function ShutdownFromLockScreen
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the shutdown options on the lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the shutdown options on the lockscreen"
 			LogInfo "Enabling the shutdown options on the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling the shutdown options on the lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling the shutdown options on the lockscreen"
 			LogInfo "Disabling the shutdown options on the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ShutdownWithoutLogon" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -592,17 +356,17 @@ function LockScreenBlur
 	{
 		"Enable"
 		{
-			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling blurring of the lockscreen"
 			LogInfo "Enabling blurring of the lockscreen"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Enabling blurring of the lockscreen - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling blurring of the lockscreen"
 			LogInfo "Enabling blurring of the lockscreen"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "DisableAcrylicBackgroundOnLogon" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -650,7 +414,7 @@ function TaskManagerDetails
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Task Manager detailed view - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Task Manager detailed view"
 			LogInfo "Enabling Task Manager detailed view"
 			try
 			{
@@ -667,17 +431,17 @@ function TaskManagerDetails
 					$preferences.Preferences[28] = 0
 					Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Task Manager detailed view: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Task Manager detailed view - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Task Manager detailed view"
 			LogInfo "Disabling Task Manager detailed view"
 			try
 			{
@@ -686,11 +450,11 @@ function TaskManagerDetails
 					$preferences.Preferences[28] = 1
 					Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\TaskManager" -Name "Preferences" -Type Binary -Value $preferences.Preferences -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Task Manager detailed view: $($_.Exception.Message)"
 			}
 		}
@@ -739,7 +503,7 @@ function FileOperationsDetails
 	{
 		"Enable"
 		{
-			Write-Host "Enabling detailed file progress information - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling detailed file progress information"
 			LogInfo "Enabling detailed file progress information"
 			try
 			{
@@ -747,17 +511,17 @@ function FileOperationsDetails
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable detailed file operation information: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling detailed file progress information - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling detailed file progress information"
 			LogInfo "Disabling detailed file progress information"
 			try
 			{
@@ -765,11 +529,11 @@ function FileOperationsDetails
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\OperationStatusManager" -Name "EnthusiastMode" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable detailed file operation information: $($_.Exception.Message)"
 			}
 		}
@@ -818,7 +582,7 @@ function FileDeleteConfirm
 	{
 		"Enable"
 		{
-			Write-Host "Enabling confirmation dialog when deleting files - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling confirmation dialog when deleting files"
 			LogInfo "Enabling confirmation dialog when deleting files"
 			try
 			{
@@ -826,17 +590,17 @@ function FileDeleteConfirm
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable file delete confirmation: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling confirmation dialog when deleting files - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling confirmation dialog when deleting files"
 			LogInfo "Disabling confirmation dialog when deleting files"
 			try
 			{
@@ -844,11 +608,11 @@ function FileDeleteConfirm
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ConfirmFileDelete" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable file delete confirmation: $($_.Exception.Message)"
 			}
 		}
@@ -897,7 +661,7 @@ function TrayIcons
 	{
 		"Enable"
 		{
-			Write-Host "Enabling all notification area tray icons - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling all notification area tray icons"
 			LogInfo "Enabling all notification area tray icons"
 			try
 			{
@@ -905,17 +669,17 @@ function TrayIcons
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable all notification area tray icons: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling all notification area tray icons - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling all notification area tray icons"
 			LogInfo "Disabling all notification area tray icons"
 			try
 			{
@@ -923,11 +687,11 @@ function TrayIcons
 				{
 					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoAutoTrayNotify" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable all notification area tray icons: $($_.Exception.Message)"
 			}
 		}
@@ -976,7 +740,7 @@ function SearchAppInStore
 	{
 		"Enable"
 		{
-			Write-Host "Enabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling searching for apps in Microsoft Store from Open with dialog"
 			LogInfo "Enabling searching for apps in Microsoft Store from Open with dialog"
 			try
 			{
@@ -984,17 +748,17 @@ function SearchAppInStore
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable searching for apps in Microsoft Store from Open with dialog: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling searching for apps in Microsoft Store from Open with dialog - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling searching for apps in Microsoft Store from Open with dialog"
 			LogInfo "Disabling searching for apps in Microsoft Store from Open with dialog"
 			try
 			{
@@ -1002,11 +766,11 @@ function SearchAppInStore
 					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoUseStoreOpenWith" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable searching for apps in Microsoft Store from Open with dialog: $($_.Exception.Message)"
 			}
 		}
@@ -1055,7 +819,7 @@ function NewAppPrompt
 	{
 		"Enable"
 		{
-			Write-Host "Enabling 'How do you want to open this file?' prompt - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'How do you want to open this file?' prompt"
 			LogInfo "Enabling 'How do you want to open this file?' prompt"
 			try
 			{
@@ -1063,17 +827,17 @@ function NewAppPrompt
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the 'How do you want to open this file?' prompt: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling 'How do you want to open this file?' prompt - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'How do you want to open this file?' prompt"
 			LogInfo "Disabling 'How do you want to open this file?' prompt"
 			try
 			{
@@ -1081,11 +845,11 @@ function NewAppPrompt
 					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "NoNewAppAlert" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the 'How do you want to open this file?' prompt: $($_.Exception.Message)"
 			}
 		}
@@ -1134,7 +898,7 @@ function RecentlyAddedApps
 	{
 		"Enable"
 		{
-			Write-Host "Enabling recently added apps list in Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling recently added apps list in Start Menu"
 			LogInfo "Enabling recently added apps list in Start Menu"
 			try
 			{
@@ -1142,17 +906,17 @@ function RecentlyAddedApps
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable recently added apps in Start Menu: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling recently added apps list in Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling recently added apps list in Start Menu"
 			LogInfo "Disabling recently added apps list in Start Menu"
 			try
 			{
@@ -1160,11 +924,11 @@ function RecentlyAddedApps
 					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" -Name "HideRecentlyAddedApps" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable recently added apps in Start Menu: $($_.Exception.Message)"
 			}
 		}
@@ -1213,7 +977,7 @@ function MostUsedApps
 	{
 		"Enable"
 		{
-			Write-Host "Enabling most used apps list in Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling most used apps list in Start Menu"
 			LogInfo "Enabling most used apps list in Start Menu"
 			try
 			{
@@ -1221,17 +985,17 @@ function MostUsedApps
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable most used apps in Start Menu: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling most used apps list in Start Menu - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling most used apps list in Start Menu"
 			LogInfo "Disabling most used apps list in Start Menu"
 			try
 			{
@@ -1239,11 +1003,11 @@ function MostUsedApps
 					New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoStartMenuMFUprogramsList" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable most used apps in Start Menu: $($_.Exception.Message)"
 			}
 		}
@@ -1293,7 +1057,7 @@ function VisualFX
 		"Performance"
 		# Adjusts visual effects for performance - Disables animations, transparency etc. but leaves font smoothing and miniatures enabled
 		{
-			Write-Host "Adjusting visual effects for performance - " -NoNewline
+			Write-ConsoleStatus -Action "Adjusting visual effects for performance"
 			LogInfo "Adjusting visual effects for performance"
 			try
 			{
@@ -1307,18 +1071,18 @@ function VisualFX
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to adjust visual effects for performance: $($_.Exception.Message)"
 			}
 		}
 		"Appearance"
 		# Adjusts visual effects for appearance
 		{
-			Write-Host "Adjusting visual effects for appearance - " -NoNewline
+			Write-ConsoleStatus -Action "Adjusting visual effects for appearance"
 			LogInfo "Adjusting visual effects for appearance"
 			try
 			{
@@ -1332,11 +1096,11 @@ function VisualFX
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAnimations" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "VisualFXSetting" -Type DWord -Value 3 -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "EnableAeroPeek" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to adjust visual effects for appearance: $($_.Exception.Message)"
 			}
 		}
@@ -1385,31 +1149,31 @@ function TitleBarColor
 	{
 		"Enable"
 		{
-			Write-Host "Enabling title bar color adaptation to background - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling title bar color adaptation to background"
 			LogInfo "Enabling title bar color adaptation to background"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable title bar color adaptation: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling title bar color adaptation to background - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling title bar color adaptation to background"
 			LogInfo "Disabling title bar color adaptation to background"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\DWM" -Name "ColorPrevalence" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable title bar color adaptation: $($_.Exception.Message)"
 			}
 		}
@@ -1458,35 +1222,35 @@ function EnhPointerPrecision
 	{
 		"Enable"
 		{
-			Write-Host "Enabling enhanced pointer precision - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling enhanced pointer precision"
 			LogInfo "Enabling enhanced pointer precision"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "1" -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "6" -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "10" -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable enhanced pointer precision: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling enhanced pointer precision - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling enhanced pointer precision"
 			LogInfo "Disabling enhanced pointer precision"
 			try
 			{
 				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type String -Value "0" -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type String -Value "0" -ErrorAction Stop | Out-Null
 				Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type String -Value "0" -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable enhanced pointer precision: $($_.Exception.Message)"
 			}
 		}
@@ -1535,31 +1299,31 @@ function StartupSound
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Windows startup sound - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Windows startup sound"
 			LogInfo "Enabling Windows startup sound"
 			try
 			{
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Windows startup sound: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Windows startup sound - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Windows startup sound"
 			LogInfo "Disabling Windows startup sound"
 			try
 			{
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Windows startup sound: $($_.Exception.Message)"
 			}
 		}
@@ -1608,7 +1372,7 @@ function ChangingSoundScheme
 	{
 		"Enable"
 		{
-			Write-Host "Enabling changing Windows sound scheme - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling changing Windows sound scheme"
 			LogInfo "Enabling changing Windows sound scheme"
 			try
 			{
@@ -1616,17 +1380,17 @@ function ChangingSoundScheme
 				{
 					Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable changing Windows sound scheme: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling changing Windows sound scheme - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling changing Windows sound scheme"
 			LogInfo "Disabling changing Windows sound scheme"
 			try
 			{
@@ -1634,11 +1398,11 @@ function ChangingSoundScheme
 					New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Force -ErrorAction Stop | Out-Null
 				}
 				Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization" -Name "NoChangingSoundScheme" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable changing Windows sound scheme: $($_.Exception.Message)"
 			}
 		}
@@ -1687,7 +1451,7 @@ function VerboseStatus
 	{
 		"Enable"
 		{
-			Write-Host "Enabling verbose Shutdown/Startup status messages - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling verbose Shutdown/Startup status messages"
 			LogInfo "Enabling verbose Shutdown/Startup status messages"
 			try
 			{
@@ -1696,17 +1460,17 @@ function VerboseStatus
 				} Else {
 					Remove-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -ErrorAction SilentlyContinue | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable verbose startup and shutdown status messages: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling verbose Shutdown/Startup status messages - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling verbose Shutdown/Startup status messages"
 			LogInfo "Disabling verbose Shutdown/Startup status messages"
 			try
 			{
@@ -1715,11 +1479,11 @@ function VerboseStatus
 				} Else {
 					Set-ItemProperty -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "VerboseStatus" -Type DWord -Value 0 -ErrorAction Stop | Out-Null
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable verbose startup and shutdown status messages: $($_.Exception.Message)"
 			}
 		}
@@ -1777,35 +1541,35 @@ function StorageSense
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Storage Sense - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Storage Sense"
 			LogInfo "Enabling Storage Sense"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 30 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Storage Sense: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Storage Sense - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Storage Sense"
 			LogInfo "Disabling Storage Sense"
 			try
 			{
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 01 -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 04 -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy -Name 2048 -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Storage Sense: $($_.Exception.Message)"
 			}
 		}
@@ -1857,33 +1621,33 @@ function Hibernation
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Hibernation - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Hibernation"
 			LogInfo "Disabling Hibernation"
 			try
 			{
 				POWERCFG /HIBERNATE OFF 2>$null | Out-Null
 				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable hibernation: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Hibernation - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Hibernation"
 			LogInfo "Enabling Hibernation"
 			try
 			{
 				POWERCFG /HIBERNATE ON 2>$null | Out-Null
 				if ($LASTEXITCODE -ne 0) { throw "powercfg returned exit code $LASTEXITCODE" }
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable hibernation: $($_.Exception.Message)"
 			}
 		}
@@ -1932,31 +1696,31 @@ function Win32LongPathLimit
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Windows 260 character path limit - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Windows 260 character path limit"
 			LogInfo "Disabling Windows 260 character path limit"
 			try
 			{
 				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable the Windows 260 character path limit: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Windows 260 character path limit - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Windows 260 character path limit"
 			LogInfo "Enabling Windows 260 character path limit"
 			try
 			{
 				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable the Windows 260 character path limit: $($_.Exception.Message)"
 			}
 		}
@@ -2005,31 +1769,31 @@ function BSoDStopError
 	{
 		"Enable"
 		{
-			Write-Host "Enabling BSoD Stop Error - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling BSoD Stop Error"
 			LogInfo "Enabling BSoD Stop Error"
 			try
 			{
 				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable BSoD stop error details: $($_.Exception.Message)"
 			}
 		}
 		"Disable"
 		{
-			Write-Host "Disabling BSoD Stop Error - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling BSoD Stop Error"
 			LogInfo "Disabling BSoD Stop Error"
 			try
 			{
 				New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl -Name DisplayParameters -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable BSoD stop error details: $($_.Exception.Message)"
 			}
 		}
@@ -2098,31 +1862,31 @@ function AdminApprovalMode
 	{
 		"Never"
 		{
-			Write-Host "Setting UAC to 'Never notify' - " -NoNewline
+			Write-ConsoleStatus -Action "Setting UAC to 'Never notify'"
 			LogInfo "Setting UAC to 'Never notify'"
 			try
 			{
 				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set UAC to 'Never notify': $($_.Exception.Message)"
 			}
 		}
 		"Default"
 		{
-			Write-Host "Setting UAC to 'Notify me only when apps try to make changes to my computer' - " -NoNewline
+			Write-ConsoleStatus -Action "Setting UAC to 'Notify me only when apps try to make changes to my computer'"
 			LogInfo "Setting UAC to 'Notify me only when apps try to make changes to my computer'"
 			try
 			{
 				New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -PropertyType DWord -Value 5 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to set UAC to the default notification level: $($_.Exception.Message)"
 			}
 		}
@@ -2175,7 +1939,7 @@ function DeliveryOptimization
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Delivery Optimization - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Delivery Optimization"
 			LogInfo "Disabling Delivery Optimization"
 			try
 			{
@@ -2189,26 +1953,26 @@ function DeliveryOptimization
         				[Console]::SetOut($temp)
     				}
 				} *>$null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable Delivery Optimization: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Delivery Optimization - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Delivery Optimization"
 			LogInfo "Enabling Delivery Optimization"
 			try
 			{
 				New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable Delivery Optimization: $($_.Exception.Message)"
 			}
 		}
@@ -2259,31 +2023,31 @@ function WindowsManageDefaultPrinter
 	{
 		"Disable"
 		{
-			Write-Host "Disabling 'Let Windows manage my default printer' - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'Let Windows manage my default printer'"
 			LogInfo "Disabling 'Let Windows manage my default printer'"
 			try
 			{
 				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to disable 'Let Windows manage my default printer': $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
-			Write-Host "Enabling 'Let Windows manage my default printer' - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling 'Let Windows manage my default printer'"
 			LogInfo "Enabling 'Let Windows manage my default printer'"
 			try
 			{
 				New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows" -Name LegacyDefaultPrinterMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to enable 'Let Windows manage my default printer': $($_.Exception.Message)"
 			}
 		}
@@ -2336,6 +2100,7 @@ function WindowsFeatures
 	#region Variables
 	# Initialize an array list to store the selected Windows features
 	$SelectedFeatures = New-Object -TypeName System.Collections.ArrayList($null)
+	$UseFallbackFeaturesList = $false
 
 	# The following Windows features will have their checkboxes checked
 	[string[]]$CheckedFeatures = @(
@@ -2428,6 +2193,29 @@ function WindowsFeatures
 
 	#region Functions
 
+	function Test-FeaturePatternMatch
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			[string]
+			$FeatureName,
+
+			[string[]]
+			$Patterns
+		)
+
+		foreach ($Pattern in $Patterns)
+		{
+			if ($FeatureName -like $Pattern)
+			{
+				return $true
+			}
+		}
+
+		return $false
+	}
+
 	function Get-CheckboxClicked
 	{
 		[CmdletBinding()]
@@ -2463,24 +2251,24 @@ function WindowsFeatures
 
 	function DisableButton
 	{
-		Write-Host "Disabling Windows features - " -NoNewline
+		Write-ConsoleStatus -Action "Disabling Windows features"
 		LogInfo "Disabling Windows features"
 
 		[void]$Window.Close()
 
 		$SelectedFeatures | Disable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 
 	function EnableButton
 	{
-		Write-Host "Enabling Windows features - " -NoNewline
+		Write-ConsoleStatus -Action "Enabling Windows features"
 		LogInfo "Enabling Windows features"
 
 		[void]$Window.Close()
 
 		$SelectedFeatures | Enable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 
 	function Add-FeatureControl
@@ -2511,18 +2299,26 @@ function WindowsFeatures
 			[void]$StackPanel.Children.Add($TextBlock)
 			[void]$PanelContainer.Children.Add($StackPanel)
 
-			$CheckBox.IsChecked = $true
+			$CheckBox.IsChecked = $false
+
+			if ($UseFallbackFeaturesList)
+			{
+				return
+			}
 
 			# If feature checked add to the array list
-			if ($UnCheckedFeatures | Where-Object -FilterScript {$Feature.FeatureName -like $_})
+			if (Test-FeaturePatternMatch -FeatureName $Feature.FeatureName -Patterns $UncheckedFeatures)
 			{
 				$CheckBox.IsChecked = $false
 				#  function if item is not checked
 				return
 			}
 
+			$CheckBox.IsChecked = $true
+
 			# If feature checked add to the array list
 			[void]$SelectedFeatures.Add($Feature)
+			$Button.IsEnabled = $true
 		}
 	}
 	#endregion Functions
@@ -2544,27 +2340,58 @@ function WindowsFeatures
 	}
 
 	# Getting list of all optional features according to the conditions
-	$OFS = "|"
-		try {
-    $Features = Get-WindowsOptionalFeature -Online |
-        Where-Object -FilterScript { ($_.State -in $State) -and (($_.FeatureName -match $UncheckedFeatures) -or ($_.FeatureName -match $CheckedFeatures)) } |
-        ForEach-Object -Process {
-            try {
-                Get-WindowsOptionalFeature -FeatureName $_.FeatureName -Online
-            } catch {
-                # ignore errors completely
-            }
-        }
-	} catch {
-    # ignore the top-level error completely
+	try
+	{
+		$Features = Get-WindowsOptionalFeature -Online -ErrorAction Stop |
+			Where-Object -FilterScript {
+				($_.State -in $State) -and
+				(
+					(Test-FeaturePatternMatch -FeatureName $_.FeatureName -Patterns $UncheckedFeatures) -or
+					(Test-FeaturePatternMatch -FeatureName $_.FeatureName -Patterns $CheckedFeatures)
+				)
+			} |
+			ForEach-Object -Process {
+				try
+				{
+					Get-WindowsOptionalFeature -FeatureName $_.FeatureName -Online -ErrorAction Stop
+				}
+				catch
+				{
+					# Ignore per-feature query failures.
+					Remove-HandledErrorRecord -ErrorRecord $_
+				}
+			}
 	}
-	$OFS = " "
+	catch
+	{
+		Remove-HandledErrorRecord -ErrorRecord $_
+		$Features = $null
+	}
 
 	if (-not $Features)
 	{
+		try
+		{
+			$Features = Get-WindowsOptionalFeature -Online -ErrorAction Stop |
+				Where-Object -FilterScript {($_.State -in $State) -and -not [string]::IsNullOrWhiteSpace($_.DisplayName)} |
+				Sort-Object -Property DisplayName
+		}
+		catch
+		{
+			Remove-HandledErrorRecord -ErrorRecord $_
+			$Features = $null
+		}
+
+		if (-not $Features)
+		{
+			LogInfo "Windows Features:"
+			LogWarning "All available Windows features already Installed/Uninstalled!"
+			return
+		}
+
+		$UseFallbackFeaturesList = $true
 		LogInfo "Windows Features:"
-		LogWarning "All available Windows features already Installed/Uninstalled!"
-		return
+		LogWarning "No preset-matched Windows features were found. Showing all available features in the requested state."
 	}
 
 	#region Sendkey function
@@ -2590,6 +2417,7 @@ function WindowsFeatures
 	}
 	#endregion Sendkey function
 
+	$Button.IsEnabled = $false
 	$Window.Add_Loaded({$Features | Add-FeatureControl})
 	$Button.Content = $ButtonContent
 	$Button.Add_Click({& $ButtonAdd_Click})
@@ -2647,6 +2475,7 @@ function WindowsCapabilities
 	#region Variables
 	# Initialize an array list to store the selected optional features
 	$SelectedCapabilities = New-Object -TypeName System.Collections.ArrayList($null)
+	$UseFallbackCapabilitiesList = $false
 
 	# The following optional features will have their checkboxes checked
 	[string[]]$CheckedCapabilities = @(
@@ -2752,6 +2581,29 @@ function WindowsCapabilities
 	}
 
 	#region Functions
+	function Test-CapabilityPatternMatch
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			[string]
+			$CapabilityName,
+
+			[string[]]
+			$Patterns
+		)
+
+		foreach ($Pattern in $Patterns)
+		{
+			if ($CapabilityName -like $Pattern)
+			{
+				return $true
+			}
+		}
+
+		return $false
+	}
+
 	function Get-CheckboxClicked
 	{
 		[CmdletBinding()]
@@ -2788,7 +2640,7 @@ function WindowsCapabilities
 
 	function UninstallButton
 	{
-		Write-Host "Uninstalling optional features - " -NoNewline
+		Write-ConsoleStatus -Action "Uninstalling optional features"
 		LogInfo "Uninstalling optional features"
 
 		[void]$Window.Close()
@@ -2799,14 +2651,14 @@ function WindowsCapabilities
 		{
 			#LogWarning $Localization.RestartWarning
 		}
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 
 	function InstallButton
 	{
 		try
 		{
-			Write-Host "Installing optional features - " -NoNewline
+			Write-ConsoleStatus -Action "Installing optional features"
 			LogInfo "Installing optional features"
 
 			[void]$Window.Close()
@@ -2824,7 +2676,7 @@ function WindowsCapabilities
 			LogError ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
 			LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
 		}
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 
 	function Add-CapabilityControl
@@ -2855,16 +2707,26 @@ function WindowsCapabilities
 			[void]$StackPanel.Children.Add($TextBlock)
 			[void]$PanelContainer.Children.Add($StackPanel)
 
+			$CheckBox.IsChecked = $false
+
+			if ($UseFallbackCapabilitiesList)
+			{
+				return
+			}
+
 			# If capability checked add to the array list
-			if ($UnCheckedCapabilities | Where-Object -FilterScript {$Capability.Name -like $_})
+			if (Test-CapabilityPatternMatch -CapabilityName $Capability.Name -Patterns $UncheckedCapabilities)
 			{
 				$CheckBox.IsChecked = $false
 				#  function if item is not checked
 				return
 			}
 
+			$CheckBox.IsChecked = $true
+
 			# If capability checked add to the array list
 			[void]$SelectedCapabilities.Add($Capability)
+			$Button.IsEnabled = $true
 		}
 	}
 	#endregion Functions
@@ -2896,18 +2758,35 @@ function WindowsCapabilities
 	}
 
 	# Getting list of all capabilities according to the conditions
-	$OFS = "|"
 	$Capabilities = Get-WindowsCapability -Online | Where-Object -FilterScript {
-		($_.State -eq $State) -and (($_.Name -match $UncheckedCapabilities) -or ($_.Name -match $CheckedCapabilities) -and ($_.Name -notmatch $ExcludedCapabilities))
+		$CapabilityName = $_.Name
+		($_.State -eq $State) -and
+		(
+			(Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $UncheckedCapabilities) -or
+			(Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $CheckedCapabilities)
+		) -and
+		-not (Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $ExcludedCapabilities)
 	} | ForEach-Object -Process {Get-WindowsCapability -Name $_.Name -Online}
-	$OFS = " "
 
 	if (-not $Capabilities)
 	{
-		LogInfo "Optional Features:"
-		LogWarning "All available Optional features already Installed/Uninstalled!"
+		$Capabilities = Get-WindowsCapability -Online | Where-Object -FilterScript {
+			($_.State -eq $State) -and
+			-not (Test-CapabilityPatternMatch -CapabilityName $_.Name -Patterns $ExcludedCapabilities) -and
+			-not [string]::IsNullOrWhiteSpace($_.DisplayName)
+		} | ForEach-Object -Process {Get-WindowsCapability -Name $_.Name -Online}
 
-		return
+		if (-not $Capabilities)
+		{
+			LogInfo "Optional Features:"
+			LogWarning "All available Optional features already Installed/Uninstalled!"
+
+			return
+		}
+
+		$UseFallbackCapabilitiesList = $true
+		LogInfo "Optional Features:"
+		LogWarning "No preset-matched Optional features were found. Showing all available features in the requested state."
 	}
 
 	#region Sendkey function
@@ -2933,6 +2812,7 @@ function WindowsCapabilities
 	}
 	#endregion Sendkey function
 
+	$Button.IsEnabled = $false
 	$Window.Add_Loaded({$Capabilities | Add-CapabilityControl})
 	$Button.Content = $ButtonContent
 	$Button.Add_Click({& $ButtonAdd_Click})
@@ -2986,17 +2866,17 @@ function CurrentNetwork
 	{
 		"Private"
 		{
-			Write-Host "Setting current network profile to Private - " -NoNewline
+			Write-ConsoleStatus -Action "Setting current network profile to Private"
 			LogInfo "Setting current network profile to Private"
 			Set-NetConnectionProfile -NetworkCategory Private | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Public"
 		{
-			Write-Host "Setting current network profile to Public - " -NoNewline
+			Write-ConsoleStatus -Action "Setting current network profile to Public"
 			LogInfo "Setting current network profile to Public"
 			Set-NetConnectionProfile -NetworkCategory Public | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3043,20 +2923,20 @@ function UnknownNetworks
 	{
 		"Private"
 		{
-			Write-Host "Setting unidentified networks to Private profile - " -NoNewline
+			Write-ConsoleStatus -Action "Setting unidentified networks to Private profile"
 			LogInfo "Setting unidentified networks to Private profile"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Force | Out-Null
 			}
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Name "Category" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Public"
 		{
-			Write-Host "Setting unidentified networks to Public profile - " -NoNewline
+			Write-ConsoleStatus -Action "Setting unidentified networks to Public profile"
 			LogInfo "Setting unidentified networks to Public profile"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures\010103000F0000F0010000000F0000F0C967A3643C3AD745950DA7859209176EF5B87C875FA20DF21951640E807D7C24" -Name "Category" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3103,20 +2983,20 @@ function NetDevicesAutoInst
 	{
 		"Enable"
 		{
-			Write-Host "Enabling automatic installation of network devices - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling automatic installation of network devices"
 			LogInfo "Enabling automatic installation of network devices"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling automatic installation of network devices - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling automatic installation of network devices"
 			LogInfo "Disabling automatic installation of network devices"
 			If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private")) {
 				New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Force | Out-Null
 			}
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3165,7 +3045,7 @@ function HomeGroups
 	{
 		"Enable"
 		{
-    		Write-Host "Enabling HomeGroup services - " -NoNewline
+    		Write-ConsoleStatus -Action "Enabling HomeGroup services"
     		LogInfo "Enabling HomeGroup services"
 
     		# Check if services exist before attempting to modify them
@@ -3180,11 +3060,11 @@ function HomeGroups
         		Set-Service "HomeGroupProvider" -StartupType Manual -ErrorAction SilentlyContinue 2>&1 | Out-Null
         		Start-Service "HomeGroupProvider" -ErrorAction SilentlyContinue 2>&1 | Out-Null
     	}
-    		Write-Host "success!" -ForegroundColor Green
+    		Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-    		Write-Host "Disabling HomeGroup services - " -NoNewline
+    		Write-ConsoleStatus -Action "Disabling HomeGroup services"
     		LogInfo "Disabling HomeGroup services"
 
    	 		# Check if services exist before attempting to modify them
@@ -3200,7 +3080,7 @@ function HomeGroups
         	Stop-Service "HomeGroupProvider" -ErrorAction SilentlyContinue 2>&1 | Out-Null
         	Set-Service "HomeGroupProvider" -StartupType Disabled -ErrorAction SilentlyContinue 2>&1 | Out-Null
     		}
-    		Write-Host "success!" -ForegroundColor Green
+    		Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3247,17 +3127,17 @@ function SMB1
 	{
 		"Enable"
 		{
-			Write-Host "Enabling SMB 1.0 protocol - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling SMB 1.0 protocol"
 			LogInfo "Enabling SMB 1.0 protocol"
 			$null = Set-SmbServerConfiguration -EnableSMB1Protocol $true -Force -ErrorAction SilentlyContinue 2>&1
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling SMB 1.0 protocol - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling SMB 1.0 protocol"
 			LogInfo "Disabling SMB 1.0 protocol"
 			$null = Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force -ErrorAction SilentlyContinue 2>&1
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3306,20 +3186,20 @@ function SMBServer
 	{
 		"Enable"
 		{
-			Write-Host "Enabling SMB Server file and printer sharing - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling SMB Server file and printer sharing"
 			LogInfo "Enabling SMB Server file and printer sharing"
 			Set-SmbServerConfiguration -EnableSMB2Protocol $true -Force | Out-Null
 			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_server" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling SMB Server file and printer sharing - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling SMB Server file and printer sharing"
 			LogInfo "Disabling SMB Server file and printer sharing"
 			Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force | Out-Null
 			Set-SmbServerConfiguration -EnableSMB2Protocol $false -Force | Out-Null
 			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_server" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3366,17 +3246,17 @@ function NetBIOS
 	{
 		"Enable"
 		{
-			Write-Host "Enabling NetBIOS over TCP/IP - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling NetBIOS over TCP/IP"
 			LogInfo "Enabling NetBIOS over TCP/IP"
 			Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\NetBT\Parameters\Interfaces\Tcpip*" -Name "NetbiosOptions" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling NetBIOS over TCP/IP - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling NetBIOS over TCP/IP"
 			LogInfo "Disabling NetBIOS over TCP/IP"
 			Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\services\NetBT\Parameters\Interfaces\Tcpip*" -Name "NetbiosOptions" -Type DWord -Value 2 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3423,20 +3303,20 @@ function LLMNR
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Link-Local Multicast Name Resolution (LLMNR) protocol - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Link-Local Multicast Name Resolution (LLMNR) protocol"
 			LogInfo "Enabling Link-Local Multicast Name Resolution (LLMNR) protocol"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Link-Local Multicast Name Resolution (LLMNR) protocol - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Link-Local Multicast Name Resolution (LLMNR) protocol"
 			LogInfo "Disabling Link-Local Multicast Name Resolution (LLMNR) protocol"
 			If (!(Test-Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient")) {
 				New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Force | Out-Null
 			}
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3483,17 +3363,17 @@ function MSNetClient
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Microsoft Network clients on all installed network interfaces - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Microsoft Network clients on all installed network interfaces"
 			LogInfo "Enabling Microsoft Network clients on all installed network interfaces"
 			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_msclient" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Microsoft Network clients on all installed network interfaces - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Microsoft Network clients on all installed network interfaces"
 			LogInfo "Disabling Microsoft Network clients on all installed network interfaces"
 			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_msclient" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3540,17 +3420,17 @@ function QoS
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Quality of Service (QoS) - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Quality of Service (QoS)"
 			LogInfo "Enabling Quality of Service (QoS)"
 			Enable-NetAdapterBinding -Name "*" -ComponentID "ms_pacer" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Quality of Service (QoS) - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Quality of Service (QoS)"
 			LogInfo "Disabling Quality of Service (QoS)"
 			Disable-NetAdapterBinding -Name "*" -ComponentID "ms_pacer" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3599,17 +3479,17 @@ function NCSIProbe
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Network Connectivity Status Indicator (NCSI) active probe - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Network Connectivity Status Indicator (NCSI) active probe"
 			LogInfo "Enabling Network Connectivity Status Indicator (NCSI) active probe"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" -Name "NoActiveProbe" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Network Connectivity Status Indicator (NCSI) active probe - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Network Connectivity Status Indicator (NCSI) active probe"
 			LogInfo "Disabling Network Connectivity Status Indicator (NCSI) active probe"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" -Name "NoActiveProbe" -Type DWord -Value 1 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3656,17 +3536,17 @@ function ConnectionSharing
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Internet Connection Sharing (ICS) - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Internet Connection Sharing (ICS)"
 			LogInfo "Enabling Internet Connection Sharing (ICS)"
 			Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections" -Name "NC_ShowSharedAccessUI" -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Internet Connection Sharing (ICS) - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Internet Connection Sharing (ICS)"
 			LogInfo "Disabling Internet Connection Sharing (ICS)"
 			Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Network Connections" -Name "NC_ShowSharedAccessUI" -Type DWord -Value 0 | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3717,17 +3597,17 @@ function UpdateMicrosoftProducts
 	{
 		"Enable"
 		{
-			Write-Host "Enabling receiving updates for other Microsoft products - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling receiving updates for other Microsoft products"
 			LogInfo "Enabling receiving updates for other Microsoft products"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling receiving updates for other Microsoft products - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling receiving updates for other Microsoft products"
 			LogInfo "Disabling receiving updates for other Microsoft products"
 			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name AllowMUUpdateService -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3778,17 +3658,17 @@ function RestartNotification
 	{
 		"Show"
 		{
-			Write-Host "Showing notification when your PC requires a restart to finish updating - " -NoNewline
+			Write-ConsoleStatus -Action "Showing notification when your PC requires a restart to finish updating"
 			LogInfo "Showing notification when your PC requires a restart to finish updating"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name RestartNotificationsAllowed2 -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Hide"
 		{
-			Write-Host "Hiding notification when your PC requires a restart to finish updating - " -NoNewline
+			Write-ConsoleStatus -Action "Hiding notification when your PC requires a restart to finish updating"
 			LogInfo "Hiding notification when your PC requires a restart to finish updating"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name RestartNotificationsAllowed2 -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3841,17 +3721,17 @@ function RestartDeviceAfterUpdate
 	{
 		"Enable"
 		{
-			Write-Host "Enabling restart as soon as possible to finish updating - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling restart as soon as possible to finish updating"
 			LogInfo "Enabling restart as soon as possible to finish updating"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling restart as soon as possible to finish updating - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling restart as soon as possible to finish updating"
 			LogInfo "Disabling restart as soon as possible to finish updating"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsExpedited -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3908,17 +3788,17 @@ function ActiveHours
 	{
 		"Automatically"
 		{
-			Write-Host "Automatically adjusting active hours for me based on daily usage - " -NoNewline
+			Write-ConsoleStatus -Action "Automatically adjusting active hours for me based on daily usage"
 			LogInfo "Automatically adjusting active hours for me based on daily usage"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name SmartActiveHoursState -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Manually"
 		{
-			Write-Host "Manually adjusting active hours for me based on daily usage - " -NoNewline
+			Write-ConsoleStatus -Action "Manually adjusting active hours for me based on daily usage"
 			LogInfo "Manually adjusting active hours for me based on daily usage"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name SmartActiveHoursState -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -3970,17 +3850,17 @@ function WindowsLatestUpdate
 	{
 		"Disable"
 		{
-			Write-Host "Disabling getting the latest updates as soon as they're available - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling getting the latest updates as soon as they're available"
 			LogInfo "Disabling getting the latest updates as soon as they're available"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsContinuousInnovationOptedIn -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Enable"
 		{
-			Write-Host "Enabling getting the latest updates as soon as they're available - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling getting the latest updates as soon as they're available"
 			LogInfo "Enabling getting the latest updates as soon as they're available"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings -Name IsContinuousInnovationOptedIn -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -4034,17 +3914,17 @@ function PowerPlan
 	{
 		"High"
 		{
-			Write-Host "Setting power plan to High performance - " -NoNewline
+			Write-ConsoleStatus -Action "Setting power plan to High performance"
 			LogInfo "Setting power plan to High performance"
 			POWERCFG /SETACTIVE SCHEME_MIN | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Balanced"
 		{
-			Write-Host "Setting power plan to Balanced - " -NoNewline
+			Write-ConsoleStatus -Action "Setting power plan to Balanced"
 			LogInfo "Setting power plan to Balanced"
 			POWERCFG /SETACTIVE SCHEME_BALANCED | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -4114,24 +3994,24 @@ function NetworkAdaptersSavePower
 	{
 		"Disable"
 		{
-			Write-Host "Disabling 'allowing the computer to turn off the network adapters to save power' - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling 'allowing the computer to turn off the network adapters to save power'"
 			LogInfo "Disabling 'allowing the computer to turn off the network adapters to save power'"
 			foreach ($Adapter in $Adapters)
 			{
 				$Adapter.AllowComputerToTurnOffDevice = "Disabled"
 				$Adapter | Set-NetAdapterPowerManagement | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 		}
 		"Enable"
 		{
 			foreach ($Adapter in $Adapters)
 			{
-				Write-Host "Enabling 'allowing the computer to turn off the network adapters to save power' for adapter '$($Adapter.Name)' - " -NoNewline
+				Write-ConsoleStatus -Action "Enabling 'allowing the computer to turn off the network adapters to save power' for adapter '$($Adapter.Name)'"
 				LogInfo "Enabling 'allowing the computer to turn off the network adapters to save power' for adapter '$($Adapter.Name)'"
 				$Adapter.AllowComputerToTurnOffDevice = "Enabled"
 				$Adapter | Set-NetAdapterPowerManagement | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 		}
 	}
@@ -4204,17 +4084,17 @@ function InputMethod
 	{
 		"English"
 		{
-			Write-Host "Setting override for default input method to English - " -NoNewline
+			Write-ConsoleStatus -Action "Setting override for default input method to English"
 			LogInfo "Setting override for default input method to English"
 			Set-WinDefaultInputMethodOverride -InputTip "0409:00000409" | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Default"
 		{
-			Write-Host "Setting override for default input method to use language list - " -NoNewline
+			Write-ConsoleStatus -Action "Setting override for default input method to use language list"
 			LogInfo "Setting override for default input method to use language list"
 			Remove-ItemProperty -Path "HKCU:\Control Panel\International\User Profile" -Name InputMethodOverride -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5060,11 +4940,11 @@ function LatestInstalled.NET
 	{
 		"Enable"
 		{
-			Write-Host "Enabling the use of the latest installed .NET runtime for all apps - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling the use of the latest installed .NET runtime for all apps"
 			LogInfo "Enabling the use of the latest installed .NET runtime for all apps"
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\.NETFramework -Name OnlyUseLatestCLR -PropertyType DWord -Value 1 -Force | Out-Null
 			New-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework -Name OnlyUseLatestCLR -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
@@ -5072,7 +4952,7 @@ function LatestInstalled.NET
 			LogInfo "Disabling the use of the latest installed .NET runtime for all apps"
 			Remove-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\.NETFramework -Name OnlyUseLatestCLR -Force -ErrorAction Ignore | Out-Null
 			Remove-ItemProperty -Path HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework -Name OnlyUseLatestCLR -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5123,7 +5003,7 @@ function WinPrtScrFolder
 	{
 		"Desktop"
 		{
-			Write-Host "Setting the location to save screenshots by pressing Win+PrtScr to the Desktop - " -NoNewline
+			Write-ConsoleStatus -Action "Setting the location to save screenshots by pressing Win+PrtScr to the Desktop"
 			LogInfo "Setting the location to save screenshots by pressing Win+PrtScr to the Desktop"
 			# Checking whether user is logged into OneDrive (Microsoft account)
 			$UserEmail = Get-ItemProperty -Path HKCU:\Software\Microsoft\OneDrive\Accounts\Personal -Name UserEmail -ErrorAction SilentlyContinue
@@ -5181,14 +5061,14 @@ function WinPrtScrFolder
 					}
 				}
 			}
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Default"
 		{
-			Write-Host "Setting the location to save screenshots by pressing Win+PrtScr to the default one - " -NoNewline
+			Write-ConsoleStatus -Action "Setting the location to save screenshots by pressing Win+PrtScr to the default one"
 			LogInfo "Setting the location to save screenshots by pressing Win+PrtScr to the default one"
 			Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" -Name "{B7BEDE81-DF94-4682-A7D8-57A52620B86F}" -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5251,25 +5131,25 @@ function RecommendedTroubleshooting
 	{
 		"Automatically"
 		{
-			Write-Host "Setting troubleshooter preferences to automatically run - " -NoNewline
+			Write-ConsoleStatus -Action "Setting troubleshooter preferences to automatically run"
 			LogInfo "Setting troubleshooter preferences to automatically run"
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation))
 			{
 				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force | Out-Null
 			}
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 3 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Default"
 		{
-			Write-Host "Setting troubleshooter preferences to ask before running - " -NoNewline
+			Write-ConsoleStatus -Action "Setting troubleshooter preferences to ask before running"
 			LogInfo "Setting troubleshooter preferences to ask before running"
 			if (-not (Test-Path -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation))
 			{
 				New-Item -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Force | Out-Null
 			}
 			New-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\WindowsMitigation -Name UserPreference -PropertyType DWord -Value 2 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5318,10 +5198,10 @@ function ReservedStorage
 		{
 			try
 			{
-				Write-Host "Disabling reserved storage - " -NoNewline
+				Write-ConsoleStatus -Action "Disabling reserved storage"
 				LogInfo "Disabling reserved storage"
 				Set-WindowsReservedStorageState -State Disabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch [System.Runtime.InteropServices.COMException]
 			{
@@ -5330,10 +5210,10 @@ function ReservedStorage
 		}
 		"Enable"
 		{
-			Write-Host "Enabling reserved storage - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling reserved storage"
 			LogInfo "Enabling reserved storage"
 			Set-WindowsReservedStorageState -State Enabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5380,21 +5260,21 @@ function F1HelpPage
 	{
 		"Disable"
 		{
-			Write-Host "Disabling help look up via F1 - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling help look up via F1"
 			LogInfo "Disabling help look up via F1"
 			if (-not (Test-Path -Path "HKCU:\Software\Classes\Typelib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}\1.0\0\win64"))
 			{
 				New-Item -Path "HKCU:\Software\Classes\Typelib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}\1.0\0\win64" -Force | Out-Null
 			}
 			New-ItemProperty -Path "HKCU:\Software\Classes\Typelib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}\1.0\0\win64" -Name "(default)" -PropertyType String -Value "" -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Enable"
 		{
-			Write-Host "Enabling help look up via F1 - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling help look up via F1"
 			LogInfo "Enabling help look up via F1"
 			Remove-Item -Path "HKCU:\Software\Classes\Typelib\{8cec5860-07a1-11d9-b15e-000d56bfe6ee}" -Recurse -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5441,17 +5321,17 @@ function NumLock
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Num Lock at startup - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Num Lock at startup"
 			LogInfo "Enabling Num Lock at startup"
 			New-ItemProperty -Path "Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard" -Name InitialKeyboardIndicators -PropertyType String -Value 2147483650 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Num Lock at startup - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Num Lock at startup"
 			LogInfo "Disabling Num Lock at startup"
 			New-ItemProperty -Path "Registry::HKEY_USERS\.DEFAULT\Control Panel\Keyboard" -Name InitialKeyboardIndicators -PropertyType String -Value 2147483648 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5500,17 +5380,17 @@ function CapsLock
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Caps Lock - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Caps Lock"
 			LogInfo "Disabling Caps Lock"
 			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map" -PropertyType Binary -Value ([byte[]](0,0,0,0,0,0,0,0,2,0,0,0,0,0,58,0,0,0,0,0)) -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Caps Lock - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Caps Lock"
 			LogInfo "Enabling Caps Lock"
 			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layout" -Name "Scancode Map" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5557,17 +5437,17 @@ function StickyShift
 	{
 		"Disable"
 		{
-			Write-Host "Disabling Sticky Shift - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Sticky Shift"
 			LogInfo "Disabling Sticky Shift"
 			New-ItemProperty -Path "HKCU:\Control Panel\Accessibility\StickyKeys" -Name Flags -PropertyType String -Value 506 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Enable"
 		{
-			Write-Host "Enabling Sticky Shift - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Sticky Shift"
 			LogInfo "Enabling Sticky Shift"
 			New-ItemProperty -Path "HKCU:\Control Panel\Accessibility\StickyKeys" -Name Flags -PropertyType String -Value 510 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5619,17 +5499,17 @@ function Autoplay
 	{
 		"Disable"
 		{
-			Write-Host "Disabling AutoPlay for all media and devices - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling AutoPlay for all media and devices"
 			LogInfo "Disabling AutoPlay for all media and devices"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers -Name DisableAutoplay -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Enable"
 		{
-			Write-Host "Enabling AutoPlay for all media and devices - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling AutoPlay for all media and devices"
 			LogInfo "Enabling AutoPlay for all media and devices"
 			New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers -Name DisableAutoplay -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5676,17 +5556,17 @@ function SaveRestartableApps
 	{
 		"Enable"
 		{
-			Write-Host "Enabling saving restartable apps and restarting them after signing in - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling saving restartable apps and restarting them after signing in"
 			LogInfo "Enabling saving restartable apps and restarting them after signing in"
 			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name RestartApps -PropertyType DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling saving restartable apps and restarting them after signing in - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling saving restartable apps and restarting them after signing in"
 			LogInfo "Disabling saving restartable apps and restarting them after signing in"
 			New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" -Name RestartApps -PropertyType DWord -Value 0 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5741,19 +5621,19 @@ function NetworkDiscovery
 	{
 		"Enable"
 		{
-			Write-Host "Enabling Network Discovery and File and Printers Sharing - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling Network Discovery and File and Printers Sharing"
 			LogInfo "Enabling Network Discovery and File and Printers Sharing"
 			Set-NetFirewallRule -Group $FirewallRules -Profile Private -Enabled True | Out-Null
 			Set-NetFirewallRule -Profile Private -Name FPS-SMB-In-TCP -Enabled True | Out-Null
 			Set-NetConnectionProfile -NetworkCategory Private | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling Network Discovery and File and Printers Sharing - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling Network Discovery and File and Printers Sharing"
 			LogInfo "Disabling Network Discovery and File and Printers Sharing"
 			Set-NetFirewallRule -Group $FirewallRules -Profile Private -Enabled False | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -5815,7 +5695,7 @@ function Set-Association
 	try
 	{
 	$null = @(
-		Write-Host "Associating $Extension files with $ProgramPath - " -NoNewline
+		Write-ConsoleStatus -Action "Associating $Extension files with $ProgramPath"
 		LogInfo "Associating $Extension files with $ProgramPath"
 
 		# Microsoft has blocked write access to UserChoice key for .pdf extention and http/https protocols with KB5034765 release, so we have to write values with a copy of powershell.exe to bypass a UCPD driver restrictions
@@ -6694,11 +6574,11 @@ public static void Refresh()
 
 	if ($AssociationFailed)
 	{
-		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		Write-ConsoleStatus -Status failed
 	}
 	else
 	{
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 }
 
@@ -6720,7 +6600,7 @@ public static void Refresh()
 #>
 function Export-Associations
 {
-	Write-Host "Exporting associations - " -NoNewline
+	Write-ConsoleStatus -Action "Exporting associations"
 	LogInfo "Exporting associations"
 	try
 	{
@@ -6729,7 +6609,7 @@ function Export-Associations
 	}
 	catch
 	{
-		Write-Host "Failed! Check logs for details." -ForegroundColor Red
+		Write-ConsoleStatus -Status failed
 		LogError "Failed to export application associations: $($_.Exception.Message)"
 		return
 	}
@@ -6897,7 +6777,7 @@ function Export-Associations
 	$AllJSON | ConvertTo-Json | Set-Content -Path "$PSScriptRoot\..\Application_Associations.json" -Encoding Default -Force
 
 	Remove-Item -Path "$env:TEMP\Application_Associations.xml" -Force | Out-Null
-	Write-Host "success!" -ForegroundColor Green
+	Write-ConsoleStatus -Status success
 }
 
 <#
@@ -6915,7 +6795,7 @@ function Export-Associations
 #>
 function Import-Associations
 {
-	Write-Host "Importing associations - " -NoNewline
+	Write-ConsoleStatus -Action "Importing associations"
 	LogInfo "Importing associations"
 
 	Add-Type -AssemblyName System.Windows.Forms
@@ -6954,7 +6834,7 @@ function Import-Associations
 			}
 		}
 	}
-	Write-Host "success!" -ForegroundColor Green
+	Write-ConsoleStatus -Status success
 }
 
 <#
@@ -7001,7 +6881,7 @@ function DefaultTerminalApp
 		{
 			if (Get-AppxPackage -Name Microsoft.WindowsTerminal)
 			{
-				Write-Host "Setting Windows Terminal as default terminal app - " -NoNewline
+				Write-ConsoleStatus -Action "Setting Windows Terminal as default terminal app"
 				LogInfo "Setting Windows Terminal as default terminal app"
 				# Checking if the Terminal version supports such feature
 				$TerminalVersion = (Get-AppxPackage -Name Microsoft.WindowsTerminal).Version
@@ -7026,16 +6906,16 @@ function DefaultTerminalApp
 						}
 					}
 				}
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 		}
 		"ConsoleHost"
 		{
-			Write-Host "Setting Windows Console Host as default terminal app - " -NoNewline
+			Write-ConsoleStatus -Action "Setting Windows Console Host as default terminal app"
 			LogInfo "Setting Windows Console Host as default terminal app"
 			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationConsole -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force -ErrorAction SilentlyContinue | Out-Null
 			New-ItemProperty -Path "HKCU:\Console\%%Startup" -Name DelegationTerminal -PropertyType String -Value "{B23D10C0-E52E-411E-9D5B-C09FDF709C7D}" -Force -ErrorAction SilentlyContinue | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }
@@ -7267,8 +7147,8 @@ function Install-VCRedist
 				if (-not $ShouldInstall)
 				{
 					LogInfo "$DisplayName already installed (version $InstalledVersion)."
-					Write-Host "Checking $DisplayName - " -NoNewline
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Action "Checking $DisplayName"
+					Write-ConsoleStatus -Status success
 					continue
 				}
 
@@ -7283,7 +7163,7 @@ function Install-VCRedist
 
 				try
 				{
-					Write-Host "Installing $DisplayName - " -NoNewline
+					Write-ConsoleStatus -Action "Installing $DisplayName"
 					LogInfo "Installing $DisplayName"
 
 					$Parameters = @{
@@ -7304,20 +7184,20 @@ function Install-VCRedist
 						"$env:TEMP\dd_vcredist_x86_*.log"
 					)
 					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 				catch [System.Net.WebException]
 				{
 					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 
 					return
 				}
 				catch
 				{
 					LogError "Failed to install ${DisplayName}: $($_.Exception.Message)"
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 					continue
 				}
 			}
@@ -7335,8 +7215,8 @@ function Install-VCRedist
 				if (-not $ShouldInstall)
 				{
 					LogInfo "$DisplayName already installed (version $InstalledVersion)."
-					Write-Host "Checking $DisplayName - " -NoNewline
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Action "Checking $DisplayName"
+					Write-ConsoleStatus -Status success
 					continue
 				}
 
@@ -7351,7 +7231,7 @@ function Install-VCRedist
 
 				try
 				{
-					Write-Host "Installing $DisplayName - " -NoNewline
+					Write-ConsoleStatus -Action "Installing $DisplayName"
 					LogInfo "Installing $DisplayName"
 
 					$Parameters = @{
@@ -7372,20 +7252,20 @@ function Install-VCRedist
 						"$env:TEMP\dd_vcredist_amd64_*.log"
 					)
 					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 				catch [System.Net.WebException]
 				{
 					LogError ($Localization.NoResponse -f "https://download.visualstudio.microsoft.com")
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 
 					return
 				}
 				catch
 				{
 					LogError "Failed to install ${DisplayName}: $($_.Exception.Message)"
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 					continue
 				}
 			}
@@ -7462,8 +7342,8 @@ function Install-DotNetRuntimes
 					{
 						LogError ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
 						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-						Write-Host "Installing $DisplayName - " -NoNewline
-						Write-Host "Failed! Check logs for details." -ForegroundColor Red
+						Write-ConsoleStatus -Action "Installing $DisplayName"
+						Write-ConsoleStatus -Status failed
 
 						return
 					}
@@ -7479,16 +7359,16 @@ function Install-DotNetRuntimes
 				if (-not $ShouldInstall)
 				{
 					LogInfo "$DisplayName already installed (version $InstalledVersion)."
-					Write-Host "Checking $DisplayName - " -NoNewline
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Action "Checking $DisplayName"
+					Write-ConsoleStatus -Status success
 					continue
 				}
 
 				if ($null -eq $NET8Version)
 				{
 					LogError "Unable to determine the latest $DisplayName version."
-					Write-Host "Installing $DisplayName - " -NoNewline
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Action "Installing $DisplayName"
+					Write-ConsoleStatus -Status failed
 					return
 				}
 
@@ -7503,7 +7383,7 @@ function Install-DotNetRuntimes
 
 				try
 				{
-					Write-Host "Installing .NET $NET8Version x64 - " -NoNewline
+					Write-ConsoleStatus -Action "Installing .NET $NET8Version x64"
 					LogInfo "Installing .NET $NET8Version x64"
 
 					# Download the runtime from the release metadata entry rather than constructing the URL.
@@ -7525,20 +7405,20 @@ function Install-DotNetRuntimes
 						"$env:TEMP\Microsoft_.NET_Runtime*.log"
 					)
 					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 				catch [System.Net.WebException]
 				{
 					LogError ($Localization.NoResponse -f $NET8SourceHost)
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 
 					return
 				}
 				catch
 				{
 					LogError "Failed to install .NET $NET8Version x64: $($_.Exception.Message)"
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 					continue
 				}
 			}
@@ -7572,8 +7452,8 @@ function Install-DotNetRuntimes
 					{
 						LogError ($Localization.NoResponse -f "https://builds.dotnet.microsoft.com")
 						LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-						Write-Host "Installing $DisplayName - " -NoNewline
-						Write-Host "Failed! Check logs for details." -ForegroundColor Red
+						Write-ConsoleStatus -Action "Installing $DisplayName"
+						Write-ConsoleStatus -Status failed
 
 						return
 					}
@@ -7589,16 +7469,16 @@ function Install-DotNetRuntimes
 				if (-not $ShouldInstall)
 				{
 					LogInfo "$DisplayName already installed (version $InstalledVersion)."
-					Write-Host "Checking $DisplayName - " -NoNewline
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Action "Checking $DisplayName"
+					Write-ConsoleStatus -Status success
 					continue
 				}
 
 				if ($null -eq $NET9Version)
 				{
 					LogError "Unable to determine the latest $DisplayName version."
-					Write-Host "Installing $DisplayName - " -NoNewline
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Action "Installing $DisplayName"
+					Write-ConsoleStatus -Status failed
 					return
 				}
 
@@ -7613,7 +7493,7 @@ function Install-DotNetRuntimes
 
 				try
 				{
-					Write-Host "Installing .NET $NET9Version x64 - " -NoNewline
+					Write-ConsoleStatus -Action "Installing .NET $NET9Version x64"
 					LogInfo "Installing .NET $NET9Version x64"
 
 					# Download the runtime from the release metadata entry rather than constructing the URL.
@@ -7635,20 +7515,20 @@ function Install-DotNetRuntimes
 						"$env:TEMP\Microsoft_.NET_Runtime*.log"
 					)
 					Get-ChildItem -Path $Paths -Force -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 				catch [System.Net.WebException]
 				{
 					LogError ($Localization.NoResponse -f $NET9SourceHost)
 					LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 
 					return
 				}
 				catch
 				{
 					LogError "Failed to install .NET $NET9Version x64: $($_.Exception.Message)"
-					Write-Host "Failed! Check logs for details." -ForegroundColor Red
+					Write-ConsoleStatus -Status failed
 					continue
 				}
 			}
@@ -7713,46 +7593,46 @@ function PreventEdgeShortcutCreation
 		{
 			Stable
 			{
-				Write-Host "Preventing desktop shortcut creation for Microsoft Edge Stable Channel - " -NoNewline
+				Write-ConsoleStatus -Action "Preventing desktop shortcut creation for Microsoft Edge Stable Channel"
 				LogInfo "Preventing desktop shortcut creation for Microsoft Edge Stable Channel"
 				if (Get-Package -Name "Microsoft Edge" -ProviderName Programs -ErrorAction SilentlyContinue)
 				{
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -PropertyType DWord -Value 0 -Force | Out-Null
 					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}" -Type DWORD -Value 3 | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 			}
 			Beta
 			{
 				if (Get-Package -Name "Microsoft Edge Beta" -ProviderName Programs -ErrorAction SilentlyContinue)
 				{
-					Write-Host "Preventing desktop shortcut creation for Microsoft Edge Beta Channel - " -NoNewline
+					Write-ConsoleStatus -Action "Preventing desktop shortcut creation for Microsoft Edge Beta Channel"
 					LogInfo "Preventing desktop shortcut creation for Microsoft Edge Beta Channel"
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}" -PropertyType DWord -Value 0 -Force | Out-Null
 					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}" -Type DWORD -Value 3 | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 			}
 			Dev
 			{
 				if (Get-Package -Name "Microsoft Edge Dev" -ProviderName Programs -ErrorAction SilentlyContinue)
 				{
-					Write-Host "Preventing desktop shortcut creation for Microsoft Edge Dev Channel - " -NoNewline
+					Write-ConsoleStatus -Action "Preventing desktop shortcut creation for Microsoft Edge Dev Channel"
 					LogInfo "Preventing desktop shortcut creation for Microsoft Edge Dev Channel"
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}" -PropertyType DWord -Value 0 -Force | Out-Null
 					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}" -Type DWORD -Value 3 | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 			}
 			Canary
 			{
 				if (Get-Package -Name "Microsoft Edge Canary" -ProviderName Programs -ErrorAction SilentlyContinue)
 				{
-					Write-Host "Preventing desktop shortcut creation for Microsoft Edge Canary Channel - " -NoNewline
+					Write-ConsoleStatus -Action "Preventing desktop shortcut creation for Microsoft Edge Canary Channel"
 					LogInfo "Preventing desktop shortcut creation for Microsoft Edge Canary Channel"
 					New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}" -PropertyType DWord -Value 0 -Force | Out-Null
 					Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}" -Type DWORD -Value 3 | Out-Null
-					Write-Host "success!" -ForegroundColor Green
+					Write-ConsoleStatus -Status success
 				}
 			}
 		}
@@ -7766,7 +7646,7 @@ function PreventEdgeShortcutCreation
 			"CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}",
 			"CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}"
 		)
-		Write-Host "Allowing desktop shortcut creation for Microsoft Edge upon update - " -NoNewline
+		Write-ConsoleStatus -Action "Allowing desktop shortcut creation for Microsoft Edge upon update"
 		LogInfo "Allowing desktop shortcut creation for Microsoft Edge upon update"
 		Remove-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate -Name $Names -Force -ErrorAction Ignore | Out-Null
 
@@ -7774,7 +7654,7 @@ function PreventEdgeShortcutCreation
 		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{2CD8A007-E189-409D-A2C8-9AF4EF3C72AA}" -Type CLEAR | Out-Null
 		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{0D50BFEC-CD6A-4F9A-964C-C7416E3ACB10}" -Type CLEAR | Out-Null
 		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\EdgeUpdate -Name "CreateDesktopShortcut{65C35B14-6C1D-4122-AC46-7148CC9D6497}" -Type CLEAR | Out-Null
-		Write-Host "success!" -ForegroundColor Green
+		Write-ConsoleStatus -Status success
 	}
 }
 
@@ -7820,17 +7700,17 @@ function RegistryBackup
 	{
 		"Enable"
 		{
-			Write-Host "Enabling registry backup to RegBack folder 'C:\Windows\System32\config\RegBack' - " -NoNewline
+			Write-ConsoleStatus -Action "Enabling registry backup to RegBack folder 'C:\Windows\System32\config\RegBack'"
 			LogInfo "Enabling registry backup to RegBack folder 'C:\Windows\System32\config\RegBack'"
 			New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Configuration Manager" -Name EnablePeriodicBackup -Type DWord -Value 1 -Force | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 		"Disable"
 		{
-			Write-Host "Disabling registry backup to RegBack folder 'C:\Windows\System32\config\RegBack' - " -NoNewline
+			Write-ConsoleStatus -Action "Disabling registry backup to RegBack folder 'C:\Windows\System32\config\RegBack'"
 			LogInfo "Disabling registry backup to RegBack folder 'C:\Windows\System32\config\RegBack'"
 			Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Configuration Manager" -Name EnablePeriodicBackup -Force -ErrorAction Ignore | Out-Null
-			Write-Host "success!" -ForegroundColor Green
+			Write-ConsoleStatus -Status success
 		}
 	}
 }

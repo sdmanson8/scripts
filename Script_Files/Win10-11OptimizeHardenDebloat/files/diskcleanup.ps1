@@ -2,6 +2,18 @@
     .SYNOPSIS
     Runs Windows disk cleanup tasks and writes progress to the Win10_11Util log.
 
+	.VERSION
+	2.0.2
+
+	.DATE
+	03.10.2021 - initial version
+	24.02.2026 - updated to v2.0.0 with new functions and improvements
+	04.03.2026 - updated to v2.0.1 with bug fixes and optimizations
+	07.03.2026 - updated to v2.0.2 with major tweaks and refinements
+
+	.AUTHOR
+	sdmanson8 - Copyright (c) 2021 - 2026
+
     .DESCRIPTION
     Imports the shared logging module, selects a log file, runs Disk Cleanup in
     very low disk mode, and then runs DISM component cleanup to remove

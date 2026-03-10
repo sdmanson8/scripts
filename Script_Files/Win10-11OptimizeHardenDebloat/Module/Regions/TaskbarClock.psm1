@@ -46,14 +46,14 @@ function SecondsInSystemClock
 		{
 			try
 			{
-				Write-Host "Showing seconds on the taskbar clock - " -NoNewline
+				Write-ConsoleStatus -Action "Showing seconds on the taskbar clock"
 				LogInfo "Showing seconds on the taskbar clock"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSecondsInSystemClock -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show seconds on the taskbar clock: $($_.Exception.Message)"
 			}
 		}
@@ -61,14 +61,14 @@ function SecondsInSystemClock
 		{
 			try
 			{
-				Write-Host "Hiding seconds on the taskbar clock - " -NoNewline
+				Write-ConsoleStatus -Action "Hiding seconds on the taskbar clock"
 				LogInfo "Hiding seconds on the taskbar clock"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowSecondsInSystemClock -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide seconds on the taskbar clock: $($_.Exception.Message)"
 			}
 		}
@@ -119,14 +119,14 @@ function ClockInNotificationCenter
 		{
 			try
 			{
-				Write-Host "Showing time in Notification Center - " -NoNewline
+				Write-ConsoleStatus -Action "Showing time in Notification Center"
 				LogInfo "Showing time in Notification Center"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowClockInNotificationCenter -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to show time in Notification Center: $($_.Exception.Message)"
 			}
 		}
@@ -134,14 +134,14 @@ function ClockInNotificationCenter
 		{
 			try
 			{
-				Write-Host "Hiding time in Notification Center - " -NoNewline
+				Write-ConsoleStatus -Action "Hiding time in Notification Center"
 				LogInfo "Hiding time in Notification Center"
 				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name ShowClockInNotificationCenter -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				Write-Host "success!" -ForegroundColor Green
+				Write-ConsoleStatus -Status success
 			}
 			catch
 			{
-				Write-Host "Failed! Check logs for details." -ForegroundColor Red
+				Write-ConsoleStatus -Status failed
 				LogError "Failed to hide time in Notification Center: $($_.Exception.Message)"
 			}
 		}
