@@ -201,18 +201,38 @@ public static void PostMessage()
                  -Force `
                  -ErrorAction SilentlyContinue | Out-Null
 
-	#Reinstall Print Management Console
-	$PrintManagementProcess = Start-Process -FilePath "DISM.exe" `
-                      -ArgumentList "/online /add-capability /CapabilityName:Print.Management.Console~~~~0.0.1.0 /quiet /norestart" `
-                      -Wait `
-                      -NoNewWindow `
-                      -PassThru `
-                      -ErrorAction Stop
-	if ($PrintManagementProcess.ExitCode -ne 0)
-	{
-		throw "DISM.exe returned exit code $($PrintManagementProcess.ExitCode) while reinstalling Print Management Console"
-	}
-	Write-ConsoleStatus -Status success
+		# Reinstall Print Management Console only when the capability exists on this machine.
+		$PrintManagementCapability = $null
+		$PrintManagementLookupFailed = $false
+		try
+		{
+			$PrintManagementCapability = Get-WindowsCapability -Online -Name "Print.Management.Console*" -ErrorAction Stop |
+				Select-Object -First 1
+		}
+		catch
+		{
+			$PrintManagementLookupFailed = $true
+			Remove-HandledErrorRecord -ErrorRecord $_
+			LogInfo "Print Management Console capability lookup is not available on this machine. Skipping reinstall."
+		}
+		if ($PrintManagementCapability)
+		{
+			if ($PrintManagementCapability.State -ne "Installed")
+			{
+				Invoke-SilencedProgress {
+					Add-WindowsCapability -Online -Name $PrintManagementCapability.Name -ErrorAction Stop | Out-Null
+				}
+			}
+			else
+			{
+				LogInfo "Print Management Console is already installed."
+			}
+		}
+		elseif (-not $PrintManagementLookupFailed)
+		{
+			LogInfo "Print Management Console capability is not available on this machine. Skipping reinstall."
+		}
+		Write-ConsoleStatus -Status success
 	}
 	catch
 	{

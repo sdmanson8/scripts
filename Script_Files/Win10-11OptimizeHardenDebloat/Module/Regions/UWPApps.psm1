@@ -48,6 +48,13 @@ function Copilot
 		$Uninstall
 	)
 
+	$osInfo = Get-OSInfo
+	if ($osInfo.IsWindowsServer)
+	{
+		LogWarning "Microsoft Copilot and Windows AI removal is not applicable on Windows Server. Skipping."
+		return
+	}
+
 	switch ($PSCmdlet.ParameterSetName)
 	{
 		"Install"
@@ -689,7 +696,7 @@ function UWPApps
 		$ButtonInstall.IsEnabled = $true
 	}
 
-	$Window.Add_Loaded({$Window.Activate()})
+	Initialize-WpfWindowForeground -Window $Form
 	$Form.ShowDialog() | Out-Null
     }
     Write-ConsoleStatus -Status success
@@ -1043,7 +1050,9 @@ function UWPApps
 					}
 				}
 
-				$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked
+				Invoke-SilencedProgress {
+					$PackagesToRemove | Remove-AppxPackage -AllUsers:$CheckBoxForAllUsers.IsChecked
+				}
 
 				if ($CheckBoxForAllUsers.IsChecked)
 				{
@@ -1173,8 +1182,8 @@ function UWPApps
 					$ButtonUninstall.IsEnabled = $true
 				}
 
-				# Force move the WPF form to the foreground
-				$Window.Add_Loaded({$Window.Activate()})
+				# Restore minimized dialogs and bring them to the foreground once when shown.
+				Initialize-WpfWindowForeground -Window $Form
 				$Form.ShowDialog() | Out-Null
 			}
 			Write-ConsoleStatus -Status success

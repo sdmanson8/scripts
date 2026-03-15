@@ -1310,8 +1310,9 @@ $backupPath = "$PSScriptRoot\RemoveWindowsAI\Backup"
         if ($LASTEXITCODE -ne 0) {
             LogWarning "Unable to load Photos settings.dat. Skipping Photos AI preference update."
         }
-        elseif (!$revert) {
-            $regContent = @'
+        else {
+            if (!$revert) {
+                $regContent = @'
 Windows Registry Editor Version 5.00
 
 [HKEY_USERS\TEMP\LocalState] 
@@ -1320,9 +1321,9 @@ Windows Registry Editor Version 5.00
 "ImageCategorizationConsent"=hex(5f5e10c):66,00,61,00,6c,00,73,00,65,00,00,00,\
   6c,c4,53,ae,c5,51,dc,01
 '@
-        }
-        else {
-            $regContent = @'
+            }
+            else {
+                $regContent = @'
 Windows Registry Editor Version 5.00
 
 [HKEY_USERS\TEMP\LocalState]
@@ -1331,13 +1332,18 @@ Windows Registry Editor Version 5.00
 "ImageCategorizationConsent"=hex(5f5e10c):74,00,72,00,75,00,65,00,00,00,79,e7,\
   fe,c5,c4,51,dc,01
 '@
-        }
-		
-            New-Item "$($tempDir)DisableAIPhotos.reg" -Value $regContent -Force >$null
-            regedit.exe /s "$($tempDir)DisableAIPhotos.reg" >$null
-            Start-Sleep 1
-            cmd.exe /d /c "reg.exe UNLOAD HKU\TEMP >nul 2>&1" | Out-Null
-            Remove-Item "$($tempDir)DisableAIPhotos.reg" -Force -ErrorAction SilentlyContinue >$null
+            }
+
+            $photosRegFilePath = "$($tempDir)DisableAIPhotos.reg"
+            try {
+                New-Item $photosRegFilePath -Value $regContent -Force >$null
+                regedit.exe /s $photosRegFilePath >$null
+                Start-Sleep 1
+            }
+            finally {
+                cmd.exe /d /c "reg.exe UNLOAD HKU\TEMP >nul 2>&1" | Out-Null
+                Remove-Item $photosRegFilePath -Force -ErrorAction SilentlyContinue >$null
+            }
         }
     }
 
@@ -1376,6 +1382,7 @@ Windows Registry Editor Version 5.00
     #Write-Status -msg 'Applying Registry Changes'
     LogInfo "Applying Registry Changes"
     gpupdate /force /wait:0 >$null
+}
 
 # Install or remove a custom update package that blocks AI package reinstallation.
 function Install-NOAIPackage {

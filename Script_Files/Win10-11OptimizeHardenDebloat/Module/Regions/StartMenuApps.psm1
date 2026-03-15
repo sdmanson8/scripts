@@ -58,9 +58,14 @@ function RecentlyAddedStartApps
 		{
 			try
 			{
+				$StartSettingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Start"
 				Write-ConsoleStatus -Action "Hiding recently added apps on Start"
 				LogInfo "Hiding recently added apps on Start"
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowRecentList -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				if (-not (Test-Path -Path $StartSettingsPath))
+				{
+					New-Item -Path $StartSettingsPath -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path $StartSettingsPath -Name ShowRecentList -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				Write-ConsoleStatus -Status success
 			}
 			catch
@@ -73,9 +78,13 @@ function RecentlyAddedStartApps
 		{
 			try
 			{
+				$StartSettingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Start"
 				Write-ConsoleStatus -Action "Showing recently added apps on Start"
 				LogInfo "Showing recently added apps on Start"
-				Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowRecentList -Force -ErrorAction Stop | Out-Null
+				if ((Test-Path -Path $StartSettingsPath) -and ($null -ne (Get-ItemProperty -Path $StartSettingsPath -Name ShowRecentList -ErrorAction SilentlyContinue)))
+				{
+					Remove-ItemProperty -Path $StartSettingsPath -Name ShowRecentList -Force -ErrorAction Stop | Out-Null
+				}
 				Write-ConsoleStatus -Status success
 			}
 			catch
@@ -149,9 +158,14 @@ function MostUsedStartApps
 		{
 			try
 			{
+				$StartSettingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Start"
 				Write-ConsoleStatus -Action "Hiding most used apps on Start"
 				LogInfo "Hiding most used apps on Start"
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowFrequentList -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				if (-not (Test-Path -Path $StartSettingsPath))
+				{
+					New-Item -Path $StartSettingsPath -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path $StartSettingsPath -Name ShowFrequentList -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				Write-ConsoleStatus -Status success
 			}
 			catch
@@ -164,9 +178,13 @@ function MostUsedStartApps
 		{
 			try
 			{
+				$StartSettingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Start"
 				Write-ConsoleStatus -Action "Showing most used apps on Start"
 				LogInfo "Showing most used apps on Start"
-				Remove-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Start -Name ShowFrequentList -Force -ErrorAction Stop | Out-Null
+				if ((Test-Path -Path $StartSettingsPath) -and ($null -ne (Get-ItemProperty -Path $StartSettingsPath -Name ShowFrequentList -ErrorAction SilentlyContinue)))
+				{
+					Remove-ItemProperty -Path $StartSettingsPath -Name ShowFrequentList -Force -ErrorAction Stop | Out-Null
+				}
 				Write-ConsoleStatus -Status success
 			}
 			catch

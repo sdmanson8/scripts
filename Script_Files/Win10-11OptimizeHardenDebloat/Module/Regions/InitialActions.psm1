@@ -26,7 +26,8 @@ function InitialActions
 		$Warning
 	)
 
-	$osName = (Get-OSInfo).OSName
+	$osInfo = Get-OSInfo
+	$osName = $osInfo.OSName
 
 	LogInfo "Starting WinUtil Script for $osName" -addGap
 
@@ -190,23 +191,29 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 		}
 	}
 
-	# Checking whether Windows was broken by 3rd party harmful tweakers, trojans, or custom Windows images
-	$Tweakers = @{
-		# https://forum.ru-board.com/topic.cgi?forum=62&topic=30617&start=1600#14
-		AutoSettingsPS   = "$(Get-Item -Path `"HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths`" | Where-Object -FilterScript {$_.Property -match `"AutoSettingsPS`"})"
-		# Flibustier custom Windows image
-		Flibustier       = "$(Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\.NETFramework\Performance -Name *flibustier)"
-		# https://github.com/builtbybel/Winpilot
-		Winpilot         = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"Winpilot`"})"
-		# https://github.com/builtbybel/Winpilot
-		Bloatynosy       = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"BloatynosyNue`"})"
-		# https://github.com/builtbybel/xd-AntiSpy
-		"xd-AntiSpy"     = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"xd-AntiSpy`"})"
-		# https://forum.ru-board.com/topic.cgi?forum=5&topic=50519
-		"Modern Tweaker" = "$((Get-ItemProperty -Path `"HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache`").PSObject.Properties | Where-Object -FilterScript {$_.Value -eq `"Modern Tweaker`"})"
-		# https://discord.com/invite/kernelos
-		KernelOS         = "$(Get-CimInstance -Namespace root/CIMV2/power -ClassName Win32_PowerPlan | Where-Object -FilterScript {$_.ElementName -match `"KernelOS`"})"
-		# https://discord.com/invite/9ZCgxhaYV6
+		# Checking whether Windows was broken by 3rd party harmful tweakers, trojans, or custom Windows images
+		$MuiCacheProperties = @()
+		if (Test-Path -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache")
+		{
+			$MuiCacheProperties = (Get-ItemProperty -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache" -ErrorAction SilentlyContinue).PSObject.Properties
+		}
+
+		$Tweakers = @{
+			# https://forum.ru-board.com/topic.cgi?forum=62&topic=30617&start=1600#14
+			AutoSettingsPS   = "$(Get-Item -Path `"HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths`" | Where-Object -FilterScript {$_.Property -match `"AutoSettingsPS`"})"
+			# Flibustier custom Windows image
+			Flibustier       = "$(Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Services\.NETFramework\Performance -Name *flibustier)"
+			# https://github.com/builtbybel/Winpilot
+			Winpilot         = "$($MuiCacheProperties | Where-Object -FilterScript {$_.Value -eq `"Winpilot`"})"
+			# https://github.com/builtbybel/Winpilot
+			Bloatynosy       = "$($MuiCacheProperties | Where-Object -FilterScript {$_.Value -eq `"BloatynosyNue`"})"
+			# https://github.com/builtbybel/xd-AntiSpy
+			"xd-AntiSpy"     = "$($MuiCacheProperties | Where-Object -FilterScript {$_.Value -eq `"xd-AntiSpy`"})"
+			# https://forum.ru-board.com/topic.cgi?forum=5&topic=50519
+			"Modern Tweaker" = "$($MuiCacheProperties | Where-Object -FilterScript {$_.Value -eq `"Modern Tweaker`"})"
+			# https://discord.com/invite/kernelos
+			KernelOS         = "$(Get-CimInstance -Namespace root/CIMV2/power -ClassName Win32_PowerPlan | Where-Object -FilterScript {$_.ElementName -match `"KernelOS`"})"
+			# https://discord.com/invite/9ZCgxhaYV6
 		ChlorideOS       = "$(Get-Volume | Where-Object -FilterScript {$_.FileSystemLabel -eq `"ChlorideOS`"})"
 	}
 	foreach ($Tweaker in $Tweakers.Keys)
@@ -325,7 +332,11 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 	# Checking whether Windows Feature Experience Pack was removed by harmful tweakers
 	LogInfo "Checking whether Windows Feature Experience Pack was removed by harmful tweakers"
-	if (-not (Get-AppxPackage -Name MicrosoftWindows.Client.CBS))
+	if ($osInfo.IsWindowsServer)
+	{
+		LogInfo "Windows Feature Experience Pack check is not applicable on Windows Server."
+	}
+	elseif (-not (Get-AppxPackage -Name MicrosoftWindows.Client.CBS))
 	{
 		LogWarning ($Localization.WindowsComponentBroken -f "Windows Feature Experience Pack")
 	}
@@ -339,7 +350,11 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 	# Checking whether the Microsoft Store being an important system component was removed
 	LogInfo "Checking whether the Microsoft Store being an important system component was removed"
-	if (-not (Get-AppxPackage -Name Microsoft.WindowsStore))
+	if ($osInfo.IsWindowsServer)
+	{
+		LogInfo "Microsoft Store presence check is not applicable on Windows Server."
+	}
+	elseif (-not (Get-AppxPackage -Name Microsoft.WindowsStore))
 	{
 		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Store")
 	}
@@ -347,11 +362,21 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 	#region Defender checks
 	# Checking whether necessary Microsoft Defender components exists
 	LogInfo "Checking whether necessary Microsoft Defender components exists"
-	$Files = @(
-		"$env:SystemRoot\System32\smartscreen.exe",
-		"$env:SystemRoot\System32\SecurityHealthSystray.exe",
-		"$env:SystemRoot\System32\CompatTelRunner.exe"
-	)
+	$Files = if ($osInfo.IsWindowsServer)
+	{
+		@(
+			"$env:SystemRoot\System32\smartscreen.exe",
+			"$env:SystemRoot\System32\CompatTelRunner.exe"
+		)
+	}
+	else
+	{
+		@(
+			"$env:SystemRoot\System32\smartscreen.exe",
+			"$env:SystemRoot\System32\SecurityHealthSystray.exe",
+			"$env:SystemRoot\System32\CompatTelRunner.exe"
+		)
+	}
 	foreach ($File in $Files)
 	{
 		if (-not (Test-Path -Path $File))
@@ -369,31 +394,77 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 	# Checking whether WMI is corrupted
 	LogInfo "Checking whether WMI is corrupted"
-	try
+	if ($osInfo.IsWindowsServer)
 	{
-		Get-CimInstance -ClassName MSFT_MpComputerStatus -Namespace root/Microsoft/Windows/Defender -ErrorAction Stop | Out-Null
+		LogInfo "Skipping Microsoft Defender WMI health check on Windows Server."
 	}
-	catch [Microsoft.Management.Infrastructure.CimException]
+	else
 	{
-		LogWarning ($Global:Error.Exception.Message | Select-Object -First 1)
-		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		try
+		{
+			Get-CimInstance -ClassName MSFT_MpComputerStatus -Namespace root/Microsoft/Windows/Defender -ErrorAction Stop | Out-Null
+		}
+		catch [Microsoft.Management.Infrastructure.CimException]
+		{
+			Remove-HandledErrorRecord -ErrorRecord $_
+			LogWarning ($_.Exception.Message)
+			LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		}
 	}
 
 	# Check Microsoft Defender state
-	if ($null -eq (Get-CimInstance -ClassName AntiVirusProduct -Namespace root/SecurityCenter2 -ErrorAction Ignore))
+	$SecurityCenterProducts = @()
+	$SecurityCenterAvailable = $false
+	$Script:DefenderServices = $false
+	$Script:DefenderProductState = $false
+	$Script:AntiSpywareEnabled = $false
+	$Script:RealtimeMonitoringEnabled = $false
+	$Script:BehaviorMonitoringEnabled = $false
+
+	if ($osInfo.IsWindowsServer)
 	{
-		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		LogInfo "Skipping SecurityCenter2 antivirus checks on Windows Server."
+	}
+	else
+	{
+		try
+		{
+			$SecurityCenterProducts = @(Get-CimInstance -ClassName AntiVirusProduct -Namespace root/SecurityCenter2 -ErrorAction Stop)
+			$SecurityCenterAvailable = $true
+			if (-not $SecurityCenterProducts)
+			{
+				LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+			}
+		}
+		catch [Microsoft.Management.Infrastructure.CimException]
+		{
+			LogWarning ($_.Exception.Message)
+			LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		}
 	}
 
 	# Checking services
 	LogInfo "Checking services"
 	try
 	{
-		$Services = Get-Service -Name Windefend, SecurityHealthService, wscsvc -ErrorAction Stop
-		Get-Service -Name SecurityHealthService -ErrorAction Stop | Start-Service | Out-Null
+		$DefenderServiceNames = if ($osInfo.IsWindowsServer)
+		{
+			@("WinDefend", "wscsvc")
+		}
+		else
+		{
+			@("WinDefend", "SecurityHealthService", "wscsvc")
+		}
+
+		$Services = Get-Service -Name $DefenderServiceNames -ErrorAction Stop
+		if ((-not $osInfo.IsWindowsServer) -and ($Services.Name -contains "SecurityHealthService"))
+		{
+			Get-Service -Name SecurityHealthService -ErrorAction Stop | Start-Service | Out-Null
+		}
 	}
 	catch [Microsoft.PowerShell.Commands.ServiceCommandException]
 	{
+		Remove-HandledErrorRecord -ErrorRecord $_
 		$Services = @()
 		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
 	}
@@ -402,23 +473,50 @@ public static extern bool SetForegroundWindow(IntPtr hWnd);
 
 	# Checking Get-MpPreference cmdlet
 	LogInfo "Checking Get-MpPreference cmdlet"
-	try
+	if (Get-Command -Name Get-MpPreference -ErrorAction SilentlyContinue)
 	{
-		(Get-MpPreference -ErrorAction Stop).EnableControlledFolderAccess | Out-Null
+		try
+		{
+			(Get-MpPreference -ErrorAction Stop).EnableControlledFolderAccess | Out-Null
+		}
+		catch [Microsoft.Management.Infrastructure.CimException]
+		{
+			LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		}
 	}
-	catch [Microsoft.Management.Infrastructure.CimException]
+	else
 	{
-		LogWarning ($Localization.WindowsComponentBroken -f "Microsoft Defender")
+		LogInfo "Microsoft Defender preference cmdlets are not available on this OS."
 	}
 
 	# Check Microsoft Defender state
 	LogInfo "Checking Microsoft Defender state"
-	$productState = (Get-CimInstance -ClassName AntiVirusProduct -Namespace root/SecurityCenter2 |
-		Where-Object { $_.instanceGuid -eq "{D68DDC3A-831F-4fae-9E44-DA132C1ACF46}" }).productState
+	$DefenderState = $null
+	if ($SecurityCenterAvailable)
+	{
+		$DefenderProduct = $SecurityCenterProducts | Where-Object { $_.instanceGuid -eq "{D68DDC3A-831F-4fae-9E44-DA132C1ACF46}" } | Select-Object -First 1
+		if ($DefenderProduct -and ($null -ne $DefenderProduct.productState))
+		{
+			try
+			{
+				$ProductStateHex = '0x{0:x}' -f ([int]$DefenderProduct.productState)
+				if ($ProductStateHex.Length -ge 5)
+				{
+					$DefenderState = $ProductStateHex.Substring(3, 2)
+				}
+			}
+			catch
+			{
+				LogWarning "Unable to parse Microsoft Defender product state: $($_.Exception.Message)"
+			}
+		}
+	}
+	else
+	{
+		LogInfo "Microsoft Defender Security Center product state is not available on this OS."
+	}
 
-	$DefenderState = ('0x{0:x}' -f $productState).Substring(3, 2)
-
-	if ($DefenderState -notmatch "00|01")
+	if ($DefenderState -and $DefenderState -notmatch "00|01")
 	{
 		# Defender is a currently used AV. Continue...
 		$Script:DefenderProductState = $true

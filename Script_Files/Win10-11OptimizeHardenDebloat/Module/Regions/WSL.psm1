@@ -173,8 +173,8 @@ function Install-WSL
 	}
 	#endregion Sendkey function
 
-	# Force move the WPF form to the foreground
-	$Window.Add_Loaded({$Window.Activate()})
+	# Restore minimized dialogs and bring them to the foreground once when shown.
+	Initialize-WpfWindowForeground -Window $Form
 	$Form.ShowDialog() | Out-Null
 }
 #endregion WSL

@@ -524,6 +524,8 @@ Current user
 function DiskCleanup
 {
 	Write-ConsoleStatus -Action "Running Disk Cleanup"
+	Write-Host "open in new window"
+	LogInfo "Running Disk Cleanup"
 	# Pass log file path to child process
 	[Environment]::SetEnvironmentVariable("diskcleanup", $global:LogFilePath, "Process")
 
@@ -532,8 +534,7 @@ function DiskCleanup
 
 	Start-Process powershell.exe `
 		-ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$ScriptPath`"" `
-		-WindowStyle Normal
-	Write-Host "Task is open in a new window" -ForegroundColor Yellow
+		-WindowStyle Hidden | Out-Null
 }
 
 
@@ -663,6 +664,7 @@ function Test-Windows11SmbDuplicateSidIssue
 	}
 	catch
 	{
+		Remove-HandledErrorRecord -ErrorRecord $_
 		LogInfo "Unable to query LSASS Event ID 6167: $($_.Exception.Message)"
 		return $false
 	}
@@ -774,6 +776,45 @@ function Invoke-AdditionalServiceOptimizations
 	else
 	{
 		Write-ConsoleStatus -Status success
+	}
+}
+
+<#
+.SYNOPSIS
+Enable the LanmanWorkstation guest-auth Group Policy setting if it is not already defined.
+
+.EXAMPLE
+LanmanWorkstationGuestAuthPolicy
+
+.NOTES
+Machine-wide
+#>
+function LanmanWorkstationGuestAuthPolicy
+{
+	Write-ConsoleStatus -Action "Enabling LanmanWorkstation guest auth policy"
+	LogInfo "Enabling LanmanWorkstation guest auth policy"
+
+	$policyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation"
+	$valueName = "AllowInsecureGuestAuth"
+
+	try
+	{
+		$existingPolicy = Get-ItemProperty -Path $policyPath -Name $valueName -ErrorAction SilentlyContinue
+		if ($null -ne $existingPolicy)
+		{
+			LogInfo "LanmanWorkstation guest-auth policy already exists with value $($existingPolicy.$valueName). Leaving unchanged."
+			Write-ConsoleStatus -Status success
+			return
+		}
+
+		Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\LanmanWorkstation -Name $valueName -Type DWord -Value 1 | Out-Null
+		LogInfo "Enabled LanmanWorkstation guest-auth policy for SMB client access"
+		Write-ConsoleStatus -Status success
+	}
+	catch
+	{
+		Write-ConsoleStatus -Status failed
+		LogError "Failed to enable LanmanWorkstation guest auth policy: $($_.Exception.Message)"
 	}
 }
 

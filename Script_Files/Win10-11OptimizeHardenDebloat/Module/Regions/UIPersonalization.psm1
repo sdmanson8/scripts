@@ -3035,11 +3035,190 @@ function UnpinTaskbarShortcuts
 		$Shortcuts
 	)
 
+	$TaskbarPinnedPath = Join-Path $env:AppData "Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
+
+	function Get-TaskbarPinnedItems
+	{
+		if (-not (Test-Path -Path $TaskbarPinnedPath))
+		{
+			return @()
+		}
+
+		$TaskbarShell = (New-Object -ComObject Shell.Application).NameSpace($TaskbarPinnedPath)
+		if ($null -eq $TaskbarShell)
+		{
+			return @()
+		}
+
+		return @($TaskbarShell.Items())
+	}
+
+	function Get-TaskbarPinnedMatches
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			[string[]]$Patterns
+		)
+
+		$NormalizedPatterns = @($Patterns | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+		if ($NormalizedPatterns.Count -eq 0)
+		{
+			return @()
+		}
+
+		return @(Get-TaskbarPinnedItems | Where-Object {
+			$ItemName = $_.Name
+			foreach ($Pattern in $NormalizedPatterns)
+			{
+				if ($ItemName -match $Pattern)
+				{
+					return $true
+				}
+			}
+
+			return $false
+		})
+	}
+
+	function Invoke-TaskbarUnpin
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			$ShellItem
+		)
+
+		$verbCandidates = @($LocalizedString, 'Unpin from taskbar', 'Von Taskleiste losen', 'Desanclar de la barra de tareas') |
+			Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+			Select-Object -Unique
+
+		$unpinVerb = $ShellItem.Verbs() | Where-Object {
+			$verbName = (($_.Name -replace '&', '').Trim())
+			($verbCandidates -contains $verbName) -or
+			($verbName -match 'Unpin') -or
+			($verbName -match 'taskbar')
+		} | Select-Object -First 1
+
+		if ($unpinVerb)
+		{
+			try
+			{
+				$unpinVerb.DoIt()
+				return $true
+			}
+			catch [System.UnauthorizedAccessException]
+			{
+				LogWarning "Taskbar unpin verb was denied for '$($ShellItem.Name)'."
+				return $false
+			}
+			catch
+			{
+				LogWarning "Taskbar unpin verb failed for '$($ShellItem.Name)': $($_.Exception.Message)"
+				return $false
+			}
+		}
+
+		return $false
+	}
+
+	function Remove-TaskbarPinnedLink
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			$ShellItem
+		)
+
+		try
+		{
+			if ([string]::IsNullOrWhiteSpace($ShellItem.Path) -or -not (Test-Path -LiteralPath $ShellItem.Path))
+			{
+				return $false
+			}
+
+			Remove-Item -LiteralPath $ShellItem.Path -Force -ErrorAction Stop
+			LogInfo "Removed taskbar pinned shortcut file '$($ShellItem.Name)' as fallback."
+			return $true
+		}
+		catch
+		{
+			LogWarning "Taskbar shortcut fallback removal failed for '$($ShellItem.Name)': $($_.Exception.Message)"
+			return $false
+		}
+	}
+
+	function Invoke-TaskbarUnpinWithFallback
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			$ShellItem
+		)
+
+		if (Invoke-TaskbarUnpin -ShellItem $ShellItem)
+		{
+			return $true
+		}
+
+		return (Remove-TaskbarPinnedLink -ShellItem $ShellItem)
+	}
+
+	function Remove-TaskbarPinnedLinksByPattern
+	{
+		param
+		(
+			[Parameter(Mandatory = $true)]
+			[string[]]$Patterns
+		)
+
+		if (-not (Test-Path -Path $TaskbarPinnedPath))
+		{
+			return $false
+		}
+
+		$RemovedAny = $false
+		$LinkFiles = Get-ChildItem -Path $TaskbarPinnedPath -Filter "*.lnk" -ErrorAction SilentlyContinue
+		foreach ($LinkFile in $LinkFiles)
+		{
+			$MatchesPattern = $false
+			foreach ($Pattern in $Patterns)
+			{
+				if ($LinkFile.Name -like $Pattern)
+				{
+					$MatchesPattern = $true
+					break
+				}
+			}
+
+			if (-not $MatchesPattern)
+			{
+				continue
+			}
+
+			try
+			{
+				Remove-Item -LiteralPath $LinkFile.FullName -Force -ErrorAction Stop
+				LogInfo "Removed taskbar pinned shortcut file '$($LinkFile.Name)' by filename fallback."
+				$RemovedAny = $true
+			}
+			catch
+			{
+				LogWarning "Filename fallback removal failed for '$($LinkFile.Name)': $($_.Exception.Message)"
+			}
+		}
+
+		return $RemovedAny
+	}
+
 	# Extract the localized "Unpin from taskbar" string from shell32.dll
 	$LocalizedString = [WinAPI.GetStrings]::GetString(5387)
+	$AppsFolder = (New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}")
 
 	Write-ConsoleStatus -Action "Unpin taskbar apps"
 	LogInfo "Unpin taskbar apps"
+	$UnpinFailures = 0
+	$UnpinMisses = 0
 
 	foreach ($Shortcut in $Shortcuts)
 	{
@@ -3047,51 +3226,110 @@ function UnpinTaskbarShortcuts
 		{
 			Mail
 			{
-				$Shell = New-Object -ComObject Shell.Application
-				$AppsFolder = $Shell.NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}")
-				$MailApp = $AppsFolder.Items() | Where-Object { $_.Name -match "Mail" }
+				$MailPatterns = @('^Mail$', 'Mail and Calendar', 'Outlook \(new\)', 'Outlook for Windows')
+				$MailFallbackPatterns = @('Mail*.lnk', '*Outlook*.lnk')
+				$MailItems = @(
+					Get-TaskbarPinnedMatches -Patterns $MailPatterns
+					$AppsFolder.Items() | Where-Object {
+						$_.Name -match 'Mail' -or
+						$_.Name -match 'Outlook \(new\)' -or
+						$_.Name -match 'Outlook for Windows'
+					}
+				) | Select-Object -Unique
 
-				if ($MailApp)
-				{
-    				# Extract localized "Unpin from taskbar"
-    				$LocalizedString = (Get-Item "$env:SystemRoot\System32\shell32.dll").VersionInfo.FileDescription
-    				# If you're already defining $LocalizedString elsewhere, keep that and remove this line
-  					$MailApp.Verbs() |
-        			Where-Object { $_.Name -eq $LocalizedString } |
-        			ForEach-Object { $_.DoIt() } | Out-Null
+					if ($MailItems)
+					{
+						$MailItems | ForEach-Object {
+							if (-not (Invoke-TaskbarUnpinWithFallback -ShellItem $_))
+							{
+								$UnpinFailures++
+							}
+						}
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $MailFallbackPatterns
+					}
+					else
+					{
+						LogInfo "Taskbar shortcut target 'Mail' was not found."
+						$UnpinMisses++
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $MailFallbackPatterns
+					}
 				}
-			}
 			Edge
 			{
-				if (Test-Path -Path "$env:AppData\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar\Microsoft Edge.lnk")
-				{
-					# Call the shortcut context menu item
-					$Shell = (New-Object -ComObject Shell.Application).NameSpace("$env:AppData\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar")
-					$Shortcut = $Shell.ParseName("Microsoft Edge.lnk")
-					# Extract the localized "Unpin from taskbar" string from shell32.dll
-					$Shortcut.Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()} | Out-Null
+				$EdgeFallbackPatterns = @('Microsoft Edge*.lnk', 'Edge*.lnk')
+				$EdgeItems = @(Get-TaskbarPinnedMatches -Patterns @('Microsoft Edge', '^Edge$'))
+					if ($EdgeItems)
+					{
+						$EdgeItems | ForEach-Object {
+							if (-not (Invoke-TaskbarUnpinWithFallback -ShellItem $_))
+							{
+								$UnpinFailures++
+							}
+						}
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $EdgeFallbackPatterns
+					}
+					else
+					{
+						LogInfo "Taskbar shortcut target 'Edge' was not found."
+						$UnpinMisses++
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $EdgeFallbackPatterns
+					}
 				}
-			}
 			Store
 			{
-				if ((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {$_.Name -eq "Microsoft Store"})
-				{
-					# Extract the localized "Unpin from taskbar" string from shell32.dll
-					((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {
-						$_.Name -eq "Microsoft Store"
-					}).Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()} | Out-Null
+				$StoreFallbackPatterns = @('Microsoft Store*.lnk', '*Store*.lnk')
+				$StoreItems = @(
+					Get-TaskbarPinnedMatches -Patterns @('Microsoft Store', '^Store$')
+					$AppsFolder.Items() | Where-Object -FilterScript {
+						$_.Name -eq "Microsoft Store" -or
+						$_.Name -eq "Store"
+					}
+				) | Select-Object -Unique
+					if ($StoreItems)
+					{
+						$StoreItems | ForEach-Object {
+							if (-not (Invoke-TaskbarUnpinWithFallback -ShellItem $_))
+							{
+								$UnpinFailures++
+							}
+						}
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $StoreFallbackPatterns
+					}
+					else
+					{
+						LogInfo "Taskbar shortcut target 'Store' was not found."
+						$UnpinMisses++
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $StoreFallbackPatterns
+					}
 				}
-			}
 			Outlook
 			{
-				if ((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {$_.Name -match "Outlook"})
-				{
-					# Extract the localized "Unpin from taskbar" string from shell32.dll
-					((New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}").Items() | Where-Object -FilterScript {
-						$_.Name -match "Outlook"
-					}).Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()} | Out-Null
+				$OutlookPatterns = @('Outlook', 'Mail and Calendar')
+				$OutlookFallbackPatterns = @('*Outlook*.lnk', 'Mail*.lnk', '*Office*.lnk')
+				$OutlookItems = @(
+					Get-TaskbarPinnedMatches -Patterns $OutlookPatterns
+					$AppsFolder.Items() | Where-Object -FilterScript {
+						$_.Name -match 'Outlook' -or
+						$_.Name -eq 'Mail and Calendar'
+					}
+				) | Select-Object -Unique
+					if ($OutlookItems)
+					{
+						$OutlookItems | ForEach-Object {
+							if (-not (Invoke-TaskbarUnpinWithFallback -ShellItem $_))
+							{
+								$UnpinFailures++
+							}
+						}
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $OutlookFallbackPatterns
+					}
+					else
+					{
+						LogInfo "Taskbar shortcut target 'Outlook' was not found."
+						$UnpinMisses++
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $OutlookFallbackPatterns
+					}
 				}
-			}
 			Copilot
 			{
 				$CopilotPinPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Taskband\AuxilliaryPins"
@@ -3102,22 +3340,67 @@ function UnpinTaskbarShortcuts
 				}
 
 				New-ItemProperty -Path $CopilotPinPath -Name "CopilotPWAPin" -PropertyType DWord -Value 0 -Force | Out-Null
+				New-ItemProperty -Path $CopilotPinPath -Name "RecallPin" -PropertyType DWord -Value 0 -Force | Out-Null
+
+				$CopilotItems = @(
+					Get-TaskbarPinnedMatches -Patterns @('Copilot', 'Recall')
+					$AppsFolder.Items() | Where-Object -FilterScript {
+						$_.Name -match 'Copilot'
+					}
+				) | Select-Object -Unique
+				if ($CopilotItems)
+				{
+					$CopilotItems | ForEach-Object {
+						if (-not (Invoke-TaskbarUnpinWithFallback -ShellItem $_))
+						{
+							$UnpinFailures++
+						}
+					}
+				}
+				else
+				{
+					LogInfo "Taskbar shortcut target 'Copilot' was not found."
+					$UnpinMisses++
+				}
 			}
 			Microsoft365
 			{
-				$AppsFolder = (New-Object -ComObject Shell.Application).NameSpace("shell:::{4234d49b-0245-4df3-b780-3893943456e1}")
-				$Microsoft365App = $AppsFolder.Items() | Where-Object -FilterScript {
-					$_.Name -match "Microsoft 365"
-				}
+				$Microsoft365FallbackPatterns = @('*Microsoft 365*.lnk', '*Office*.lnk')
+				$Microsoft365Items = @(
+					Get-TaskbarPinnedMatches -Patterns @('Microsoft 365', 'Office')
+					$AppsFolder.Items() | Where-Object -FilterScript {
+						$_.Name -match "Microsoft 365" -or
+						$_.Name -match "Office"
+					}
+				) | Select-Object -Unique
 
-				if ($Microsoft365App)
-				{
-					$Microsoft365App.Verbs() | Where-Object -FilterScript {$_.Name -eq $LocalizedString} | ForEach-Object -Process {$_.DoIt()} | Out-Null
+					if ($Microsoft365Items)
+					{
+						$Microsoft365Items | ForEach-Object {
+							if (-not (Invoke-TaskbarUnpinWithFallback -ShellItem $_))
+							{
+								$UnpinFailures++
+							}
+						}
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $Microsoft365FallbackPatterns
+					}
+					else
+					{
+						LogInfo "Taskbar shortcut target 'Microsoft365' was not found."
+						$UnpinMisses++
+						$null = Remove-TaskbarPinnedLinksByPattern -Patterns $Microsoft365FallbackPatterns
+					}
 				}
-			}
 		}
 	}
-	Write-ConsoleStatus -Status success
+	if ($UnpinFailures -gt 0)
+	{
+		Write-ConsoleStatus -Status warning
+	}
+	else
+	{
+		Write-ConsoleStatus -Status success
+	}
 }
 
 <#

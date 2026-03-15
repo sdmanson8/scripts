@@ -2,18 +2,13 @@ using module ..\Logging.psm1
 
 #region Production System Optimizations
 
-function Get-DownloadsDirectory {
-    try {
-        $downloadsFolder = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads')
-        if ($downloadsFolder -and $downloadsFolder.Self -and -not [string]::IsNullOrWhiteSpace($downloadsFolder.Self.Path)) {
-            return $downloadsFolder.Self.Path
-        }
+function Get-OptimizationScratchDirectory {
+    $scratchDirectory = Join-Path $env:TEMP 'Win10_11Util'
+    if (-not (Test-Path -LiteralPath $scratchDirectory)) {
+        New-Item -Path $scratchDirectory -ItemType Directory -Force -ErrorAction Stop | Out-Null
+    }
 
-        return (Join-Path $HOME 'Downloads')
-    }
-    catch {
-        return (Join-Path $HOME 'Downloads')
-    }
+    return $scratchDirectory
 }
 
 function Get-OptimizationAssetPath {
@@ -46,28 +41,33 @@ function Import-LegacyRegistryAsset {
         [string]$Description,
 
         [Parameter(Mandatory = $true)]
-        [string]$DownloadsPath,
+        [string]$ScratchPath,
 
         [string]$Uri
     )
 
     $sourcePath = Get-OptimizationAssetPath -FileName $FileName
-    $targetPath = Join-Path $DownloadsPath $FileName
+    $targetPath = Join-Path $ScratchPath $FileName
 
-    if ($sourcePath) {
-        Copy-Item -Path $sourcePath -Destination $targetPath -Force -ErrorAction Stop
-        LogInfo "Using bundled asset for $Description"
-    }
-    elseif (-not [string]::IsNullOrWhiteSpace($Uri)) {
-        Invoke-WebRequest -Uri $Uri -OutFile $targetPath -UseBasicParsing -ErrorAction Stop
-        LogInfo "Downloaded asset for $Description"
-    }
-    else {
-        throw "Required asset not found locally: $FileName"
-    }
+    try {
+        if ($sourcePath) {
+            Copy-Item -Path $sourcePath -Destination $targetPath -Force -ErrorAction Stop
+            LogInfo "Using bundled asset for $Description"
+        }
+        elseif (-not [string]::IsNullOrWhiteSpace($Uri)) {
+            Invoke-WebRequest -Uri $Uri -OutFile $targetPath -UseBasicParsing -ErrorAction Stop
+            LogInfo "Downloaded asset for $Description"
+        }
+        else {
+            throw "Required asset not found locally: $FileName"
+        }
 
-    Start-Process -FilePath 'regedit.exe' -ArgumentList @('/S', $targetPath) -Wait -WindowStyle Hidden -ErrorAction Stop
-    LogInfo "Imported $Description"
+        Start-Process -FilePath 'regedit.exe' -ArgumentList @('/S', $targetPath) -Wait -WindowStyle Hidden -ErrorAction Stop
+        LogInfo "Imported $Description"
+    }
+    finally {
+        Remove-Item -LiteralPath $targetPath -Force -ErrorAction SilentlyContinue
+    }
 }
 
 <#
@@ -81,7 +81,7 @@ function Invoke-SystemOptimizations {
     LogInfo "Applying legacy system/bootstrap optimizations"
 
     $hadIssue = $false
-    $downloads = Get-DownloadsDirectory
+    $scratchDirectory = Get-OptimizationScratchDirectory
 
     $regImports = @(
         @{
@@ -100,7 +100,7 @@ function Invoke-SystemOptimizations {
         try {
             Import-LegacyRegistryAsset -FileName $import.FileName `
                 -Description $import.Description `
-                -DownloadsPath $downloads `
+                -ScratchPath $scratchDirectory `
                 -Uri $import.Uri
         }
         catch {

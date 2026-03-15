@@ -274,6 +274,27 @@ function Remove-HandledErrorRecord
 	}
 }
 
+function Invoke-SilencedProgress
+{
+	param
+	(
+		[Parameter(Mandatory = $true)]
+		[scriptblock]
+		$ScriptBlock
+	)
+
+	$previousProgressPreference = $global:ProgressPreference
+	try
+	{
+		$global:ProgressPreference = 'SilentlyContinue'
+		& $ScriptBlock
+	}
+	finally
+	{
+		$global:ProgressPreference = $previousProgressPreference
+	}
+}
+
 <# 
 	.SYNOPSIS
 	Create a registry key path if needed and then set the requested value.
@@ -375,6 +396,128 @@ function Set-RegistryValueSafe
 	}
 }
 
+function Initialize-ForegroundWindowInterop
+{
+	if (-not ("WinAPI.ForegroundWindow" -as [type]))
+	{
+		Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+
+namespace WinAPI
+{
+	public static class ForegroundWindow
+	{
+		[DllImport("user32.dll")]
+		public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+		[DllImport("user32.dll")]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		public static extern bool SetForegroundWindow(IntPtr hWnd);
+	}
+}
+"@ -ErrorAction Stop | Out-Null
+	}
+}
+
+function Initialize-WpfWindowForeground
+{
+	param
+	(
+		[Parameter(Mandatory = $true)]
+		$Window
+	)
+
+	try
+	{
+		$Window.ShowActivated = $true
+	}
+	catch
+	{
+		# Ignore if the supplied object is not a WPF Window.
+	}
+
+	$activationPending = $true
+	$bringWindowToFront = {
+		if (-not $activationPending)
+		{
+			return
+		}
+
+		$activationPending = $false
+
+		try
+		{
+			$activateWindowAction = [Action]{
+				try
+				{
+					Initialize-ForegroundWindowInterop
+
+					if ($Window.WindowState -eq [System.Windows.WindowState]::Minimized)
+					{
+						$Window.WindowState = [System.Windows.WindowState]::Normal
+					}
+
+					$interopHelper = New-Object -TypeName System.Windows.Interop.WindowInteropHelper -ArgumentList $Window
+					if ($interopHelper.Handle -ne [IntPtr]::Zero)
+					{
+						[WinAPI.ForegroundWindow]::ShowWindowAsync($interopHelper.Handle, 9) | Out-Null
+						[WinAPI.ForegroundWindow]::SetForegroundWindow($interopHelper.Handle) | Out-Null
+					}
+
+					$originalTopmost = $Window.Topmost
+					$Window.Topmost = $true
+					$Window.Activate() | Out-Null
+					$Window.Focus() | Out-Null
+
+					$resetTopmostAction = [Action]{
+						$Window.Topmost = $originalTopmost
+					}
+					$Window.Dispatcher.BeginInvoke($resetTopmostAction, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
+				}
+				catch
+				{
+					try
+					{
+						$Window.WindowState = [System.Windows.WindowState]::Normal
+						$Window.Activate() | Out-Null
+						$Window.Focus() | Out-Null
+					}
+					catch
+					{
+						# Ignore foreground activation failures and allow the dialog to continue opening normally.
+					}
+				}
+			}
+
+			$Window.Dispatcher.BeginInvoke($activateWindowAction, [System.Windows.Threading.DispatcherPriority]::ApplicationIdle) | Out-Null
+		}
+		catch
+		{
+			try
+			{
+				$Window.WindowState = [System.Windows.WindowState]::Normal
+				$Window.Activate() | Out-Null
+				$Window.Focus() | Out-Null
+			}
+			catch
+			{
+				# Ignore foreground activation failures and allow the dialog to continue opening normally.
+			}
+		}
+	}
+
+	$Window.Add_Loaded($bringWindowToFront)
+	$Window.Add_SourceInitialized($bringWindowToFront)
+	$Window.Add_ContentRendered($bringWindowToFront)
+	$Window.Add_StateChanged({
+		if ($activationPending -and ($Window.WindowState -eq [System.Windows.WindowState]::Minimized))
+		{
+			$bringWindowToFront.Invoke()
+		}
+	})
+}
+
 <#
 	.SYNOPSIS
 	Get the current Windows version details from the registry.
@@ -384,7 +527,10 @@ function Get-WindowsVersionData
 	$CurrentVersion = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -ErrorAction Stop
 	$CurrentBuild = [string]$CurrentVersion.CurrentBuild
 	$DisplayVersion = [string]$CurrentVersion.DisplayVersion
+	$ProductName = [string]$CurrentVersion.ProductName
+	$InstallationType = [string]$CurrentVersion.InstallationType
 	$UBR = 0
+	$IsWindowsServer = $false
 
 	if ([string]::IsNullOrWhiteSpace($CurrentBuild))
 	{
@@ -401,11 +547,23 @@ function Get-WindowsVersionData
 		$UBR = [int]$CurrentVersion.UBR
 	}
 
+	if (-not [string]::IsNullOrWhiteSpace($InstallationType))
+	{
+		$IsWindowsServer = $InstallationType -match "Server"
+	}
+	elseif (-not [string]::IsNullOrWhiteSpace($ProductName))
+	{
+		$IsWindowsServer = $ProductName -match "Server"
+	}
+
 	[pscustomobject]@{
-		IsWindows11    = ([int]$CurrentBuild -ge 22000)
-		CurrentBuild   = [int]$CurrentBuild
-		UBR            = $UBR
-		DisplayVersion = $DisplayVersion
+		IsWindows11      = ([int]$CurrentBuild -ge 22000)
+		IsWindowsServer  = $IsWindowsServer
+		CurrentBuild     = [int]$CurrentBuild
+		UBR              = $UBR
+		DisplayVersion   = $DisplayVersion
+		ProductName      = $ProductName
+		InstallationType = $InstallationType
 	}
 }
 
@@ -416,13 +574,35 @@ function Get-WindowsVersionData
 function Get-OSInfo
 {
 	$VersionData = Get-WindowsVersionData
+	$OSName = if ($VersionData.IsWindowsServer)
+	{
+		if ([string]::IsNullOrWhiteSpace($VersionData.ProductName))
+		{
+			"Windows Server"
+		}
+		else
+		{
+			$VersionData.ProductName
+		}
+	}
+	elseif ($VersionData.IsWindows11)
+	{
+		"Windows 11"
+	}
+	else
+	{
+		"Windows 10"
+	}
 
 	[pscustomobject]@{
-		IsWindows11    = $VersionData.IsWindows11
-		OSName         = if ($VersionData.IsWindows11) { 'Windows 11' } else { 'Windows 10' }
-		CurrentBuild   = $VersionData.CurrentBuild
-		UBR            = $VersionData.UBR
-		DisplayVersion = $VersionData.DisplayVersion
+		IsWindows11      = $VersionData.IsWindows11
+		IsWindowsServer  = $VersionData.IsWindowsServer
+		OSName           = $OSName
+		CurrentBuild     = $VersionData.CurrentBuild
+		UBR              = $VersionData.UBR
+		DisplayVersion   = $VersionData.DisplayVersion
+		ProductName      = $VersionData.ProductName
+		InstallationType = $VersionData.InstallationType
 	}
 }
 
@@ -574,7 +754,10 @@ $ExportedFunctions = @(
 	'Dismount-RegistryHive'
 	'Mount-RegistryHive'
 	'Remove-HandledErrorRecord'
+	'Invoke-SilencedProgress'
 	'Set-RegistryValueSafe'
+	'Initialize-ForegroundWindowInterop'
+	'Initialize-WpfWindowForeground'
 	'Get-WindowsVersionData'
 	'Get-OSInfo'
 	'ConvertTo-WindowsDisplayVersionComparable'

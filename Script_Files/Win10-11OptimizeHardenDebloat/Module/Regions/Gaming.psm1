@@ -49,10 +49,20 @@ function XboxGameBar
 		{
 			try
 			{
+				$GameDvrPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR"
+				$GameConfigStorePath = "HKCU:\System\GameConfigStore"
 				Write-ConsoleStatus -Action "Disabling Xbox Game Bar"
 				LogInfo "Disabling Xbox Game Bar"
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				if (-not (Test-Path -Path $GameDvrPath))
+				{
+					New-Item -Path $GameDvrPath -Force -ErrorAction Stop | Out-Null
+				}
+				if (-not (Test-Path -Path $GameConfigStorePath))
+				{
+					New-Item -Path $GameConfigStorePath -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path $GameDvrPath -Name AppCaptureEnabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path $GameConfigStorePath -Name GameDVR_Enabled -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
 				Write-ConsoleStatus -Status success
 			}
 			catch
@@ -65,10 +75,20 @@ function XboxGameBar
 		{
 			try
 			{
+				$GameDvrPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR"
+				$GameConfigStorePath = "HKCU:\System\GameConfigStore"
 				Write-ConsoleStatus -Action "Enabling Xbox Game Bar"
 				LogInfo "Enabling Xbox Game Bar"
-				New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\GameDVR -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
-				New-ItemProperty -Path HKCU:\System\GameConfigStore -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				if (-not (Test-Path -Path $GameDvrPath))
+				{
+					New-Item -Path $GameDvrPath -Force -ErrorAction Stop | Out-Null
+				}
+				if (-not (Test-Path -Path $GameConfigStorePath))
+				{
+					New-Item -Path $GameConfigStorePath -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path $GameDvrPath -Name AppCaptureEnabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
+				New-ItemProperty -Path $GameConfigStorePath -Name GameDVR_Enabled -PropertyType DWord -Value 1 -Force -ErrorAction Stop | Out-Null
 				Write-ConsoleStatus -Status success
 			}
 			catch

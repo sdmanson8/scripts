@@ -1943,16 +1943,28 @@ function DeliveryOptimization
 			LogInfo "Disabling Delivery Optimization"
 			try
 			{
-				New-ItemProperty -Path Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings -Name DownloadMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
-				& {
-    				$temp = [Console]::Out
-    				[Console]::SetOut([System.IO.StreamWriter]::Null)
-    				try {
-        					Delete-DeliveryOptimizationCache -Force -ErrorAction Stop
-    					} finally {
-        				[Console]::SetOut($temp)
-    				}
-				} *>$null
+				$DeliveryOptimizationSettingsPath = "Registry::HKEY_USERS\S-1-5-20\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Settings"
+				if (-not (Test-Path -Path $DeliveryOptimizationSettingsPath))
+				{
+					New-Item -Path $DeliveryOptimizationSettingsPath -Force -ErrorAction Stop | Out-Null
+				}
+				New-ItemProperty -Path $DeliveryOptimizationSettingsPath -Name DownloadMode -PropertyType DWord -Value 0 -Force -ErrorAction Stop | Out-Null
+					if (Get-Command -Name Delete-DeliveryOptimizationCache -ErrorAction Ignore)
+				{
+					& {
+						$temp = [Console]::Out
+						[Console]::SetOut([System.IO.StreamWriter]::Null)
+						try {
+							Delete-DeliveryOptimizationCache -Force -ErrorAction Stop
+						} finally {
+							[Console]::SetOut($temp)
+						}
+					} *>$null
+				}
+				else
+				{
+					LogInfo "Delete-DeliveryOptimizationCache cmdlet is not available on this OS. Skipping cache cleanup."
+				}
 				Write-ConsoleStatus -Status success
 			}
 			catch
@@ -2100,8 +2112,6 @@ function WindowsFeatures
 	#region Variables
 	# Initialize an array list to store the selected Windows features
 	$SelectedFeatures = New-Object -TypeName System.Collections.ArrayList($null)
-	$UseFallbackFeaturesList = $false
-
 	# The following Windows features will have their checkboxes checked
 	[string[]]$CheckedFeatures = @(
 		# Legacy Components
@@ -2229,15 +2239,21 @@ function WindowsFeatures
 			$CheckBox
 		)
 
-		$Feature = $Features | Where-Object -FilterScript {$_.DisplayName -eq $CheckBox.Parent.Children[1].Text}
+		$Feature = $CheckBox.Tag
 
 		if ($CheckBox.IsChecked)
 		{
-			[void]$SelectedFeatures.Add($Feature)
+			if ($Feature -and ($Feature -notin $SelectedFeatures))
+			{
+				[void]$SelectedFeatures.Add($Feature)
+			}
 		}
 		else
 		{
-			[void]$SelectedFeatures.Remove($Feature)
+			if ($Feature)
+			{
+				[void]$SelectedFeatures.Remove($Feature)
+			}
 		}
 		if ($SelectedFeatures.Count -gt 0)
 		{
@@ -2251,24 +2267,68 @@ function WindowsFeatures
 
 	function DisableButton
 	{
-		Write-ConsoleStatus -Action "Disabling Windows features"
-		LogInfo "Disabling Windows features"
+		try
+		{
+			Write-ConsoleStatus -Action "Disabling Windows features"
+			LogInfo "Disabling Windows features"
+			LogInfo "Windows features selected for disable: $($SelectedFeatures.Count)"
 
-		[void]$Window.Close()
+			[void]$Window.Close()
 
-		$SelectedFeatures | Disable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
-		Write-ConsoleStatus -Status success
+			if (-not $SelectedFeatures -or $SelectedFeatures.Count -eq 0)
+			{
+				throw "No Windows features were selected."
+			}
+
+			foreach ($Feature in @($SelectedFeatures))
+			{
+				LogInfo "Disabling Windows feature: $($Feature.FeatureName)"
+				Invoke-SilencedProgress {
+					Disable-WindowsOptionalFeature -FeatureName $Feature.FeatureName -Online -NoRestart -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+				}
+				LogInfo "Disabled Windows feature: $($Feature.FeatureName)"
+			}
+				Write-ConsoleStatus -Status success
+		}
+		catch
+		{
+			Remove-HandledErrorRecord -ErrorRecord $_
+			LogError "Failed to disable Windows features: $($_.Exception.Message)"
+			Write-ConsoleStatus -Status failed
+		}
 	}
 
 	function EnableButton
 	{
-		Write-ConsoleStatus -Action "Enabling Windows features"
-		LogInfo "Enabling Windows features"
+		try
+		{
+			Write-ConsoleStatus -Action "Enabling Windows features"
+			LogInfo "Enabling Windows features"
+			LogInfo "Windows features selected for enable: $($SelectedFeatures.Count)"
 
-		[void]$Window.Close()
+			[void]$Window.Close()
 
-		$SelectedFeatures | Enable-WindowsOptionalFeature -Online -NoRestart -WarningAction SilentlyContinue
-		Write-ConsoleStatus -Status success
+			if (-not $SelectedFeatures -or $SelectedFeatures.Count -eq 0)
+			{
+				throw "No Windows features were selected."
+			}
+
+			foreach ($Feature in @($SelectedFeatures))
+			{
+				LogInfo "Enabling Windows feature: $($Feature.FeatureName)"
+				Invoke-SilencedProgress {
+					Enable-WindowsOptionalFeature -FeatureName $Feature.FeatureName -Online -NoRestart -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+				}
+				LogInfo "Enabled Windows feature: $($Feature.FeatureName)"
+			}
+				Write-ConsoleStatus -Status success
+		}
+		catch
+		{
+			Remove-HandledErrorRecord -ErrorRecord $_
+			LogError "Failed to enable Windows features: $($_.Exception.Message)"
+			Write-ConsoleStatus -Status failed
+		}
 	}
 
 	function Add-FeatureControl
@@ -2288,10 +2348,12 @@ function WindowsFeatures
 		{
 			$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
 			$CheckBox.Add_Click({Get-CheckboxClicked -CheckBox $_.Source})
+			$CheckBox.Tag = $Feature
 			$CheckBox.ToolTip = $Feature.Description
 
 			$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-			$TextBlock.Text = $Feature.DisplayName
+			$FeatureLabel = if ([string]::IsNullOrWhiteSpace($Feature.DisplayName)) { $Feature.FeatureName } else { $Feature.DisplayName }
+			$TextBlock.Text = $FeatureLabel
 			$TextBlock.ToolTip = $Feature.Description
 
 			$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
@@ -2300,11 +2362,6 @@ function WindowsFeatures
 			[void]$PanelContainer.Children.Add($StackPanel)
 
 			$CheckBox.IsChecked = $false
-
-			if ($UseFallbackFeaturesList)
-			{
-				return
-			}
 
 			# If feature checked add to the array list
 			if (Test-FeaturePatternMatch -FeatureName $Feature.FeatureName -Patterns $UncheckedFeatures)
@@ -2350,17 +2407,7 @@ function WindowsFeatures
 					(Test-FeaturePatternMatch -FeatureName $_.FeatureName -Patterns $CheckedFeatures)
 				)
 			} |
-			ForEach-Object -Process {
-				try
-				{
-					Get-WindowsOptionalFeature -FeatureName $_.FeatureName -Online -ErrorAction Stop
-				}
-				catch
-				{
-					# Ignore per-feature query failures.
-					Remove-HandledErrorRecord -ErrorRecord $_
-				}
-			}
+			Sort-Object -Property DisplayName, FeatureName
 	}
 	catch
 	{
@@ -2370,28 +2417,10 @@ function WindowsFeatures
 
 	if (-not $Features)
 	{
-		try
-		{
-			$Features = Get-WindowsOptionalFeature -Online -ErrorAction Stop |
-				Where-Object -FilterScript {($_.State -in $State) -and -not [string]::IsNullOrWhiteSpace($_.DisplayName)} |
-				Sort-Object -Property DisplayName
-		}
-		catch
-		{
-			Remove-HandledErrorRecord -ErrorRecord $_
-			$Features = $null
-		}
-
-		if (-not $Features)
-		{
-			LogInfo "Windows Features:"
-			LogWarning "All available Windows features already Installed/Uninstalled!"
-			return
-		}
-
-		$UseFallbackFeaturesList = $true
 		LogInfo "Windows Features:"
-		LogWarning "No preset-matched Windows features were found. Showing all available features in the requested state."
+		LogInfo "No preset-matched Windows features were found. Moving on."
+		Write-ConsoleStatus -Action "$(if ($PSCmdlet.ParameterSetName -eq 'Disable') { 'Disabling Windows features' } else { 'Enabling Windows features' })" -Status success
+		return
 	}
 
 	#region Sendkey function
@@ -2416,16 +2445,17 @@ function WindowsFeatures
 		[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
 	}
 	#endregion Sendkey function
-
 	$Button.IsEnabled = $false
 	$Window.Add_Loaded({$Features | Add-FeatureControl})
 	$Button.Content = $ButtonContent
-	$Button.Add_Click({& $ButtonAdd_Click})
+	$Button.Add_Click({
+		& $ButtonAdd_Click
+	})
 
 	$Window.Title = $Localization.WindowsFeaturesTitle
 
-	# Force move the WPF form to the foreground
-	$Window.Add_Loaded({$Window.Activate()})
+	# Restore minimized dialogs and bring them to the foreground once when shown.
+	Initialize-WpfWindowForeground -Window $Form
 	$Form.ShowDialog() | Out-Null
 }
 
@@ -2475,8 +2505,6 @@ function WindowsCapabilities
 	#region Variables
 	# Initialize an array list to store the selected optional features
 	$SelectedCapabilities = New-Object -TypeName System.Collections.ArrayList($null)
-	$UseFallbackCapabilitiesList = $false
-
 	# The following optional features will have their checkboxes checked
 	[string[]]$CheckedCapabilities = @(
 		# Steps Recorder
@@ -2617,15 +2645,21 @@ function WindowsCapabilities
 			$CheckBox
 		)
 
-		$Capability = $Capabilities | Where-Object -FilterScript {$_.DisplayName -eq $CheckBox.Parent.Children[1].Text}
+		$Capability = $CheckBox.Tag
 
 		if ($CheckBox.IsChecked)
 		{
-			[void]$SelectedCapabilities.Add($Capability)
+			if ($Capability -and ($Capability -notin $SelectedCapabilities))
+			{
+				[void]$SelectedCapabilities.Add($Capability)
+			}
 		}
 		else
 		{
-			[void]$SelectedCapabilities.Remove($Capability)
+			if ($Capability)
+			{
+				[void]$SelectedCapabilities.Remove($Capability)
+			}
 		}
 
 		if ($SelectedCapabilities.Count -gt 0)
@@ -2640,18 +2674,51 @@ function WindowsCapabilities
 
 	function UninstallButton
 	{
-		Write-ConsoleStatus -Action "Uninstalling optional features"
-		LogInfo "Uninstalling optional features"
-
-		[void]$Window.Close()
-
-		$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in (Get-WindowsCapability -Online).Name} | Remove-WindowsCapability -Online | Out-Null
-
-		if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
+		try
 		{
-			#LogWarning $Localization.RestartWarning
+			Write-ConsoleStatus -Action "Uninstalling optional features"
+			LogInfo "Uninstalling optional features"
+			LogInfo "Optional features selected for uninstall: $($SelectedCapabilities.Count)"
+
+			[void]$Window.Close()
+
+			if (-not $SelectedCapabilities -or $SelectedCapabilities.Count -eq 0)
+			{
+				throw "No optional features were selected for removal."
+			}
+
+			$AvailableCapabilityNames = (Get-WindowsCapability -Online -ErrorAction Stop).Name
+
+			$CapabilitiesToRemove = @(
+				$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in $AvailableCapabilityNames}
+			)
+
+			if (-not $CapabilitiesToRemove)
+			{
+				throw "None of the selected optional features are currently available for removal."
+			}
+
+			foreach ($Capability in $CapabilitiesToRemove)
+			{
+				LogInfo "Uninstalling optional feature: $($Capability.Name)"
+				Invoke-SilencedProgress {
+					Remove-WindowsCapability -Online -Name $Capability.Name -ErrorAction Stop | Out-Null
+				}
+				LogInfo "Uninstalled optional feature: $($Capability.Name)"
+			}
+
+			if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
+			{
+				#LogWarning $Localization.RestartWarning
+			}
+				Write-ConsoleStatus -Status success
 		}
-		Write-ConsoleStatus -Status success
+		catch
+		{
+			Remove-HandledErrorRecord -ErrorRecord $_
+			LogError "Failed to uninstall optional features: $($_.Exception.Message)"
+			Write-ConsoleStatus -Status failed
+		}
 	}
 
 	function InstallButton
@@ -2660,23 +2727,56 @@ function WindowsCapabilities
 		{
 			Write-ConsoleStatus -Action "Installing optional features"
 			LogInfo "Installing optional features"
+			LogInfo "Optional features selected for install: $($SelectedCapabilities.Count)"
 
 			[void]$Window.Close()
 
-			$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in ((Get-WindowsCapability -Online).Name)} | Add-WindowsCapability -Online | Out-Null
+			if (-not $SelectedCapabilities -or $SelectedCapabilities.Count -eq 0)
+			{
+				throw "No optional features were selected for installation."
+			}
+
+			$AvailableCapabilityNames = (Get-WindowsCapability -Online -ErrorAction Stop).Name
+
+			$CapabilitiesToInstall = @(
+				$SelectedCapabilities | Where-Object -FilterScript {$_.Name -in $AvailableCapabilityNames}
+			)
+
+			if (-not $CapabilitiesToInstall)
+			{
+				throw "None of the selected optional features are currently available for installation."
+			}
+
+			foreach ($Capability in $CapabilitiesToInstall)
+			{
+				LogInfo "Installing optional feature: $($Capability.Name)"
+				Invoke-SilencedProgress {
+					Add-WindowsCapability -Online -Name $Capability.Name -ErrorAction Stop | Out-Null
+				}
+				LogInfo "Installed optional feature: $($Capability.Name)"
+			}
 
 			if ([string]$SelectedCapabilities.Name -match "Browser.InternetExplorer")
 			{
 				#LogWarning $Localization.RestartWarning
 			}
 		}
-		catch [System.Runtime.InteropServices.COMException]
+		catch
 		{
-			#LogWarning -Message ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
-			LogError ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
-			LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+			Remove-HandledErrorRecord -ErrorRecord $_
+			if ($_.Exception -is [System.Runtime.InteropServices.COMException])
+			{
+				LogError ($Localization.NoResponse -f "http://tlu.dl.delivery.mp.microsoft.com/filestreamingservice")
+				LogError ($Localization.RestartFunction -f $MyInvocation.Line.Trim())
+			}
+			else
+			{
+				LogError "Failed to install optional features: $($_.Exception.Message)"
+			}
+			Write-ConsoleStatus -Status failed
+			return
 		}
-		Write-ConsoleStatus -Status success
+			Write-ConsoleStatus -Status success
 	}
 
 	function Add-CapabilityControl
@@ -2696,10 +2796,12 @@ function WindowsCapabilities
 		{
 			$CheckBox = New-Object -TypeName System.Windows.Controls.CheckBox
 			$CheckBox.Add_Click({Get-CheckboxClicked -CheckBox $_.Source})
+			$CheckBox.Tag = $Capability
 			$CheckBox.ToolTip = $Capability.Description
 
 			$TextBlock = New-Object -TypeName System.Windows.Controls.TextBlock
-			$TextBlock.Text = $Capability.DisplayName
+			$CapabilityLabel = if ([string]::IsNullOrWhiteSpace($Capability.DisplayName)) { $Capability.Name } else { $Capability.DisplayName }
+			$TextBlock.Text = $CapabilityLabel
 			$TextBlock.ToolTip = $Capability.Description
 
 			$StackPanel = New-Object -TypeName System.Windows.Controls.StackPanel
@@ -2708,11 +2810,6 @@ function WindowsCapabilities
 			[void]$PanelContainer.Children.Add($StackPanel)
 
 			$CheckBox.IsChecked = $false
-
-			if ($UseFallbackCapabilitiesList)
-			{
-				return
-			}
 
 			# If capability checked add to the array list
 			if (Test-CapabilityPatternMatch -CapabilityName $Capability.Name -Patterns $UncheckedCapabilities)
@@ -2758,35 +2855,32 @@ function WindowsCapabilities
 	}
 
 	# Getting list of all capabilities according to the conditions
-	$Capabilities = Get-WindowsCapability -Online | Where-Object -FilterScript {
-		$CapabilityName = $_.Name
-		($_.State -eq $State) -and
-		(
-			(Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $UncheckedCapabilities) -or
-			(Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $CheckedCapabilities)
-		) -and
-		-not (Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $ExcludedCapabilities)
-	} | ForEach-Object -Process {Get-WindowsCapability -Name $_.Name -Online}
+	try
+	{
+		$Capabilities = Get-WindowsCapability -Online -ErrorAction Stop |
+			Where-Object -FilterScript {
+				$CapabilityName = $_.Name
+				($_.State -eq $State) -and
+				(
+					(Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $UncheckedCapabilities) -or
+					(Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $CheckedCapabilities)
+				) -and
+				-not (Test-CapabilityPatternMatch -CapabilityName $CapabilityName -Patterns $ExcludedCapabilities)
+			} |
+			Sort-Object -Property DisplayName, Name
+	}
+	catch
+	{
+		Remove-HandledErrorRecord -ErrorRecord $_
+		$Capabilities = $null
+	}
 
 	if (-not $Capabilities)
 	{
-		$Capabilities = Get-WindowsCapability -Online | Where-Object -FilterScript {
-			($_.State -eq $State) -and
-			-not (Test-CapabilityPatternMatch -CapabilityName $_.Name -Patterns $ExcludedCapabilities) -and
-			-not [string]::IsNullOrWhiteSpace($_.DisplayName)
-		} | ForEach-Object -Process {Get-WindowsCapability -Name $_.Name -Online}
-
-		if (-not $Capabilities)
-		{
-			LogInfo "Optional Features:"
-			LogWarning "All available Optional features already Installed/Uninstalled!"
-
-			return
-		}
-
-		$UseFallbackCapabilitiesList = $true
 		LogInfo "Optional Features:"
-		LogWarning "No preset-matched Optional features were found. Showing all available features in the requested state."
+		LogInfo "No preset-matched Optional features were found. Moving on."
+		Write-ConsoleStatus -Action "$(if ($PSCmdlet.ParameterSetName -eq 'Uninstall') { 'Uninstalling optional features' } else { 'Installing optional features' })" -Status success
+		return
 	}
 
 	#region Sendkey function
@@ -2811,16 +2905,17 @@ function WindowsCapabilities
 		[System.Windows.Forms.SendKeys]::SendWait("{BACKSPACE 1}")
 	}
 	#endregion Sendkey function
-
 	$Button.IsEnabled = $false
 	$Window.Add_Loaded({$Capabilities | Add-CapabilityControl})
 	$Button.Content = $ButtonContent
-	$Button.Add_Click({& $ButtonAdd_Click})
+	$Button.Add_Click({
+		& $ButtonAdd_Click
+	})
 
 	$Window.Title = $Localization.OptionalFeaturesTitle
 
-	# Force move the WPF form to the foreground
-	$Window.Add_Loaded({$Window.Activate()})
+	# Restore minimized dialogs and bring them to the foreground once when shown.
+	Initialize-WpfWindowForeground -Window $Form
 	$Form.ShowDialog() | Out-Null
 }
 
@@ -5200,20 +5295,46 @@ function ReservedStorage
 			{
 				Write-ConsoleStatus -Action "Disabling reserved storage"
 				LogInfo "Disabling reserved storage"
-				Set-WindowsReservedStorageState -State Disabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
+				if (-not (Get-Command -Name Set-WindowsReservedStorageState -ErrorAction Ignore))
+				{
+					LogWarning "Reserved storage cmdlet is not available on this OS. Skipping."
+					Write-ConsoleStatus -Status success
+					return
+				}
+				Set-WindowsReservedStorageState -State Disabled -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
 				Write-ConsoleStatus -Status success
 			}
 			catch [System.Runtime.InteropServices.COMException]
 			{
 				LogError ($Localization.ReservedStorageIsInUse -f $MyInvocation.Line.Trim())
+				Write-ConsoleStatus -Status failed
+			}
+			catch
+			{
+				Write-ConsoleStatus -Status failed
+				LogError "Failed to disable reserved storage: $($_.Exception.Message)"
 			}
 		}
 		"Enable"
 		{
 			Write-ConsoleStatus -Action "Enabling reserved storage"
 			LogInfo "Enabling reserved storage"
-			Set-WindowsReservedStorageState -State Enabled -ErrorAction SilentlyContinue -WarningAction SilentlyContinue | Out-Null
-			Write-ConsoleStatus -Status success
+			if (-not (Get-Command -Name Set-WindowsReservedStorageState -ErrorAction Ignore))
+			{
+				LogWarning "Reserved storage cmdlet is not available on this OS. Skipping."
+				Write-ConsoleStatus -Status success
+				return
+			}
+			try
+			{
+				Set-WindowsReservedStorageState -State Enabled -ErrorAction Stop -WarningAction SilentlyContinue | Out-Null
+				Write-ConsoleStatus -Status success
+			}
+			catch
+			{
+				Write-ConsoleStatus -Status failed
+				LogError "Failed to enable reserved storage: $($_.Exception.Message)"
+			}
 		}
 	}
 }

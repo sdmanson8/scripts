@@ -662,8 +662,8 @@ function ScheduledTasks
 
 	$Window.Title = $Localization.ScheduledTasks
 
-	# Force move the WPF form to the foreground
-	$Window.Add_Loaded({$Window.Activate()})
+	# Restore minimized dialogs and bring them to the foreground once when shown.
+	Initialize-WpfWindowForeground -Window $Form
 	$Form.ShowDialog() | Out-Null
 
 }
@@ -1278,7 +1278,12 @@ function ClipboardHistory
 			LogInfo "Enabling Clipboard History"
 			try
 			{
-				Set-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
+				$ClipboardPath = "HKCU:\Software\Microsoft\Clipboard"
+				if (-not (Test-Path -Path $ClipboardPath))
+				{
+					New-Item -Path $ClipboardPath -Force -ErrorAction Stop | Out-Null
+				}
+				Set-ItemProperty -Path $ClipboardPath -Name "EnableClipboardHistory" -Type DWord -Value 1 -ErrorAction Stop | Out-Null
 				Write-ConsoleStatus -Status success
 			}
 			catch
@@ -1293,12 +1298,13 @@ function ClipboardHistory
 			LogInfo "Disabling Clipboard History"
 			try
 			{
+				$ClipboardPath = "HKCU:\Software\Microsoft\Clipboard"
 				If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP")) {
 					New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -ErrorAction Stop | Out-Null
 				}
-				if ((Get-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -ErrorAction SilentlyContinue))
+				if ((Test-Path -Path $ClipboardPath) -and ($null -ne (Get-ItemProperty -Path $ClipboardPath -Name "EnableClipboardHistory" -ErrorAction SilentlyContinue)))
 				{
-					Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Clipboard" -Name "EnableClipboardHistory" -ErrorAction Stop | Out-Null
+					Remove-ItemProperty -Path $ClipboardPath -Name "EnableClipboardHistory" -ErrorAction Stop | Out-Null
 				}
 				Write-ConsoleStatus -Status success
 			}
@@ -2219,16 +2225,20 @@ function LockWidgets {
         "Enable" {
             Write-ConsoleStatus -Action "Enabling Windows Web Experience Pack"
             LogInfo "Enabling Windows Web Experience Pack"
-            Get-AppxPackage -AllUsers *WebExperience* | ForEach-Object {
-                Add-AppxPackage -Register "$($_.InstallLocation)\AppXManifest.xml" -DisableDevelopmentMode
-            } | Out-Null
+            Invoke-SilencedProgress {
+                Get-AppxPackage -AllUsers *WebExperience* | ForEach-Object {
+                    Add-AppxPackage -Register "$($_.InstallLocation)\AppXManifest.xml" -DisableDevelopmentMode
+                } | Out-Null
+            }
             Write-Host " success!" -ForegroundColor Green
         }
 
         "Disable" {
             Write-ConsoleStatus -Action "Disabling Windows Web Experience Pack"
             LogInfo "Disabling Windows Web Experience Pack"
-            Get-AppxPackage *WebExperience* | Remove-AppxPackage | Out-Null
+            Invoke-SilencedProgress {
+                Get-AppxPackage *WebExperience* | Remove-AppxPackage | Out-Null
+            }
             Write-Host " success!" -ForegroundColor Green
         }
     }

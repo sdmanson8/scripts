@@ -52,6 +52,34 @@ function OneDrive
 		$AllUsers
 	)
 
+	function Get-OneDriveSetupPath
+	{
+		$preferredPaths = @()
+
+		if ([Environment]::Is64BitOperatingSystem)
+		{
+			$preferredPaths += Join-Path $env:SystemRoot 'System32\OneDriveSetup.exe'
+			$preferredPaths += Join-Path $env:SystemRoot 'Sysnative\OneDriveSetup.exe'
+
+			if (-not [string]::IsNullOrWhiteSpace($env:ProgramFiles))
+			{
+				$preferredPaths += Join-Path $env:ProgramFiles 'Microsoft OneDrive\OneDriveSetup.exe'
+			}
+
+			if (-not [string]::IsNullOrWhiteSpace(${env:ProgramFiles(x86)}))
+			{
+				$preferredPaths += Join-Path ${env:ProgramFiles(x86)} 'Microsoft OneDrive\OneDriveSetup.exe'
+				$preferredPaths += Join-Path $env:SystemRoot 'SysWOW64\OneDriveSetup.exe'
+			}
+		}
+		else
+		{
+			$preferredPaths += Join-Path $env:SystemRoot 'System32\OneDriveSetup.exe'
+		}
+
+		$preferredPaths | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+	}
+
 	# Remove all policies in order to make changes visible in UI only if it's possible
 	Remove-ItemProperty -Path HKLM:\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Force -ErrorAction Ignore | Out-Null
 	Set-Policy -Scope Computer -Path SOFTWARE\Policies\Microsoft\Windows\OneDrive -Name DisableFileSyncNGSC -Type CLEAR | Out-Null
@@ -64,6 +92,8 @@ function OneDrive
 			LogInfo "Uninstalling One Drive"
 			try
 			{
+				$resolvedOneDriveSetup = Get-OneDriveSetupPath
+
 				# Ensure UninstallString exists
 				[string]$UninstallString = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -ErrorAction Ignore |
    				ForEach-Object { $_.Meta.Attributes["UninstallString"] }
@@ -84,14 +114,22 @@ function OneDrive
 				# Kill OneDrive processes safely
 				Stop-Process -Name OneDrive, OneDriveSetup, FileCoAuth -Force -ErrorAction SilentlyContinue | Out-Null
 
-		        # Start uninstall and wait
-		        [string[]]$OneDriveSetup = ($UninstallString -replace("\s*/", ",/")).Split(",") | ForEach-Object { $_.Trim() }
-		        $Arguments = if ($OneDriveSetup.Count -gt 1) { $OneDriveSetup[1..($OneDriveSetup.Count-1)] } else { @() }
-
-		        if ($OneDriveSetup -and $OneDriveSetup[0]) {
-		            $OneDriveUninstallProcess = Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $Arguments -Wait -PassThru -ErrorAction Stop
+		        # Prefer a locally resolved setup executable so ARM64 does not inherit an incompatible uninstall path.
+				if ($resolvedOneDriveSetup)
+				{
+		            $OneDriveUninstallProcess = Start-Process -FilePath $resolvedOneDriveSetup -ArgumentList '/uninstall' -Wait -PassThru -ErrorAction Stop
 					if ($OneDriveUninstallProcess.ExitCode -ne 0) { throw "OneDrive uninstaller returned exit code $($OneDriveUninstallProcess.ExitCode)" }
 		        }
+				else
+				{
+		        	[string[]]$OneDriveSetup = ($UninstallString -replace("\s*/", ",/")).Split(",") | ForEach-Object { $_.Trim(' ', '"') }
+		        	$Arguments = if ($OneDriveSetup.Count -gt 1) { $OneDriveSetup[1..($OneDriveSetup.Count-1)] } else { @('/uninstall') }
+
+		        	if ($OneDriveSetup -and $OneDriveSetup[0]) {
+		            	$OneDriveUninstallProcess = Start-Process -FilePath $OneDriveSetup[0] -ArgumentList $Arguments -Wait -PassThru -ErrorAction Stop
+						if ($OneDriveUninstallProcess.ExitCode -ne 0) { throw "OneDrive uninstaller returned exit code $($OneDriveUninstallProcess.ExitCode)" }
+		        	}
+				}
 
 				# Safely remove OneDrive user folder if exists
 				if ($env:OneDrive -and (Test-Path -Path $env:OneDrive)) {
@@ -125,25 +163,26 @@ function OneDrive
 			LogInfo "Installing One Drive"
 			try
 			{
+				$resolvedOneDriveSetup = Get-OneDriveSetupPath
 				$OneDrive = Get-Package -Name "Microsoft OneDrive" -ProviderName Programs -Force -ErrorAction Ignore
 				if ($OneDrive)
 				{
 					LogInfo ($Localization.Skipped -f $MyInvocation.Line.Trim())
 				}
 
-				if (Test-Path -Path $env:SystemRoot\System32\OneDriveSetup.exe)
+				if ($resolvedOneDriveSetup)
 				{
 					LogInfo $Localization.OneDriveInstalling
 
 					if ($AllUsers)
 					{
 						# Install OneDrive for all users
-						$OneDriveInstallProcess = Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -ArgumentList "/allusers" -Wait -PassThru -ErrorAction Stop
+						$OneDriveInstallProcess = Start-Process -FilePath $resolvedOneDriveSetup -ArgumentList "/allusers" -Wait -PassThru -ErrorAction Stop
 						if ($OneDriveInstallProcess.ExitCode -ne 0) { throw "OneDriveSetup.exe returned exit code $($OneDriveInstallProcess.ExitCode)" }
 					}
 					else
 					{
-						$OneDriveInstallProcess = Start-Process -FilePath $env:SystemRoot\System32\OneDriveSetup.exe -Wait -PassThru -ErrorAction Stop
+						$OneDriveInstallProcess = Start-Process -FilePath $resolvedOneDriveSetup -Wait -PassThru -ErrorAction Stop
 						if ($OneDriveInstallProcess.ExitCode -ne 0) { throw "OneDriveSetup.exe returned exit code $($OneDriveInstallProcess.ExitCode)" }
 					}
 				}

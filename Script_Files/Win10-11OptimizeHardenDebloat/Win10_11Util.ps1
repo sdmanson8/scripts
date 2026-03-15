@@ -162,6 +162,9 @@ CheckWinGet
 #Install Powershell 7
 Update-Powershell
 
+# Enable the LanmanWorkstation guest-auth Group Policy setting when it is not already defined
+LanmanWorkstationGuestAuthPolicy
+
 # Hide "About this Picture" on Desktop
 Update-DesktopRegistry
 

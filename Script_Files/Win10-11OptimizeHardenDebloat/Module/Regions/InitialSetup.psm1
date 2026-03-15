@@ -4,6 +4,71 @@ using module ..\Helpers.psm1
 #region Initial Setup
 <#
 	.SYNOPSIS
+	Refresh the current process PATH from the machine and user environment blocks.
+#>
+function Update-ProcessPathFromRegistry
+{
+	$MachinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+	$UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
+	$env:Path = (@($MachinePath, $UserPath) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) -join ";"
+}
+
+<#
+	.SYNOPSIS
+	Resolve the local winget.exe path without assuming the current PATH is fresh.
+#>
+function Resolve-WinGetExecutable
+{
+	Update-ProcessPathFromRegistry
+
+	$WingetCommand = Get-Command -Name winget.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source -ErrorAction SilentlyContinue
+	if (-not [string]::IsNullOrWhiteSpace($WingetCommand))
+	{
+		return $WingetCommand
+	}
+
+	$CandidatePaths = @(
+		(Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps\winget.exe")
+		(Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\winget.exe")
+	) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+
+	return ($CandidatePaths | Select-Object -First 1)
+}
+
+<#
+	.SYNOPSIS
+	Get the current WinGet version if winget.exe can be resolved and executed.
+#>
+function Get-WinGetVersion
+{
+	$WingetPath = Resolve-WinGetExecutable
+	if (-not $WingetPath)
+	{
+		return $null
+	}
+
+	try
+	{
+		$WingetVersion = & $WingetPath --version 2>$null
+		if ($LASTEXITCODE -eq 0)
+		{
+			$ResolvedVersion = [string]($WingetVersion | Select-Object -First 1)
+			if (-not [string]::IsNullOrWhiteSpace($ResolvedVersion))
+			{
+				return $ResolvedVersion.Trim()
+			}
+		}
+	}
+	catch
+	{
+		return $null
+	}
+
+	return $null
+}
+
+<#
+	.SYNOPSIS
 	Check whether WinGet is installed and install it if needed.
 
 	.DESCRIPTION
@@ -28,21 +93,19 @@ function CheckWinGet
     LogInfo "Detected OS: $osName (Build $currentBuild, Release $osVersion)"
     
     # Check if winget is already installed and working
-    try {
-        $wingetVersion = winget --version 2>$null
-    if ($LASTEXITCODE -eq 0) {
+    $wingetVersion = Get-WinGetVersion
+    if ($wingetVersion) {
         Write-ConsoleStatus -Action "Checking WinGet"
         LogInfo "Checking WinGet"
         LogInfo "Winget is already installed and working. Version: $wingetVersion"
         Write-ConsoleStatus -Status success
         return
     }
-    } catch {
-        LogWarning "Winget not found or not functional"
-    }
+
+    LogWarning "Winget not found or not functional"
     
     # If not working, use the asheroto installer script
-    Write-Host "Installing WinGet:" -NoNewline
+    Write-ConsoleStatus -Action "Installing WinGet"
     LogInfo "Installing WinGet:"
     
     try {
@@ -84,7 +147,8 @@ function CheckWinGet
         }
         
         # Check process exit code
-        if ($process.ExitCode -eq 0 -or $null -eq $process.ExitCode) {
+        $installerCompletedSuccessfully = ($process.ExitCode -eq 0 -or $null -eq $process.ExitCode)
+        if ($installerCompletedSuccessfully) {
             LogInfo "Installer script completed successfully"
         } else {
             LogWarning "Installer script reported exit code: $($process.ExitCode)"
@@ -95,24 +159,27 @@ function CheckWinGet
         
         # Final validation
         Start-Sleep -Seconds 5
-        try {
-            $wingetVersion = winget --version 2>$null
-        if ($LASTEXITCODE -eq 0) {
+        $wingetVersion = Get-WinGetVersion
+        if ($wingetVersion) {
+            LogInfo "Winget validation succeeded. Version: $wingetVersion"
             Write-ConsoleStatus -Status success
             return
-        } else {
-                throw "Winget validation failed"
-            }
-        } catch {
-            LogError "Winget installation failed validation: $_"
-            Write-ConsoleStatus -Status failed
-            return $false
         }
+
+        if ($installerCompletedSuccessfully) {
+            LogWarning "Winget installation completed, but winget.exe is not available in the current session yet. A new session may be required."
+            Write-ConsoleStatus -Status success
+            return
+        }
+
+        LogError "Winget installation failed validation after the installer completed."
+        Write-ConsoleStatus -Status failed
+        return
         
     } catch {
         LogError "Error during winget installation: $_"
         Write-ConsoleStatus -Status failed
-        return $false
+        return
     }
 }
 
@@ -135,7 +202,113 @@ Function Update-Powershell
     Write-ConsoleStatus -Action "Checking Powershell Installation"
     LogInfo "Checking Powershell Installation"
 
-    $pwshCandidatePaths = @(
+    function Test-InternetReachability
+    {
+        $testUris = @(
+            'https://www.msftconnecttest.com/connecttest.txt',
+            'https://github.com'
+        )
+
+        foreach ($testUri in $testUris)
+        {
+            try
+            {
+                Invoke-WebRequest -Uri $testUri -Method Head -UseBasicParsing -TimeoutSec 15 -ErrorAction Stop | Out-Null
+                return $true
+            }
+            catch
+            {
+                continue
+            }
+        }
+
+        return $false
+    }
+
+    function Test-PwshInstalled
+    {
+        @(
+            (Join-Path $env:ProgramFiles 'PowerShell\7\pwsh.exe')
+            (Join-Path ${env:ProgramFiles(x86)} 'PowerShell\7\pwsh.exe')
+            (Get-Command -Name pwsh.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue)
+        ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
+    }
+
+    function Install-PowerShellViaMsi
+    {
+        param
+        (
+            [Parameter(Mandatory = $true)]
+            [string]
+            $Version
+        )
+
+        $normalizedVersion = ($Version -replace '\.0$', '')
+        $msiUrl = "https://github.com/PowerShell/PowerShell/releases/download/v$normalizedVersion/PowerShell-$normalizedVersion-win-x64.msi"
+        $msiPath = Join-Path $env:TEMP "PowerShell-$normalizedVersion-win-x64.msi"
+
+        LogInfo "Downloading PowerShell MSI from $msiUrl"
+        Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing -ErrorAction Stop
+
+        try
+        {
+            $msiProcess = Start-Process -FilePath msiexec.exe -ArgumentList '/i', "`"$msiPath`"", '/qn', '/norestart' -Verb RunAs -Wait -PassThru -ErrorAction Stop
+            if ($msiProcess.ExitCode -ne 0)
+            {
+                throw "MSI installer returned exit code $($msiProcess.ExitCode)."
+            }
+        }
+        finally
+        {
+            Remove-Item -LiteralPath $msiPath -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    function Get-LatestPowerShellVersion
+    {
+        $wingetPath = Resolve-WinGetExecutable
+        if ($wingetPath)
+        {
+            try
+            {
+                $wingetShowOutput = & $wingetPath show --id Microsoft.PowerShell --accept-source-agreements 2>$null
+                if ($LASTEXITCODE -eq 0)
+                {
+                    $wingetVersion = ($wingetShowOutput | Select-String -Pattern "Version:" | ForEach-Object { $_.ToString().Split()[-1] }).Trim()
+                    if (-not [string]::IsNullOrWhiteSpace($wingetVersion))
+                    {
+                        return $wingetVersion
+                    }
+                }
+            }
+            catch
+            {
+                LogWarning "winget metadata lookup failed: $($_.Exception.Message)"
+            }
+        }
+        else
+        {
+            LogWarning "winget.exe was not found. Falling back to direct PowerShell release lookup."
+        }
+
+        try
+        {
+            $releaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/PowerShell/PowerShell/releases/latest" -Headers @{ "User-Agent" = "Win10_11Util" } -ErrorAction Stop
+            $tagName = [string]$releaseInfo.tag_name
+            if (-not [string]::IsNullOrWhiteSpace($tagName))
+            {
+                return $tagName.TrimStart('v')
+            }
+        }
+        catch
+        {
+            LogWarning "GitHub release lookup failed: $($_.Exception.Message)"
+        }
+
+        return $null
+    }
+
+    [string[]]$pwshCandidatePaths = @(
         (Join-Path $env:ProgramFiles 'PowerShell\7\pwsh.exe')
         (Join-Path ${env:ProgramFiles(x86)} 'PowerShell\7\pwsh.exe')
     ) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique
@@ -166,20 +339,11 @@ Function Update-Powershell
 
     $psVersion = $PSVersionTable.PSVersion
     if ($psVersion.Major -lt 7)
-	{
-		# Get the latest version of PowerShell 7 from winget
-		$wingetShowOutput = winget show --id Microsoft.PowerShell --accept-source-agreements 2>$null
-		if ($LASTEXITCODE -ne 0)
 		{
-			LogError "winget show failed to retrieve Microsoft.PowerShell metadata. Exit code: $LASTEXITCODE"
-            Write-ConsoleStatus -Status failed
-			return
-		}
-
-		$latestVersion = ($wingetShowOutput | Select-String -Pattern "Version:" | ForEach-Object { $_.ToString().Split()[-1] }).Trim()
+		$latestVersion = Get-LatestPowerShellVersion
 
 		if (-not $latestVersion) {
-			LogError "Failed to retrieve the latest PowerShell version."
+			LogError "Failed to retrieve the latest PowerShell version from winget or GitHub."
             Write-ConsoleStatus -Status failed
 			return
 		}
@@ -188,30 +352,75 @@ Function Update-Powershell
 		LogInfo "Installing PowerShell $latestVersion"
 		try
 		{
-			$wingetStdOutPath = Join-Path $env:TEMP "WinUtil-PowerShellInstall.stdout.log"
-			$wingetStdErrPath = Join-Path $env:TEMP "WinUtil-PowerShellInstall.stderr.log"
-			Remove-Item -Path $wingetStdOutPath, $wingetStdErrPath -Force -ErrorAction SilentlyContinue | Out-Null
-
-			# Run winget command as administrator to install PowerShell
-			$PowerShellInstallProcess = Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile', '-ExecutionPolicy Bypass', '-Command winget install --id Microsoft.PowerShell --silent --accept-package-agreements --accept-source-agreements' -Verb RunAs -Wait -PassThru -RedirectStandardOutput $wingetStdOutPath -RedirectStandardError $wingetStdErrPath -ErrorAction Stop
-			if ($PowerShellInstallProcess.ExitCode -ne 0)
+			$wingetPath = Resolve-WinGetExecutable
+			if ($wingetPath)
 			{
-				$wingetStdOut = if (Test-Path $wingetStdOutPath) { (Get-Content -Path $wingetStdOutPath -Raw -ErrorAction SilentlyContinue).Trim() } else { "" }
-				$wingetStdErr = if (Test-Path $wingetStdErrPath) { (Get-Content -Path $wingetStdErrPath -Raw -ErrorAction SilentlyContinue).Trim() } else { "" }
-				$wingetDetails = @($wingetStdErr, $wingetStdOut) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1
+				$wingetArgs = @(
+					'install',
+					'--id', 'Microsoft.PowerShell',
+					'--accept-package-agreements',
+					'--accept-source-agreements'
+				)
 
-				LogError "PowerShell 7 installation failed. WinGet returned exit code $($PowerShellInstallProcess.ExitCode)."
-				if ($wingetDetails)
+				# Launch WinGet in its own elevated process so its output does not pollute the active console.
+				# Any native installer/progress UI remains visible in the spawned window.
+				$PowerShellInstallProcess = Start-Process -FilePath $wingetPath -ArgumentList $wingetArgs -Verb RunAs -Wait -PassThru -ErrorAction Stop
+				if ($PowerShellInstallProcess.ExitCode -ne 0)
 				{
-					LogError "WinGet said: $wingetDetails"
+					$wingetExitCodeHex = ('0x{0:X8}' -f ($PowerShellInstallProcess.ExitCode -band 0xFFFFFFFF))
+					LogWarning "PowerShell 7 installation via WinGet failed with exit code $($PowerShellInstallProcess.ExitCode) ($wingetExitCodeHex)."
+
+					if (-not (Test-InternetReachability))
+					{
+						LogError "PowerShell 7 installation failed and no internet connectivity was detected."
+						Write-ConsoleStatus -Status failed
+						return
+					}
+
+					if ($wingetExitCodeHex -eq '0x8A15005E')
+					{
+						LogWarning "WinGet source certificate validation failed. Resetting sources and retrying once."
+						try
+						{
+							Start-Process -FilePath $wingetPath -ArgumentList @('source', 'reset', '--force') -Verb RunAs -Wait -PassThru -ErrorAction Stop | Out-Null
+							Start-Process -FilePath $wingetPath -ArgumentList @('source', 'update') -Verb RunAs -Wait -PassThru -ErrorAction Stop | Out-Null
+							$PowerShellInstallProcess = Start-Process -FilePath $wingetPath -ArgumentList $wingetArgs -Verb RunAs -Wait -PassThru -ErrorAction Stop
+						}
+						catch
+						{
+							LogWarning "WinGet source repair failed: $($_.Exception.Message)"
+						}
+					}
+
+					if ($PowerShellInstallProcess.ExitCode -ne 0)
+					{
+						LogWarning "Falling back to direct MSI installation for PowerShell $latestVersion."
+						Install-PowerShellViaMsi -Version $latestVersion
+					}
 				}
-				else
+			}
+			else
+			{
+				if (-not (Test-InternetReachability))
 				{
-					LogError "WinGet did not provide a readable error message. This is usually a source, package manager, or elevation problem."
+					LogError "winget.exe was not found and no internet connectivity was detected for MSI fallback."
+					Write-ConsoleStatus -Status failed
+					return
 				}
-                Write-ConsoleStatus -Status failed
+
+				LogWarning "winget.exe was not found. Falling back directly to MSI installation for PowerShell $latestVersion."
+				Install-PowerShellViaMsi -Version $latestVersion
+			}
+
+			[string[]]$pwshInstalled = @(Test-PwshInstalled)
+
+			if (-not $pwshInstalled)
+			{
+				LogError "PowerShell 7 installation completed, but pwsh.exe was not found afterward."
+				Write-ConsoleStatus -Status failed
 				return
 			}
+
 			Write-ConsoleStatus -Status success
 		}
 		catch
